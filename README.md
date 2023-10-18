@@ -26,7 +26,7 @@
 
 Oracle Java Platform extension brings full featured Java development (edit-compile-debug & test cycle) for Maven and Gradle projects to VSCode. As well as other features.
 ## Getting Started
-1. Set JDK in `VSCode | Preferences | Settings ...` __jdk: Jdkhome__ setting to point to JDK which Language Server will run on and projects will be compiled with. More below in section [Selecting the JDK](#selecting-the-jdk)
+1. Set JDK in `View | Command Palette | Preferences:Open User Settings (JSON) ...` __jdk: Jdkhome__ setting to point to JDK which Language Server will run on and projects will be compiled with. More below in section [Selecting the JDK](#selecting-the-jdk)
 2. If no JDK is present in your system then extension can setup things for you. More below in section [JDK Downloader](#jdk-downloader)  
 3. Use __Java: New Project...__ " command to start creating new project, or
 4. Open the folder with existing __pom.xml__ for Maven or ___Gradle___ project files (_build.gradle, gradle.properties_). Language Server opens the project, resolves dependencies if any and performs priming build, or
@@ -123,12 +123,12 @@ Move members refactoring provides dedicated form as well.
 ## Organize Imports
 Out of the box support for organizing imports in Java sources is available. It removes unused imports, groups imports by packages and updates your imports whenever a file is saved. In addition to the defaults, there is a rich set of configuration options. 
 
-Go to VSCode `Settings | Extensions | Java`  and search for _Jdk_ to set `Jdk > Java > Imports:` options:
+Go to VSCode `View | Command Palette | Preferences:Open User Settings | Extensions | Java`  and search for _Jdk_ to set `Jdk > Java > Imports:` options:
 * `Count For Using Star Import` - Class count to use a star-import, 999 is the default value
 * `Count For Using Static Star Import` - Members count to use a static star-import, 999 is the default value
 * `Groups` - Groups of import statements (specified by their package prefixes) and their sorting order. Import statements within a group are ordered alphabetically
 
-And `Extensions > Java > On Save: Organize Imports` - Enable organize imports action on a document save
+And `View | Command Palette | Preferences:Open User Settings | Extensions > Java > On Save: Organize Imports` - Enable organize imports action on a document save
 
 ## JavaDoc smart editing
 When adding JavaDoc to code Oracle Java Platform extension assists by suggesting to insert preformatted and prepopulated JavaDoc comment. Type `/**` above method signature and IDE offers to complete the JavaDoc. The action creates JavaDoc comment with all arguments prepared.  
@@ -159,7 +159,7 @@ As soon as one of the settings is changed, the Language Server is restarted.
 
 ## Running Language Server per VSCode workspace or for user
 It is possible to run Oracle Java Platform extension per workspace (VSCode window). This allows separation of Language Server for given project as Language Server JVM is not shared for more VSCode open workspaces (projects).
-It is possible to change this in `Preferences | Settings | Jdk: Userdir`. Set to `local` to use dedicated Language Server per workspace or set to `global` to have one Language Server for all VS Code workspaces.
+It is possible to change this in `View | Command Palette | Preferences:Open User Settings | Jdk: Userdir`. Set to `local` to use dedicated Language Server per workspace or set to `global` to have one Language Server for all VS Code workspaces.
 
 ## Contributing
 
