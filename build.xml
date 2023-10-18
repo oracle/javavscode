@@ -84,9 +84,9 @@
         <ant dir="nbcode" target="clean" inheritall="false" inheritrefs="false"/>
     </target>
     <target name="build-vscode-ext" depends="add-extra-modules" description="Build the Visual Studio Code extension.">
-<!--        <taskdef name="gitbranchhash" classname="org.netbeans.nbbuild.GitBranchHash" classpath="${nbantext.jar}" />
-        <gitbranchhash file="." branchproperty="metabuild.branch" hashproperty="metabuild.hash" />-->
-        <condition property="metabuild.hash" value="master" >
+        <taskdef name="gitbranchhash" classname="org.netbeans.nbbuild.GitBranchHash" classpath="${nbantext.jar}" />
+        <gitbranchhash file="." branchproperty="metabuild.branch" hashproperty="metabuild.hash" />
+        <condition property="metabuild.hash" value="main" >
             <not>
                 <isset property="metabuild.hash" />
             </not>
@@ -133,7 +133,7 @@
         <exec executable="${build.dir}/vsce/node_modules/.bin/vsce${cmd.suffix}" failonerror="true" dir="${basedir}/vscode">
             <arg value="package" />
             <arg value="--baseImagesUrl" />
-            <arg value="https://github.com/apache/netbeans/raw/${metabuild.hash}/java/java.lsp.server/vscode" />
+            <arg value="https://github.com/oracle/javavscode/raw/${metabuild.hash}/vscode" />
             <arg value="--out" />
             <arg value="${build.dir}/oracle-java-${vsix.version}.vsix" />
     </exec>
