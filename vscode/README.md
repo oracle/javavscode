@@ -49,17 +49,17 @@ In the VS Code command palette :
 ## Project Explorer
 Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.
 
-![Project Explorer](vscode/images/project-explorer.png)
+![Project Explorer](images/project-explorer.png)
 
 ## Debugger and Launch Configurations
 Language Server __Java+ ...__ launch configuration supports debugging and running Java applications using JDK11 or newer. 
 1. The launch configuration (debugger) is invoked when `Run main | Debug main` code lense is selected in the code.
 2. Or __Java+...__ is selected in __Run and Debug__ activity panel.
-![Debug configurations](vscode/images/debuggers.png)
+![Debug configurations](images/debuggers.png)
 ### Launch Configurations
 * __Launch Java App__ - Debug or Run current Java project
 * __Attach to Port__ & __Attach to Process__ - Attach debugger actions. Available when __Java+ ...__ at the bottom of drop down list is selected.
-    * Select this configuration, then click the ![Run](vscode/images/run.png) 
+    * Select this configuration, then click the ![Run](images/run.png) 
     * Select either from available process or enter the port to connect to JVM running with JDWP.
     * __Attach to Shared Memory__ is available on Windows in addtion to above mentioned _Attach..._
 
@@ -68,42 +68,42 @@ Default launch configurations provided by Language Server can modified in `launc
 ### Run Configurations panel
 Program arguments, VM options, evironment variables,... can be set in Run Configuration panel a part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).
 
-![Run Configuration](vscode/images/run_config.png) 
+![Run Configuration](images/run_config.png) 
 
 ## JDK Downloader
 If the system does not detect any JDK, the extension will offer a downloader and setup prompt to help you set up a JDK. This setup provides options for Oracle JDK, OpenJDK, and allows you to choose from any installed JDK on your system.
 Alternatively, you can manually specify the path to JDK binaries by utilizing the JDK downloader.
 You can also access the JDK downloader through the "Download, install, and Use JDK" option in the command palette.
 
-![JDK Downloader](vscode/images/jdk_downloader.png) 
+![JDK Downloader](images/jdk_downloader.png) 
 
 ## Supported Refactorings
 
-Class level refactorings as well as variable refactorings are supported in VSCode via Oracle Java Platform extension. See following screenshots:
+Class level refactorings as well as variable refactorings are supported in VS Code via Oracle Java Platform extension. See following screenshots:
 
 ### Source Action ... context menu
-![Class Source Actions](vscode/images/Source_actions.png) 
+![Class Source Actions](images/Source_actions.png) 
 
 ### Introduce refactorings available via Show Code actions light bulb
-![Introduce ... refactoring](vscode/images/Introduce_refactoring.png)
+![Introduce ... refactoring](images/Introduce_refactoring.png)
 
 ### More Refactorings available also using Refactor... context menu
-![More Refactorings](vscode/images/Refactor_menu.png)
+![More Refactorings](images/Refactor_menu.png)
 
 ### Surround with refactorings
-![Surrond with Refactorings](vscode/images/Surrond_With_refactorings.png)
+![Surrond with Refactorings](images/Surrond_With_refactorings.png)
 
 Some refactorings are two steps with like __Generate Override method__ ... where method to be overriden is selected in 2nd step:
 
-![Override refactoring](vscode/images/Override_refactoring.png)
+![Override refactoring](images/Override_refactoring.png)
 
 ### Change Method Parameters refactoring
 Change method parameters refactoring is provided using dedicated form allowing to change, add, move, remove method parameters.
-![Change method parameters refactoring](vscode/images/change_method_params.png)
+![Change method parameters refactoring](images/change_method_params.png)
 
 ### Move Members Refactoring
 Move members refactoring provides dedicated form as well.
-![Move members refactoring](vscode/images/move_refactoring.png)
+![Move members refactoring](images/move_refactoring.png)
 
 ### Some of supported refactorings:
 * Convert to static import 
@@ -135,11 +135,11 @@ And `Extensions > Java > On Save: Organize Imports` - Enable organize imports ac
 
 ## JavaDoc smart editing
 When adding JavaDoc to code Oracle Java Platform extension assists by suggesting to insert preformatted and prepopulated JavaDoc comment. Type `/**` above method signature and IDE offers to complete the JavaDoc. The action creates JavaDoc comment with all arguments prepared.
-![JavaDoc Completion](vscode/images/javadoc.png)
+![JavaDoc Completion](images/javadoc.png)
 
 ## Test Explorer
 Oracle Java Platform extension provides Test Explorer view which allows to run all tests in a project, examine the results, go to source code and  run particular test.
-![Test Explorer](vscode/images/Test_explorer.png)
+![Test Explorer](images/Test_explorer.png)
 
 ## Supported Options
 
@@ -166,16 +166,16 @@ It is possible to change this in `Preferences | Settings | Jdk: Userdir`. Set to
 
 ## Contributing
 
-This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
+This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](../CONTRIBUTING.md)
 
 
 ## Security
 
-Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
+Please consult the [security guide](../SECURITY.md) for our responsible security vulnerability disclosure process
 
 ## License
 
 Copyright (c) 2023 Oracle and/or its affiliates.
 
-Oracle Java Platform Extension for Visual Studio Code is licensed under [Apache 2.0 License](./LICENSE.txt). 
-The [THIRD_PARTY_LICENSES](./THIRD_PARTY_LICENSES.txt) file contains third party notices and licenses.
+Oracle Java Platform Extension for Visual Studio Code is licensed under [Apache 2.0 License](../LICENSE.txt). 
+The [THIRD_PARTY_LICENSES](../THIRD_PARTY_LICENSES.txt) file contains third party notices and licenses.
