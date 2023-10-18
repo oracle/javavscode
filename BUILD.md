@@ -41,7 +41,7 @@ $ cd netbeans/
 $ git checkout f48f91e6c197d8a40bd82fc2f2d12a4e71242afe
 $ cd ..
 $ ant apply-patches
-$ ant
+$ ant build-netbeans
 
 ```
 
