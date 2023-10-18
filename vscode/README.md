@@ -47,14 +47,13 @@ In the VS Code command palette :
 * Maven and Gradle support including multi-project projects, subprojects opening and Gradle priming builds.
 
 ## Project Explorer
-Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.
-
+Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.  
 ![Project Explorer](images/project-explorer.png)
 
 ## Debugger and Launch Configurations
 Language Server __Java+ ...__ launch configuration supports debugging and running Java applications using JDK11 or newer. 
 1. The launch configuration (debugger) is invoked when `Run main | Debug main` code lense is selected in the code.
-2. Or __Java+...__ is selected in __Run and Debug__ activity panel.
+2. Or __Java+...__ is selected in __Run and Debug__ activity panel.  
 ![Debug configurations](images/debuggers.png)
 ### Launch Configurations
 * __Launch Java App__ - Debug or Run current Java project
@@ -66,15 +65,13 @@ Language Server __Java+ ...__ launch configuration supports debugging and runnin
 Default launch configurations provided by Language Server can modified in `launch.json` file.
 
 ### Run Configurations panel
-Program arguments, VM options, evironment variables,... can be set in Run Configuration panel a part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).
-
+Program arguments, VM options, evironment variables,... can be set in Run Configuration panel a part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).  
 ![Run Configuration](images/run_config.png) 
 
 ## JDK Downloader
 If the system does not detect any JDK, the extension will offer a downloader and setup prompt to help you set up a JDK. This setup provides options for Oracle JDK, OpenJDK, and allows you to choose from any installed JDK on your system.
 Alternatively, you can manually specify the path to JDK binaries by utilizing the JDK downloader.
-You can also access the JDK downloader through the "Download, install, and Use JDK" option in the command palette.
-
+You can also access the JDK downloader through the "Download, install, and Use JDK" option in the command palette.  
 ![JDK Downloader](images/jdk_downloader.png) 
 
 ## Supported Refactorings
@@ -93,12 +90,11 @@ Class level refactorings as well as variable refactorings are supported in VS Co
 ### Surround with refactorings
 ![Surrond with Refactorings](images/Surrond_With_refactorings.png)
 
-Some refactorings are two steps with like __Generate Override method__ ... where method to be overriden is selected in 2nd step:
-
+Some refactorings are two steps with like __Generate Override method__ ... where method to be overriden is selected in 2nd step:  
 ![Override refactoring](images/Override_refactoring.png)
 
 ### Change Method Parameters refactoring
-Change method parameters refactoring is provided using dedicated form allowing to change, add, move, remove method parameters.
+Change method parameters refactoring is provided using dedicated form allowing to change, add, move, remove method parameters.  
 ![Change method parameters refactoring](images/change_method_params.png)
 
 ### Move Members Refactoring
@@ -134,11 +130,11 @@ Go to VSCode `Settings | Extensions | Java`  and search for _Jdk_ to set `Jdk > 
 And `Extensions > Java > On Save: Organize Imports` - Enable organize imports action on a document save
 
 ## JavaDoc smart editing
-When adding JavaDoc to code Oracle Java Platform extension assists by suggesting to insert preformatted and prepopulated JavaDoc comment. Type `/**` above method signature and IDE offers to complete the JavaDoc. The action creates JavaDoc comment with all arguments prepared.
+When adding JavaDoc to code Oracle Java Platform extension assists by suggesting to insert preformatted and prepopulated JavaDoc comment. Type `/**` above method signature and IDE offers to complete the JavaDoc. The action creates JavaDoc comment with all arguments prepared.  
 ![JavaDoc Completion](images/javadoc.png)
 
 ## Test Explorer
-Oracle Java Platform extension provides Test Explorer view which allows to run all tests in a project, examine the results, go to source code and  run particular test.
+Oracle Java Platform extension provides Test Explorer view which allows to run all tests in a project, examine the results, go to source code and  run particular test.  
 ![Test Explorer](images/Test_explorer.png)
 
 ## Supported Options
