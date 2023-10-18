@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (c) 2023, Oracle and/or its affiliates.
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+
+-->
+
+<!-- This file has been modified for Oracle Java SE extension -->
+
+<project basedir="." default="netbeans" name="oracle-java-vs-code-extension">
+    <description>Builds, tests, and runs the project org.netbeans.modules.java.lsp.server</description>
+    <property name="lsp.build.dir" location="vscode/nbcode" />
+    <property name="build.dir" location="build" />
+    <property name="nbplatform.default.netbeans.dest.dir" location="netbeans/nbbuild/netbeans" />
+    <property name="nbplatform.default.harness.dir" location="${nbplatform.default.netbeans.dest.dir}/harness" />
+    <property name="nbantext.jar" location="netbeans/nbbuild/build/nbantext.jar" />
+    <property name="nb_all" location="netbeans" />
+    <condition property="cmd.suffix" value=".cmd" else="">
+        <os family="windows"/>
+    </condition>
+    <target name="proxy-setup">
+<!--        <taskdef name="autoupdate" classname="org.netbeans.nbbuild.AutoUpdate" classpath="${nbantext.jar}"/>
+        <taskdef name="configureproxy" classname="org.netbeans.nbbuild.extlibs.ConfigureProxy" classpath="${nbantext.jar}"/>
+        <configureproxy connectto="https://netbeans.osuosl.org/binaries/" hostProperty="proxyHost" portProperty="proxyPort"/>
+        <setproxy proxyhost="${proxyHost}" proxyPort="${proxyPort}"/>-->
+    </target>
+    <target name="build-lsp-server" depends="-set-use-jdk-javac,proxy-setup" description="Prepares NetBeans bits for vscode extensions">
+        <ant dir="nbcode" target="build-zip" inheritall="false" inheritrefs="false">
+            <property name="nbplatform.default.netbeans.dest.dir" location="${nbplatform.default.netbeans.dest.dir}" />
+            <property name="nbplatform.default.harness.dir" location="${nbplatform.default.harness.dir}" />
+            <property name="nbantext.jar" location="${nbantext.jar}" />
+        </ant>
+        <unzip src="nbcode/dist/nbcode.zip" dest="${lsp.build.dir}/../">
+            <globmapper from="nbcode/nb/*" to="nbcode/nbcode/*"/>
+        </unzip>
+        <mkdir dir="${lsp.build.dir}/bin" />
+        <copy todir="${lsp.build.dir}/bin" file="script/bin/nbcode" overwrite="true" />
+        <mkdir dir="${lsp.build.dir}/etc" />
+        <copy todir="${lsp.build.dir}/etc" file="script/etc/nbcode.conf" overwrite="true" />
+        <copy todir="${lsp.build.dir}/etc" file="script/etc/nbcode.clusters" overwrite="true" />
+        <move file="${lsp.build.dir}/java/maven/bin/mvn" tofile="${lsp.build.dir}/java/maven/bin/mvn.sh" />
+        <move file="${lsp.build.dir}/bin/nbcode" tofile="${lsp.build.dir}/bin/nbcode.sh" />
+        <move file="${lsp.build.dir}/platform/lib/nbexec" tofile="${lsp.build.dir}/platform/lib/nbexec.sh" />
+        <replace file="${lsp.build.dir}/bin/nbcode.sh" token="/platform*/lib/nbexec" value="/platform*/lib/nbexec.sh"/>
+        <replace file="${lsp.build.dir}/bin/nbcode.sh" token="basename &quot;$PRG&quot;" value="basename &quot;$PRG&quot; &quot;.sh&quot;"/>
+        <chmod file="${lsp.build.dir}/bin/nbcode.sh" perm="u+x" />
+        <chmod file="${lsp.build.dir}/platform/lib/nbexec.sh" perm="u+x"/>
+        <chmod file="${lsp.build.dir}/java/maven/bin/mvn.sh" perm="u+x" />
+    </target>
+    <target name="add-extra-modules" depends="build-lsp-server" if="extra.modules">
+        <ant dir="../../nbbuild" target="build-nbms" inheritall="false" inheritrefs="false">
+            <property name="cluster.config" value="basic"/>
+        </ant>
+        <ant dir="../../nbbuild" target="generate-uc-catalog" inheritall="false" inheritrefs="false"/>
+        <makeurl file="../../nbbuild/nbms/updates.xml.gz" property="update.center.url"/>
+        <autoupdate installdir="${lsp.build.dir}" updatecenter="${update.center.url}">
+            <modules includes="${extra.modules}"/>
+        </autoupdate>
+        <delete file="../../nbbuild/nbms/tasks.jar"/>
+    </target>
+    <target name="-set-use-jdk-javac">
+        <property name="test.use.jdk.javac" value="true" />
+    </target>
+    <target name="clean-vscode-ext" description="Cleans all VSCode related artifacts">
+        <delete dir="${lsp.build.dir}" />
+        <delete dir="vscode/node_modules" />
+        <delete dir="vscode/out" />
+        <ant dir="nbcode" target="clean" inheritall="false" inheritrefs="false"/>
+    </target>
+    <target name="build-vscode-ext" depends="add-extra-modules" description="Build the Visual Studio Code extension.">
+<!--        <taskdef name="gitbranchhash" classname="org.netbeans.nbbuild.GitBranchHash" classpath="${nbantext.jar}" />
+        <gitbranchhash file="." branchproperty="metabuild.branch" hashproperty="metabuild.hash" />-->
+        <condition property="metabuild.hash" value="master" >
+            <not>
+                <isset property="metabuild.hash" />
+            </not>
+        </condition>
+        <property name="vsix.version" value="0.1.0"/>
+
+        <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
+            <arg value="--allow-same-version"/>
+            <arg value="version" />
+            <arg value="${vsix.version}" />
+        </exec>
+
+        <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
+            <arg value="install" />
+        </exec>
+
+        <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
+            <arg value="run" />
+            <arg value="compile" />
+        </exec>
+
+        <delete dir="${build.dir}/bundles" />
+        <mkdir dir="${build.dir}/bundles/package" />
+        <copy file="vscode/package.json" todir="${build.dir}/bundles/package" />
+        <copy file="vscode/package-lock.json" todir="${build.dir}/bundles/package" />
+
+        <exec executable="mvn" failonerror="true" dir="${nb_all}/nbbuild/misc/prepare-bundles">
+            <arg value="package" />
+            <arg value="exec:java" />
+            <arg value="-Dexec.mainClass=org.netbeans.prepare.bundles.PrepareBundles" />
+            <arg value="-Dexec.args=${build.dir}/bundles ${nb_all}" />
+        </exec>
+ 
+        <mkdir dir="${build.dir}/vsce" />
+        <exec executable="npm${cmd.suffix}" failonerror="true" dir="${build.dir}/vsce">
+            <arg value="install" />
+            <arg value="--save" />
+            <arg value="@vscode/vsce@2.19.0" />
+        </exec>
+	
+	<copy file="${basedir}/LICENSE.txt" todir="${basedir}/vscode" />
+	<copy file="${basedir}/THIRD_PARTY_LICENSES.txt" todir="${basedir}/vscode" />
+	
+        <exec executable="${build.dir}/vsce/node_modules/.bin/vsce${cmd.suffix}" failonerror="true" dir="${basedir}/vscode">
+            <arg value="package" />
+            <arg value="--baseImagesUrl" />
+            <arg value="https://github.com/apache/netbeans/raw/${metabuild.hash}/java/java.lsp.server/vscode" />
+            <arg value="--out" />
+            <arg value="${build.dir}/oracle-java-${vsix.version}.vsix" />
+    </exec>
+	<delete file="${basedir}/vscode/LICENSE.txt"/>
+	<delete file="${basedir}/vscode/THIRD_PARTY_LICENSES.txt"/>
+    </target>
+    <target name="test-lsp-server" description="Tests the LSP server behavior">
+        <ant dir="nbcode" target="test" inheritall="false" inheritrefs="false" />
+    </target>
+
+    <target name="test-vscode-ext" depends="test-lsp-server" description="Tests the Visual Studio Code extension built by 'build-vscode-ext' target.">
+        <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
+            <arg value="--allow-same-version"/>
+            <arg value="run" />
+            <arg value="test" />
+        </exec>
+        <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
+            <arg value="--allow-same-version"/>
+            <arg value="run" />
+            <arg value="apisupport" />
+        </exec>
+    </target>
+
+    <target name="update-extension" depends="build-lsp-server" description="Compile the LSP Server and the VS Code extension">
+        <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
+            <arg value="install"/>
+        </exec>
+        <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
+            <arg value="run"/>
+            <arg value="compile" />
+        </exec>
+    </target>
+
+    <target name="apply-patches">
+        <patch patchfile="patches/6218.diff" strip="1" dir="netbeans" failonerror="true"/>
+        <patch patchfile="patches/6330.diff" strip="1" dir="netbeans" failonerror="true"/>
+        <patch patchfile="patches/6478-6480.diff" strip="1" dir="netbeans" failonerror="true"/>
+        <patch patchfile="patches/6481.diff" strip="1" dir="netbeans" failonerror="true"/>
+        <patch patchfile="patches/mvn-sh.diff" strip="1" dir="netbeans" failonerror="true"/>
+        <patch patchfile="patches/rename-debugger.diff" strip="1" dir="netbeans" failonerror="true"/>
+    </target>
+
+    <target name="unapply-patches">
+        <patch patchfile="patches/rename-debugger.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
+        <patch patchfile="patches/mvn-sh.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
+        <patch patchfile="patches/6218.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
+        <patch patchfile="patches/6330.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
+        <patch patchfile="patches/6478-6480.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
+        <patch patchfile="patches/6481.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
+    </target>
+
+    <target name="build-netbeans">
+        <ant dir="netbeans" inheritAll="false" inheritRefs="false" useNativeBasedir="true"/>
+    </target>
+</project>

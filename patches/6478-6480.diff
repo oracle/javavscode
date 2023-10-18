@@ -1,0 +1,2978 @@
+diff --git a/enterprise/cloud.oracle/nbproject/project.xml b/enterprise/cloud.oracle/nbproject/project.xml
+index afa68de21c..9cfde3ca2d 100644
+--- a/enterprise/cloud.oracle/nbproject/project.xml
++++ b/enterprise/cloud.oracle/nbproject/project.xml
+@@ -44,9 +44,9 @@
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+-                    <code-name-base>org.apache.commons.io</code-name-base>
++                    <code-name-base>org.apache.commons.commons_io</code-name-base>
+                     <run-dependency>
+-                        <specification-version>2.6.0</specification-version>
++                        <specification-version>2.13.0</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+diff --git a/extide/o.apache.tools.ant.module/arch.xml b/extide/o.apache.tools.ant.module/arch.xml
+index 19c47fa241..9dd52ec44e 100644
+--- a/extide/o.apache.tools.ant.module/arch.xml
++++ b/extide/o.apache.tools.ant.module/arch.xml
+@@ -314,7 +314,7 @@
+             <li>
+                 <api group="java" name="Ant" type="import" category="third" url="https://ant.apache.org">
+                     Ant itself, of course.
+-                    1.8.0+ is required, 1.10.8 recommended (and currently bundled); some features may be limited to newer versions.
++                    1.8.0+ is required, 1.10.14 recommended (and currently bundled); some features may be limited to newer versions.
+                 </api>
+             </li>
+         </ol>
+diff --git a/extide/o.apache.tools.ant.module/build.xml b/extide/o.apache.tools.ant.module/build.xml
+index 14804e8ff9..35ecf422aa 100644
+--- a/extide/o.apache.tools.ant.module/build.xml
++++ b/extide/o.apache.tools.ant.module/build.xml
+@@ -54,15 +54,19 @@
+     </target>
+ 
+     <target name="netbeans-extra" depends="jar-bridge">
++        <unzip src="external/apache-ant-1.10.14-bin.zip" dest="build"/>
+         <mkdir dir="${cluster}/ant/lib"/>
+         <copy todir="${cluster}/ant/lib">
+-            <fileset dir="external/lib"/>
++            <fileset dir="build/apache-ant-1.10.14/lib" includes="*.jar"/>
++        </copy>
++        <mkdir dir="${cluster}/ant/bin"/>
++        <copy todir="${cluster}/ant/bin">
++            <fileset dir="build/apache-ant-1.10.14/bin"/>
++        </copy>
++        <mkdir dir="${cluster}/ant/etc"/>
++        <copy todir="${cluster}/ant/etc">
++            <fileset dir="build/apache-ant-1.10.14/etc"/>
+         </copy>
+-        <unzip dest="${cluster}/ant">
+-            <fileset dir="external">
+-                <include name="ant-misc-*.zip"/>
+-            </fileset>
+-        </unzip>
+     </target>
+ 
+     <target name="test-build" depends="jar-bridge,projectized-common.test-build"/>
+@@ -80,7 +84,7 @@
+             <fileset dir="${cluster}">
+                 <include name="ant/lib/*.jar"/>
+             </fileset>
+-            <mapper type="glob" from="ant${file.separator}lib${file.separator}*.jar" to="apache-*-1.10.8.jar"/>
++            <mapper type="glob" from="ant${file.separator}lib${file.separator}*.jar" to="apache-*-1.10.14.jar"/>
+         </copy>
+         <copy file="${cluster}/ant/nblib/bridge.jar" tofile="${dir}/org-apache-tools-ant-module-bridge.jar"/>
+         <!-- XXX ought to only do this in case jnlp.sign.jars=true -->
+diff --git a/extide/o.apache.tools.ant.module/external/ant-1.10.8-license.txt b/extide/o.apache.tools.ant.module/external/ant-1.10.14-license.txt
+similarity index 95%
+rename from extide/o.apache.tools.ant.module/external/ant-1.10.8-license.txt
+rename to extide/o.apache.tools.ant.module/external/ant-1.10.14-license.txt
+index c10bce9ea7..baed66542c 100644
+--- a/extide/o.apache.tools.ant.module/external/ant-1.10.8-license.txt
++++ b/extide/o.apache.tools.ant.module/external/ant-1.10.14-license.txt
+@@ -1,10 +1,10 @@
+ Name: Apache Ant
+ Origin: Apache Software Foundation
+-Version: 1.10.8
+-Files: ant-misc-1.10.8.zip ant-1.10.8.jar ant-antlr-1.10.8.jar ant-apache-bcel-1.10.8.jar ant-apache-bsf-1.10.8.jar ant-apache-log4j-1.10.8.jar ant-apache-oro-1.10.8.jar ant-apache-regexp-1.10.8.jar ant-apache-resolver-1.10.8.jar ant-apache-xalan2-1.10.8.jar ant-commons-logging-1.10.8.jar ant-commons-net-1.10.8.jar ant-jai-1.10.8.jar ant-javamail-1.10.8.jar ant-jdepend-1.10.8.jar ant-jmf-1.10.8.jar ant-jsch-1.10.8.jar ant-junit-1.10.8.jar ant-junit4-1.10.8.jar ant-launcher-1.10.8.jar ant-netrexx-1.10.8.jar ant-swing-1.10.8.jar ant-testutil-1.10.8.jar ant-xz-1.10.8.jar
++Version: 1.10.14
++Files: apache-ant-1.10.14-bin.zip
+ Description: Ant build tool.
+ License: Apache-2.0-ant
+-URL: https://builds.apache.org/view/All/job/Ant_Nightly/lastBuild/
++URL: https://archive.apache.org/dist/ant/binaries/apache-ant-1.10.14-bin.zip
+ 
+ /*
+  *                                 Apache License
+@@ -201,7 +201,7 @@ URL: https://builds.apache.org/view/All/job/Ant_Nightly/lastBuild/
+  *   you may not use this file except in compliance with the License.
+  *   You may obtain a copy of the License at
+  *
+- *       http://www.apache.org/licenses/LICENSE-2.0
++ *       https://www.apache.org/licenses/LICENSE-2.0
+  *
+  *   Unless required by applicable law or agreed to in writing, software
+  *   distributed under the License is distributed on an "AS IS" BASIS,
+@@ -211,7 +211,7 @@ URL: https://builds.apache.org/view/All/job/Ant_Nightly/lastBuild/
+  */
+ 
+ W3Cï¿½ SOFTWARE NOTICE AND LICENSE
+-http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
++https://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
+ 
+ This work (and included software, documentation such as READMEs, or other
+ related items) is being provided by the copyright holders under the following
+diff --git a/extide/o.apache.tools.ant.module/external/ant-1.10.14-notice.txt b/extide/o.apache.tools.ant.module/external/ant-1.10.14-notice.txt
+new file mode 100644
+index 0000000000..11b300c323
+--- /dev/null
++++ b/extide/o.apache.tools.ant.module/external/ant-1.10.14-notice.txt
+@@ -0,0 +1,9 @@
++Apache Ant
++Copyright 1999-2023 The Apache Software Foundation
++
++This product includes software developed at
++The Apache Software Foundation (https://www.apache.org/).
++
++The <sync> task is based on code Copyright (c) 2002, Landmark
++Graphics Corp that has been kindly donated to the Apache Software
++Foundation.
+diff --git a/extide/o.apache.tools.ant.module/external/ant-1.10.8-notice.txt b/extide/o.apache.tools.ant.module/external/ant-1.10.8-notice.txt
+deleted file mode 100644
+index a48eed4d33..0000000000
+--- a/extide/o.apache.tools.ant.module/external/ant-1.10.8-notice.txt
++++ /dev/null
+@@ -1,6 +0,0 @@
+-Apache Ant
+-Copyright 1999-2018 The Apache Software Foundation
+-
+-The <sync> task is based on code Copyright (c) 2002, Landmark
+-Graphics Corp that has been kindly donated to the Apache Software
+-Foundation.
+diff --git a/extide/o.apache.tools.ant.module/external/binaries-list b/extide/o.apache.tools.ant.module/external/binaries-list
+index 2a6b885dbd..ceae2bb447 100644
+--- a/extide/o.apache.tools.ant.module/external/binaries-list
++++ b/extide/o.apache.tools.ant.module/external/binaries-list
+@@ -14,27 +14,4 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-A4CDC20F1F620A6208B42F81C224CDB6B9C1968D ant-misc-1.10.8.zip
+-AE148ABB0532B685C5EEB22FDEC9D124E89BE5DE org.apache.ant:ant:1.10.8
+-3D728985E3B6A71B80D10DB0D574A60B496590A1 org.apache.ant:ant-antlr:1.10.8
+-0F2ADD1F8BCA7992322BBDFC63B596B00A8DB8FD org.apache.ant:ant-apache-bcel:1.10.8
+-5B095EBB1C1A1B0F6A3B889D3161BCE4CE07860D org.apache.ant:ant-apache-bsf:1.10.8
+-9A3E49630CAF4A67AD6188DC0D9C2D4C52CDF279 org.apache.ant:ant-apache-log4j:1.10.8
+-6B261964B550BE885C9656BA268A8DCD140F6314 org.apache.ant:ant-apache-oro:1.10.8
+-0E8C9E896CA9A10BBF205FE396EBF6808CB45B86 org.apache.ant:ant-apache-regexp:1.10.8
+-73CE9524001122178D9E7DB9F7FEB68642FC0651 org.apache.ant:ant-apache-resolver:1.10.8
+-015B6F2317E0EAC2EE1F07C34D315184B4D7A63A org.apache.ant:ant-apache-xalan2:1.10.8
+-741230FB8C8EEB99AAB9EC7074CC871FDB7B1FDA org.apache.ant:ant-commons-logging:1.10.8
+-2AADB99C4AF42A1B69E35269551D3C636E247899 org.apache.ant:ant-commons-net:1.10.8
+-0B2D6F189F2EFEC0C5A01725094EEC2D95E8F88F org.apache.ant:ant-jai:1.10.8
+-BFD7AA4221EA0A9B98DB9E0C908E0426CCB1F2E7 org.apache.ant:ant-javamail:1.10.8
+-64206C8AC4DA3E444470651865688C12C5ABB14E org.apache.ant:ant-jdepend:1.10.8
+-9B606CF8EF4787A56281A827C66E8AA11972596E org.apache.ant:ant-jmf:1.10.8
+-C4D8745B230F2B38B540D5DDD1ABB287DA1F416A org.apache.ant:ant-jsch:1.10.8
+-F75D2CBE7F63DB600FC34E23AA447C27095056CF org.apache.ant:ant-junit:1.10.8
+-07222C675958C696D6EA3609E8A5C57E4D426F1E org.apache.ant:ant-junit4:1.10.8
+-2CA8688D2DAD5694237576DB782B37279989614D org.apache.ant:ant-launcher:1.10.8
+-94EBEAB3DBF8A6FC135996AD91854CA0223EE255 org.apache.ant:ant-netrexx:1.10.8
+-12AE1CFC42449D3F9017318E751F221C685C2750 org.apache.ant:ant-swing:1.10.8
+-5981C0AE8195D838577493854F6B56ADF07DD33A org.apache.ant:ant-testutil:1.10.8
+-E8425D9ECEAB2AAC51CC1CCA5D719645F8601D12 org.apache.ant:ant-xz:1.10.8
++A5D56956DC0A19395F6E01CF5D3056EC2EDE86A8 https://archive.apache.org/dist/ant/binaries/apache-ant-1.10.14-bin.zip apache-ant-1.10.14-bin.zip
+diff --git a/extide/o.apache.tools.ant.module/external/build.xml b/extide/o.apache.tools.ant.module/external/build.xml
+index bf1397c7ec..c9c1b37e81 100644
+--- a/extide/o.apache.tools.ant.module/external/build.xml
++++ b/extide/o.apache.tools.ant.module/external/build.xml
+@@ -24,31 +24,31 @@
+         <mkdir dir="lib"/>
+         <copy todir="lib">
+             <fileset dir=".">
+-                <include name="ant-antlr-1.10.8.jar" />
+-                <include name="ant-apache-bcel-1.10.8.jar" />
+-                <include name="ant-apache-bsf-1.10.8.jar" />
+-                <include name="ant-apache-log4j-1.10.8.jar" />
+-                <include name="ant-apache-oro-1.10.8.jar" />
+-                <include name="ant-apache-regexp-1.10.8.jar" />
+-                <include name="ant-apache-resolver-1.10.8.jar" />
+-                <include name="ant-apache-xalan2-1.10.8.jar" />
+-                <include name="ant-commons-logging-1.10.8.jar" />
+-                <include name="ant-commons-net-1.10.8.jar" />
+-                <include name="ant-jai-1.10.8.jar" />
+-                <include name="ant-javamail-1.10.8.jar" />
+-                <include name="ant-jdepend-1.10.8.jar" />
+-                <include name="ant-jmf-1.10.8.jar" />
+-                <include name="ant-jsch-1.10.8.jar" />
+-                <include name="ant-junit-1.10.8.jar" />
+-                <include name="ant-junit4-1.10.8.jar" />
+-                <include name="ant-launcher-1.10.8.jar" />
+-                <include name="ant-netrexx-1.10.8.jar" />
+-                <include name="ant-swing-1.10.8.jar" />
+-                <include name="ant-testutil-1.10.8.jar" />
+-                <include name="ant-xz-1.10.8.jar" />
+-                <include name="ant-1.10.8.jar" />
++                <include name="ant-antlr-1.10.14.jar" />
++                <include name="ant-apache-bcel-1.10.14.jar" />
++                <include name="ant-apache-bsf-1.10.14.jar" />
++                <include name="ant-apache-log4j-1.10.14.jar" />
++                <include name="ant-apache-oro-1.10.14.jar" />
++                <include name="ant-apache-regexp-1.10.14.jar" />
++                <include name="ant-apache-resolver-1.10.14.jar" />
++                <include name="ant-apache-xalan2-1.10.14.jar" />
++                <include name="ant-commons-logging-1.10.14.jar" />
++                <include name="ant-commons-net-1.10.14.jar" />
++                <include name="ant-jai-1.10.14.jar" />
++                <include name="ant-javamail-1.10.14.jar" />
++                <include name="ant-jdepend-1.10.14.jar" />
++                <include name="ant-jmf-1.10.14.jar" />
++                <include name="ant-jsch-1.10.14.jar" />
++                <include name="ant-junit-1.10.14.jar" />
++                <include name="ant-junit4-1.10.14.jar" />
++                <include name="ant-launcher-1.10.14.jar" />
++                <include name="ant-netrexx-1.10.14.jar" />
++                <include name="ant-swing-1.10.14.jar" />
++                <include name="ant-testutil-1.10.14.jar" />
++                <include name="ant-xz-1.10.14.jar" />
++                <include name="ant-1.10.14.jar" />
+             </fileset>
+-            <globmapper from="*-1.10.8.jar" to="*.jar"/>
++            <globmapper from="*-1.10.14.jar" to="*.jar"/>
+         </copy>
+     </target>
+     <target name="clean">
+diff --git a/extide/o.apache.tools.ant.module/nbproject/project.properties b/extide/o.apache.tools.ant.module/nbproject/project.properties
+index fea2099cd6..feea4c1aa8 100644
+--- a/extide/o.apache.tools.ant.module/nbproject/project.properties
++++ b/extide/o.apache.tools.ant.module/nbproject/project.properties
+@@ -26,7 +26,7 @@ extra.module.files=\
+     ant/lib/,\
+     ant/bin/,\
+     ant/etc/
+-extra.license.files=external/ant-1.10.8-license.txt
++extra.license.files=external/ant-1.10.14-license.txt
+ nbm.executable.files=\
+     ant/bin/ant,\
+     ant/bin/antRun,\
+diff --git a/platform/o.apache.commons.io/build.xml b/ide/c.google.guava.failureaccess/build.xml
+similarity index 91%
+rename from platform/o.apache.commons.io/build.xml
+rename to ide/c.google.guava.failureaccess/build.xml
+index 70c37481be..83e0d22656 100644
+--- a/platform/o.apache.commons.io/build.xml
++++ b/ide/c.google.guava.failureaccess/build.xml
+@@ -19,7 +19,7 @@
+     under the License.
+ 
+ -->
+-<project name="platform/o.apache.commons.io" default="build" basedir=".">
++<project name="ide/c.google.guava.failureaccess" default="build" basedir=".">
+     <import file="../../nbbuild/templates/projectized.xml"/>
+     <target name="jar"/>
+-</project>
++</project>
+\ No newline at end of file
+diff --git a/ide/c.google.guava.failureaccess/external/binaries-list b/ide/c.google.guava.failureaccess/external/binaries-list
+new file mode 100644
+index 0000000000..c71c3937fb
+--- /dev/null
++++ b/ide/c.google.guava.failureaccess/external/binaries-list
+@@ -0,0 +1,17 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++1DCF1DE382A0BF95A3D8B0849546C88BAC1292C9 com.google.guava:failureaccess:1.0.1
+diff --git a/java/java.lsp.server/external/commons-2.5.3.6-license.txt b/ide/c.google.guava.failureaccess/external/failureaccess-1.0.1-license.txt
+similarity index 98%
+rename from java/java.lsp.server/external/commons-2.5.3.6-license.txt
+rename to ide/c.google.guava.failureaccess/external/failureaccess-1.0.1-license.txt
+index 4e33195ad9..8db246aa2b 100644
+--- a/java/java.lsp.server/external/commons-2.5.3.6-license.txt
++++ b/ide/c.google.guava.failureaccess/external/failureaccess-1.0.1-license.txt
+@@ -1,11 +1,8 @@
+-Name: Apache Commons
+-Description: Assist with developing IO functionality
+-Origin: Apache Software Foundation
++Name: Guava - Failure Access Library
++Version: 1.0.1
+ License: Apache-2.0
+-Version: 2.5.3.6
+-URL: https://commons.apache.org/
+-Files: commons-io-2.5.jar
+-
++Origin: https://github.com/google/guava
++Description: A Guava subproject
+ 
+ 
+                                  Apache License
+@@ -209,4 +206,3 @@ Files: commons-io-2.5.jar
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-
+diff --git a/ide/c.google.guava.failureaccess/manifest.mf b/ide/c.google.guava.failureaccess/manifest.mf
+new file mode 100644
+index 0000000000..ef875c4609
+--- /dev/null
++++ b/ide/c.google.guava.failureaccess/manifest.mf
+@@ -0,0 +1 @@
++OpenIDE-Module: com.google.guava.failureaccess
+diff --git a/ide/c.google.guava.failureaccess/nbproject/project.properties b/ide/c.google.guava.failureaccess/nbproject/project.properties
+new file mode 100644
+index 0000000000..2b0193d616
+--- /dev/null
++++ b/ide/c.google.guava.failureaccess/nbproject/project.properties
+@@ -0,0 +1,22 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++javac.compilerargs=-Xlint -Xlint:-serial
++javac.source=1.8
++spec.version.base=1.0.1
++release.external/failureaccess-1.0.1.jar=modules/com-google-guava-failureaccess.jar
++is.autoload=true
++nbm.module.author=Tomas Stupka
+diff --git a/ide/c.google.guava.failureaccess/nbproject/project.xml b/ide/c.google.guava.failureaccess/nbproject/project.xml
+new file mode 100644
+index 0000000000..358696d3e2
+--- /dev/null
++++ b/ide/c.google.guava.failureaccess/nbproject/project.xml
+@@ -0,0 +1,35 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++<project xmlns="http://www.netbeans.org/ns/project/1">
++   <type>org.netbeans.modules.apisupport.project</type>
++   <configuration>
++       <data xmlns="http://www.netbeans.org/ns/nb-module-project/2">
++           <code-name-base>com.google.guava.failureaccess</code-name-base>
++           <module-dependencies/>
++           <public-packages/>
++           <class-path-extension>
++               <runtime-relative-path>com-google-guava-failureaccess.jar</runtime-relative-path>
++               <binary-origin>external/failureaccess-1.0.1.jar</binary-origin>
++            </class-path-extension>
++        </data>
++    </configuration>
++</project>
+\ No newline at end of file
+diff --git a/ide/c.google.guava/external/binaries-list b/ide/c.google.guava/external/binaries-list
+index 550cad3717..2ce8f29293 100644
+--- a/ide/c.google.guava/external/binaries-list
++++ b/ide/c.google.guava/external/binaries-list
+@@ -14,4 +14,4 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-C6AD87D2575AF8AC8EC38E28E75AEFA882CC3A1F com.google.guava:guava:27.0-jre
++5E64EC7E056456BEF3A4BC4C6FDAEF71E8AB6318 com.google.guava:guava:32.1.2-jre
+diff --git a/ide/c.google.guava/external/guava-27.0-jre-license.txt b/ide/c.google.guava/external/guava-32.1.2-jre-license.txt
+similarity index 99%
+rename from ide/c.google.guava/external/guava-27.0-jre-license.txt
+rename to ide/c.google.guava/external/guava-32.1.2-jre-license.txt
+index 9aeed4d255..5e96e10af4 100644
+--- a/ide/c.google.guava/external/guava-27.0-jre-license.txt
++++ b/ide/c.google.guava/external/guava-32.1.2-jre-license.txt
+@@ -1,5 +1,5 @@
+ Name: Guava
+-Version: 27.0
++Version: 32.1.2
+ License: Apache-2.0
+ Origin: https://github.com/google/guava
+ Description: Guava is a set of core libraries that includes new collection types (such as multimap and multiset), immutable collections, a graph library, and utilities for concurrency, I/O, hashing, primitives, strings, and more.
+diff --git a/ide/c.google.guava/nbproject/project.properties b/ide/c.google.guava/nbproject/project.properties
+index 11fe5c9c5f..f48d65b802 100644
+--- a/ide/c.google.guava/nbproject/project.properties
++++ b/ide/c.google.guava/nbproject/project.properties
+@@ -17,6 +17,6 @@
+ javac.compilerargs=-Xlint -Xlint:-serial
+ javac.source=1.8
+ spec.version.base=27.15.0
+-release.external/guava-27.0-jre.jar=modules/com-google-guava.jar
++release.external/guava-32.1.2-jre.jar=modules/com-google-guava.jar
+ is.autoload=true
+ nbm.module.author=Tomas Stupka
+diff --git a/ide/c.google.guava/nbproject/project.xml b/ide/c.google.guava/nbproject/project.xml
+index 5ff2a37290..995a71507e 100644
+--- a/ide/c.google.guava/nbproject/project.xml
++++ b/ide/c.google.guava/nbproject/project.xml
+@@ -28,7 +28,7 @@
+            <public-packages/>
+            <class-path-extension>
+                <runtime-relative-path>com-google-guava.jar</runtime-relative-path>
+-               <binary-origin>external/guava-27.0-jre.jar</binary-origin>
++               <binary-origin>external/guava-32.1.2-jre.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+diff --git a/ide/libs.commons_compress/external/binaries-list b/ide/libs.commons_compress/external/binaries-list
+index 312658f68a..47bcb9850e 100644
+--- a/ide/libs.commons_compress/external/binaries-list
++++ b/ide/libs.commons_compress/external/binaries-list
+@@ -14,4 +14,4 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-4AF2060EA9B0C8B74F1854C6CAFE4D43CFC161FC org.apache.commons:commons-compress:1.23.0
++B4B1B5A3D9573B2970FDDAB236102C0A4D27D35E org.apache.commons:commons-compress:1.24.0
+diff --git a/ide/libs.commons_compress/external/commons-compress-1.23.0-notice.txt b/ide/libs.commons_compress/external/commons-compress-1.23.0-notice.txt
+deleted file mode 100644
+index 52fe5bc77d..0000000000
+--- a/ide/libs.commons_compress/external/commons-compress-1.23.0-notice.txt
++++ /dev/null
+@@ -1,12 +0,0 @@
+-Apache Commons Compress
+-Copyright 2002-2019 The Apache Software Foundation
+-
+-This product includes software developed at
+-The Apache Software Foundation (https://www.apache.org//).
+-
+-The files in the package org.apache.commons.compress.archivers.sevenz
+-were derived from the LZMA SDK, version 9.20 (C/ and CPP/7zip/),
+-which has been placed in the public domain:
+-
+-"LZMA SDK is placed in the public domain." (http://www.7-zip.org/sdk.html)
+-
+diff --git a/ide/libs.commons_compress/external/commons-compress-1.23.0-license.txt b/ide/libs.commons_compress/external/commons-compress-1.24.0-license.txt
+similarity index 99%
+rename from ide/libs.commons_compress/external/commons-compress-1.23.0-license.txt
+rename to ide/libs.commons_compress/external/commons-compress-1.24.0-license.txt
+index 55d972a4e5..5e6405f6de 100644
+--- a/ide/libs.commons_compress/external/commons-compress-1.23.0-license.txt
++++ b/ide/libs.commons_compress/external/commons-compress-1.24.0-license.txt
+@@ -1,6 +1,5 @@
+ Name: Commons Compress
+-Version: 1.23.0
+-OSR: 19203
++Version: 1.24.0
+ Description: The Apache Commons Compress library defines an API for working with ar, cpio, Unix dump, tar, zip, gzip, XZ, Pack200, bzip2, 7z, arj, lzma, snappy, DEFLATE, lz4, Brotli, Zstandard, DEFLATE64 and Z files.
+ Origin: https://commons.apache.org/proper/commons-compress/index.html
+ License: Apache-2.0
+diff --git a/ide/libs.commons_compress/external/commons-compress-1.24.0-notice.txt b/ide/libs.commons_compress/external/commons-compress-1.24.0-notice.txt
+new file mode 100644
+index 0000000000..296602a8c4
+--- /dev/null
++++ b/ide/libs.commons_compress/external/commons-compress-1.24.0-notice.txt
+@@ -0,0 +1,55 @@
++Apache Commons Compress
++Copyright 2002-2023 The Apache Software Foundation
++
++This product includes software developed at
++The Apache Software Foundation (https://www.apache.org/).
++
++---
++
++The files in the package org.apache.commons.compress.archivers.sevenz
++were derived from the LZMA SDK, version 9.20 (C/ and CPP/7zip/),
++which has been placed in the public domain:
++
++"LZMA SDK is placed in the public domain." (http://www.7-zip.org/sdk.html)
++
++---
++
++The test file lbzip2_32767.bz2 has been copied from libbzip2's source
++repository:
++
++This program, "bzip2", the associated library "libbzip2", and all
++documentation, are copyright (C) 1996-2019 Julian R Seward.  All
++rights reserved.
++
++Redistribution and use in source and binary forms, with or without
++modification, are permitted provided that the following conditions
++are met:
++
++1. Redistributions of source code must retain the above copyright
++   notice, this list of conditions and the following disclaimer.
++
++2. The origin of this software must not be misrepresented; you must 
++   not claim that you wrote the original software.  If you use this 
++   software in a product, an acknowledgment in the product 
++   documentation would be appreciated but is not required.
++
++3. Altered source versions must be plainly marked as such, and must
++   not be misrepresented as being the original software.
++
++4. The name of the author may not be used to endorse or promote 
++   products derived from this software without specific prior written 
++   permission.
++
++THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
++OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
++NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++
++Julian Seward, jseward@acm.org
+diff --git a/ide/libs.commons_compress/nbproject/project.properties b/ide/libs.commons_compress/nbproject/project.properties
+index ce967c897a..b66547e86e 100644
+--- a/ide/libs.commons_compress/nbproject/project.properties
++++ b/ide/libs.commons_compress/nbproject/project.properties
+@@ -18,5 +18,5 @@
+ is.autoload=true
+ javac.compilerargs=-Xlint -Xlint:-serial
+ javac.source=1.8
+-release.external/commons-compress-1.23.0.jar=modules/ext/commons-compress-1.23.0.jar
++release.external/commons-compress-1.24.0.jar=modules/ext/commons-compress-1.24.0.jar
+ spec.version.base=0.28.0
+diff --git a/ide/libs.commons_compress/nbproject/project.xml b/ide/libs.commons_compress/nbproject/project.xml
+index 3dec083ee6..bd15c7fb9d 100644
+--- a/ide/libs.commons_compress/nbproject/project.xml
++++ b/ide/libs.commons_compress/nbproject/project.xml
+@@ -36,8 +36,8 @@
+                 <package>org.apache.commons.compress.utils</package>
+             </friend-packages>
+             <class-path-extension>
+-                <runtime-relative-path>ext/commons-compress-1.23.0.jar</runtime-relative-path>
+-                <binary-origin>external/commons-compress-1.23.0.jar</binary-origin>
++                <runtime-relative-path>ext/commons-compress-1.24.0.jar</runtime-relative-path>
++                <binary-origin>external/commons-compress-1.24.0.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+diff --git a/ide/libs.commons_compress/src/org/netbeans/libs/commons_compress/mf-layer.xml b/ide/libs.commons_compress/src/org/netbeans/libs/commons_compress/mf-layer.xml
+index 9be466f6de..a8c882b0f5 100644
+--- a/ide/libs.commons_compress/src/org/netbeans/libs/commons_compress/mf-layer.xml
++++ b/ide/libs.commons_compress/src/org/netbeans/libs/commons_compress/mf-layer.xml
+@@ -27,7 +27,7 @@
+             <file name="org-netbeans-lib-commons_compress-antlibrary.instance">
+                 <attr name="instanceCreate" methodvalue="org.apache.tools.ant.module.spi.AutomaticExtraClasspath.url"/>
+                 <attr name="instanceOf" stringvalue="org.apache.tools.ant.module.spi.AutomaticExtraClasspathProvider"/>
+-                <attr name="url" urlvalue="nbinst://org.netbeans.libs.commons_compress/modules/ext/commons-compress-1.23.0.jar"/>
++                <attr name="url" urlvalue="nbinst://org.netbeans.libs.commons_compress/modules/ext/commons-compress-1.24.0.jar"/>
+             </file>
+         </folder>
+     </folder>
+diff --git a/ide/libs.flexmark/external/binaries-list b/ide/libs.flexmark/external/binaries-list
+index 39492b77ad..614e5eb72f 100644
+--- a/ide/libs.flexmark/external/binaries-list
++++ b/ide/libs.flexmark/external/binaries-list
+@@ -14,19 +14,19 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-606A88E1D15AA8DEBD97CB5DFDF788DDC6FB5B5E com.vladsch.flexmark:flexmark:0.62.2
+-3AA453B87258A448DFD8D01010D94E3A2832884D com.vladsch.flexmark:flexmark-ext-anchorlink:0.62.2
+-C1F1B1909BFB6C0F4301A9227745A3AB33B0D08F com.vladsch.flexmark:flexmark-ext-emoji:0.62.2
+-C95068A1450835C2695750ECE82C996A7B57BBD3 com.vladsch.flexmark:flexmark-ext-tables:0.62.2
+-55631AD20431C090D404C3945B692EACEEDB6FC5 com.vladsch.flexmark:flexmark-html2md-converter:0.62.2
+-C0B998D5570295F104A4FFEE4F8EEC305D7DB327 com.vladsch.flexmark:flexmark-util-ast:0.62.2
+-22C85EFB51D4AA25540B8B0D880BE7AD4A8BAEC1 com.vladsch.flexmark:flexmark-util-builder:0.62.2
+-85253A62761533CE7709F81B0C581C8473F825EC com.vladsch.flexmark:flexmark-util-collection:0.62.2
+-2DF8CE1ABAB2E40EDC7D340962025EE1DD09FE02 com.vladsch.flexmark:flexmark-util-data:0.62.2
+-AE5AFA76A669E06B3A65255C2ED775EDE5CD3EB1 com.vladsch.flexmark:flexmark-util-dependency:0.62.2
+-058548BE1FC0682698721C0C278451A41F361D3A com.vladsch.flexmark:flexmark-util-format:0.62.2
+-6D830CB37E48FD9DCA44BF15FBC3A86AA7D82C5A com.vladsch.flexmark:flexmark-util-html:0.62.2
+-18133DD81887C512E2F56FEB3C14A8A1210F30EA com.vladsch.flexmark:flexmark-util-misc:0.62.2
+-87AF2803A63B5B07CC42D9C1D98F8ECD4F83FBCC com.vladsch.flexmark:flexmark-util-sequence:0.62.2
+-CA49BD94860A5CCEDD82BDE96ECE831F16C66FF1 com.vladsch.flexmark:flexmark-util-visitor:0.62.2
+-36DA09A8F68484523FA2AAA100399D612B247D67 org.jsoup:jsoup:1.11.3
++D859A65013F6DF2D46868BDCEC643DA9792F30CA com.vladsch.flexmark:flexmark:0.64.6
++13CDCA9006615B7F4E919C2701F48B4D5790483D com.vladsch.flexmark:flexmark-ext-anchorlink:0.64.6
++D28358DEDD8154F5233D2DB9F7F31EDFFD35025E com.vladsch.flexmark:flexmark-ext-emoji:0.64.6
++79A451ACA1271DDC865BD9125A49CEA52DA938E8 com.vladsch.flexmark:flexmark-ext-tables:0.64.6
++2D106E0C0CF1C055C7384DF5D5E05C2478DCA75B com.vladsch.flexmark:flexmark-html2md-converter:0.64.6
++03148BE3402AC4A7691C386784823C7F3494C20B com.vladsch.flexmark:flexmark-util-ast:0.64.6
++85292A943917A46A2BDFDCB5656C1CB91F4CEF06 com.vladsch.flexmark:flexmark-util-builder:0.64.6
++C06F05AAFAB1C83F2B49F6C5E58FBB9A8AAD433F com.vladsch.flexmark:flexmark-util-collection:0.64.6
++A99B69BEED9359D384FFF9A9475C485CBF37956C com.vladsch.flexmark:flexmark-util-data:0.64.6
++138054FE981C705F02ABD1D8D948EB5582FBC5EA com.vladsch.flexmark:flexmark-util-dependency:0.64.6
++16B4975A85269E3E4639E0E5F0CB8A15CC142E7E com.vladsch.flexmark:flexmark-util-format:0.64.6
++415C79BD96ACE0C58DA30045F8DC73073B070482 com.vladsch.flexmark:flexmark-util-html:0.64.6
++A84B340693CE22D812455390DCDAC9DCD958238C com.vladsch.flexmark:flexmark-util-misc:0.64.6
++1AE2CD22728557C2740812AEAE799CCC8D50FABC com.vladsch.flexmark:flexmark-util-sequence:0.64.6
++D2CD1AF4AB5B654CA8C588900390C1611FFC8C4D com.vladsch.flexmark:flexmark-util-visitor:0.64.6
++CD56EB47DCD4590EF6451F87E5EC33BDDD1A9A51 org.jsoup:jsoup:1.15.4
+diff --git a/ide/libs.flexmark/external/flexmark-0.62.2-license.txt b/ide/libs.flexmark/external/flexmark-0.64.6-license.txt
+similarity index 74%
+rename from ide/libs.flexmark/external/flexmark-0.62.2-license.txt
+rename to ide/libs.flexmark/external/flexmark-0.64.6-license.txt
+index e433355c54..ca078ecb5c 100644
+--- a/ide/libs.flexmark/external/flexmark-0.62.2-license.txt
++++ b/ide/libs.flexmark/external/flexmark-0.64.6-license.txt
+@@ -1,9 +1,9 @@
+ Name: FlexMark-java
+-Version: 0.62.2
++Version: 0.64.6
+ License: BSD-flexmark
+ Description: FlexMark library
+ Origin: https://github.com/vsch/flexmark-java
+-Files: flexmark-0.62.2.jar flexmark-ext-anchorlink-0.62.2.jar flexmark-ext-emoji-0.62.2.jar flexmark-ext-tables-0.62.2.jar flexmark-html2md-converter-0.62.2.jar flexmark-util-ast-0.62.2.jar flexmark-util-builder-0.62.2.jar flexmark-util-collection-0.62.2.jar flexmark-util-data-0.62.2.jar flexmark-util-dependency-0.62.2.jar flexmark-util-format-0.62.2.jar flexmark-util-html-0.62.2.jar flexmark-util-misc-0.62.2.jar flexmark-util-sequence-0.62.2.jar flexmark-util-visitor-0.62.2.jar
++Files: flexmark-0.64.6.jar flexmark-ext-anchorlink-0.64.6.jar flexmark-ext-emoji-0.64.6.jar flexmark-ext-tables-0.64.6.jar flexmark-html2md-converter-0.64.6.jar flexmark-util-ast-0.64.6.jar flexmark-util-builder-0.64.6.jar flexmark-util-collection-0.64.6.jar flexmark-util-data-0.64.6.jar flexmark-util-dependency-0.64.6.jar flexmark-util-format-0.64.6.jar flexmark-util-html-0.64.6.jar flexmark-util-misc-0.64.6.jar flexmark-util-sequence-0.64.6.jar flexmark-util-visitor-0.64.6.jar
+ 
+ Copyright (c) 2015-2016, Atlassian Pty Ltd
+ All rights reserved.
+diff --git a/ide/libs.flexmark/external/jsoup-1.11.3-license.txt b/ide/libs.flexmark/external/jsoup-1.15.4-license.txt
+similarity index 93%
+rename from ide/libs.flexmark/external/jsoup-1.11.3-license.txt
+rename to ide/libs.flexmark/external/jsoup-1.15.4-license.txt
+index acfa30c69e..d4280af64c 100644
+--- a/ide/libs.flexmark/external/jsoup-1.11.3-license.txt
++++ b/ide/libs.flexmark/external/jsoup-1.15.4-license.txt
+@@ -1,12 +1,12 @@
+ Name: jsoup
+-Version: 1.11.3
++Version: 1.15.4
+ License: MIT-jsoup
+ Description: jsoup library
+ Origin: https://github.com/jhy/jsoup
+ 
+ The MIT License
+ 
+-Copyright (c) 2009-2018 Jonathan Hedley <jonathan@hedley.net>
++Copyright (c) 2009-2023 Jonathan Hedley <jonathan@hedley.net>
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+diff --git a/ide/libs.flexmark/manifest.mf b/ide/libs.flexmark/manifest.mf
+index 1d5fcafb28..08faf649b5 100644
+--- a/ide/libs.flexmark/manifest.mf
++++ b/ide/libs.flexmark/manifest.mf
+@@ -3,4 +3,5 @@ AutoUpdate-Show-In-Client: true
+ OpenIDE-Module: org.netbeans.libs.flexmark
+ OpenIDE-Module-Localizing-Bundle: org/netbeans/libs/flexmark/Bundle.properties
+ OpenIDE-Module-Specification-Version: 1.15
++OpenIDE-Module-Java-Dependencies: Java > 11
+ 
+diff --git a/ide/libs.flexmark/nbproject/org-netbeans-libs-flexmark.sig b/ide/libs.flexmark/nbproject/org-netbeans-libs-flexmark.sig
+index c9b362af7c..407279e9d9 100644
+--- a/ide/libs.flexmark/nbproject/org-netbeans-libs-flexmark.sig
++++ b/ide/libs.flexmark/nbproject/org-netbeans-libs-flexmark.sig
+@@ -1,5 +1,5 @@
+ #Signature file v4.1
+-#Version 1.14
++#Version 1.15
+ 
+ CLSS public java.io.IOException
+ cons public init()
+@@ -81,6 +81,32 @@ meth public void printStackTrace(java.io.PrintWriter)
+ meth public void setStackTrace(java.lang.StackTraceElement[])
+ supr java.lang.Object
+ 
++CLSS public abstract interface java.lang.annotation.Annotation
++meth public abstract boolean equals(java.lang.Object)
++meth public abstract int hashCode()
++meth public abstract java.lang.Class<? extends java.lang.annotation.Annotation> annotationType()
++meth public abstract java.lang.String toString()
++
++CLSS public abstract interface !annotation java.lang.annotation.Documented
++ anno 0 java.lang.annotation.Documented()
++ anno 0 java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy value=RUNTIME)
++ anno 0 java.lang.annotation.Target(java.lang.annotation.ElementType[] value=[ANNOTATION_TYPE])
++intf java.lang.annotation.Annotation
++
++CLSS public abstract interface !annotation java.lang.annotation.Retention
++ anno 0 java.lang.annotation.Documented()
++ anno 0 java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy value=RUNTIME)
++ anno 0 java.lang.annotation.Target(java.lang.annotation.ElementType[] value=[ANNOTATION_TYPE])
++intf java.lang.annotation.Annotation
++meth public abstract java.lang.annotation.RetentionPolicy value()
++
++CLSS public abstract interface !annotation java.lang.annotation.Target
++ anno 0 java.lang.annotation.Documented()
++ anno 0 java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy value=RUNTIME)
++ anno 0 java.lang.annotation.Target(java.lang.annotation.ElementType[] value=[ANNOTATION_TYPE])
++intf java.lang.annotation.Annotation
++meth public abstract java.lang.annotation.ElementType[] value()
++
+ CLSS public abstract interface org.jsoup.Connection
+ innr public abstract interface static Base
+ innr public abstract interface static KeyVal
+@@ -88,7 +114,9 @@ innr public abstract interface static Request
+ innr public abstract interface static Response
+ innr public final static !enum Method
+ meth public abstract !varargs org.jsoup.Connection data(java.lang.String[])
++meth public abstract java.net.CookieStore cookieStore()
+ meth public abstract org.jsoup.Connection cookie(java.lang.String,java.lang.String)
++meth public abstract org.jsoup.Connection cookieStore(java.net.CookieStore)
+ meth public abstract org.jsoup.Connection cookies(java.util.Map<java.lang.String,java.lang.String>)
+ meth public abstract org.jsoup.Connection data(java.lang.String,java.lang.String)
+ meth public abstract org.jsoup.Connection data(java.lang.String,java.lang.String,java.io.InputStream)
+@@ -102,6 +130,7 @@ meth public abstract org.jsoup.Connection ignoreContentType(boolean)
+ meth public abstract org.jsoup.Connection ignoreHttpErrors(boolean)
+ meth public abstract org.jsoup.Connection maxBodySize(int)
+ meth public abstract org.jsoup.Connection method(org.jsoup.Connection$Method)
++meth public abstract org.jsoup.Connection newRequest()
+ meth public abstract org.jsoup.Connection parser(org.jsoup.parser.Parser)
+ meth public abstract org.jsoup.Connection postDataCharset(java.lang.String)
+ meth public abstract org.jsoup.Connection proxy(java.lang.String,int)
+@@ -115,7 +144,6 @@ meth public abstract org.jsoup.Connection timeout(int)
+ meth public abstract org.jsoup.Connection url(java.lang.String)
+ meth public abstract org.jsoup.Connection url(java.net.URL)
+ meth public abstract org.jsoup.Connection userAgent(java.lang.String)
+-meth public abstract org.jsoup.Connection validateTLSCertificates(boolean)
+ meth public abstract org.jsoup.Connection$KeyVal data(java.lang.String)
+ meth public abstract org.jsoup.Connection$Request request()
+ meth public abstract org.jsoup.Connection$Response execute() throws java.io.IOException
+@@ -123,7 +151,7 @@ meth public abstract org.jsoup.Connection$Response response()
+ meth public abstract org.jsoup.nodes.Document get() throws java.io.IOException
+ meth public abstract org.jsoup.nodes.Document post() throws java.io.IOException
+ 
+-CLSS public abstract interface static org.jsoup.Connection$Base<%0 extends org.jsoup.Connection$Base>
++CLSS public abstract interface static org.jsoup.Connection$Base<%0 extends org.jsoup.Connection$Base<{org.jsoup.Connection$Base%0}>>
+  outer org.jsoup.Connection
+ meth public abstract boolean hasCookie(java.lang.String)
+ meth public abstract boolean hasHeader(java.lang.String)
+@@ -178,7 +206,6 @@ intf org.jsoup.Connection$Base<org.jsoup.Connection$Request>
+ meth public abstract boolean followRedirects()
+ meth public abstract boolean ignoreContentType()
+ meth public abstract boolean ignoreHttpErrors()
+-meth public abstract boolean validateTLSCertificates()
+ meth public abstract int maxBodySize()
+ meth public abstract int timeout()
+ meth public abstract java.lang.String postDataCharset()
+@@ -199,7 +226,6 @@ meth public abstract org.jsoup.Connection$Request requestBody(java.lang.String)
+ meth public abstract org.jsoup.Connection$Request timeout(int)
+ meth public abstract org.jsoup.parser.Parser parser()
+ meth public abstract void sslSocketFactory(javax.net.ssl.SSLSocketFactory)
+-meth public abstract void validateTLSCertificates(boolean)
+ 
+ CLSS public abstract interface static org.jsoup.Connection$Response
+  outer org.jsoup.Connection
+@@ -219,23 +245,26 @@ CLSS public org.jsoup.HttpStatusException
+ cons public init(java.lang.String,int,java.lang.String)
+ meth public int getStatusCode()
+ meth public java.lang.String getUrl()
+-meth public java.lang.String toString()
+ supr java.io.IOException
+ hfds statusCode,url
+ 
+ CLSS public org.jsoup.Jsoup
+-meth public static boolean isValid(java.lang.String,org.jsoup.safety.Whitelist)
+-meth public static java.lang.String clean(java.lang.String,java.lang.String,org.jsoup.safety.Whitelist)
+-meth public static java.lang.String clean(java.lang.String,java.lang.String,org.jsoup.safety.Whitelist,org.jsoup.nodes.Document$OutputSettings)
+-meth public static java.lang.String clean(java.lang.String,org.jsoup.safety.Whitelist)
++meth public static boolean isValid(java.lang.String,org.jsoup.safety.Safelist)
++meth public static java.lang.String clean(java.lang.String,java.lang.String,org.jsoup.safety.Safelist)
++meth public static java.lang.String clean(java.lang.String,java.lang.String,org.jsoup.safety.Safelist,org.jsoup.nodes.Document$OutputSettings)
++meth public static java.lang.String clean(java.lang.String,org.jsoup.safety.Safelist)
+ meth public static org.jsoup.Connection connect(java.lang.String)
++meth public static org.jsoup.Connection newSession()
++meth public static org.jsoup.nodes.Document parse(java.io.File) throws java.io.IOException
+ meth public static org.jsoup.nodes.Document parse(java.io.File,java.lang.String) throws java.io.IOException
+ meth public static org.jsoup.nodes.Document parse(java.io.File,java.lang.String,java.lang.String) throws java.io.IOException
++meth public static org.jsoup.nodes.Document parse(java.io.File,java.lang.String,java.lang.String,org.jsoup.parser.Parser) throws java.io.IOException
+ meth public static org.jsoup.nodes.Document parse(java.io.InputStream,java.lang.String,java.lang.String) throws java.io.IOException
+ meth public static org.jsoup.nodes.Document parse(java.io.InputStream,java.lang.String,java.lang.String,org.jsoup.parser.Parser) throws java.io.IOException
+ meth public static org.jsoup.nodes.Document parse(java.lang.String)
+ meth public static org.jsoup.nodes.Document parse(java.lang.String,java.lang.String)
+ meth public static org.jsoup.nodes.Document parse(java.lang.String,java.lang.String,org.jsoup.parser.Parser)
++meth public static org.jsoup.nodes.Document parse(java.lang.String,org.jsoup.parser.Parser)
+ meth public static org.jsoup.nodes.Document parse(java.net.URL,int) throws java.io.IOException
+ meth public static org.jsoup.nodes.Document parseBodyFragment(java.lang.String)
+ meth public static org.jsoup.nodes.Document parseBodyFragment(java.lang.String,java.lang.String)
+@@ -250,6 +279,7 @@ supr java.lang.RuntimeException
+ 
+ CLSS public org.jsoup.UncheckedIOException
+ cons public init(java.io.IOException)
++cons public init(java.lang.String)
+ meth public java.io.IOException ioException()
+ supr java.lang.RuntimeException
+ 
+@@ -261,3 +291,11 @@ meth public java.lang.String toString()
+ supr java.io.IOException
+ hfds mimeType,url
+ 
++CLSS public abstract interface !annotation org.jsoup.internal.NonnullByDefault
++ anno 0 java.lang.annotation.Documented()
++ anno 0 java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy value=CLASS)
++intf java.lang.annotation.Annotation
++
++CLSS abstract interface org.jsoup.package-info
++ anno 0 org.jsoup.internal.NonnullByDefault()
++
+diff --git a/ide/libs.flexmark/nbproject/project.properties b/ide/libs.flexmark/nbproject/project.properties
+index df15ddf381..71423ab867 100644
+--- a/ide/libs.flexmark/nbproject/project.properties
++++ b/ide/libs.flexmark/nbproject/project.properties
+@@ -17,19 +17,19 @@
+ 
+ javac.source=1.8
+ javac.compilerargs=-Xlint -Xlint:-serial
+-release.external/flexmark-0.62.2.jar=modules/ext/flexmark-0.62.2.jar
+-release.external/flexmark-html2md-converter-0.62.2.jar=modules/ext/flexmark-html2md-converter-0.62.2.jar
+-release.external/flexmark-util-ast-0.62.2.jar=modules/ext/flexmark-util-ast-0.62.2.jar
+-release.external/flexmark-util-builder-0.62.2.jar=modules/ext/flexmark-util-builder-0.62.2.jar
+-release.external/flexmark-util-collection-0.62.2.jar=modules/ext/flexmark-util-collection-0.62.2.jar
+-release.external/flexmark-util-data-0.62.2.jar=modules/ext/flexmark-util-data-0.62.2.jar
+-release.external/flexmark-util-dependency-0.62.2.jar=modules/ext/flexmark-util-dependency-0.62.2.jar
+-release.external/flexmark-util-format-0.62.2.jar=modules/ext/flexmark-util-format-0.62.2.jar
+-release.external/flexmark-util-html-0.62.2.jar=modules/ext/flexmark-util-html-0.62.2.jar
+-release.external/flexmark-util-misc-0.62.2.jar=modules/ext/flexmark-util-misc-0.62.2.jar
+-release.external/flexmark-util-sequence-0.62.2.jar=modules/ext/flexmark-util-sequence-0.62.2.jar
+-release.external/flexmark-util-visitor-0.62.2.jar=modules/ext/flexmark-util-visitor-0.62.2.jar
+-release.external/flexmark-ext-emoji-0.62.2.jar=modules/ext/flexmark-ext-emoji-0.62.2.jar
+-release.external/flexmark-ext-anchorlink-0.62.2.jar=modules/ext/flexmark-ext-anchorlink-0.62.2.jar
+-release.external/flexmark-ext-tables-0.62.2.jar=modules/ext/flexmark-ext-tables-0.62.2.jar
+-release.external/jsoup-1.11.3.jar=modules/ext/jsoup-1.11.3.jar
++release.external/flexmark-0.64.6.jar=modules/ext/flexmark-0.64.6.jar
++release.external/flexmark-html2md-converter-0.64.6.jar=modules/ext/flexmark-html2md-converter-0.64.6.jar
++release.external/flexmark-util-ast-0.64.6.jar=modules/ext/flexmark-util-ast-0.64.6.jar
++release.external/flexmark-util-builder-0.64.6.jar=modules/ext/flexmark-util-builder-0.64.6.jar
++release.external/flexmark-util-collection-0.64.6.jar=modules/ext/flexmark-util-collection-0.64.6.jar
++release.external/flexmark-util-data-0.64.6.jar=modules/ext/flexmark-util-data-0.64.6.jar
++release.external/flexmark-util-dependency-0.64.6.jar=modules/ext/flexmark-util-dependency-0.64.6.jar
++release.external/flexmark-util-format-0.64.6.jar=modules/ext/flexmark-util-format-0.64.6.jar
++release.external/flexmark-util-html-0.64.6.jar=modules/ext/flexmark-util-html-0.64.6.jar
++release.external/flexmark-util-misc-0.64.6.jar=modules/ext/flexmark-util-misc-0.64.6.jar
++release.external/flexmark-util-sequence-0.64.6.jar=modules/ext/flexmark-util-sequence-0.64.6.jar
++release.external/flexmark-util-visitor-0.64.6.jar=modules/ext/flexmark-util-visitor-0.64.6.jar
++release.external/flexmark-ext-emoji-0.64.6.jar=modules/ext/flexmark-ext-emoji-0.64.6.jar
++release.external/flexmark-ext-anchorlink-0.64.6.jar=modules/ext/flexmark-ext-anchorlink-0.64.6.jar
++release.external/flexmark-ext-tables-0.64.6.jar=modules/ext/flexmark-ext-tables-0.64.6.jar
++release.external/jsoup-1.15.4.jar=modules/ext/jsoup-1.15.4.jar
+diff --git a/ide/libs.flexmark/nbproject/project.xml b/ide/libs.flexmark/nbproject/project.xml
+index 835019d60a..3a12bb9f60 100644
+--- a/ide/libs.flexmark/nbproject/project.xml
++++ b/ide/libs.flexmark/nbproject/project.xml
+@@ -30,68 +30,68 @@
+                 <subpackages>org.jsoup</subpackages>
+             </public-packages>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-html2md-converter-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-html2md-converter-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-html2md-converter-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-html2md-converter-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/jsoup-1.11.3.jar</runtime-relative-path>
+-                <binary-origin>external/jsoup-1.11.3.jar</binary-origin>
++                <runtime-relative-path>ext/jsoup-1.15.4.jar</runtime-relative-path>
++                <binary-origin>external/jsoup-1.15.4.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-ast-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-ast-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-ast-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-ast-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-builder-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-builder-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-builder-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-builder-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-collection-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-collection-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-collection-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-collection-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-data-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-data-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-data-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-data-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-dependency-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-dependency-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-dependency-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-dependency-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-format-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-format-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-format-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-format-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-html-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-html-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-html-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-html-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-misc-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-misc-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-misc-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-misc-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-sequence-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-sequence-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-sequence-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-sequence-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-util-visitor-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-util-visitor-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-util-visitor-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-util-visitor-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-ext-emoji-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-ext-emoji-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-ext-emoji-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-ext-emoji-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-ext-anchorlink-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-ext-anchorlink-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-ext-anchorlink-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-ext-anchorlink-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-ext-tables-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-ext-tables-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-ext-tables-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-ext-tables-0.64.6.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/flexmark-0.62.2.jar</runtime-relative-path>
+-                <binary-origin>external/flexmark-0.62.2.jar</binary-origin>
++                <runtime-relative-path>ext/flexmark-0.64.6.jar</runtime-relative-path>
++                <binary-origin>external/flexmark-0.64.6.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+diff --git a/java/java.lsp.server/external/binaries-list b/java/java.lsp.server/external/binaries-list
+index 9081ffa6f0..4bf25a3c3f 100644
+--- a/java/java.lsp.server/external/binaries-list
++++ b/java/java.lsp.server/external/binaries-list
+@@ -24,4 +24,3 @@ A57306D5D523A4750FA09B2708062EA4972AFEA2 org.eclipse.xtend:org.eclipse.xtend.lib
+ D8F5566BA67748ED9E91856E077EE99F00E86653 org.eclipse.xtend:org.eclipse.xtend.lib.macro:2.24.0
+ 53FBD66084B08850258E61C838CC1FB94335E718 org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.24.0
+ 
+-2852E6E05FBB95076FC091F6D1780F1F8FE35E0F commons-io:commons-io:2.5
+diff --git a/java/java.lsp.server/nbproject/project.properties b/java/java.lsp.server/nbproject/project.properties
+index dd38f3c423..99f88b3b28 100644
+--- a/java/java.lsp.server/nbproject/project.properties
++++ b/java/java.lsp.server/nbproject/project.properties
+@@ -32,7 +32,6 @@ release.external/org.eclipse.lsp4j.jsonrpc.debug-0.13.0.jar=modules/ext/org.ecli
+ release.external/org.eclipse.xtend.lib-2.24.0.jar=modules/ext/org.eclipse.xtend.lib-2.24.0.jar
+ release.external/org.eclipse.xtend.lib.macro-2.24.0.jar=modules/ext/org.eclipse.xtend.lib.macro-2.24.0.jar
+ release.external/org.eclipse.xtext.xbase.lib-2.24.0.jar=modules/ext/org.eclipse.xtext.xbase.lib-2.24.0.jar
+-release.external/commons-io-2.5.jar=modules/ext/commons-io-2.5.jar
+ 
+ test-unit-sys-prop.test.netbeans.dest.dir=${netbeans.dest.dir}
+ 
+diff --git a/java/java.lsp.server/nbproject/project.xml b/java/java.lsp.server/nbproject/project.xml
+index 3c27136d34..8fcbf4da7a 100644
+--- a/java/java.lsp.server/nbproject/project.xml
++++ b/java/java.lsp.server/nbproject/project.xml
+@@ -53,6 +53,14 @@
+                     <compile-dependency/>
+                     <run-dependency/>
+                 </dependency>
++                <dependency>
++                    <code-name-base>org.apache.commons.commons_io</code-name-base>
++                    <build-prerequisite/>
++                    <compile-dependency/>
++                    <run-dependency>
++                        <specification-version>2.13.0</specification-version>
++                    </run-dependency>
++                </dependency>
+                 <dependency>
+                     <code-name-base>org.apache.commons.lang3</code-name-base>
+                     <build-prerequisite/>
+@@ -835,10 +843,6 @@
+                 <runtime-relative-path>ext/org.eclipse.lsp4j-0.13.0.jar</runtime-relative-path>
+                 <binary-origin>external/org.eclipse.lsp4j-0.13.0.jar</binary-origin>
+             </class-path-extension>
+-            <class-path-extension>
+-                <runtime-relative-path>ext/commons-io-2.5.jar</runtime-relative-path>
+-                <binary-origin>external/commons-io-2.5.jar</binary-origin>
+-            </class-path-extension>
+         </data>
+     </configuration>
+ </project>
+diff --git a/java/maven.checkstyle/src/org/netbeans/modules/maven/format/checkstyle/ModuleConvertor.java b/java/maven.checkstyle/src/org/netbeans/modules/maven/format/checkstyle/ModuleConvertor.java
+index 7756e4ef79..eaac07a0f2 100644
+--- a/java/maven.checkstyle/src/org/netbeans/modules/maven/format/checkstyle/ModuleConvertor.java
++++ b/java/maven.checkstyle/src/org/netbeans/modules/maven/format/checkstyle/ModuleConvertor.java
+@@ -31,10 +31,10 @@ import java.util.Map;
+ import java.util.Properties;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
+-import org.jdom.Document;
+-import org.jdom.Element;
+-import org.jdom.JDOMException;
+-import org.jdom.input.SAXBuilder;
++import org.jdom2.Document;
++import org.jdom2.Element;
++import org.jdom2.JDOMException;
++import org.jdom2.input.SAXBuilder;
+ import org.openide.util.Exceptions;
+ import org.xml.sax.EntityResolver;
+ import org.xml.sax.InputSource;
+diff --git a/java/maven.embedder/external/apache-maven-3.9.3-bin-license.txt b/java/maven.embedder/external/apache-maven-3.9.4-bin-license.txt
+similarity index 99%
+rename from java/maven.embedder/external/apache-maven-3.9.3-bin-license.txt
+rename to java/maven.embedder/external/apache-maven-3.9.4-bin-license.txt
+index 6c30dbd641..801239a055 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.3-bin-license.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.4-bin-license.txt
+@@ -1,6 +1,6 @@
+ Name: Apache Maven Distribution
+ Description: Apache Maven Distribution
+-Version: 3.9.3
++Version: 3.9.4
+ License: Apache-2.0
+ Origin: Apache Software Foundation
+ URL: https://maven.apache.org/
+diff --git a/java/maven.embedder/external/apache-maven-3.9.3-bin-notice.txt b/java/maven.embedder/external/apache-maven-3.9.4-bin-notice.txt
+similarity index 93%
+rename from java/maven.embedder/external/apache-maven-3.9.3-bin-notice.txt
+rename to java/maven.embedder/external/apache-maven-3.9.4-bin-notice.txt
+index e9b5fe06ca..77634842ec 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.3-bin-notice.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.4-bin-notice.txt
+@@ -1,11 +1,9 @@
+-
+ Apache Maven Distribution
+-Copyright 2001-2022 The Apache Software Foundation
++Copyright 2001-2023 The Apache Software Foundation
++
+ 
+ This product includes software developed at
+ The Apache Software Foundation (http://www.apache.org/).
+-
+-
+ This software bundles the following NOTICE files from third party library providers:
+ 
+ META-INF/NOTICE in archive lib/guice-5.1.0.jar
+@@ -14,19 +12,20 @@ Copyright 2006-2022 Google, Inc.
+ This product includes software developed at
+ The Apache Software Foundation (http://www.apache.org/).
+ 
+-META-INF/NOTICE in archive lib/plexus-utils-3.5.1.jar
+-This product includes software developed by the Indiana University 
+-  Extreme! Lab (http://www.extreme.indiana.edu/).
+-This product includes software developed by 
++META-INF/NOTICE in archive lib/plexus-utils-3.2.1.jar
++This product includes software developed by the Indiana University
++ Extreme! Lab (http://www.extreme.indiana.edu/).
++This product includes software developed by
+ The Apache Software Foundation (http://www.apache.org/).
+-This product includes software developed by 
++This product includes software developed by
+ ThoughtWorks (http://www.thoughtworks.com).
+-This product includes software developed by 
++This product includes software developed by
+ javolution (http://javolution.org/).
+-This product includes software developed by 
++This product includes software developed by
+ Rome (https://rome.dev.java.net/).
+ 
+ about.html in archive lib/org.eclipse.sisu.inject-0.3.5.jar
++
+ <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+ <html xmlns="http://www.w3.org/1999/xhtml">
+diff --git a/java/maven.embedder/external/apache-maven-3.9.3-epl-license.txt b/java/maven.embedder/external/apache-maven-3.9.4-epl-license.txt
+similarity index 98%
+rename from java/maven.embedder/external/apache-maven-3.9.3-epl-license.txt
+rename to java/maven.embedder/external/apache-maven-3.9.4-epl-license.txt
+index 5862ceb1b6..854ce6c050 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.3-epl-license.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.4-epl-license.txt
+@@ -1,9 +1,9 @@
+ Name: Apache Maven components under EPL v1.0
+ Description: These Apache Maven components are under EPL v1.0: org.eclipse.sisu.inject-0.3.5.jar org.eclipse.sisu.plexus-0.3.5.jar
+-Version: 3.9.3
++Version: 3.9.4
+ License: Maven-EPL-v10
+ Origin: Apache Software Foundation
+-Files: apache-maven-3.9.3-bin.zip!/apache-maven-3.9.3/lib/org.eclipse.sisu.inject-0.3.5.jar apache-maven-3.9.3-bin.zip!/apache-maven-3.9.3/lib/org.eclipse.sisu.plexus-0.3.5.jar
++Files: apache-maven-3.9.4-bin.zip!/apache-maven-3.9.4/lib/org.eclipse.sisu.inject-0.3.5.jar apache-maven-3.9.4-bin.zip!/apache-maven-3.9.4/lib/org.eclipse.sisu.plexus-0.3.5.jar
+ 
+ Eclipse Public License - v 1.0
+ 
+diff --git a/java/maven.embedder/external/apache-maven-3.9.4-javax.annotation-api-license.txt b/java/maven.embedder/external/apache-maven-3.9.4-javax.annotation-api-license.txt
+new file mode 100644
+index 0000000000..58edc45000
+--- /dev/null
++++ b/java/maven.embedder/external/apache-maven-3.9.4-javax.annotation-api-license.txt
+@@ -0,0 +1,406 @@
++Name: Javax Annotation API
++Version: 3.9.4
++Description: Part of Apache Maven Distribution
++License: CDDL-1.1
++Origin: Apache Maven
++Files: apache-maven-3.9.4-bin.zip!/apache-maven-3.9.4/lib/javax.annotation-api-1.3.2.jar
++
++COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.1
++
++1. Definitions.
++
++1.1. "Contributor" means each individual or entity that
++creates or contributes to the creation of Modifications.
++
++1.2. "Contributor Version" means the combination of the
++Original Software, prior Modifications used by a
++Contributor (if any), and the Modifications made by that
++particular Contributor.
++
++1.3. "Covered Software" means (a) the Original Software, or
++(b) Modifications, or (c) the combination of files
++containing Original Software with files containing
++Modifications, in each case including portions thereof.
++
++1.4. "Executable" means the Covered Software in any form
++other than Source Code.
++
++1.5. "Initial Developer" means the individual or entity
++that first makes Original Software available under this
++License.
++
++1.6. "Larger Work" means a work which combines Covered
++Software or portions thereof with code not governed by the
++terms of this License.
++
++1.7. "License" means this document.
++
++1.8. "Licensable" means having the right to grant, to the
++maximum extent possible, whether at the time of the initial
++grant or subsequently acquired, any and all of the rights
++conveyed herein.
++
++1.9. "Modifications" means the Source Code and Executable
++form of any of the following:
++
++A. Any file that results from an addition to,
++deletion from or modification of the contents of a
++file containing Original Software or previous
++Modifications;
++
++B. Any new file that contains any part of the
++Original Software or previous Modification; or
++
++C. Any new file that is contributed or otherwise made
++available under the terms of this License.
++
++1.10. "Original Software" means the Source Code and
++Executable form of computer software code that is
++originally released under this License.
++
++1.11. "Patent Claims" means any patent claim(s), now owned
++or hereafter acquired, including without limitation,
++method, process, and apparatus claims, in any patent
++Licensable by grantor.
++
++1.12. "Source Code" means (a) the common form of computer
++software code in which modifications are made and (b)
++associated documentation included in or with such code.
++
++1.13. "You" (or "Your") means an individual or a legal
++entity exercising rights under, and complying with all of
++the terms of, this License. For legal entities, "You"
++includes any entity which controls, is controlled by, or is
++under common control with You. For purposes of this
++definition, "control" means (a) the power, direct or
++indirect, to cause the direction or management of such
++entity, whether by contract or otherwise, or (b) ownership
++of more than fifty percent (50%) of the outstanding shares
++or beneficial ownership of such entity.
++
++2. License Grants.
++
++2.1. The Initial Developer Grant.
++
++Conditioned upon Your compliance with Section 3.1 below and
++subject to third party intellectual property claims, the
++Initial Developer hereby grants You a world-wide,
++royalty-free, non-exclusive license:
++
++(a) under intellectual property rights (other than
++patent or trademark) Licensable by Initial Developer,
++to use, reproduce, modify, display, perform,
++sublicense and distribute the Original Software (or
++portions thereof), with or without Modifications,
++and/or as part of a Larger Work; and
++
++(b) under Patent Claims infringed by the making,
++using or selling of Original Software, to make, have
++made, use, practice, sell, and offer for sale, and/or
++otherwise dispose of the Original Software (or
++portions thereof).
++
++(c) The licenses granted in Sections 2.1(a) and (b)
++are effective on the date Initial Developer first
++distributes or otherwise makes the Original Software
++available to a third party under the terms of this
++License.
++
++(d) Notwithstanding Section 2.1(b) above, no patent
++license is granted: (1) for code that You delete from
++the Original Software, or (2) for infringements
++caused by: (i) the modification of the Original
++Software, or (ii) the combination of the Original
++Software with other software or devices.
++
++2.2. Contributor Grant.
++
++Conditioned upon Your compliance with Section 3.1 below and
++subject to third party intellectual property claims, each
++Contributor hereby grants You a world-wide, royalty-free,
++non-exclusive license:
++
++(a) under intellectual property rights (other than
++patent or trademark) Licensable by Contributor to
++use, reproduce, modify, display, perform, sublicense
++and distribute the Modifications created by such
++Contributor (or portions thereof), either on an
++unmodified basis, with other Modifications, as
++Covered Software and/or as part of a Larger Work; and
++
++(b) under Patent Claims infringed by the making,
++using, or selling of Modifications made by that
++Contributor either alone and/or in combination with
++its Contributor Version (or portions of such
++combination), to make, use, sell, offer for sale,
++have made, and/or otherwise dispose of: (1)
++Modifications made by that Contributor (or portions
++thereof); and (2) the combination of Modifications
++made by that Contributor with its Contributor Version
++(or portions of such combination).
++
++(c) The licenses granted in Sections 2.2(a) and
++2.2(b) are effective on the date Contributor first
++distributes or otherwise makes the Modifications
++available to a third party.
++
++(d) Notwithstanding Section 2.2(b) above, no patent
++license is granted: (1) for any code that Contributor
++has deleted from the Contributor Version; (2) for
++infringements caused by: (i) third party
++modifications of Contributor Version, or (ii) the
++combination of Modifications made by that Contributor
++with other software (except as part of the
++Contributor Version) or other devices; or (3) under
++Patent Claims infringed by Covered Software in the
++absence of Modifications made by that Contributor.
++
++3. Distribution Obligations.
++
++3.1. Availability of Source Code.
++
++Any Covered Software that You distribute or otherwise make
++available in Executable form must also be made available in
++Source Code form and that Source Code form must be
++distributed only under the terms of this License. You must
++include a copy of this License with every copy of the
++Source Code form of the Covered Software You distribute or
++otherwise make available. You must inform recipients of any
++such Covered Software in Executable form as to how they can
++obtain such Covered Software in Source Code form in a
++reasonable manner on or through a medium customarily used
++for software exchange.
++
++3.2. Modifications.
++
++The Modifications that You create or to which You
++contribute are governed by the terms of this License. You
++represent that You believe Your Modifications are Your
++original creation(s) and/or You have sufficient rights to
++grant the rights conveyed by this License.
++
++3.3. Required Notices.
++
++You must include a notice in each of Your Modifications
++that identifies You as the Contributor of the Modification.
++You may not remove or alter any copyright, patent or
++trademark notices contained within the Covered Software, or
++any notices of licensing or any descriptive text giving
++attribution to any Contributor or the Initial Developer.
++
++3.4. Application of Additional Terms.
++
++You may not offer or impose any terms on any Covered
++Software in Source Code form that alters or restricts the
++applicable version of this License or the recipients'
++rights hereunder. You may choose to offer, and to charge a
++fee for, warranty, support, indemnity or liability
++obligations to one or more recipients of Covered Software.
++However, you may do so only on Your own behalf, and not on
++behalf of the Initial Developer or any Contributor. You
++must make it absolutely clear that any such warranty,
++support, indemnity or liability obligation is offered by
++You alone, and You hereby agree to indemnify the Initial
++Developer and every Contributor for any liability incurred
++by the Initial Developer or such Contributor as a result of
++warranty, support, indemnity or liability terms You offer.
++
++3.5. Distribution of Executable Versions.
++
++You may distribute the Executable form of the Covered
++Software under the terms of this License or under the terms
++of a license of Your choice, which may contain terms
++different from this License, provided that You are in
++compliance with the terms of this License and that the
++license for the Executable form does not attempt to limit
++or alter the recipient's rights in the Source Code form
++from the rights set forth in this License. If You
++distribute the Covered Software in Executable form under a
++different license, You must make it absolutely clear that
++any terms which differ from this License are offered by You
++alone, not by the Initial Developer or Contributor. You
++hereby agree to indemnify the Initial Developer and every
++Contributor for any liability incurred by the Initial
++Developer or such Contributor as a result of any such terms
++You offer.
++
++3.6. Larger Works.
++
++You may create a Larger Work by combining Covered Software
++with other code not governed by the terms of this License
++and distribute the Larger Work as a single product. In such
++a case, You must make sure the requirements of this License
++are fulfilled for the Covered Software.
++
++4. Versions of the License.
++
++4.1. New Versions.
++
++Oracle is the initial license steward and
++may publish revised and/or new versions of this License
++from time to time. Each version will be given a
++distinguishing version number. Except as provided in
++Section 4.3, no one other than the license steward has the
++right to modify this License.
++
++4.2. Effect of New Versions.
++
++You may always continue to use, distribute or otherwise
++make the Covered Software available under the terms of the
++version of the License under which You originally received
++the Covered Software. If the Initial Developer includes a
++notice in the Original Software prohibiting it from being
++distributed or otherwise made available under any
++subsequent version of the License, You must distribute and
++make the Covered Software available under the terms of the
++version of the License under which You originally received
++the Covered Software. Otherwise, You may also choose to
++use, distribute or otherwise make the Covered Software
++available under the terms of any subsequent version of the
++License published by the license steward.
++
++4.3. Modified Versions.
++
++When You are an Initial Developer and You want to create a
++new license for Your Original Software, You may create and
++use a modified version of this License if You: (a) rename
++the license and remove any references to the name of the
++license steward (except to note that the license differs
++from this License); and (b) otherwise make it clear that
++the license contains terms which differ from this License.
++
++5. DISCLAIMER OF WARRANTY.
++
++COVERED SOFTWARE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS"
++BASIS, WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED,
++INCLUDING, WITHOUT LIMITATION, WARRANTIES THAT THE COVERED
++SOFTWARE IS FREE OF DEFECTS, MERCHANTABLE, FIT FOR A PARTICULAR
++PURPOSE OR NON-INFRINGING. THE ENTIRE RISK AS TO THE QUALITY AND
++PERFORMANCE OF THE COVERED SOFTWARE IS WITH YOU. SHOULD ANY
++COVERED SOFTWARE PROVE DEFECTIVE IN ANY RESPECT, YOU (NOT THE
++INITIAL DEVELOPER OR ANY OTHER CONTRIBUTOR) ASSUME THE COST OF
++ANY NECESSARY SERVICING, REPAIR OR CORRECTION. THIS DISCLAIMER OF
++WARRANTY CONSTITUTES AN ESSENTIAL PART OF THIS LICENSE. NO USE OF
++ANY COVERED SOFTWARE IS AUTHORIZED HEREUNDER EXCEPT UNDER THIS
++DISCLAIMER.
++
++6. TERMINATION.
++
++6.1. This License and the rights granted hereunder will
++terminate automatically if You fail to comply with terms
++herein and fail to cure such breach within 30 days of
++becoming aware of the breach. Provisions which, by their
++nature, must remain in effect beyond the termination of
++this License shall survive.
++
++6.2. If You assert a patent infringement claim (excluding
++declaratory judgment actions) against Initial Developer or
++a Contributor (the Initial Developer or Contributor against
++whom You assert such claim is referred to as "Participant")
++alleging that the Participant Software (meaning the
++Contributor Version where the Participant is a Contributor
++or the Original Software where the Participant is the
++Initial Developer) directly or indirectly infringes any
++patent, then any and all rights granted directly or
++indirectly to You by such Participant, the Initial
++Developer (if the Initial Developer is not the Participant)
++and all Contributors under Sections 2.1 and/or 2.2 of this
++License shall, upon 60 days notice from Participant
++terminate prospectively and automatically at the expiration
++of such 60 day notice period, unless if within such 60 day
++period You withdraw Your claim with respect to the
++Participant Software against such Participant either
++unilaterally or pursuant to a written agreement with
++Participant.
++
++6.3. If You assert a patent infringement claim against
++Participant alleging that the Participant Software directly
++or indirectly infringes any patent where such claim is
++resolved (such as by license or settlement) prior to the
++initiation of patent infringement litigation, then the
++reasonable value of the licenses granted by such Participant
++under Sections 2.1 or 2.2 shall be taken into account in
++determining the amount or value of any payment or license.
++
++6.4. In the event of termination under Sections 6.1 or 6.2
++above, all end user licenses that have been validly granted
++by You or any distributor hereunder prior to termination
++(excluding licenses granted to You by any distributor)
++shall survive termination.
++
++7. LIMITATION OF LIABILITY.
++
++UNDER NO CIRCUMSTANCES AND UNDER NO LEGAL THEORY, WHETHER TORT
++(INCLUDING NEGLIGENCE), CONTRACT, OR OTHERWISE, SHALL YOU, THE
++INITIAL DEVELOPER, ANY OTHER CONTRIBUTOR, OR ANY DISTRIBUTOR OF
++COVERED SOFTWARE, OR ANY SUPPLIER OF ANY OF SUCH PARTIES, BE
++LIABLE TO ANY PERSON FOR ANY INDIRECT, SPECIAL, INCIDENTAL, OR
++CONSEQUENTIAL DAMAGES OF ANY CHARACTER INCLUDING, WITHOUT
++LIMITATION, DAMAGES FOR LOSS OF GOODWILL, WORK
++STOPPAGE, COMPUTER FAILURE OR MALFUNCTION, OR ANY AND ALL OTHER
++COMMERCIAL DAMAGES OR LOSSES, EVEN IF SUCH PARTY SHALL HAVE BEEN
++INFORMED OF THE POSSIBILITY OF SUCH DAMAGES. THIS LIMITATION OF
++LIABILITY SHALL NOT APPLY TO LIABILITY FOR DEATH OR PERSONAL
++INJURY RESULTING FROM SUCH PARTY'S NEGLIGENCE TO THE EXTENT
++APPLICABLE LAW PROHIBITS SUCH LIMITATION. SOME JURISDICTIONS DO
++NOT ALLOW THE EXCLUSION OR LIMITATION OF INCIDENTAL OR
++CONSEQUENTIAL DAMAGES, SO THIS EXCLUSION AND LIMITATION MAY NOT
++APPLY TO YOU.
++
++8. U.S. GOVERNMENT END USERS.
++
++The Covered Software is a "commercial item," as that term is
++defined in 48 C.F.R. 2.101 (Oct. 1995), consisting of "commercial
++computer software" (as that term is defined at 48 C.F.R.
++Â§ 252.227-7014(a)(1)) and "commercial computer software
++documentation" as such terms are used in 48 C.F.R. 12.212 (Sept.
++1995). Consistent with 48 C.F.R. 12.212 and 48 C.F.R. 227.7202-1
++through 227.7202-4 (June 1995), all U.S. Government End Users
++acquire Covered Software with only those rights set forth herein.
++This U.S. Government Rights clause is in lieu of, and supersedes,
++any other FAR, DFAR, or other clause or provision that addresses
++Government rights in computer software under this License.
++
++9. MISCELLANEOUS.
++
++This License represents the complete agreement concerning subject
++matter hereof. If any provision of this License is held to be
++unenforceable, such provision shall be reformed only to the
++extent necessary to make it enforceable. This License shall be
++governed by the law of the jurisdiction specified in a notice
++contained within the Original Software (except to the extent
++applicable law, if any, provides otherwise), excluding such
++jurisdiction's conflict-of-law provisions. Any litigation
++relating to this License shall be subject to the jurisdiction of
++the courts located in the jurisdiction and venue specified in a
++notice contained within the Original Software, with the losing
++party responsible for costs, including, without limitation, court
++costs and reasonable attorneys' fees and expenses. The
++application of the United Nations Convention on Contracts for the
++International Sale of Goods is expressly excluded. Any law or
++regulation which provides that the language of a contract shall
++be construed against the drafter shall not apply to this License.
++You agree that You alone are responsible for compliance with the
++United States export administration regulations (and the export
++control laws and regulation of any other countries) when You use,
++distribute or otherwise make available any Covered Software.
++
++10. RESPONSIBILITY FOR CLAIMS.
++
++As between Initial Developer and the Contributors, each party is
++responsible for claims and damages arising, directly or
++indirectly, out of its utilization of rights under this License
++and You agree to work with Initial Developer and Contributors to
++distribute such responsibility on an equitable basis. Nothing
++herein is intended or shall be deemed to constitute any admission
++of liability.
++
++NOTICE PURSUANT TO SECTION 9 OF THE COMMON DEVELOPMENT AND
++DISTRIBUTION LICENSE (CDDL)
++
++The code released under the CDDL shall be governed by the laws
++of the State of California (excluding conflict-of-law provisions).
++Any litigation relating to this License shall be subject to the
++jurisdiction of the Federal Courts of the Northern District of
++California and the state courts of the State of California, with
++venue lying in Santa Clara County, California.
+diff --git a/java/maven.embedder/external/apache-maven-3.9.3-slf4j-license.txt b/java/maven.embedder/external/apache-maven-3.9.4-slf4j-license.txt
+similarity index 88%
+rename from java/maven.embedder/external/apache-maven-3.9.3-slf4j-license.txt
+rename to java/maven.embedder/external/apache-maven-3.9.4-slf4j-license.txt
+index 8d5d6c0388..281cd298fc 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.3-slf4j-license.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.4-slf4j-license.txt
+@@ -1,11 +1,11 @@
+ Name: slf4j
+ Description: Part of Apache Maven Distribution
+-Version: 3.9.3
+-License: MIT-slf4j
++Version: 3.9.4
++License: MIT-slf4j-22
+ Origin: Apache Software Foundation
+-Files: apache-maven-3.9.3-bin.zip!/apache-maven-3.9.3/lib/slf4j-api-1.7.36.jar
++Files: apache-maven-3.9.4-bin.zip!/apache-maven-3.9.4/lib/slf4j-api-1.7.36.jar
+ 
+-Copyright (c) 2004-2017 QOS.ch
++Copyright (c) 2004-2022 QOS.ch Sarl (Switzerland)
+ All rights reserved.
+ 
+ Permission is hereby granted, free  of charge, to any person obtaining
+diff --git a/java/maven.embedder/external/binaries-list b/java/maven.embedder/external/binaries-list
+index 8e65f59aba..f882228682 100644
+--- a/java/maven.embedder/external/binaries-list
++++ b/java/maven.embedder/external/binaries-list
+@@ -14,6 +14,6 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-A2AC1CD690AB4C80DEFE7F9BCE14D35934C35CEC jdom:jdom:1.0
++DC15DFF8F701B227EE523EEB7A17F77C10EAFE2F org.jdom:jdom2:2.0.6.1
+ 5D9CE6ADD7B714B8095F0E3E396C5E9F8C5DCFEF org.apache.maven.shared:maven-dependency-tree:2.2
+-0A5439DE8AAF8B24161EC77A7C0C2C37340FC6FB org.apache.maven:apache-maven:3.9.3:bin@zip
++5501C83302757A1407C0546E68EEDBE78EF4C802 org.apache.maven:apache-maven:3.9.4:bin@zip
+diff --git a/java/maven.embedder/external/binariesembedded-list b/java/maven.embedder/external/binariesembedded-list
+index 19af8f0efa..e5384dd6f9 100644
+--- a/java/maven.embedder/external/binariesembedded-list
++++ b/java/maven.embedder/external/binariesembedded-list
+@@ -22,35 +22,35 @@
+ DC98BE5D5390230684A092589D70EA76A147925C;commons-cli:commons-cli:1.5.0
+ 3ACB4705652E16236558F0F4F2192CC33C3BD189;commons-codec:commons-codec:1.11
+ C6842C86792FF03B9F1D1FE2AAB8DC23AA6C6F0E;org.apache.commons:commons-lang3:3.12.0
+-60458F877D055D0C9114D9E1A2EFB737B4BC282C;com.google.guava:guava:31.1-jre
++6E5D51A72D142F2D40A57DFB897188B36A95B489;com.google.guava:guava:32.0.1-jre
+ DA25056C694C54BA16E78E4FC35F17FC60F0D1B4;com.google.inject:guice:5.1.0
+ 321C614F85F1DEA6BB08C1817C60D53B7F3552FD;org.fusesource.jansi:jansi:2.4.0
+ 6975DA39A7040257BD51D21A231B76C915872D38;javax.inject:javax.inject:1
+ D877E195A05ACA4A2F1AD2FF14BFEC1393AF4B5E;org.slf4j:jcl-over-slf4j:1.7.36
+ 934C04D3CFEF185A8008E7BF34331B79730A9D43;javax.annotation:javax.annotation-api:1.3.2
+-BDACC5D67014383C80F5561B3996454F5F36D134;org.apache.maven:maven-artifact:3.9.3
+-AA3658CFA6AD9923F3A9FA99D8399052FD999567;org.apache.maven:maven-builder-support:3.9.3
+-C04D7E7E6926F360B6884501ABCE1A399A5E287A;org.apache.maven:maven-compat:3.9.3
+-D625BC169992F4EB807D7E6C03CDBA0FEB8841ED;org.apache.maven:maven-core:3.9.3
+-F35B271023E13EE263BBDF8755F4ED57313D5E5F;org.apache.maven:maven-embedder:3.9.3
+-1B15EF66255145168949C1BDC20F70B9FFF531AA;org.apache.maven:maven-model:3.9.3
+-2EDA197CA81B2F189392F4041DC65ABB46FF070F;org.apache.maven:maven-model-builder:3.9.3
+-47C81AD57EFFDE270A18E44EAB72060EA5A9A451;org.apache.maven:maven-plugin-api:3.9.3
+-15FF2DB741191064B7B59EF8704DCBF9F3A61DB2;org.apache.maven:maven-repository-metadata:3.9.3
+-3F270F7122047E4113CA7D66AD6F86A33C88C9AC;org.apache.maven.resolver:maven-resolver-api:1.9.13
+-09AB55B836913B98321101B23B4C61D8485A589D;org.apache.maven.resolver:maven-resolver-connector-basic:1.9.13
+-9B1249902065AEA64CBF1C5306DC43E8D7DBAC4E;org.apache.maven.resolver:maven-resolver-impl:1.9.13
+-5DE261851D65144303F75AEEEB075F327FBA2952;org.apache.maven.resolver:maven-resolver-named-locks:1.9.13
+-9F8941A1A62B3D2F56656E28FC828C00A1324682;org.apache.maven:maven-resolver-provider:3.9.3
+-112758C5E9B8EB9002BF129102D22CB887E3025C;org.apache.maven.resolver:maven-resolver-spi:1.9.13
+-20A9313DC425956F9F9472C487986652363AC5B5;org.apache.maven.resolver:maven-resolver-transport-http:1.9.13
+-D21763DA9046A2378A857CD22C46486F7B1908E5;org.apache.maven.resolver:maven-resolver-transport-wagon:1.9.13
+-68DA2730DC3E968ABA581F7E432FB14A4A7C4477;org.apache.maven.resolver:maven-resolver-transport-file:1.9.13
+-EDAC336095D491FDD5C7572AEC7F4547DF4A8531;org.apache.maven.resolver:maven-resolver-util:1.9.13
+-4E3076219C554203485B7BE51951007611BFE1F5;org.apache.maven:maven-settings:3.9.3
+-C2B51853FEAC5E7AA0E4FBFF79C6FA3F0C3197A0;org.apache.maven:maven-settings-builder:3.9.3
++9738999A0459221E758EBE728449C43567D7FECC;org.apache.maven:maven-artifact:3.9.4
++671110E56110D5C89EDA904F198719A2B5FA4A21;org.apache.maven:maven-builder-support:3.9.4
++938A854093350D7BF6E0319739C1A320ADB6EAFD;org.apache.maven:maven-compat:3.9.4
++C1585EE55FCA8573E81F5AFFCF8D31578218CAC8;org.apache.maven:maven-core:3.9.4
++E35834A85B46A7CF99C517076DA20B7E7029EDDD;org.apache.maven:maven-embedder:3.9.4
++5B79D873CF6D13B3FC4020EAC04E2A62EBBFA0AA;org.apache.maven:maven-model:3.9.4
++B12E45736DDFB51F648E1579877A293659E5A96E;org.apache.maven:maven-model-builder:3.9.4
++54A5E32A3ECF77B09BE683CBA3067EA76E073D06;org.apache.maven:maven-plugin-api:3.9.4
++EF368D45A2CAA54634DE221540994CA2D810C4C9;org.apache.maven:maven-repository-metadata:3.9.4
++BD5B7CD9D15C2EFCAB4D8C8215E769523E8843E4;org.apache.maven.resolver:maven-resolver-api:1.9.14
++FFEB368F5587513B29EF9771514EC36D246E65F5;org.apache.maven.resolver:maven-resolver-connector-basic:1.9.14
++2AA090ACA572F7061E5C57F714EF0445BBB4555F;org.apache.maven.resolver:maven-resolver-impl:1.9.14
++71CF74D91B4F6DE1BFF8FC1FAFB401D9AC42B1B8;org.apache.maven.resolver:maven-resolver-named-locks:1.9.14
++D5E38634C1251E000F7718437973A730346BC336;org.apache.maven:maven-resolver-provider:3.9.4
++A190C3D49791240C87799F29848505FC9FD8BE11;org.apache.maven.resolver:maven-resolver-spi:1.9.14
++1EB4ACDCE7F21526BD06654B3D7B1EDF80370CE8;org.apache.maven.resolver:maven-resolver-transport-http:1.9.14
++47965D035A34E16FAC73F77058199FE8A16719A8;org.apache.maven.resolver:maven-resolver-transport-wagon:1.9.14
++E2FAD53903C29FA4E8603FF8DA09F68D96D9F80E;org.apache.maven.resolver:maven-resolver-transport-file:1.9.14
++EA6FD2997903700191711DEE4448746ED30FE4B9;org.apache.maven.resolver:maven-resolver-util:1.9.14
++F0553A72454ED3160CCA729B75166077D8F3D499;org.apache.maven:maven-settings:3.9.4
++B3F6479C00E9182B9B731CAF69AC6F4F6F2A373F;org.apache.maven:maven-settings-builder:3.9.4
+ F87A61ADB1E12A00DCC6CC6005A51E693AA7C4AC;org.apache.maven.shared:maven-shared-utils:3.3.4
+-A395D28C4EED821FFACD32CA2441DC8967C2BDDB;org.apache.maven:maven-slf4j-provider:3.9.3
++14D05A34AC800E8446EE58754308E7DEF6225383;org.apache.maven:maven-slf4j-provider:3.9.4
+ D4265DD4F0F1D7A06D80DF5A5F475D5FF9C17140;org.eclipse.sisu:org.eclipse.sisu.inject:0.3.5
+ D71996BB2E536F966B3B70E647067FFF3B73D32F;org.eclipse.sisu:org.eclipse.sisu.plexus:0.3.5
+ 425EA8E534716B4BFF1EA90F39BD76BE951D651B;org.codehaus.plexus:plexus-cipher:2.0
+diff --git a/java/maven.embedder/external/jdom-1.0-license.txt b/java/maven.embedder/external/jdom-1.0-license.txt
+deleted file mode 100644
+index 0f1f678bdd..0000000000
+--- a/java/maven.embedder/external/jdom-1.0-license.txt
++++ /dev/null
+@@ -1,55 +0,0 @@
+-Name: JDOM
+-Version: 1.0
+-Description: Java API for XML manipulation.
+-License: BSD-JDOM
+-Origin: http://www.jdom.org/dist/binary/jdom-1.0.tar.gz
+-
+-Copyright (C) 2000-2004 Jason Hunter & Brett McLaughlin.
+-All rights reserved.
+-
+-Redistribution and use in source and binary forms, with or without
+-modification, are permitted provided that the following conditions
+-are met:
+-
+-1. Redistributions of source code must retain the above copyright
+-   notice, this list of conditions, and the following disclaimer.
+-
+-2. Redistributions in binary form must reproduce the above copyright
+-   notice, this list of conditions, and the disclaimer that follows
+-   these conditions in the documentation and/or other materials
+-   provided with the distribution.
+-
+-3. The name "JDOM" must not be used to endorse or promote products
+-   derived from this software without prior written permission.  For
+-   written permission, please contact <request_AT_jdom_DOT_org>.
+-
+-4. Products derived from this software may not be called "JDOM", nor
+-   may "JDOM" appear in their name, without prior written permission
+-   from the JDOM Project Management <request_AT_jdom_DOT_org>.
+-
+-In addition, we request (but do not require) that you include in the
+-end-user documentation provided with the redistribution and/or in the
+-software itself an acknowledgement equivalent to the following:
+-    "This product includes software developed by the
+-     JDOM Project (http://www.jdom.org/)."
+-Alternatively, the acknowledgment may be graphical using the logos
+-available at http://www.jdom.org/images/logos.
+-
+-THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+-OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+-DISCLAIMED.  IN NO EVENT SHALL THE JDOM AUTHORS OR THE PROJECT
+-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+-OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+-SUCH DAMAGE.
+-
+-This software consists of voluntary contributions made by many
+-individuals on behalf of the JDOM Project and was originally
+-created by Jason Hunter <jhunter_AT_jdom_DOT_org> and
+-Brett McLaughlin <brett_AT_jdom_DOT_org>.  For more information
+-on the JDOM Project, please see <http://www.jdom.org/>.
+diff --git a/java/maven.embedder/external/jdom2-2.0.6.1-license.txt b/java/maven.embedder/external/jdom2-2.0.6.1-license.txt
+new file mode 100644
+index 0000000000..f02c8f6cac
+--- /dev/null
++++ b/java/maven.embedder/external/jdom2-2.0.6.1-license.txt
+@@ -0,0 +1,59 @@
++Name: JDOM
++Version: 2.0.6.1
++Description: Java API for XML manipulation.
++License: BSD-JDOM
++Origin: http://www.jdom.org/dist/binary/jdom-1.0.tar.gz
++
++/*--
++
++ Copyright (C) 2000-2012 Jason Hunter & Brett McLaughlin.
++ All rights reserved.
++
++ Redistribution and use in source and binary forms, with or without
++ modification, are permitted provided that the following conditions
++ are met:
++
++ 1. Redistributions of source code must retain the above copyright
++    notice, this list of conditions, and the following disclaimer.
++
++ 2. Redistributions in binary form must reproduce the above copyright
++    notice, this list of conditions, and the disclaimer that follows
++    these conditions in the documentation and/or other materials
++    provided with the distribution.
++
++ 3. The name "JDOM" must not be used to endorse or promote products
++    derived from this software without prior written permission.  For
++    written permission, please contact <request_AT_jdom_DOT_org>.
++
++ 4. Products derived from this software may not be called "JDOM", nor
++    may "JDOM" appear in their name, without prior written permission
++    from the JDOM Project Management <request_AT_jdom_DOT_org>.
++
++ In addition, we request (but do not require) that you include in the
++ end-user documentation provided with the redistribution and/or in the
++ software itself an acknowledgement equivalent to the following:
++     "This product includes software developed by the
++      JDOM Project (http://www.jdom.org/)."
++ Alternatively, the acknowledgment may be graphical using the logos
++ available at http://www.jdom.org/images/logos.
++
++ THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
++ WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
++ OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ DISCLAIMED.  IN NO EVENT SHALL THE JDOM AUTHORS OR THE PROJECT
++ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
++ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ SUCH DAMAGE.
++
++ This software consists of voluntary contributions made by many
++ individuals on behalf of the JDOM Project and was originally
++ created by Jason Hunter <jhunter_AT_jdom_DOT_org> and
++ Brett McLaughlin <brett_AT_jdom_DOT_org>.  For more information
++ on the JDOM Project, please see <http://www.jdom.org/>.
++
++ */
+diff --git a/java/maven.embedder/external/jdom-1.0-notice.txt b/java/maven.embedder/external/jdom2-2.0.6.1-notice.txt
+similarity index 100%
+rename from java/maven.embedder/external/jdom-1.0-notice.txt
+rename to java/maven.embedder/external/jdom2-2.0.6.1-notice.txt
+diff --git a/java/maven.embedder/nbproject/project.properties b/java/maven.embedder/nbproject/project.properties
+index 3181d348f2..083823db94 100644
+--- a/java/maven.embedder/nbproject/project.properties
++++ b/java/maven.embedder/nbproject/project.properties
+@@ -18,9 +18,9 @@
+ is.autoload=true
+ javac.source=1.8
+ javac.compilerargs=-Xlint -Xlint:-serial
+-release.external/jdom-1.0.jar=modules/ext/maven/jdom-1.0.jar
++release.external/jdom2-2.0.6.1.jar=modules/ext/maven/jdom2-2.0.6.1.jar
+ release.external/maven-dependency-tree-2.2.jar=modules/ext/maven/maven-dependency-tree-2.2.jar
+-bundled.maven=apache-maven-3.9.3
++bundled.maven=apache-maven-3.9.4
+ extra.module.files=maven/
+ nbm.executable.files=maven/bin/mvn,maven/bin/mvnDebug,maven/bin/mvnyjp
+ extra.license.files=${cluster}/maven/LICENSE.txt,${cluster}/maven/NOTICE.txt
+diff --git a/java/maven.embedder/nbproject/project.xml b/java/maven.embedder/nbproject/project.xml
+index cd1c5de37d..8ccd45c8bf 100644
+--- a/java/maven.embedder/nbproject/project.xml
++++ b/java/maven.embedder/nbproject/project.xml
+@@ -256,10 +256,12 @@
+                 <package>org.codehaus.plexus.util.introspection</package>
+                 <package>org.codehaus.plexus.util.xml</package>
+                 <package>org.codehaus.plexus.util.xml.pull</package>
+-                <package>org.jdom</package>
+-                <package>org.jdom.filter</package>
+-                <package>org.jdom.input</package>
+-                <package>org.jdom.output</package>
++                <package>org.jdom2</package>
++                <package>org.jdom2.filter</package>
++                <package>org.jdom2.input</package>
++                <package>org.jdom2.input.sax</package>
++                <package>org.jdom2.output</package>
++                <package>org.jdom2.util</package>
+                 <package>org.netbeans.modules.maven.embedder</package>
+                 <package>org.netbeans.modules.maven.embedder.exec</package>
+                 <package>org.eclipse.aether</package>
+@@ -283,8 +285,8 @@
+                 <binary-origin>external/maven-dependency-tree-2.2.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/maven/jdom-1.0.jar</runtime-relative-path>
+-                <binary-origin>external/jdom-1.0.jar</binary-origin>
++                <runtime-relative-path>ext/maven/jdom2-2.0.6.1.jar</runtime-relative-path>
++                <binary-origin>external/jdom2-2.0.6.1.jar</binary-origin>
+             </class-path-extension>
+             <!-- zipinfo -1 .../apache-maven-*-bin.zip | sort | perl -n -e 'if (m!^apache-maven-.+/((lib|boot)/.+.jar)$!) {print "            <class-path-extension>\n                <runtime-relative-path>../maven/$1</runtime-relative-path>\n            </class-path-extension>\n"}' -->
+             <class-path-extension>
+@@ -306,7 +308,7 @@
+                 <runtime-relative-path>../maven/lib/failureaccess-1.0.1.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/guava-31.1-jre.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/guava-32.0.1-jre.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path>../maven/lib/guice-5.1.0.jar</runtime-relative-path>
+@@ -330,73 +332,73 @@
+                 <runtime-relative-path>../maven/lib/jcl-over-slf4j-1.7.36.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-artifact-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-artifact-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-builder-support-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-builder-support-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-compat-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-compat-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-core-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-core-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-embedder-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-embedder-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-model-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-model-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-model-builder-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-model-builder-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-plugin-api-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-plugin-api-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-repository-metadata-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-repository-metadata-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-api-1.9.13.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-api-1.9.14.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-connector-basic-1.9.13.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-connector-basic-1.9.14.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-impl-1.9.13.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-impl-1.9.14.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-named-locks-1.9.13.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-named-locks-1.9.14.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-provider-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-provider-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-spi-1.9.13.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-spi-1.9.14.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-transport-file-1.9.13.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-transport-file-1.9.14.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-transport-http-1.9.13.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-transport-http-1.9.14.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-transport-wagon-1.9.13.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-transport-wagon-1.9.14.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-util-1.9.13.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-util-1.9.14.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-settings-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-settings-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-settings-builder-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-settings-builder-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path>../maven/lib/maven-shared-utils-3.3.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-slf4j-provider-3.9.3.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-slf4j-provider-3.9.4.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path>../maven/lib/org.eclipse.sisu.inject-0.3.5.jar</runtime-relative-path>
+diff --git a/java/maven.grammar/nbproject/org-netbeans-modules-maven-grammar.sig b/java/maven.grammar/nbproject/org-netbeans-modules-maven-grammar.sig
+index 3a3c957af8..cefc930318 100644
+--- a/java/maven.grammar/nbproject/org-netbeans-modules-maven-grammar.sig
++++ b/java/maven.grammar/nbproject/org-netbeans-modules-maven-grammar.sig
+@@ -1,5 +1,5 @@
+ #Signature file v4.1
+-#Version 1.68.0
++#Version 1.69.0
+ 
+ CLSS public java.lang.Object
+ cons public init()
+@@ -27,13 +27,13 @@ intf org.netbeans.modules.xml.api.model.GrammarQuery
+ meth protected abstract java.io.InputStream getSchemaStream()
+ meth protected final java.util.Enumeration<org.netbeans.modules.xml.api.model.GrammarResult> createTextValueList(java.lang.String[],org.netbeans.modules.xml.api.model.HintContext)
+ meth protected final org.apache.maven.project.MavenProject getMavenProject()
+-meth protected final org.jdom.Element findElement(org.jdom.Element,java.lang.String)
+-meth protected final org.jdom.Element findNonTypedContent(org.jdom.Element)
+-meth protected final org.jdom.Element findTypeContent(java.lang.String,org.jdom.Element)
++meth protected final org.jdom2.Element findElement(org.jdom2.Element,java.lang.String)
++meth protected final org.jdom2.Element findNonTypedContent(org.jdom2.Element)
++meth protected final org.jdom2.Element findTypeContent(java.lang.String,org.jdom2.Element)
+ meth protected final org.netbeans.modules.xml.api.model.GrammarEnvironment getEnvironment()
+-meth protected final void processSequence(java.lang.String,org.jdom.Element,java.util.Vector<org.netbeans.modules.xml.api.model.GrammarResult>)
+-meth protected java.util.Enumeration<org.netbeans.modules.xml.api.model.GrammarResult> getDynamicValueCompletion(java.lang.String,org.netbeans.modules.xml.api.model.HintContext,org.jdom.Element)
+-meth protected java.util.List<org.netbeans.modules.xml.api.model.GrammarResult> getDynamicCompletion(java.lang.String,org.netbeans.modules.xml.api.model.HintContext,org.jdom.Element)
++meth protected final void processSequence(java.lang.String,org.jdom2.Element,java.util.Vector<org.netbeans.modules.xml.api.model.GrammarResult>)
++meth protected java.util.Enumeration<org.netbeans.modules.xml.api.model.GrammarResult> getDynamicValueCompletion(java.lang.String,org.netbeans.modules.xml.api.model.HintContext,org.jdom2.Element)
++meth protected java.util.List<org.netbeans.modules.xml.api.model.GrammarResult> getDynamicCompletion(java.lang.String,org.netbeans.modules.xml.api.model.HintContext,org.jdom2.Element)
+ meth public boolean hasCustomizer(org.netbeans.modules.xml.api.model.HintContext)
+ meth public boolean isAllowed(java.util.Enumeration)
+ meth public java.awt.Component getCustomizer(org.netbeans.modules.xml.api.model.HintContext)
+@@ -46,7 +46,6 @@ meth public org.netbeans.modules.xml.api.model.GrammarResult queryDefault(org.ne
+ meth public org.openide.nodes.Node$Property[] getProperties(org.netbeans.modules.xml.api.model.HintContext)
+ supr java.lang.Object
+ hfds environment,schemaDoc
+-hcls DefinitionContentElementFilter
+ 
+ CLSS protected abstract static org.netbeans.modules.maven.grammar.spi.AbstractSchemaBasedGrammar$AbstractResultNode
+  outer org.netbeans.modules.maven.grammar.spi.AbstractSchemaBasedGrammar
+@@ -119,8 +118,8 @@ meth public short getNodeType()
+ supr org.netbeans.modules.maven.grammar.spi.AbstractSchemaBasedGrammar$AbstractResultNode
+ 
+ CLSS public abstract interface org.netbeans.modules.maven.grammar.spi.GrammarExtensionProvider
+-meth public abstract java.util.Enumeration<org.netbeans.modules.xml.api.model.GrammarResult> getDynamicValueCompletion(java.lang.String,org.netbeans.modules.xml.api.model.HintContext,org.jdom.Element)
+-meth public abstract java.util.List<org.netbeans.modules.xml.api.model.GrammarResult> getDynamicCompletion(java.lang.String,org.netbeans.modules.xml.api.model.HintContext,org.jdom.Element)
++meth public abstract java.util.Enumeration<org.netbeans.modules.xml.api.model.GrammarResult> getDynamicValueCompletion(java.lang.String,org.netbeans.modules.xml.api.model.HintContext,org.jdom2.Element)
++meth public abstract java.util.List<org.netbeans.modules.xml.api.model.GrammarResult> getDynamicCompletion(java.lang.String,org.netbeans.modules.xml.api.model.HintContext,org.jdom2.Element)
+  anno 0 org.netbeans.api.annotations.common.NonNull()
+ 
+ CLSS public abstract interface org.netbeans.modules.xml.api.model.GrammarQuery
+diff --git a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenArchetypeGrammar.java b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenArchetypeGrammar.java
+index dbc42e18c3..99ba62af6f 100644
+--- a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenArchetypeGrammar.java
++++ b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenArchetypeGrammar.java
+@@ -22,7 +22,7 @@ package org.netbeans.modules.maven.grammar;
+ import java.io.InputStream;
+ import java.util.Collections;
+ import java.util.List;
+-import org.jdom.Element;
++import org.jdom2.Element;
+ import org.netbeans.modules.maven.grammar.spi.AbstractSchemaBasedGrammar;
+ import org.netbeans.modules.xml.api.model.GrammarEnvironment;
+ import org.netbeans.modules.xml.api.model.GrammarResult;
+diff --git a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenAssemblyGrammar.java b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenAssemblyGrammar.java
+index 8919540fb9..b45e2ba335 100644
+--- a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenAssemblyGrammar.java
++++ b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenAssemblyGrammar.java
+@@ -27,7 +27,7 @@ import java.util.Iterator;
+ import java.util.List;
+ import org.apache.maven.model.Dependency;
+ import org.apache.maven.project.MavenProject;
+-import org.jdom.Element;
++import org.jdom2.Element;
+ import org.netbeans.modules.maven.grammar.spi.AbstractSchemaBasedGrammar;
+ import org.netbeans.modules.xml.api.model.GrammarEnvironment;
+ import org.netbeans.modules.xml.api.model.GrammarResult;
+diff --git a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenNbmGrammar.java b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenNbmGrammar.java
+index 547377ab76..6f0617d982 100644
+--- a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenNbmGrammar.java
++++ b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenNbmGrammar.java
+@@ -27,7 +27,7 @@ import java.util.Iterator;
+ import java.util.List;
+ import org.apache.maven.model.Dependency;
+ import org.apache.maven.project.MavenProject;
+-import org.jdom.Element;
++import org.jdom2.Element;
+ import org.netbeans.modules.maven.grammar.spi.AbstractSchemaBasedGrammar;
+ import org.netbeans.modules.xml.api.model.GrammarEnvironment;
+ import org.netbeans.modules.xml.api.model.GrammarResult;
+diff --git a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenProjectGrammar.java b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenProjectGrammar.java
+index 6bd648ffe2..794232596b 100644
+--- a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenProjectGrammar.java
++++ b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenProjectGrammar.java
+@@ -51,11 +51,13 @@ import org.apache.maven.model.PluginManagement;
+ import org.apache.maven.model.Plugin;
+ import org.codehaus.plexus.util.StringUtils;
+ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+-import org.jdom.Document;
+-import org.jdom.Element;
+-import org.jdom.JDOMException;
+-import org.jdom.filter.Filter;
+-import org.jdom.input.SAXBuilder;
++import org.jdom2.Content;
++import org.jdom2.Document;
++import org.jdom2.Element;
++import org.jdom2.JDOMException;
++import org.jdom2.filter.AbstractFilter;
++import org.jdom2.filter.Filter;
++import org.jdom2.input.SAXBuilder;
+ import org.netbeans.api.project.Project;
+ import org.netbeans.api.project.ProjectManager;
+ import org.netbeans.modules.maven.api.Constants;
+@@ -120,7 +122,7 @@ public class MavenProjectGrammar extends AbstractSchemaBasedGrammar {
+     }
+     
+     @Override
+-    protected List<GrammarResult> getDynamicCompletion(String path, HintContext hintCtx, org.jdom.Element parent) {
++    protected List<GrammarResult> getDynamicCompletion(String path, HintContext hintCtx, org.jdom2.Element parent) {
+         List<GrammarResult> result = new ArrayList<GrammarResult>();
+         if (path.endsWith("plugins/plugin/configuration") || //NOI18N
+             path.endsWith("plugins/plugin/executions/execution/configuration")) { //NOI18N
+@@ -293,26 +295,21 @@ public class MavenProjectGrammar extends AbstractSchemaBasedGrammar {
+     }
+     
+     private List<GrammarResult> collectPluginParams(Document pluginDoc, HintContext hintCtx) {
+-        Iterator<Element> it = pluginDoc.getRootElement().getDescendants(new Filter() {
+-            @Override
+-            public boolean matches(Object object) {
+-                if (object instanceof Element) {
+-                    Element el = (Element)object;
+-                    if ("parameter".equals(el.getName()) && //NOI18N
+-                            el.getParentElement() != null && "parameters".equals(el.getParentElement().getName()) && //NOI18N
+-                            el.getParentElement().getParentElement() != null && "mojo".equals(el.getParentElement().getParentElement().getName())) { //NOI18N
+-                        return true;
+-                    }
+-                }
+-                return false;
+-            }
+-        });
+-
++        Iterator<Content> it = pluginDoc.getRootElement().getDescendants();
+         List<GrammarResult> toReturn = new ArrayList<GrammarResult>();
+         Collection<String> params = new HashSet<String>();
+ 
+         while (it.hasNext()) {
+-            Element el = it.next();
++            Content c = it.next();
++            if (!(c instanceof Element)) {
++                continue;
++            }
++            Element el = (Element) c;
++            if (!("parameter".equals(el.getName()) && //NOI18N
++                  el.getParentElement() != null && "parameters".equals(el.getParentElement().getName()) && //NOI18N
++                  el.getParentElement().getParentElement() != null && "mojo".equals(el.getParentElement().getParentElement().getName()))) { //NOI18N
++                continue;
++            }
+             String editable = el.getChildText("editable"); //NOI18N
+             if ("true".equalsIgnoreCase(editable)) { //NOI18N
+                 String name = el.getChildText("name"); //NOI18N
+@@ -793,23 +790,18 @@ public class MavenProjectGrammar extends AbstractSchemaBasedGrammar {
+     }
+ 
+     private Enumeration<GrammarResult> collectGoals(Document pluginDoc, HintContext virtualTextCtx) {
+-        @SuppressWarnings("unchecked")
+-        Iterator<Element> it = pluginDoc.getRootElement().getDescendants(new Filter() {
+-            @Override
+-            public boolean matches(Object object) {
+-                if (object instanceof Element) {
+-                    Element el = (Element)object;
+-                    if ("goal".equals(el.getName()) && //NOI18N
+-                            el.getParentElement() != null && "mojo".equals(el.getParentElement().getName())) { //NOI18N
+-                        return true;
+-                    }
+-                }
+-                return false;
+-            }
+-        });
++        Iterator<Content> it = pluginDoc.getRootElement().getDescendants();
+         Collection<GrammarResult> toReturn = new ArrayList<GrammarResult>();
+         while (it.hasNext()) {
+-            Element el = it.next();
++            Content c = it.next();
++            if (!(c instanceof Element)) {
++                continue;
++            }
++            Element el = (Element) c;
++            if (!("goal".equals(el.getName()) && //NOI18N
++                  el.getParentElement() != null && "mojo".equals(el.getParentElement().getName()))) { //NOI18N
++                continue;
++            }
+             String name = el.getText();
+             if (name.startsWith(virtualTextCtx.getCurrentPrefix())) {
+                toReturn.add(new MyTextElement(name, virtualTextCtx.getCurrentPrefix()));
+diff --git a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenSettingsGrammar.java b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenSettingsGrammar.java
+index b5a7bb9bbe..cf58c3496a 100644
+--- a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenSettingsGrammar.java
++++ b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/MavenSettingsGrammar.java
+@@ -23,7 +23,7 @@ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.Enumeration;
+ import java.util.List;
+-import org.jdom.Element;
++import org.jdom2.Element;
+ import org.netbeans.modules.maven.grammar.catalog.MavenCatalog;
+ import org.netbeans.modules.maven.grammar.spi.AbstractSchemaBasedGrammar;
+ import org.netbeans.modules.maven.indexer.api.RepositoryInfo;
+diff --git a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/spi/AbstractSchemaBasedGrammar.java b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/spi/AbstractSchemaBasedGrammar.java
+index 3d0f01db44..21a3969880 100644
+--- a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/spi/AbstractSchemaBasedGrammar.java
++++ b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/spi/AbstractSchemaBasedGrammar.java
+@@ -30,11 +30,12 @@ import java.util.List;
+ import java.util.Vector;
+ import javax.swing.Icon;
+ import org.apache.maven.project.MavenProject;
++import org.jdom2.Content;
+ import org.netbeans.modules.maven.api.NbMavenProject;
+-import org.jdom.Document;
+-import org.jdom.filter.ElementFilter;
+-import org.jdom.filter.Filter;
+-import org.jdom.input.SAXBuilder;
++import org.jdom2.Document;
++import org.jdom2.filter.ElementFilter;
++import org.jdom2.filter.Filter;
++import org.jdom2.input.SAXBuilder;
+ import org.netbeans.api.project.FileOwnerQuery;
+ import org.netbeans.api.project.Project;
+ import org.netbeans.modules.xml.api.model.GrammarEnvironment;
+@@ -99,7 +100,7 @@ public abstract class AbstractSchemaBasedGrammar implements GrammarQuery {
+      * @param path is slash separated path string
+      * @return the actual completion nodes or empty list
+      */
+-    protected List<GrammarResult> getDynamicCompletion(String path, HintContext hintCtx, org.jdom.Element lowestParent) {
++    protected List<GrammarResult> getDynamicCompletion(String path, HintContext hintCtx, org.jdom2.Element lowestParent) {
+         return Collections.<GrammarResult>emptyList();
+     }
+ 
+@@ -108,15 +109,15 @@ public abstract class AbstractSchemaBasedGrammar implements GrammarQuery {
+      * @param path is slash separated path string
+      * @return null, if no such offering exists or the actual completion nodes..
+      */
+-    protected Enumeration<GrammarResult> getDynamicValueCompletion(String path, HintContext virtualTextCtx, org.jdom.Element el) {
++    protected Enumeration<GrammarResult> getDynamicValueCompletion(String path, HintContext virtualTextCtx, org.jdom2.Element el) {
+         return null;
+     }
+     
+     
+-    protected final org.jdom.Element findElement(org.jdom.Element parent, String name) {
++    protected final org.jdom2.Element findElement(org.jdom2.Element parent, String name) {
+         @SuppressWarnings("unchecked")
+-        List<org.jdom.Element> childs = parent.getChildren("element", parent.getNamespace()); //NOI18N
+-        for (org.jdom.Element el : childs) {
++        List<org.jdom2.Element> childs = parent.getChildren("element", parent.getNamespace()); //NOI18N
++        for (org.jdom2.Element el : childs) {
+             if (name.equals(el.getAttributeValue("name"))) { //NOI18N
+                 return el;
+             }
+@@ -125,8 +126,8 @@ public abstract class AbstractSchemaBasedGrammar implements GrammarQuery {
+     }
+ 
+     
+-    protected final org.jdom.Element findNonTypedContent(org.jdom.Element root) {
+-        org.jdom.Element complex = root.getChild("complexType", root.getNamespace()); //NOI18N
++    protected final org.jdom2.Element findNonTypedContent(org.jdom2.Element root) {
++        org.jdom2.Element complex = root.getChild("complexType", root.getNamespace()); //NOI18N
+         if (complex != null) {
+             complex = complex.getChild("sequence", root.getNamespace()); //NOI18N
+         }
+@@ -135,30 +136,22 @@ public abstract class AbstractSchemaBasedGrammar implements GrammarQuery {
+     }
+ 
+     
+-    protected final org.jdom.Element findTypeContent(final String type, org.jdom.Element docRoot) {
+-        @SuppressWarnings("unchecked")
+-        List<org.jdom.Element> lst = docRoot.getContent(new Filter() {
+-            @Override
+-            public boolean matches(Object match) {
+-                if (match instanceof org.jdom.Element) {
+-                    org.jdom.Element el = (org.jdom.Element)match;
+-                    if ("complexType".equals(el.getName()) && type.equals(el.getAttributeValue("name"))) { //NOI18N
+-                        return true;
+-                    }
++    protected final org.jdom2.Element findTypeContent(final String type, org.jdom2.Element docRoot) {
++        List<Content> lst = docRoot.getContent();
++        for (Content c : lst) {
++            if (c instanceof org.jdom2.Element) {
++                org.jdom2.Element el = (org.jdom2.Element)c;
++                if ("complexType".equals(el.getName()) && type.equals(el.getAttributeValue("name"))) { //NOI18N
++                    return el.getChild("all", docRoot.getNamespace()); //NOI18N
+                 }
+-                return false;
+             }
+-        });
+-        if (lst.size() > 0) {
+-            org.jdom.Element typeEl = lst.get(0);
+-            return typeEl.getChild("all", docRoot.getNamespace()); //NOI18N
+         }
+         return null;
+     }
+     
+ 
+     
+-      private void processElement(String matches, org.jdom.Element childEl, Vector<GrammarResult> suggestions) {
++      private void processElement(String matches, org.jdom2.Element childEl, Vector<GrammarResult> suggestions) {
+         String childRefAttr = childEl.getAttributeValue("ref"); //NOI18N
+         if (childRefAttr == null) {
+             // if ref not defined, go check name attribute..
+@@ -169,29 +162,6 @@ public abstract class AbstractSchemaBasedGrammar implements GrammarQuery {
+         }
+     }
+     
+-    /**
+-     * filters out the child elements that are of of type 'element" or "group".
+-     */
+-    private class DefinitionContentElementFilter extends ElementFilter {
+-        public DefinitionContentElementFilter() {
+-        }
+-        
+-        @Override
+-        public boolean matches(Object obj) {
+-            boolean toReturn = super.matches(obj);
+-            if (toReturn) {
+-                org.jdom.Element el = (org.jdom.Element)obj;
+-                toReturn = false;
+-                if ("element".equals(el.getName()) || "group".equals(el.getName())) //NOI18N
+-                {
+-                    toReturn = true;
+-                }
+-            }
+-            return toReturn;
+-        }
+-        
+-    }
+-      
+     @Override
+     public Component getCustomizer(HintContext nodeCtx) {
+         return null;
+@@ -224,11 +194,13 @@ public abstract class AbstractSchemaBasedGrammar implements GrammarQuery {
+     }
+ 
+     
+-    protected final void processSequence(String matches, org.jdom.Element seqEl, Vector<GrammarResult> suggestions) {
++    protected final void processSequence(String matches, org.jdom2.Element seqEl, Vector<GrammarResult> suggestions) {
+         @SuppressWarnings("unchecked")
+-        List<org.jdom.Element> availables = seqEl.getContent(new DefinitionContentElementFilter());
+-        for (org.jdom.Element childEl : availables) {
+-            processElement(matches, childEl, suggestions);
++        List<org.jdom2.Element> availables = seqEl.getContent(new ElementFilter());
++        for (org.jdom2.Element childEl : availables) {
++            if ("element".equals(childEl.getName()) || "group".equals(childEl.getName())) { //NOI18N
++                processElement(matches, childEl, suggestions);
++            }
+         }
+     }
+ 
+@@ -284,14 +256,14 @@ public abstract class AbstractSchemaBasedGrammar implements GrammarQuery {
+                 }
+                 parentNode = parentNode.getParentNode();
+             }
+-            org.jdom.Element schemaParent = schemaDoc.getRootElement();
++            org.jdom2.Element schemaParent = schemaDoc.getRootElement();
+             Iterator<String> it = parentNames.iterator();
+             String path = ""; //NOI18N
+             Vector<GrammarResult> toReturn = new Vector<GrammarResult>();
+             while (it.hasNext() && schemaParent != null) {
+                 String str = it.next();
+                 path = path + "/" + str; //NOI18N
+-                org.jdom.Element el = findElement(schemaParent, str);
++                org.jdom2.Element el = findElement(schemaParent, str);
+                 if (!it.hasNext()) {
+                     toReturn.addAll(getDynamicCompletion(path, virtualElementCtx, el));
+                 }
+@@ -357,13 +329,13 @@ public abstract class AbstractSchemaBasedGrammar implements GrammarQuery {
+                 parentNames.add(0, parentNode.getNodeName());
+                 parentNode = parentNode.getParentNode();
+             }
+-            org.jdom.Element schemaParent = schemaDoc.getRootElement();
++            org.jdom2.Element schemaParent = schemaDoc.getRootElement();
+             Iterator<String> it = parentNames.iterator();
+             String path = ""; //NOI18N
+             while (it.hasNext() && schemaParent != null) {
+                 String str = it.next();
+                 path = path + "/" + str; //NOI18N
+-                org.jdom.Element el = findElement(schemaParent, str);
++                org.jdom2.Element el = findElement(schemaParent, str);
+                 if (!it.hasNext()) {
+                     Enumeration<GrammarResult> en = getDynamicValueCompletion(path, virtualTextCtx, el);
+                     if (en != null) {
+diff --git a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/spi/GrammarExtensionProvider.java b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/spi/GrammarExtensionProvider.java
+index 62a9613fe2..e7b30de287 100644
+--- a/java/maven.grammar/src/org/netbeans/modules/maven/grammar/spi/GrammarExtensionProvider.java
++++ b/java/maven.grammar/src/org/netbeans/modules/maven/grammar/spi/GrammarExtensionProvider.java
+@@ -21,7 +21,7 @@ package org.netbeans.modules.maven.grammar.spi;
+ 
+ import java.util.Enumeration;
+ import java.util.List;
+-import org.jdom.Element;
++import org.jdom2.Element;
+ import org.netbeans.api.annotations.common.NonNull;
+ import org.netbeans.modules.xml.api.model.GrammarResult;
+ import org.netbeans.modules.xml.api.model.HintContext;
+diff --git a/java/maven.junit/src/org/netbeans/modules/maven/junit/JUnitOutputListenerProvider.java b/java/maven.junit/src/org/netbeans/modules/maven/junit/JUnitOutputListenerProvider.java
+index 2c04b7406d..2db5453ccf 100644
+--- a/java/maven.junit/src/org/netbeans/modules/maven/junit/JUnitOutputListenerProvider.java
++++ b/java/maven.junit/src/org/netbeans/modules/maven/junit/JUnitOutputListenerProvider.java
+@@ -42,10 +42,10 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
+ import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
+ import org.codehaus.plexus.util.FileUtils;
+ import org.codehaus.plexus.util.StringUtils;
+-import org.jdom.Document;
+-import org.jdom.Element;
+-import org.jdom.JDOMException;
+-import org.jdom.input.SAXBuilder;
++import org.jdom2.Document;
++import org.jdom2.Element;
++import org.jdom2.JDOMException;
++import org.jdom2.input.SAXBuilder;
+ import org.netbeans.api.annotations.common.NonNull;
+ import org.netbeans.api.annotations.common.NullAllowed;
+ import org.netbeans.api.project.FileOwnerQuery;
+diff --git a/java/maven.osgi/src/org/netbeans/modules/maven/osgi/FelixPluginGrammarExtension.java b/java/maven.osgi/src/org/netbeans/modules/maven/osgi/FelixPluginGrammarExtension.java
+index f8f238fa09..47c3a4a43a 100644
+--- a/java/maven.osgi/src/org/netbeans/modules/maven/osgi/FelixPluginGrammarExtension.java
++++ b/java/maven.osgi/src/org/netbeans/modules/maven/osgi/FelixPluginGrammarExtension.java
+@@ -23,7 +23,7 @@ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.Enumeration;
+ import java.util.List;
+-import org.jdom.Element;
++import org.jdom2.Element;
+ import org.netbeans.modules.maven.grammar.spi.AbstractSchemaBasedGrammar;
+ import org.netbeans.modules.maven.grammar.spi.GrammarExtensionProvider;
+ import org.netbeans.modules.xml.api.model.GrammarResult;
+diff --git a/java/maven/nbproject/org-netbeans-modules-maven.sig b/java/maven/nbproject/org-netbeans-modules-maven.sig
+index 4f65527b30..7431a5d01a 100644
+--- a/java/maven/nbproject/org-netbeans-modules-maven.sig
++++ b/java/maven/nbproject/org-netbeans-modules-maven.sig
+@@ -2193,18 +2193,18 @@ supr java.lang.Object
+ CLSS public org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter
+ cons public init()
+ innr public Counter
+-meth protected org.jdom.Element findAndReplaceProperties(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom.Element,java.lang.String,java.util.Map)
+-meth protected org.jdom.Element findAndReplaceSimpleElement(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom.Element,java.lang.String,java.lang.String,java.lang.String)
+-meth protected org.jdom.Element findAndReplaceSimpleLists(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom.Element,java.util.Collection,java.lang.String,java.lang.String)
+-meth protected org.jdom.Element findAndReplaceXpp3DOM(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom.Element,java.lang.String,org.codehaus.plexus.util.xml.Xpp3Dom)
+-meth protected org.jdom.Element updateElement(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom.Element,java.lang.String,boolean)
+-meth protected void insertAtPreferredLocation(org.jdom.Element,org.jdom.Element,org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter)
+-meth protected void iterate2NetbeansActionMapping(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom.Element,java.util.Collection,java.lang.String)
+-meth protected void replaceXpp3DOM(org.jdom.Element,org.codehaus.plexus.util.xml.Xpp3Dom,org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter)
+-meth protected void updateActionToGoalMapping(org.netbeans.modules.maven.execute.model.ActionToGoalMapping,java.lang.String,org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom.Element)
+-meth protected void updateNetbeansActionMapping(org.netbeans.modules.maven.execute.model.NetbeansActionMapping,java.lang.String,org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom.Element)
+-meth public void write(org.netbeans.modules.maven.execute.model.ActionToGoalMapping,org.jdom.Document,java.io.OutputStreamWriter) throws java.io.IOException
+-meth public void write(org.netbeans.modules.maven.execute.model.ActionToGoalMapping,org.jdom.Document,java.io.Writer,org.jdom.output.Format) throws java.io.IOException
++meth protected org.jdom2.Element findAndReplaceProperties(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom2.Element,java.lang.String,java.util.Map)
++meth protected org.jdom2.Element findAndReplaceSimpleElement(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom2.Element,java.lang.String,java.lang.String,java.lang.String)
++meth protected org.jdom2.Element findAndReplaceSimpleLists(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom2.Element,java.util.Collection,java.lang.String,java.lang.String)
++meth protected org.jdom2.Element findAndReplaceXpp3DOM(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom2.Element,java.lang.String,org.codehaus.plexus.util.xml.Xpp3Dom)
++meth protected org.jdom2.Element updateElement(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom2.Element,java.lang.String,boolean)
++meth protected void insertAtPreferredLocation(org.jdom2.Element,org.jdom2.Element,org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter)
++meth protected void iterate2NetbeansActionMapping(org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom2.Element,java.util.Collection,java.lang.String)
++meth protected void replaceXpp3DOM(org.jdom2.Element,org.codehaus.plexus.util.xml.Xpp3Dom,org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter)
++meth protected void updateActionToGoalMapping(org.netbeans.modules.maven.execute.model.ActionToGoalMapping,java.lang.String,org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom2.Element)
++meth protected void updateNetbeansActionMapping(org.netbeans.modules.maven.execute.model.NetbeansActionMapping,java.lang.String,org.netbeans.modules.maven.execute.model.io.jdom.NetbeansBuildActionJDOMWriter$Counter,org.jdom2.Element)
++meth public void write(org.netbeans.modules.maven.execute.model.ActionToGoalMapping,org.jdom2.Document,java.io.OutputStreamWriter) throws java.io.IOException
++meth public void write(org.netbeans.modules.maven.execute.model.ActionToGoalMapping,org.jdom2.Document,java.io.Writer,org.jdom2.output.Format) throws java.io.IOException
+ supr java.lang.Object
+ hfds factory,lineSeparator
+ 
+diff --git a/java/maven/src/org/netbeans/modules/maven/customizer/ActionMappings.java b/java/maven/src/org/netbeans/modules/maven/customizer/ActionMappings.java
+index 0d0ef20306..cd8198b7ef 100644
+--- a/java/maven/src/org/netbeans/modules/maven/customizer/ActionMappings.java
++++ b/java/maven/src/org/netbeans/modules/maven/customizer/ActionMappings.java
+@@ -62,7 +62,7 @@ import javax.swing.event.DocumentListener;
+ import javax.swing.text.BadLocationException;
+ import javax.swing.text.JTextComponent;
+ import org.codehaus.plexus.util.StringUtils;
+-import org.jdom.Verifier;
++import org.jdom2.Verifier;
+ import org.netbeans.api.annotations.common.NullAllowed;
+ import org.netbeans.api.java.platform.JavaPlatform;
+ import org.netbeans.api.java.platform.JavaPlatformManager;
+diff --git a/java/maven/src/org/netbeans/modules/maven/customizer/CustomizerProviderImpl.java b/java/maven/src/org/netbeans/modules/maven/customizer/CustomizerProviderImpl.java
+index 63b90c64ed..94c4d2f408 100644
+--- a/java/maven/src/org/netbeans/modules/maven/customizer/CustomizerProviderImpl.java
++++ b/java/maven/src/org/netbeans/modules/maven/customizer/CustomizerProviderImpl.java
+@@ -36,12 +36,12 @@ import java.util.logging.Logger;
+ import org.apache.maven.project.MavenProject;
+ import org.codehaus.plexus.util.IOUtil;
+ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+-import org.jdom.DefaultJDOMFactory;
+-import org.jdom.Document;
+-import org.jdom.JDOMException;
+-import org.jdom.JDOMFactory;
+-import org.jdom.input.SAXBuilder;
+-import org.jdom.output.Format;
++import org.jdom2.DefaultJDOMFactory;
++import org.jdom2.Document;
++import org.jdom2.JDOMException;
++import org.jdom2.JDOMFactory;
++import org.jdom2.input.SAXBuilder;
++import org.jdom2.output.Format;
+ import org.netbeans.api.project.Project;
+ import org.netbeans.api.project.ProjectUtils;
+ import org.netbeans.api.project.ui.ProjectProblems;
+diff --git a/java/maven/src/org/netbeans/modules/maven/execute/model/io/jdom/NetbeansBuildActionJDOMWriter.java b/java/maven/src/org/netbeans/modules/maven/execute/model/io/jdom/NetbeansBuildActionJDOMWriter.java
+index 1c7c0b9ae1..6c8a93da0a 100644
+--- a/java/maven/src/org/netbeans/modules/maven/execute/model/io/jdom/NetbeansBuildActionJDOMWriter.java
++++ b/java/maven/src/org/netbeans/modules/maven/execute/model/io/jdom/NetbeansBuildActionJDOMWriter.java
+@@ -32,13 +32,13 @@ import java.util.Iterator;
+ import java.util.ListIterator;
+ import java.util.Map;
+ import org.codehaus.plexus.util.xml.Xpp3Dom;
+-import org.jdom.Content;
+-import org.jdom.DefaultJDOMFactory;
+-import org.jdom.Document;
+-import org.jdom.Element;
+-import org.jdom.Text;
+-import org.jdom.output.Format;
+-import org.jdom.output.XMLOutputter;
++import org.jdom2.Content;
++import org.jdom2.DefaultJDOMFactory;
++import org.jdom2.Document;
++import org.jdom2.Element;
++import org.jdom2.Text;
++import org.jdom2.output.Format;
++import org.jdom2.output.XMLOutputter;
+ import org.netbeans.modules.maven.execute.model.ActionToGoalMapping;
+ import org.netbeans.modules.maven.execute.model.NetbeansActionMapping;
+ 
+diff --git a/java/maven/src/org/netbeans/modules/maven/newproject/CatalogRepoProvider.java b/java/maven/src/org/netbeans/modules/maven/newproject/CatalogRepoProvider.java
+index a494e72e62..c604df7e76 100644
+--- a/java/maven/src/org/netbeans/modules/maven/newproject/CatalogRepoProvider.java
++++ b/java/maven/src/org/netbeans/modules/maven/newproject/CatalogRepoProvider.java
+@@ -50,11 +50,11 @@ import org.apache.maven.wagon.proxy.ProxyInfo;
+ import org.apache.maven.wagon.repository.Repository;
+ import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+ import org.codehaus.plexus.util.FileUtils;
+-import org.jdom.Document;
+-import org.jdom.Element;
+-import org.jdom.JDOMException;
+-import org.jdom.Namespace;
+-import org.jdom.input.SAXBuilder;
++import org.jdom2.Document;
++import org.jdom2.Element;
++import org.jdom2.JDOMException;
++import org.jdom2.Namespace;
++import org.jdom2.input.SAXBuilder;
+ import org.netbeans.modules.maven.api.archetype.Archetype;
+ import org.netbeans.modules.maven.api.archetype.ArchetypeProvider;
+ import org.netbeans.modules.maven.embedder.EmbedderFactory;
+diff --git a/java/maven/test/unit/src/org/netbeans/modules/maven/execute/model/io/jdom/NetbeansBuildActionJDOMWriterTest.java b/java/maven/test/unit/src/org/netbeans/modules/maven/execute/model/io/jdom/NetbeansBuildActionJDOMWriterTest.java
+index 9d6c48ead8..e7079bc71e 100644
+--- a/java/maven/test/unit/src/org/netbeans/modules/maven/execute/model/io/jdom/NetbeansBuildActionJDOMWriterTest.java
++++ b/java/maven/test/unit/src/org/netbeans/modules/maven/execute/model/io/jdom/NetbeansBuildActionJDOMWriterTest.java
+@@ -19,9 +19,9 @@
+ 
+ package org.netbeans.modules.maven.execute.model.io.jdom;
+ 
+-import org.jdom.Element;
+-import org.jdom.output.Format;
+-import org.jdom.output.XMLOutputter;
++import org.jdom2.Element;
++import org.jdom2.output.Format;
++import org.jdom2.output.XMLOutputter;
+ import org.netbeans.junit.NbTestCase;
+ 
+ public class NetbeansBuildActionJDOMWriterTest extends NbTestCase {
+diff --git a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
+index 0955df9c17..67d156809c 100644
+--- a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
++++ b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
+@@ -23,8 +23,9 @@
+ ide/db.sql.visualeditor/external/javacc-7.0.10.jar java/performance/external/javacc-7.0.10.jar
+ 
+ # bundled maven conflicts with other libraries
+-java/maven.embedder/external/apache-maven-3.9.3-bin.zip ide/slf4j.api/external/slf4j-api-1.7.36.jar
+-java/maven.embedder/external/apache-maven-3.9.3-bin.zip platform/o.apache.commons.lang3/external/commons-lang3-3.12.0.jar
++java/maven.embedder/external/apache-maven-3.9.4-bin.zip ide/slf4j.api/external/slf4j-api-1.7.36.jar
++java/maven.embedder/external/apache-maven-3.9.4-bin.zip platform/o.apache.commons.lang3/external/commons-lang3-3.12.0.jar
++java/maven.embedder/external/apache-maven-3.9.4-bin.zip ide/c.google.guava.failureaccess/external/failureaccess-1.0.1.jar
+ 
+ # Used to parse data during build, but need to as a lib for ide cluster
+ nbbuild/external/json-simple-1.1.1.jar ide/libs.json_simple/external/json-simple-1.1.1.jar
+@@ -34,9 +35,9 @@ webcommon/javascript2.jade/external/jflex-1.4.3.jar webcommon/javascript2.lexer/
+ 
+ # javax.annotation-api is used by multiple modules.
+ enterprise/javaee.api/external/javax.annotation-api-1.2.jar java/maven.indexer/external/javax.annotation-api-1.2.jar
+-enterprise/javaee8.api/external/javax.annotation-api-1.3.2.jar java/maven.embedder/external/apache-maven-3.9.3-bin.zip
++enterprise/javaee8.api/external/javax.annotation-api-1.3.2.jar java/maven.embedder/external/apache-maven-3.9.4-bin.zip
+ enterprise/javaee8.api/external/javax.annotation-api-1.3.2.jar enterprise/websvc.restlib/external/javax.annotation-api-1.3.2.jar
+-enterprise/websvc.restlib/external/javax.annotation-api-1.3.2.jar java/maven.embedder/external/apache-maven-3.9.3-bin.zip
++enterprise/websvc.restlib/external/javax.annotation-api-1.3.2.jar java/maven.embedder/external/apache-maven-3.9.4-bin.zip
+ 
+ # jaxb-api-osgi is used by multiple modules.
+ enterprise/javaee.api/external/jaxb-api-osgi-2.2.7.jar enterprise/javaee7.api/external/jaxb-api-osgi-2.2.7.jar
+@@ -55,16 +56,16 @@ enterprise/web.core.syntax/external/struts-tiles-1.3.10.jar enterprise/web.strut
+ 
+ # gradle is used at build-time, so we can ignore the duplicates
+ extide/gradle/external/gradle-7.4-bin.zip enterprise/libs.amazon/external/ion-java-1.0.2.jar
++extide/gradle/external/gradle-7.4-bin.zip ide/c.google.guava.failureaccess/external/failureaccess-1.0.1.jar
+ extide/gradle/external/gradle-7.4-bin.zip ide/c.jcraft.jzlib/external/jzlib-1.1.3.jar
+ extide/gradle/external/gradle-7.4-bin.zip ide/libs.commons_compress/external/commons-compress-1.23.0.jar
+ extide/gradle/external/gradle-7.4-bin.zip ide/o.apache.commons.lang/external/commons-lang-2.6.jar
+ extide/gradle/external/gradle-7.4-bin.zip ide/o.eclipse.jgit/external/org.eclipse.jgit-5.7.0.202003110725-r.jar
+ extide/gradle/external/gradle-7.4-bin.zip java/debugger.jpda.truffle/external/antlr4-runtime-4.7.2.jar
+-extide/gradle/external/gradle-7.4-bin.zip java/maven.embedder/external/apache-maven-3.9.3-bin.zip
++extide/gradle/external/gradle-7.4-bin.zip java/maven.embedder/external/apache-maven-3.9.4-bin.zip
+ extide/gradle/external/gradle-7.4-bin.zip platform/libs.junit4/external/hamcrest-core-1.3.jar
+ extide/gradle/external/gradle-7.4-bin.zip platform/libs.junit4/external/junit-4.13.2.jar
+ extide/gradle/external/gradle-7.4-bin.zip platform/libs.testng/external/jcommander-1.78.jar
+-extide/gradle/external/gradle-7.4-bin.zip platform/o.apache.commons.io/external/commons-io-2.6.jar
+ extide/gradle/external/gradle-7.4-bin.zip enterprise/cloud.oracle/external/httpclient-4.5.13.jar
+ extide/gradle/external/gradle-7.4-bin.zip platform/o.apache.commons.codec/external/commons-codec-1.15.jar
+ extide/gradle/external/gradle-7.4-bin.zip platform/libs.batik.read/external/xml-apis-1.4.01.jar
+diff --git a/nbbuild/cluster.properties b/nbbuild/cluster.properties
+index 25f6bb112c..c007e36ee8 100644
+--- a/nbbuild/cluster.properties
++++ b/nbbuild/cluster.properties
+@@ -206,7 +206,7 @@ nb.cluster.platform=\
+         net.java.html.sound,\
+         netbinox,\
+         o.apache.commons.codec,\
+-        o.apache.commons.io,\
++        o.apache.commons.commons_io,\
+         o.apache.commons.lang3,\
+         o.apache.commons.logging,\
+         o.n.core,\
+@@ -272,6 +272,7 @@ nb.cluster.ide=\
+         bugzilla,\
+         c.google.gson,\
+         c.google.guava,\
++        c.google.guava.failureaccess,\
+         c.googlecode.javaewah.JavaEWAH,\
+         c.jcraft.jsch,\
+         c.jcraft.jzlib,\
+diff --git a/nbbuild/licenses/Apache-2.0-ant b/nbbuild/licenses/Apache-2.0-ant
+index c64a1c26a5..5cfe309ec9 100644
+--- a/nbbuild/licenses/Apache-2.0-ant
++++ b/nbbuild/licenses/Apache-2.0-ant
+@@ -193,7 +193,7 @@
+  *   you may not use this file except in compliance with the License.
+  *   You may obtain a copy of the License at
+  *
+- *       http://www.apache.org/licenses/LICENSE-2.0
++ *       https://www.apache.org/licenses/LICENSE-2.0
+  *
+  *   Unless required by applicable law or agreed to in writing, software
+  *   distributed under the License is distributed on an "AS IS" BASIS,
+@@ -202,8 +202,8 @@
+  *   limitations under the License.
+  */
+ 
+-W3Cï¿½ SOFTWARE NOTICE AND LICENSE
+-http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
++W3C® SOFTWARE NOTICE AND LICENSE
++https://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
+ 
+ This work (and included software, documentation such as READMEs, or other
+ related items) is being provided by the copyright holders under the following
+@@ -269,4 +269,4 @@ SAX comes with NO WARRANTY or guarantee of fitness for any
+ purpose.
+ 
+ David Megginson, david@megginson.com
+-2000-05-05
+\ No newline at end of file
++2000-05-05
+diff --git a/nbbuild/licenses/BSD-JDOM b/nbbuild/licenses/BSD-JDOM
+index c12ab305bd..5f1274f50c 100644
+--- a/nbbuild/licenses/BSD-JDOM
++++ b/nbbuild/licenses/BSD-JDOM
+@@ -1,49 +1,53 @@
+-Copyright (C) 2000-2004 Jason Hunter & Brett McLaughlin.
+-All rights reserved.
+-
+-Redistribution and use in source and binary forms, with or without
+-modification, are permitted provided that the following conditions
+-are met:
+-
+-1. Redistributions of source code must retain the above copyright
+-   notice, this list of conditions, and the following disclaimer.
+-
+-2. Redistributions in binary form must reproduce the above copyright
+-   notice, this list of conditions, and the disclaimer that follows
+-   these conditions in the documentation and/or other materials
+-   provided with the distribution.
+-
+-3. The name "JDOM" must not be used to endorse or promote products
+-   derived from this software without prior written permission.  For
+-   written permission, please contact <request_AT_jdom_DOT_org>.
+-
+-4. Products derived from this software may not be called "JDOM", nor
+-   may "JDOM" appear in their name, without prior written permission
+-   from the JDOM Project Management <request_AT_jdom_DOT_org>.
+-
+-In addition, we request (but do not require) that you include in the
+-end-user documentation provided with the redistribution and/or in the
+-software itself an acknowledgement equivalent to the following:
+-    "This product includes software developed by the
+-     JDOM Project (http://www.jdom.org/)."
+-Alternatively, the acknowledgment may be graphical using the logos
+-available at http://www.jdom.org/images/logos.
+-
+-THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+-OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+-DISCLAIMED.  IN NO EVENT SHALL THE JDOM AUTHORS OR THE PROJECT
+-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+-OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+-SUCH DAMAGE.
+-
+-This software consists of voluntary contributions made by many
+-individuals on behalf of the JDOM Project and was originally
+-created by Jason Hunter <jhunter_AT_jdom_DOT_org> and
+-Brett McLaughlin <brett_AT_jdom_DOT_org>.  For more information
+-on the JDOM Project, please see <http://www.jdom.org/>.
++/*-- 
++
++ Copyright (C) 2000-2012 Jason Hunter & Brett McLaughlin.
++ All rights reserved.
++ 
++ Redistribution and use in source and binary forms, with or without
++ modification, are permitted provided that the following conditions
++ are met:
++ 
++ 1. Redistributions of source code must retain the above copyright
++    notice, this list of conditions, and the following disclaimer.
++ 
++ 2. Redistributions in binary form must reproduce the above copyright
++    notice, this list of conditions, and the disclaimer that follows 
++    these conditions in the documentation and/or other materials 
++    provided with the distribution.
++
++ 3. The name "JDOM" must not be used to endorse or promote products
++    derived from this software without prior written permission.  For
++    written permission, please contact <request_AT_jdom_DOT_org>.
++ 
++ 4. Products derived from this software may not be called "JDOM", nor
++    may "JDOM" appear in their name, without prior written permission
++    from the JDOM Project Management <request_AT_jdom_DOT_org>.
++ 
++ In addition, we request (but do not require) that you include in the 
++ end-user documentation provided with the redistribution and/or in the 
++ software itself an acknowledgement equivalent to the following:
++     "This product includes software developed by the
++      JDOM Project (http://www.jdom.org/)."
++ Alternatively, the acknowledgment may be graphical using the logos 
++ available at http://www.jdom.org/images/logos.
++
++ THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
++ WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
++ OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ DISCLAIMED.  IN NO EVENT SHALL THE JDOM AUTHORS OR THE PROJECT
++ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
++ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ SUCH DAMAGE.
++
++ This software consists of voluntary contributions made by many 
++ individuals on behalf of the JDOM Project and was originally 
++ created by Jason Hunter <jhunter_AT_jdom_DOT_org> and
++ Brett McLaughlin <brett_AT_jdom_DOT_org>.  For more information
++ on the JDOM Project, please see <http://www.jdom.org/>. 
++
++ */
+diff --git a/nbbuild/licenses/MIT-jsoup b/nbbuild/licenses/MIT-jsoup
+index 6ae61c02ba..2b6b53306d 100644
+--- a/nbbuild/licenses/MIT-jsoup
++++ b/nbbuild/licenses/MIT-jsoup
+@@ -1,6 +1,6 @@
+ The MIT License
+ 
+-Copyright (c) 2009-2018 Jonathan Hedley <jonathan@hedley.net>
++Copyright (c) 2009-2023 Jonathan Hedley <jonathan@hedley.net>
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+diff --git a/nbbuild/licenses/MIT-slf4j-22 b/nbbuild/licenses/MIT-slf4j-22
+new file mode 100644
+index 0000000000..f687729a0b
+--- /dev/null
++++ b/nbbuild/licenses/MIT-slf4j-22
+@@ -0,0 +1,21 @@
++Copyright (c) 2004-2022 QOS.ch Sarl (Switzerland)
++All rights reserved.
++
++Permission is hereby granted, free  of charge, to any person obtaining
++a  copy  of this  software  and  associated  documentation files  (the
++"Software"), to  deal in  the Software without  restriction, including
++without limitation  the rights to  use, copy, modify,  merge, publish,
++distribute,  sublicense, and/or sell  copies of  the Software,  and to
++permit persons to whom the Software  is furnished to do so, subject to
++the following conditions:
++
++The  above  copyright  notice  and  this permission  notice  shall  be
++included in all copies or substantial portions of the Software.
++
++THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
++EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
++MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
++NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
++LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
++OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
++WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+diff --git a/platform/libs.batik.read/nbproject/project.xml b/platform/libs.batik.read/nbproject/project.xml
+index 36061efe6f..052ff4c04f 100644
+--- a/platform/libs.batik.read/nbproject/project.xml
++++ b/platform/libs.batik.read/nbproject/project.xml
+@@ -34,7 +34,7 @@
+                 are only depending on org.apache.commons.logging. So the problem
+                 is unrelated to Batik. -->
+                 <dependency>
+-                    <code-name-base>org.apache.commons.io</code-name-base>
++                    <code-name-base>org.apache.commons.commons_io</code-name-base>
+                     <compile-dependency/>
+                 </dependency>
+                 <dependency>
+diff --git a/platform/o.apache.commons.commons_io/build.xml b/platform/o.apache.commons.commons_io/build.xml
+new file mode 100644
+index 0000000000..198e2c95bb
+--- /dev/null
++++ b/platform/o.apache.commons.commons_io/build.xml
+@@ -0,0 +1,25 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++<project basedir="." default="netbeans" name="platform/o.apache.commons.commons_io">
++    <description>Builds, tests, and runs the project org.apache.commons.commons_io</description>
++    <import file="../../nbbuild/templates/projectized.xml"/>
++</project>
+diff --git a/platform/o.apache.commons.commons_io/external/binaries-list b/platform/o.apache.commons.commons_io/external/binaries-list
+new file mode 100644
+index 0000000000..164a663849
+--- /dev/null
++++ b/platform/o.apache.commons.commons_io/external/binaries-list
+@@ -0,0 +1,17 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++8BB2BC9B4DF17E2411533A0708A69F983BF5E83B commons-io:commons-io:2.13.0
+diff --git a/platform/o.apache.commons.io/external/commons-io-2.6-license.txt b/platform/o.apache.commons.commons_io/external/commons-io-2.13.0-license.txt
+similarity index 99%
+rename from platform/o.apache.commons.io/external/commons-io-2.6-license.txt
+rename to platform/o.apache.commons.commons_io/external/commons-io-2.13.0-license.txt
+index 61fba15797..fecf51e7f0 100644
+--- a/platform/o.apache.commons.io/external/commons-io-2.6-license.txt
++++ b/platform/o.apache.commons.commons_io/external/commons-io-2.13.0-license.txt
+@@ -1,7 +1,7 @@
+ Name: Apache Commons IO
+ Description: Assist with developing IO functionality
+ Origin: Apache Software Foundation
+-Version: 2.6
++Version: 2.13.0
+ License: Apache-2.0
+ URL: https://commons.apache.org/proper/commons-io/
+ 
+diff --git a/platform/o.apache.commons.commons_io/external/commons-io-2.13.0-notice.txt b/platform/o.apache.commons.commons_io/external/commons-io-2.13.0-notice.txt
+new file mode 100644
+index 0000000000..20d8ffa205
+--- /dev/null
++++ b/platform/o.apache.commons.commons_io/external/commons-io-2.13.0-notice.txt
+@@ -0,0 +1,5 @@
++Apache Commons IO
++Copyright 2002-2023 The Apache Software Foundation
++
++This product includes software developed at
++The Apache Software Foundation (https://www.apache.org/).
+diff --git a/platform/o.apache.commons.commons_io/manifest.mf b/platform/o.apache.commons.commons_io/manifest.mf
+new file mode 100644
+index 0000000000..6cc84057a5
+--- /dev/null
++++ b/platform/o.apache.commons.commons_io/manifest.mf
+@@ -0,0 +1,6 @@
++Manifest-Version: 1.0
++AutoUpdate-Show-In-Client: false
++OpenIDE-Module: org.apache.commons.commons_io
++OpenIDE-Module-Localizing-Bundle: org/apache/commons/commons_io/Bundle.properties
++OpenIDE-Module-Specification-Version: 2.13.0
++
+diff --git a/platform/o.apache.commons.commons_io/module-auto-deps.xml b/platform/o.apache.commons.commons_io/module-auto-deps.xml
+new file mode 100644
+index 0000000000..80213b7546
+--- /dev/null
++++ b/platform/o.apache.commons.commons_io/module-auto-deps.xml
+@@ -0,0 +1,39 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++
++<!DOCTYPE transformations PUBLIC "-//NetBeans//DTD Module Automatic Dependencies 1.0//EN" "http://www.netbeans.org/dtds/module-auto-deps-1_0.dtd">
++
++<transformations version="1.0">
++    <transformationgroup>
++        <description>The module name changes from org.apache.commons.io to org.apache.commons.commons-io</description>
++        <transformation>
++            <trigger-dependency type="cancel">
++                <module-dependency codenamebase="org.apache.commons.io"/>
++            </trigger-dependency>
++            <implies>
++                <result>
++                    <module-dependency codenamebase="org.apache.commons.commons_io" spec="2.13.0"/>
++                </result>
++            </implies>
++        </transformation>
++    </transformationgroup>
++</transformations>
+diff --git a/platform/o.apache.commons.io/nbproject/project.properties b/platform/o.apache.commons.commons_io/nbproject/project.properties
+similarity index 92%
+rename from platform/o.apache.commons.io/nbproject/project.properties
+rename to platform/o.apache.commons.commons_io/nbproject/project.properties
+index 544f78b95c..859a435821 100644
+--- a/platform/o.apache.commons.io/nbproject/project.properties
++++ b/platform/o.apache.commons.commons_io/nbproject/project.properties
+@@ -16,6 +16,6 @@
+ # under the License.
+ javac.compilerargs=-Xlint -Xlint:-serial
+ javac.source=1.8
+-release.external/commons-io-2.6.jar=modules/org-apache-commons-io.jar
++release.external/commons-io-2.13.0.jar=modules/ext/commons-io-2.13.0.jar
+ is.autoload=true
+ nbm.module.author=Tomas Stupka
+diff --git a/platform/o.apache.commons.io/nbproject/project.xml b/platform/o.apache.commons.commons_io/nbproject/project.xml
+similarity index 60%
+rename from platform/o.apache.commons.io/nbproject/project.xml
+rename to platform/o.apache.commons.commons_io/nbproject/project.xml
+index b5aa45d545..6bfcb4da4b 100644
+--- a/platform/o.apache.commons.io/nbproject/project.xml
++++ b/platform/o.apache.commons.commons_io/nbproject/project.xml
+@@ -23,11 +23,11 @@
+     <type>org.netbeans.modules.apisupport.project</type>
+     <configuration>
+         <data xmlns="http://www.netbeans.org/ns/nb-module-project/2">
+-            <code-name-base>org.apache.commons.io</code-name-base>
++            <code-name-base>org.apache.commons.commons_io</code-name-base>
+             <module-dependencies>
+                 <dependency>
+                     <code-name-base>org.apache.commons.codec</code-name-base>
+-<!--                    <build-prerequisite/>
++                    <!--                    <build-prerequisite/>
+                     <compile-dependency/>
+                     <run-dependency>
+                         <specification-version>1.3.0</specification-version>
+@@ -41,10 +41,25 @@
+                     <run-dependency/>
+                 </dependency>
+             </module-dependencies>
+-            <public-packages/>
++            <public-packages>
++                <package>org.apache.commons.io</package>
++                <package>org.apache.commons.io.build</package>
++                <package>org.apache.commons.io.charset</package>
++                <package>org.apache.commons.io.comparator</package>
++                <package>org.apache.commons.io.file</package>
++                <package>org.apache.commons.io.file.attribute</package>
++                <package>org.apache.commons.io.file.spi</package>
++                <package>org.apache.commons.io.filefilter</package>
++                <package>org.apache.commons.io.function</package>
++                <package>org.apache.commons.io.input</package>
++                <package>org.apache.commons.io.input.buffer</package>
++                <package>org.apache.commons.io.monitor</package>
++                <package>org.apache.commons.io.output</package>
++                <package>org.apache.commons.io.serialization</package>
++            </public-packages>
+             <class-path-extension>
+-                <runtime-relative-path>org-apache-commons-io.jar</runtime-relative-path>
+-                <binary-origin>external/commons-io-2.6.jar</binary-origin>
++                <runtime-relative-path>ext/commons-io-2.13.0.jar</runtime-relative-path>
++                <binary-origin>external/commons-io-2.13.0.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+diff --git a/platform/o.apache.commons.io/external/binaries-list b/platform/o.apache.commons.commons_io/src/org/apache/commons/commons_io/Bundle.properties
+similarity index 92%
+rename from platform/o.apache.commons.io/external/binaries-list
+rename to platform/o.apache.commons.commons_io/src/org/apache/commons/commons_io/Bundle.properties
+index 272a680170..75519da2f7 100644
+--- a/platform/o.apache.commons.io/external/binaries-list
++++ b/platform/o.apache.commons.commons_io/src/org/apache/commons/commons_io/Bundle.properties
+@@ -14,4 +14,4 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-815893DF5F31DA2ECE4040FE0A12FD44B577AFAF commons-io:commons-io:2.6
++OpenIDE-Module-Name=o.apache.commons.commons_io
+diff --git a/platform/o.apache.commons.io/external/commons-io-2.6-notice.txt b/platform/o.apache.commons.io/external/commons-io-2.6-notice.txt
+deleted file mode 100644
+index a6441be697..0000000000
+--- a/platform/o.apache.commons.io/external/commons-io-2.6-notice.txt
++++ /dev/null
+@@ -1,6 +0,0 @@
+-Apache Commons IO
+-Copyright 2001-2019 The Apache Software Foundation
+-
+-This product includes software developed by
+-The Apache Software Foundation (http://www.apache.org/).
+-
+diff --git a/platform/o.apache.commons.io/manifest.mf b/platform/o.apache.commons.io/manifest.mf
+deleted file mode 100644
+index 11e5609540..0000000000
+--- a/platform/o.apache.commons.io/manifest.mf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-OpenIDE-Module: org.apache.commons.io
+-OpenIDE-Module-Specification-Version: 2.21
+diff --git a/platform/o.n.core/module-auto-deps.xml b/platform/o.n.core/module-auto-deps.xml
+index 160a65c561..0b13dc5cec 100644
+--- a/platform/o.n.core/module-auto-deps.xml
++++ b/platform/o.n.core/module-auto-deps.xml
+@@ -111,5 +111,4 @@
+             </implies>
+         </transformation>
+     </transformationgroup>
+-
+ </transformations>

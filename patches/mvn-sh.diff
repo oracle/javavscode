@@ -1,0 +1,27 @@
+Copyright (c) 2023, Oracle and/or its affiliates.
+
+diff --git a/java/maven/src/org/netbeans/modules/maven/execute/cmd/ShellConstructor.java b/java/maven/src/org/netbeans/modules/maven/execute/cmd/ShellConstructor.java
+index 5433e7f413..f6836f148e 100644
+--- a/java/maven/src/org/netbeans/modules/maven/execute/cmd/ShellConstructor.java
++++ b/java/maven/src/org/netbeans/modules/maven/execute/cmd/ShellConstructor.java
+@@ -20,6 +20,7 @@
+ package org.netbeans.modules.maven.execute.cmd;
+ 
+ import java.io.File;
++import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.nio.file.Paths;
+ import java.util.ArrayList;
+@@ -74,6 +75,12 @@ public class ShellConstructor implements Constructor {
+         String quote = "\"";
+ 
+         Path bin = Paths.get(mavenHome.getPath(), "bin", ex).toAbsolutePath();//NOI18N
++        if (!Files.isRegularFile(bin) && !Utilities.isWindows()) {
++            Path test = Paths.get(mavenHome.getPath(), "bin", ex + ".sh").toAbsolutePath();
++            if (Files.isRegularFile(test)) {
++                bin = test;
++            }
++        }
+         command.add(quoteSpaces(bin.toString(), quote));
+ 
+         return command;
