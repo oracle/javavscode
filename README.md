@@ -164,16 +164,16 @@ It is possible to change this in `View | Command Palette | Preferences:Open User
 
 ## Contributing
 
-This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
+This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](https://github.com/oracle/javavscode/blob/main//CONTRIBUTING.md)
 
 
 ## Security
 
-Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
+Please consult the [security guide](https://github.com/oracle/javavscode/blob/main//SECURITY.md) for our responsible security vulnerability disclosure process
 
 ## License
 
 Copyright (c) 2023 Oracle and/or its affiliates.
 
-Oracle Java Platform Extension for Visual Studio Code is licensed under [Apache 2.0 License](./LICENSE.txt). 
-The [THIRD_PARTY_LICENSES](./THIRD_PARTY_LICENSES.txt) file contains third party notices and licenses.
+Oracle Java Platform Extension for Visual Studio Code is licensed under [Apache 2.0 License](https://github.com/oracle/javavscode/blob/main/LICENSE.txt). 
+The [THIRD_PARTY_LICENSES](https://github.com/oracle/javavscode/blob/main/THIRD_PARTY_LICENSES.txt) file contains third party notices and licenses.
