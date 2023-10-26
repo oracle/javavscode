@@ -164,8 +164,7 @@ It is possible to change this in `View | Command Palette | Preferences:Open User
 
 ## Contributing
 
-This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](https://github.com/oracle/javavscode/blob/main/CONTRIBUTING.md)
-
+This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
 
 ## Security
 
