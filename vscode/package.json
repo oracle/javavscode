@@ -85,7 +85,7 @@
 					],
 					"default": null,
 					"description": "Specifies JDK for the Oracle Visual Studio Code Extension",
-					"scope": "machine"
+					"scope": "machine-overridable"
 				},
 				"jdk.verbose": {
 					"type": "boolean",
@@ -103,7 +103,8 @@
 						"Share data between all workspaces (more effective)",
 						"Each workspace has its own data (more isolated)"
 					],
-					"default": "local"
+					"default": "local",
+					"deprecationMessage": "Separate userdir for each workspace is the default behaviour"
 				},
 				"jdk.revealActiveInProjects": {
 					"type": "boolean",
