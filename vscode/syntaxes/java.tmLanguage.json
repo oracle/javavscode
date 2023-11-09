@@ -1,9 +1,4 @@
 {
-	"information_for_contributors": [
-		"This file has been converted from https://github.com/atom/language-java/blob/master/grammars/java.cson",
-		"If you want to provide a fix or improvement, please create a pull request against the original repository.",
-		"Once accepted there, we are happy to receive an update request."
-	],
 	"version": "https://github.com/atom/language-java/commit/29f977dc42a7e2568b39bb6fb34c4ef108eb59b3",
 	"name": "Java",
 	"scopeName": "source.java",
