@@ -164,6 +164,12 @@
 					"default": "",
 					"description": "VM options"
 				},
+				"jdk.serverVmOptions": {
+					"type": "array",
+					"default": [],
+					"description": "Specifies extra VM arguments used to launch the Java Language Server",
+					"scope": "machine-overridable"
+				},
 				"jdk.runConfig.env": {
 					"type": "string",
 					"default": "",

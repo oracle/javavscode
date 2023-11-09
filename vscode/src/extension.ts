@@ -807,6 +807,8 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
         if (isDarkColorTheme()) {
             extras.push('--laf', 'com.formdev.flatlaf.FlatDarkLaf');
         }
+        let serverVmOptions: string[] = workspace.getConfiguration('jdk').get("serverVmOptions",[]);
+        extras.push(...serverVmOptions.map(el => `-J${el}`));
         let p = launcher.launch(info, ...extras);
         handleLog(log, "LSP server launching: " + p.pid);
         handleLog(log, "LSP server user directory: " + userdir);
