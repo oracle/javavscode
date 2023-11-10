@@ -467,6 +467,16 @@
 					"command": "jdk.java.goto.super.implementation",
 					"when": "nbJdkReady && editorLangId == java && editorTextFocus",
 					"group": "navigation@100"
+				},
+				{
+					"command": "jdk.project.run",
+					"when": "nbJdkReady && editorLangId == java && resourceExtname == .java",
+					"group": "javadebug@1"
+				},
+				{
+					"command": "jdk.project.debug",
+					"when": "nbJdkReady && editorLangId == java && resourceExtname == .java",
+					"group": "javadebug@2"
 				}
 			],
 			"explorer/context": [
@@ -474,6 +484,16 @@
 					"command": "jdk.workspace.new",
 					"when": "nbJdkReady && explorerResourceIsFolder",
 					"group": "navigation@3"
+				},
+				{
+					"command": "jdk.project.run",
+					"when": "nbJdkReady && resourceExtname == .java",
+					"group": "javadebug@1"
+				},
+				{
+					"command": "jdk.project.debug",
+					"when": "nbJdkReady && resourceExtname == .java",
+					"group": "javadebug@2"
 				}
 			],
 			"commandPalette": [
