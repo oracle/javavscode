@@ -174,7 +174,7 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
     writeStream.on('finish', async () => {
       vscode.window.showInformationMessage(`${JDKType} ${JDKVersion} for ${osType} download completed!`);
 
-      await extractJDK(path.join(targetDirectory, fileName), installationPath, JDKVersion, osType);
+      await extractJDK(path.join(targetDirectory, fileName), installationPath, JDKVersion, osType, JDKType);
     });
 
     writeStream.on('error', error => {
@@ -189,25 +189,25 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
   request.end();
 }
 
-export async function extractJDK(jdkTarballPath: string, extractionTarget: string, jdkVersion: string, osType: string): Promise<void> {
+export async function extractJDK(jdkTarballPath: string, extractionTarget: string, jdkVersion: string, osType: string, jdkType: string): Promise<void> {
 
   const extractCommand = `tar -xzf "${jdkTarballPath}" -C "${extractionTarget}"`;
 
+  const oldDirName = `jdk-${jdkVersion}`;
+  const oldDirectoryPath = await handleJdkPaths(oldDirName, extractionTarget, osType);
   child_process.exec(extractCommand, async (error) => {
-
     if (error) {
       vscode.window.showErrorMessage('Error: ' + error);
     } else {
-      let installationPath;
+      const dirName = `${jdkType.split(' ').join('_')}-${jdkVersion}`;
+      const newDirectoryPath = await handleJdkPaths(dirName, extractionTarget, osType);
+      await fs.promises.rename(oldDirectoryPath, newDirectoryPath);
+
+      let binPath = newDirectoryPath;
       if (osType === 'macOS') {
-        const extractedDirectoryName = `jdk-${jdkVersion}.jdk`;
-        installationPath = path.join(extractionTarget, extractedDirectoryName, 'Contents', 'Home');
+        binPath = path.join(newDirectoryPath, 'Contents', 'Home');
       }
-      else {
-        const extractedDirectoryName = `jdk-${jdkVersion}`;
-        installationPath = path.join(extractionTarget, extractedDirectoryName);
-      }
-      vscode.workspace.getConfiguration('jdk').update('jdkhome', installationPath, true);
+      vscode.workspace.getConfiguration('jdk').update('jdkhome', binPath, true);
     }
 
     fs.unlink(jdkTarballPath, async (err) => {
@@ -218,6 +218,19 @@ export async function extractJDK(jdkTarballPath: string, extractionTarget: strin
       }
     });
   });
+}
+
+const handleJdkPaths = async (directoryName: string, parentPath: string, osType: string): Promise<string> => {
+  let name = directoryName;
+  if (osType === 'macOS') {
+    name = `${directoryName}.jdk`;
+  }
+  const directoryPath = path.join(parentPath, name);
+  if (fs.existsSync(directoryPath)) {
+    await fs.promises.rmdir(directoryPath, { recursive: true });
+  }
+
+  return directoryPath;
 }
 
 const selectPath = async (installType: string): Promise<string | null> => {
