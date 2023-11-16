@@ -21,11 +21,26 @@ import axios from 'axios';
 import * as https from 'https';
 import * as child_process from 'child_process';
 import * as vscode from 'vscode';
+import * as crypto from 'crypto';
 import { JDK_RELEASES_TRACK_URL, OPEN_JDK_VERSION_DOWNLOAD_LINKS, ORACLE_JDK_BASE_DOWNLOAD_URL, ORACLE_JDK_VERSION_FALLBACK_DOWNLOAD_VERSIONS } from './constants';
 import { handleLog } from './extension';
 
 let customView: vscode.WebviewPanel;
 let logger: vscode.OutputChannel;
+
+export const calculateChecksum = (filePath: string) => {
+  try {
+    const ALGORITHM = 'sha256';
+    const stream = fs.readFileSync(filePath);
+    const hash = crypto.createHash(ALGORITHM);
+    hash.update(stream);
+    const checksum = hash.digest('hex');
+    return checksum;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export const fetchDropdownOptions = async () => {
 
   // Detect OS of the machine
@@ -173,8 +188,16 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
 
     writeStream.on('finish', async () => {
       vscode.window.showInformationMessage(`${JDKType} ${JDKVersion} for ${osType} download completed!`);
-
-      await extractJDK(path.join(targetDirectory, fileName), installationPath, JDKVersion, osType);
+      const checkSumObtained = calculateChecksum(filePath);
+      const checkSumExpected = (await axios.get(`${downloadUrl}.sha256`)).data;
+      
+      if (checkSumExpected === checkSumObtained) {
+        await extractJDK(filePath, installationPath, JDKVersion, osType);
+      }
+      else {
+        handleLog(logger, "Checksums don't match!");
+        throw new Error("Something went wrong");
+      }
     });
 
     writeStream.on('error', error => {
