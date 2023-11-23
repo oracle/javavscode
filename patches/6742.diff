@@ -1,0 +1,103 @@
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/CharBuffer.java b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/CharBuffer.java
+index 14eff95f80a8..5a6b31b269b2 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/CharBuffer.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/CharBuffer.java
+@@ -128,21 +128,6 @@ public void append(String s) {
+         for (int i = 0; i < len; i++) append0(s.charAt(i));
+     }
+     public void append(CharBuffer cb) { append(cb.chars, 0, cb.used); }
+-    public void appendUtf8(byte[] src, int i, int len) {
+-	    int limit = i + len;
+-	    while (i < limit) {
+-		int b = src[i++] & 0xFF;
+-		if (b >= 0xE0) {
+-		    b = (b & 0x0F) << 12;
+-		    b = b | (src[i++] & 0x3F) << 6;
+-		    b = b | (src[i++] & 0x3F);
+-		} else if (b >= 0xC0) {
+-		    b = (b & 0x1F) << 6;
+-		    b = b | (src[i++] & 0x3F);
+-		}
+-		append((char) b);
+-	    }
+-    }
+     public char[] toCharArray() {
+         char[] nm = new char[used];
+         System.arraycopy(chars, 0, nm, 0, used);
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java
+index 23851bb98550..9165e861226d 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java
+@@ -269,7 +269,7 @@ public final void print(String s) {
+     public final void print(Name n) {
+         if (n == null)
+             return;
+-	out.appendUtf8(n.getByteArray(), n.getByteOffset(), n.getByteLength());
++	out.append(n.toString());
+     }
+     
+     private void print(javax.lang.model.element.Name n) {
+@@ -1075,7 +1075,7 @@ public void visitVarDef(JCVariableDecl tree) {
+     public void printVarInit(final JCVariableDecl tree) {
+         int col = out.col;
+         if (!ERROR.contentEquals(tree.name))
+-            col -= tree.name.getByteLength();
++            col -= tree.name.length();
+         wrapAssignOpTree("=", col, new Runnable() {
+             @Override public void run() {
+                 printNoParenExpr(tree.init);
+@@ -3544,7 +3544,7 @@ public Name fullName(JCTree tree) {
+ 	case SELECT:
+             JCFieldAccess sel = (JCFieldAccess)tree;
+ 	    Name sname = fullName(sel.selected);
+-	    return sname != null && sname.getByteLength() > 0 ? sname.append('.', sel.name) : sel.name;
++	    return sname != null && !sname.isEmpty() ? sname.append('.', sel.name) : sel.name;
+ 	default:
+ 	    return null;
+ 	}
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/WidthEstimator.java b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/WidthEstimator.java
+index cfec39deb671..9a4a3fedf18b 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/WidthEstimator.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/WidthEstimator.java
+@@ -61,7 +61,7 @@ private void open(int contextPrec, int ownPrec) {
+ 	if (ownPrec < contextPrec)
+ 	    width += 2;
+     }
+-    private void width(Name n) { width += n.getByteLength(); }
++    private void width(Name n) { width += n.length(); }
+     private void width(String n) { width += n.length(); }
+     private void width(JCTree n) { if(width<maxwidth) n.accept(this); }
+     private void width(List<? extends JCTree> n, int pad) {
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/usages/ClassFileUtil.java b/java/java.source.base/src/org/netbeans/modules/java/source/usages/ClassFileUtil.java
+index c9210c697281..61a2073ae023 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/usages/ClassFileUtil.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/usages/ClassFileUtil.java
+@@ -303,21 +303,16 @@ private static void encodeType (final TypeMirror type, final StringBuilder sb) {
+     public static void encodeClassName (TypeElement te, final StringBuilder sb, final char separator) {
+         Name name = ((Symbol.ClassSymbol)te).flatname;
+         assert name != null;
+-        final int nameLength = name.getByteLength();
+-        final char[] nameChars = new char[nameLength];
+-        try {
+-            int charLength = Convert.utf2chars(name.getByteArray(), name.getByteOffset(), nameChars, 0, nameLength, Validation.NONE);
+-            if (separator != '.') {         //NOI18N
+-                for (int i=0; i<charLength; i++) {
+-                    if (nameChars[i] == '.') {  //NOI18N
+-                        nameChars[i] = separator;
+-                    }
++        final char[] nameChars = name.toString().toCharArray();
++        int charLength = nameChars.length;
++        if (separator != '.') {         //NOI18N
++            for (int i=0; i<charLength; i++) {
++                if (nameChars[i] == '.') {  //NOI18N
++                    nameChars[i] = separator;
+                 }
+             }
+-            sb.append(nameChars,0,charLength);
+-        } catch (InvalidUtfException ex) {
+-            throw new IllegalStateException(ex);
+         }
++        sb.append(nameChars,0,charLength);
+     }
+     
+     /**
