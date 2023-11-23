@@ -38,7 +38,7 @@
 ```bash
 $ git clone https://github.com/apache/netbeans.git
 $ cd netbeans/
-$ git checkout f48f91e6c197d8a40bd82fc2f2d12a4e71242afe
+$ git checkout 20-rc4
 $ cd ..
 # the following target requires git executable to be on PATH:
 $ ant apply-patches
