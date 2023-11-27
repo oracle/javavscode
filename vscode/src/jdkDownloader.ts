@@ -24,21 +24,24 @@ import * as vscode from 'vscode';
 import * as crypto from 'crypto';
 import { JDK_RELEASES_TRACK_URL, OPEN_JDK_VERSION_DOWNLOAD_LINKS, ORACLE_JDK_BASE_DOWNLOAD_URL, ORACLE_JDK_VERSION_FALLBACK_DOWNLOAD_VERSIONS } from './constants';
 import { handleLog } from './extension';
+import { promisify } from 'util';
 
 let customView: vscode.WebviewPanel;
 let logger: vscode.OutputChannel;
 
-export const calculateChecksum = (filePath: string) => {
-  try {
-    const ALGORITHM = 'sha256';
-    const stream = fs.readFileSync(filePath);
-    const hash = crypto.createHash(ALGORITHM);
-    hash.update(stream);
-    const checksum = hash.digest('hex');
-    return checksum;
-  } catch (error) {
-    throw error;
-  }
+export const calculateChecksum = async (filePath: string): Promise<string> => {
+  const ALGORITHM = 'sha256';
+  const hash = crypto.createHash(ALGORITHM);
+  const pipeline = promisify(require('stream').pipeline);
+  const readStream = fs.createReadStream(filePath);
+
+  await pipeline(
+    readStream,
+    hash
+  );
+
+  const checksum = hash.digest('hex');
+  return checksum;
 }
 
 export const fetchDropdownOptions = async () => {
@@ -187,16 +190,16 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
     response.pipe(writeStream);
 
     writeStream.on('finish', async () => {
-      vscode.window.showInformationMessage(`${JDKType} ${JDKVersion} for ${osType} download completed!`);
-      const checkSumObtained = calculateChecksum(filePath);
+      const checkSumObtained = await calculateChecksum(filePath);
       const checkSumExpected = (await axios.get(`${downloadUrl}.sha256`)).data;
-      
+
       if (checkSumExpected === checkSumObtained) {
+        vscode.window.showInformationMessage(`${JDKType} ${JDKVersion} for ${osType} download completed!`);
         await extractJDK(filePath, installationPath, JDKVersion, osType);
       }
       else {
-        handleLog(logger, "Checksums don't match!");
-        throw new Error("Something went wrong");
+        handleLog(logger, `Checksums don't match! \n Expected: ${checkSumExpected} \n Obtained: ${checkSumObtained}`);
+        vscode.window.showErrorMessage(`"${JDKType} ${JDKVersion} for ${osType} download failed, wrong checksum."`);
       }
     });
 
