@@ -190,17 +190,25 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
 }
 
 export async function extractJDK(jdkTarballPath: string, extractionTarget: string, jdkVersion: string, osType: string, jdkType: string): Promise<void> {
-
-  const extractCommand = `tar -xzf "${jdkTarballPath}" -C "${extractionTarget}"`;
+  const downloadedDir = path.join(__dirname, 'jdk_downloads');
+  const extractCommand = `tar -xzf "${jdkTarballPath}" -C "${downloadedDir}"`;
 
   const oldDirName = `jdk-${jdkVersion}`;
-  const oldDirectoryPath = await handleJdkPaths(oldDirName, extractionTarget, osType);
+  const oldDirectoryPath = path.join(downloadedDir, osType === 'macOS' ? oldDirName + '.jdk' : oldDirName);
+  if (fs.existsSync(oldDirectoryPath)) {
+    await fs.promises.rmdir(oldDirectoryPath, { recursive: true });
+  }
   child_process.exec(extractCommand, async (error) => {
     if (error) {
       vscode.window.showErrorMessage('Error: ' + error);
     } else {
       const dirName = `${jdkType.split(' ').join('_')}-${jdkVersion}`;
       const newDirectoryPath = await handleJdkPaths(dirName, extractionTarget, osType);
+      if (newDirectoryPath === null) {
+        await fs.promises.rmdir(oldDirectoryPath, { recursive: true });
+        vscode.window.showInformationMessage(`Cannot install ${jdkType} ${jdkVersion}. Cannot delete ${dirName}`);
+        return;
+      }
       await fs.promises.rename(oldDirectoryPath, newDirectoryPath);
 
       let binPath = newDirectoryPath;
@@ -220,14 +228,21 @@ export async function extractJDK(jdkTarballPath: string, extractionTarget: strin
   });
 }
 
-const handleJdkPaths = async (directoryName: string, parentPath: string, osType: string): Promise<string> => {
+const handleJdkPaths = async (directoryName: string, parentPath: string, osType: string): Promise<string | null> => {
   let name = directoryName;
   if (osType === 'macOS') {
     name = `${directoryName}.jdk`;
   }
   const directoryPath = path.join(parentPath, name);
   if (fs.existsSync(directoryPath)) {
-    await fs.promises.rmdir(directoryPath, { recursive: true });
+    const CONFIRMATION_MESSAGE = `${name} is already present. Do you want to delete it and replace with new contents?`;
+    const selected = await vscode.window.showInformationMessage(CONFIRMATION_MESSAGE, "Yes", "No");
+    if (selected === "Yes") {
+      await fs.promises.rmdir(directoryPath, { recursive: true });
+    }
+    else if (selected === "No") {
+      return null;
+    }
   }
 
   return directoryPath;
