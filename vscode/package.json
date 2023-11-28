@@ -484,6 +484,9 @@
 					"command": "jdk.workspace.newproject"
 				},
 				{
+					"command": "jdk.download.jdk"
+				},
+				{
 					"command": "jdk.workspace.compile",
 					"when": "nbJdkReady"
 				},
