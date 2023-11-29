@@ -27,7 +27,7 @@
 
 ## Prerequisities
 
-- JDK, version 11 or later
+- JDK, version 11 or later upto JDK 20
 - Ant, latest version
 - Maven, latest version
 - node.js, latest LTS (to build VSIX)
@@ -40,8 +40,20 @@ $ git clone https://github.com/apache/netbeans.git
 $ cd netbeans/
 $ git checkout f48f91e6c197d8a40bd82fc2f2d12a4e71242afe
 $ cd ..
+# see below for Mac OS specific instruction
 $ ant apply-patches
 $ ant build-netbeans
+
+```
+
+*Note for Mac OS*
+
+"apply-patches" task does not work properly on Mac OS. On Mac OS,
+NetBeans patches can be applied using the following commands:
+
+```bash
+$ cd netbeans/
+$ git apply ../patch/*
 
 ```
 
