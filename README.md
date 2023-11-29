@@ -121,6 +121,13 @@ Move members refactoring provides dedicated form as well.
 * Inline redundant variable 
 * Constructor and method argument refactoring
 
+## Formatter Preferences
+Easily update default formatter preferences by adjusting a simple configuration option to tailor settings according to specific needs.  
+
+Go to VSCode `View | Command Palette | Preferences:Open User Settings | Extensions | Java`  and set `Jdk › Format: Settings Path:` option to the formatter preferences file.
+
+Please refer to [Java formatting preferences](https://github.com/oracle/javavscode/wiki/Java-formatting-preferences) wiki for more info.
+
 ## Organize Imports
 Out of the box support for organizing imports in Java sources is available. It removes unused imports, groups imports by packages and updates your imports whenever a file is saved. In addition to the defaults, there is a rich set of configuration options. 
 
