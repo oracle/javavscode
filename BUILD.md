@@ -53,7 +53,7 @@ NetBeans patches can be applied using the following commands:
 
 ```bash
 $ cd netbeans/
-$ git apply ../patch/*
+$ git apply ../patches/*
 
 ```
 
