@@ -172,6 +172,7 @@
         <patch patchfile="patches/6330.diff" strip="1" dir="netbeans" failonerror="true"/>
         <patch patchfile="patches/6478-6480.diff" strip="1" dir="netbeans" failonerror="true"/>
         <patch patchfile="patches/6481.diff" strip="1" dir="netbeans" failonerror="true"/>
+        <patch patchfile="patches/6615.diff" strip="1" dir="netbeans" failonerror="true"/>
         <patch patchfile="patches/mvn-sh.diff" strip="1" dir="netbeans" failonerror="true"/>
         <patch patchfile="patches/rename-debugger.diff" strip="1" dir="netbeans" failonerror="true"/>
     </target>
@@ -179,6 +180,7 @@
     <target name="unapply-patches">
         <patch patchfile="patches/rename-debugger.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
         <patch patchfile="patches/mvn-sh.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
+        <patch patchfile="patches/6615.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
         <patch patchfile="patches/6218.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
         <patch patchfile="patches/6330.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
         <patch patchfile="patches/6478-6480.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
