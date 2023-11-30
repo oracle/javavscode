@@ -40,20 +40,9 @@ $ git clone https://github.com/apache/netbeans.git
 $ cd netbeans/
 $ git checkout f48f91e6c197d8a40bd82fc2f2d12a4e71242afe
 $ cd ..
-# see below for Mac OS specific instruction
+# the following target requires git executable to be on PATH:
 $ ant apply-patches
 $ ant build-netbeans
-
-```
-
-*Note for Mac OS*
-
-"apply-patches" task does not work properly on Mac OS. On Mac OS,
-NetBeans patches can be applied using the following commands:
-
-```bash
-$ cd netbeans/
-$ git apply ../patches/*
 
 ```
 
@@ -97,14 +86,14 @@ that there are VS Code integration tests - those launch VS Code with the
 VS extension and check behavior of the TypeScript integration code:
 
 ```bash
-java.lsp.server$ ant build-vscode-ext # first and then
-java.lsp.server$ ant test-vscode-ext
+$ ant build-vscode-ext # first and then
+$ ant test-vscode-ext
 ```
 
 In case you are behind a proxy, you may want to run the tests with
 
 ```bash
-java.lsp.server$ npm_config_https_proxy=http://your.proxy.com:port ant test-vscode-ext
+$ npm_config_https_proxy=http://your.proxy.com:port ant test-vscode-ext
 ```
 
 when executing the tests for the first time. That shall overcome the proxy

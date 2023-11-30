@@ -167,6 +167,11 @@ suite('Extension Test Suite', function () {
         if (refactorActions && refactorActions.length > 0) {
             for await (const action of refactorActions) {
                 if (action.command && action.command.arguments) {
+                    if (action.command.command === myExtension.COMMAND_PREFIX + ".surround.with") {
+                        //this action has a popup where the user needs to
+                        //select a template that should be used for the surround:
+                        continue;
+                    }
                     await commands.executeCommand(action.command.command, ...action.command.arguments);
                     await commands.executeCommand('undo');
                 }
