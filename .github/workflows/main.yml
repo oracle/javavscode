@@ -62,7 +62,7 @@ jobs:
         with:
           repository: apache/netbeans
           path: netbeans
-          ref: 20-rc4
+          ref: 20
 
       - name: Apply NetBeans patches
         run: ant apply-patches
