@@ -45,6 +45,7 @@ In the VS Code command palette :
 * Debugger __Java+...__ - start main class or test on selected JDK. More in [Debugger section](#debugger-and-launch-configurations)
 * __Test Explorer__ for Java tests results visualization and execution including editor code Lenses.
 * Maven and Gradle support including multi-project projects, subprojects opening and Gradle priming builds.
+* __Java: Go To Test/Tested Class__ - Navigates to the corresponding test or source class file
 
 ## Project Explorer
 Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.  
