@@ -56,14 +56,14 @@
         <mkdir dir="${lsp.build.dir}/etc" />
         <copy todir="${lsp.build.dir}/etc" file="script/etc/nbcode.conf" overwrite="true" />
         <copy todir="${lsp.build.dir}/etc" file="script/etc/nbcode.clusters" overwrite="true" />
-        <move file="${lsp.build.dir}/java/maven/bin/mvn" tofile="${lsp.build.dir}/java/maven/bin/mvn.sh" />
+<!--        <move file="${lsp.build.dir}/java/maven/bin/mvn" tofile="${lsp.build.dir}/java/maven/bin/mvn.sh" />-->
         <move file="${lsp.build.dir}/bin/nbcode" tofile="${lsp.build.dir}/bin/nbcode.sh" />
         <move file="${lsp.build.dir}/platform/lib/nbexec" tofile="${lsp.build.dir}/platform/lib/nbexec.sh" />
         <replace file="${lsp.build.dir}/bin/nbcode.sh" token="/platform*/lib/nbexec" value="/platform*/lib/nbexec.sh"/>
         <replace file="${lsp.build.dir}/bin/nbcode.sh" token="basename &quot;$PRG&quot;" value="basename &quot;$PRG&quot; &quot;.sh&quot;"/>
         <chmod file="${lsp.build.dir}/bin/nbcode.sh" perm="u+x" />
         <chmod file="${lsp.build.dir}/platform/lib/nbexec.sh" perm="u+x"/>
-        <chmod file="${lsp.build.dir}/java/maven/bin/mvn.sh" perm="u+x" />
+<!--        <chmod file="${lsp.build.dir}/java/maven/bin/mvn.sh" perm="u+x" />-->
     </target>
     <target name="add-extra-modules" depends="build-lsp-server" if="extra.modules">
         <ant dir="../../nbbuild" target="build-nbms" inheritall="false" inheritrefs="false">
@@ -214,5 +214,14 @@
 
     <target name="build-netbeans">
         <ant dir="netbeans" inheritAll="false" inheritRefs="false" useNativeBasedir="true"/>
+    </target>
+
+    <target name="dev-regenerate-disabled-modules" depends="-set-use-jdk-javac,proxy-setup" description="Prepares NetBeans bits for vscode extensions">
+        <ant dir="util/compute.disabled.modules" target="run" inheritall="false" inheritrefs="false">
+            <property name="nbplatform.default.netbeans.dest.dir" location="${nbplatform.default.netbeans.dest.dir}" />
+            <property name="nbplatform.default.harness.dir" location="${nbplatform.default.harness.dir}" />
+            <property name="nbantext.jar" location="${nbantext.jar}" />
+            <property name="run.args.extra" value="--compute-disabled-modules=${basedir}/nbcode/nbproject/platform.properties --nosplash --nogui" />
+        </ant>
     </target>
 </project>

@@ -48,7 +48,7 @@ function find(info: LaunchInfo): string {
     if (os.platform() !== 'win32') {
         fs.chmodSync(path.join(info.extensionPath, "nbcode", "bin", nbcode), "744");
         fs.chmodSync(path.join(info.extensionPath, "nbcode", "platform", "lib", "nbexec.sh"), "744");
-        fs.chmodSync(path.join(info.extensionPath, "nbcode", "java", "maven", "bin", "mvn.sh"), "744");
+        // fs.chmodSync(path.join(info.extensionPath, "nbcode", "java", "maven", "bin", "mvn.sh"), "744");
     }
     return nbcodePath;
 }
