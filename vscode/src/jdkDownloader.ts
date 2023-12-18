@@ -190,39 +190,44 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
 }
 
 export async function extractJDK(jdkTarballPath: string, extractionTarget: string, jdkVersion: string, osType: string, jdkType: string): Promise<void> {
+  // Extract jdk binaries in a temp folder
   const downloadedDir = path.join(__dirname, 'jdk_downloads');
-  const extractCommand = `tar -xzf "${jdkTarballPath}" -C "${downloadedDir}"`;
+  const extractCommand = `tar -xzf "${jdkTarballPath}" -C ${downloadedDir}`;
+  const tempDirName = `jdk-${jdkVersion}${osType === 'macOS' ? '.jdk' : ''}`;
+  const tempDirectoryPath = path.join(downloadedDir, tempDirName);
+  let newDirectoryPath: string | null = null;
 
-  const oldDirName = `jdk-${jdkVersion}`;
-  const oldDirectoryPath = path.join(downloadedDir, osType === 'macOS' ? oldDirName + '.jdk' : oldDirName);
-  if (fs.existsSync(oldDirectoryPath)) {
-    await fs.promises.rmdir(oldDirectoryPath, { recursive: true });
-  }
   child_process.exec(extractCommand, async (error) => {
     if (error) {
       vscode.window.showErrorMessage('Error: ' + error);
     } else {
-      const dirName = `${jdkType.split(' ').join('_')}-${jdkVersion}`;
-      const newDirectoryPath = await handleJdkPaths(dirName, extractionTarget, osType);
+      // If directory with same name is present in the user selected download location then ask user if they want to delete it or not? 
+      const newDirName = `${jdkType.split(' ').join('_')}-${jdkVersion}`;
+      newDirectoryPath = await handleJdkPaths(newDirName, extractionTarget, osType);
       if (newDirectoryPath === null) {
-        await fs.promises.rmdir(oldDirectoryPath, { recursive: true });
-        vscode.window.showInformationMessage(`Cannot install ${jdkType} ${jdkVersion}. Cannot delete ${dirName}`);
-        return;
-      }
-      await fs.promises.rename(oldDirectoryPath, newDirectoryPath);
+        vscode.window.showInformationMessage(`Cannot install ${jdkType} ${jdkVersion}. Cannot delete ${newDirName}`);
+      } else {
+        // If user agrees for deleting the directory then delete it and move the temp directory to the user selected location
+        await fs.promises.rename(tempDirectoryPath, newDirectoryPath);
 
-      let binPath = newDirectoryPath;
-      if (osType === 'macOS') {
-        binPath = path.join(newDirectoryPath, 'Contents', 'Home');
+        let binPath = newDirectoryPath;
+        if (osType === 'macOS') {
+          binPath = path.join(newDirectoryPath, 'Contents', 'Home');
+        }
+        vscode.workspace.getConfiguration('jdk').update('jdkhome', binPath, true);
       }
-      vscode.workspace.getConfiguration('jdk').update('jdkhome', binPath, true);
     }
 
     fs.unlink(jdkTarballPath, async (err) => {
       if (err) {
         vscode.window.showErrorMessage("Error: " + err);
       } else {
-        await installationCompletion("automatic");
+        if (fs.existsSync(tempDirectoryPath)) {
+          await fs.promises.rmdir(tempDirectoryPath, { recursive: true });
+        }
+        if (newDirectoryPath !== null) {
+          await installationCompletion("automatic");
+        }
       }
     });
   });
@@ -235,7 +240,7 @@ const handleJdkPaths = async (directoryName: string, parentPath: string, osType:
   }
   const directoryPath = path.join(parentPath, name);
   if (fs.existsSync(directoryPath)) {
-    const CONFIRMATION_MESSAGE = `${name} is already present. Do you want to delete it and replace with new contents?`;
+    const CONFIRMATION_MESSAGE = `${name} is already present. Do you want to delete it and create with new contents?`;
     const selected = await vscode.window.showInformationMessage(CONFIRMATION_MESSAGE, "Yes", "No");
     if (selected === "Yes") {
       await fs.promises.rmdir(directoryPath, { recursive: true });
