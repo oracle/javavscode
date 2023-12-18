@@ -58,6 +58,23 @@ public class ComputeRequiredModules implements ArgsProcessor {
             "org.netbeans.modules.editor.mimelookup.impl", //so that MimeLookup from layers works
             "org.netbeans.modules.lexer.nbbridge", //so that lexer(s) work
             "org.netbeans.modules.java.j2seplatform", //so that JRT FS works
+            "org.netbeans.libs.nbjavacapi", // nbjavac module
+            //58 MB
+            // Used these modules for autocompletion
+            "org.netbeans.modules.editor.autosave",
+            "org.netbeans.modules.editor.bookmarks",
+            "org.netbeans.modules.editor.macros", 
+            "org.netbeans.modules.autoupdate.ui",
+            // 58.8 MB
+            // Tests modules
+            "org.netbeans.modules.junit.ui",
+            "org.netbeans.modules.testng.ui",
+            // Debug issue
+            "org.netbeans.modules.masterfs.linux",
+            "org.netbeans.modules.masterfs.macosx",
+            "org.netbeans.modules.masterfs.nio2",
+            "org.netbeans.modules.masterfs.ui",
+            "org.netbeans.modules.masterfs.windows"
         };
         Set<String> rootModulesSet = new HashSet<>(Arrays.asList(rootModules));
         Set<ModuleInfo> todo = new HashSet<>();
