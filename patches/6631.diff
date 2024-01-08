@@ -1,0 +1,180 @@
+diff --git a/ide/editor.lib/src/org/netbeans/editor/BaseDocument.java b/ide/editor.lib/src/org/netbeans/editor/BaseDocument.java
+index 1dc3c6ba4589..b564977b02d9 100644
+--- a/ide/editor.lib/src/org/netbeans/editor/BaseDocument.java
++++ b/ide/editor.lib/src/org/netbeans/editor/BaseDocument.java
+@@ -2169,30 +2169,7 @@ int getOffsetFromVisCol(int visCol, int startLineOffset)
+     *   the function itself computes the begining of the line first
+     */
+     int getVisColFromPos(int offset) throws BadLocationException {
+-        if (offset < 0 || offset > getLength()) {
+-            throw new BadLocationException("Invalid offset", offset); // NOI18N
+-        }
+-        int startLineOffset = Utilities.getRowStart(this, offset);
+-        int tabSize = getTabSize();
+-        CharSequence docText = org.netbeans.lib.editor.util.swing.DocumentUtilities.getText(this);
+-        int visCol = 0;
+-        for (int i = startLineOffset; i < offset; i++) {
+-            char ch = docText.charAt(i);
+-            if (ch == '\t') {
+-                visCol = (visCol + tabSize) / tabSize * tabSize;
+-            } else {
+-                // #17356
+-                int codePoint;
+-                if (Character.isHighSurrogate(ch) && i + 1 < docText.length()) {
+-                    codePoint = Character.toCodePoint(ch, docText.charAt(++i));
+-                } else {
+-                    codePoint = ch;
+-                }
+-                int w = WcwdithUtil.wcwidth(codePoint);
+-                visCol += w > 0 ? w : 0;
+-            }
+-        }
+-        return visCol;
++        return Utilities.getVisColFromPos(this, offset);
+     }
+ 
+     protected Dictionary createDocumentProperties(Dictionary origDocumentProperties) {
+diff --git a/ide/editor.lib/src/org/netbeans/editor/Utilities.java b/ide/editor.lib/src/org/netbeans/editor/Utilities.java
+index e5fa316eb657..635bd02c0941 100644
+--- a/ide/editor.lib/src/org/netbeans/editor/Utilities.java
++++ b/ide/editor.lib/src/org/netbeans/editor/Utilities.java
+@@ -71,15 +71,18 @@
+ import javax.swing.text.Position;
+ import javax.swing.text.View;
+ import org.netbeans.api.editor.EditorRegistry;
++import org.netbeans.api.editor.document.LineDocument;
+ import org.netbeans.api.editor.document.LineDocumentUtils;
+ import org.netbeans.api.editor.mimelookup.MimeLookup;
+ import org.netbeans.api.editor.settings.SimpleValueNames;
+ import org.netbeans.lib.editor.util.CharSequenceUtilities;
+ import org.netbeans.lib.editor.util.swing.DocumentListenerPriority;
+ import org.netbeans.lib.editor.util.swing.DocumentUtilities;
++import org.netbeans.modules.editor.indent.api.IndentUtils;
+ import org.netbeans.modules.editor.indent.api.Reformat;
+ import org.netbeans.modules.editor.indent.spi.CodeStylePreferences;
+ import org.netbeans.modules.editor.lib.BeforeSaveTasks;
++import org.netbeans.modules.editor.lib.WcwdithUtil;
+ import org.netbeans.modules.editor.lib2.EditorPreferencesDefaults;
+ import org.netbeans.modules.editor.lib2.view.DocumentView;
+ import org.netbeans.modules.editor.lib2.view.EditorView;
+@@ -152,7 +155,40 @@ public static int getRowStart(JTextComponent c, int offset)
+         }
+         return -1;
+     }
+-
++    
++    /** Get visual column from position. This method can be used
++    * only for superfixed font i.e. all characters of all font styles
++    * have the same width.
++    * @param offset position for which the visual column should be returned
++    *   the function itself computes the begining of the line first
++    */
++    static int getVisColFromPos(LineDocument doc, int offset) throws BadLocationException {
++        if (offset < 0 || offset > doc.getLength()) {
++            throw new BadLocationException("Invalid offset", offset); // NOI18N
++        }
++        int startLineOffset =  LineDocumentUtils.getLineStart(doc, offset);
++        int tabSize = IndentUtils.tabSize(doc);
++        CharSequence docText = org.netbeans.lib.editor.util.swing.DocumentUtilities.getText(doc);
++        int visCol = 0;
++        for (int i = startLineOffset; i < offset; i++) {
++            char ch = docText.charAt(i);
++            if (ch == '\t') {
++                visCol = (visCol + tabSize) / tabSize * tabSize;
++            } else {
++                // #17356
++                int codePoint;
++                if (Character.isHighSurrogate(ch) && i + 1 < docText.length()) {
++                    codePoint = Character.toCodePoint(ch, docText.charAt(++i));
++                } else {
++                    codePoint = ch;
++                }
++                int w = WcwdithUtil.wcwidth(codePoint);
++                visCol += w > 0 ? w : 0;
++            }
++        }
++        return visCol;
++    }
++    
+     /** Get the starting position of the row.
+     * @param doc document to operate on
+     * @param offset position in document where to start searching
+@@ -584,6 +620,22 @@ public static int getVisualColumn(BaseDocument doc, int offset)
+ 
+         return doc.getVisColFromPos(offset);
+     }
++    
++    /** Return visual column (with expanded tabs) on the line.
++    * @param doc document to operate on
++    * @param offset position in document for which the visual column should be found
++    * @return visual column on the line determined by position
++    */
++    public static int getVisualColumn(LineDocument doc, int offset)
++    throws BadLocationException {
++        
++        int docLen = doc.getLength();
++        if (offset == docLen + 1) { // at ending extra '\n' => make docLen to proceed without BLE
++            offset = docLen;
++        }
++
++        return getVisColFromPos(doc,offset);
++    }
+ 
+     /** Get the identifier around the given position or null if there's no identifier
+     * @see #getIdentifierBlock(BaseDocument,int)
+diff --git a/ide/xml.text/src/org/netbeans/modules/xml/text/indent/XMLLexerFormatter.java b/ide/xml.text/src/org/netbeans/modules/xml/text/indent/XMLLexerFormatter.java
+index dfedafffc6e8..57a05851c931 100644
+--- a/ide/xml.text/src/org/netbeans/modules/xml/text/indent/XMLLexerFormatter.java
++++ b/ide/xml.text/src/org/netbeans/modules/xml/text/indent/XMLLexerFormatter.java
+@@ -30,7 +30,6 @@
+ import org.netbeans.api.lexer.TokenHierarchy;
+ import org.netbeans.api.lexer.TokenSequence;
+ import org.netbeans.api.xml.lexer.XMLTokenId;
+-import org.netbeans.editor.BaseDocument;
+ import org.netbeans.editor.Utilities;
+ import org.netbeans.modules.editor.indent.api.IndentUtils;
+ import org.netbeans.modules.editor.indent.spi.Context;
+@@ -39,6 +38,8 @@
+ import org.netbeans.modules.xml.text.folding.XmlFoldManager;
+ import org.openide.util.CharSequences;
+ import org.openide.util.Exceptions;
++import javax.swing.text.Document;
++import org.netbeans.api.editor.document.AtomicLockDocument;
+ 
+ /**
+  * New XML formatter based on Lexer APIs.
+@@ -70,13 +71,9 @@ protected LanguagePath supportedLanguagePath() {
+ // # 170343
+     public void reformat(Context context, final int startOffset, final int endOffset)
+             throws BadLocationException {
+-        final BaseDocument doc = (BaseDocument) context.document();
+-        doc.runAtomic(new Runnable() {
+-
+-            public void run() {
+-                doReformat(doc, startOffset, endOffset);
+-            }
+-        });
++        final Document doc = context.document();
++        LineDocumentUtils.asRequired(doc, AtomicLockDocument.class)
++                         .runAtomic(() -> doReformat((LineDocument)doc, startOffset, endOffset));
+     }
+ 
+     public LineDocument doReformat(LineDocument doc, int startOffset, int endOffset) {
+@@ -236,7 +233,7 @@ private int updateIndent(boolean increase, int targetLevel, boolean preserveAfte
+         } else {
+             try {
+                 // align with the actual tag:
+-                indentLevel = Utilities.getVisualColumn((BaseDocument)basedoc, 
++                indentLevel = Utilities.getVisualColumn((LineDocument)basedoc, 
+                         LineDocumentUtils.getNextNonWhitespace(basedoc, 
+                         LineDocumentUtils.getLineStart(basedoc, tokenSequence.offset())));
+                 if (!increase) {
+@@ -348,7 +345,7 @@ private void attributeName() throws BadLocationException {
+             } else {
+                 // align one space after the tagname:
+                 TokenIndent tagIndent = stack.peek();
+-                int current = Utilities.getVisualColumn((BaseDocument)basedoc, tokenSequence.offset());
++                int current = Utilities.getVisualColumn((LineDocument)basedoc, tokenSequence.offset());
+                 if (tagIndent == null) {
+                     // fallback
+                     firstAttributeIndent = current;
