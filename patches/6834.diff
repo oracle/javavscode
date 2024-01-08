@@ -1,0 +1,622 @@
+diff --git a/ide/gototest/manifest.mf b/ide/gototest/manifest.mf
+index a5a1398fa5af..e7d21dbec7b5 100644
+--- a/ide/gototest/manifest.mf
++++ b/ide/gototest/manifest.mf
+@@ -2,4 +2,4 @@ Manifest-Version: 1.0
+ OpenIDE-Module: org.netbeans.modules.gototest/1
+ OpenIDE-Module-Layer: org/netbeans/modules/gototest/resources/layer.xml
+ OpenIDE-Module-Localizing-Bundle: org/netbeans/modules/gototest/resources/Bundle.properties
+-OpenIDE-Module-Specification-Version: 1.56
++OpenIDE-Module-Specification-Version: 1.57
+diff --git a/ide/gototest/nbproject/project.xml b/ide/gototest/nbproject/project.xml
+index 47a0a1c6e4de..a25850f94569 100644
+--- a/ide/gototest/nbproject/project.xml
++++ b/ide/gototest/nbproject/project.xml
+@@ -25,6 +25,15 @@
+         <data xmlns="http://www.netbeans.org/ns/nb-module-project/2">
+             <code-name-base>org.netbeans.modules.gototest</code-name-base>
+             <module-dependencies>
++                <dependency>
++                    <code-name-base>org.netbeans.api.annotations.common</code-name-base>
++                    <build-prerequisite/>
++                    <compile-dependency/>
++                    <run-dependency>
++                        <release-version>1</release-version>
++                        <specification-version>1.50</specification-version>
++                    </run-dependency>
++                </dependency>
+                 <dependency>
+                     <code-name-base>org.netbeans.modules.gsf.testrunner</code-name-base>
+                     <build-prerequisite/>
+@@ -100,7 +109,7 @@
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+-                    <code-name-base>org.openide.util.ui</code-name-base>
++                    <code-name-base>org.openide.util</code-name-base>
+                     <build-prerequisite/>
+                     <compile-dependency/>
+                     <run-dependency>
+@@ -108,19 +117,19 @@
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+-                    <code-name-base>org.openide.util</code-name-base>
++                    <code-name-base>org.openide.util.lookup</code-name-base>
+                     <build-prerequisite/>
+                     <compile-dependency/>
+                     <run-dependency>
+-                        <specification-version>9.3</specification-version>
++                        <specification-version>8.0</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+-                    <code-name-base>org.openide.util.lookup</code-name-base>
++                    <code-name-base>org.openide.util.ui</code-name-base>
+                     <build-prerequisite/>
+                     <compile-dependency/>
+                     <run-dependency>
+-                        <specification-version>8.0</specification-version>
++                        <specification-version>9.3</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+@@ -135,6 +144,7 @@
+             <friend-packages>
+                 <friend>org.netbeans.modules.jackpot30.file</friend>
+                 <friend>org.netbeans.modules.java.hints.declarative</friend>
++                <friend>org.netbeans.modules.java.lsp.server</friend>
+                 <friend>org.netbeans.modules.junit</friend>
+                 <friend>org.netbeans.modules.php.project</friend>
+                 <friend>org.netbeans.modules.python.project</friend>
+@@ -142,6 +152,7 @@
+                 <friend>org.netbeans.modules.ruby.project</friend>
+                 <friend>org.netbeans.modules.testng</friend>
+                 <friend>org.netbeans.modules.web.clientproject.api</friend>
++                <package>org.netbeans.api.gototest</package>
+                 <package>org.netbeans.spi.gototest</package>
+             </friend-packages>
+         </data>
+diff --git a/ide/gototest/src/org/netbeans/api/gototest/TestOppositesLocator.java b/ide/gototest/src/org/netbeans/api/gototest/TestOppositesLocator.java
+new file mode 100644
+index 000000000000..4dfcc76def44
+--- /dev/null
++++ b/ide/gototest/src/org/netbeans/api/gototest/TestOppositesLocator.java
+@@ -0,0 +1,194 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.api.gototest;
++
++import java.util.Collection;
++import java.util.Collections;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.concurrent.CountDownLatch;
++import java.util.stream.Collectors;
++import org.netbeans.api.annotations.common.NonNull;
++import org.netbeans.spi.gototest.TestLocator;
++import org.netbeans.spi.gototest.TestLocator.LocationListener;
++import org.netbeans.spi.gototest.TestLocator.LocationResult;
++import org.openide.DialogDisplayer;
++import org.openide.NotifyDescriptor;
++import org.openide.filesystems.FileObject;
++import org.openide.util.Exceptions;
++import org.openide.util.Lookup;
++import org.openide.util.NbBundle;
++
++/**
++ * Find one or multiple test files for a source file,
++ * and one or multiple source files for a test file.
++ *
++ * @since 1.57
++ */
++public class TestOppositesLocator {
++
++    public static TestOppositesLocator getDefault() {
++        return new TestOppositesLocator();
++    }
++
++    /**
++     * Given the file and position in the file, if the:
++     * <ul>
++     *     <li> given file is a source file, find corresponding test file or test files, if exist.</li>
++     *     <li> given file is a test file, find corresponding source file or source files, if exist.</li>
++     * </ul>
++     *
++     * @param fo the file for which the opposites should be found
++     * @param caretOffset position in the file, or {@code -1} if unknown
++     * @return a result describing either an error, or a possibly empty list of locations found;
++     *         note one of {@code errorMessage} and {@code locations} is always {@code null},
++     *         and one always non-{@code null}.
++     */
++    @NbBundle.Messages("No_Test_Or_Tested_Class_Found=No Test or Tested class found")
++    public LocatorResult findOpposites(FileObject fo, int caretOffset) {
++        TestLocator.FileType currentFileType = getCurrentFileType(fo);
++        if(currentFileType == TestLocator.FileType.NEITHER) {
++            return new LocatorResult(Bundle.No_Test_Or_Tested_Class_Found(), null);
++        }
++        else {
++            return new LocatorResult(null, Collections.unmodifiableList(populateLocationResults(fo, caretOffset)));
++        }
++    }
++
++    private List<NamedLocation> populateLocationResults(FileObject fo, int caretOffset) {
++        Map<LocationResult, String> locationResults = new HashMap<LocationResult, String>();
++
++        Collection<? extends TestLocator> locators = Lookup.getDefault()
++                                                           .lookupAll(TestLocator.class)
++                                                           .stream()
++                                                           .filter(tl -> tl.appliesTo(fo))
++                                                           .collect(Collectors.toList());
++
++        CountDownLatch allDone = new CountDownLatch(locators.size());
++
++        for (TestLocator locator : locators) {
++            if (locator.appliesTo(fo)) {
++                if (locator.asynchronous()) {
++                    locator.findOpposite(fo, caretOffset, new LocationListener() {
++                        @Override
++                        public void foundLocation(FileObject fo, TestLocator.LocationResult location) {
++                            if (location != null) {
++                                FileObject fileObject = location.getFileObject();
++                                if(fileObject == null) {
++                                    String msg = location.getErrorMessage();
++                                    if (msg != null) {
++                                        DialogDisplayer.getDefault().notify(
++                                                new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE));
++                                    }
++                                } else {
++                                    locationResults.put(location, fileObject.getName());
++                                }
++                            }
++                            allDone.countDown();
++                        }
++                    });
++                } else {
++                    TestLocator.LocationResult opposite = locator.findOpposite(fo, caretOffset);
++
++                    if (opposite != null) {
++                        FileObject fileObject = opposite.getFileObject();
++                        if (fileObject == null) {
++                            String msg = opposite.getErrorMessage();
++                            if (msg != null) {
++                                DialogDisplayer.getDefault().notify(
++                                        new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE));
++                            }
++                        } else {
++                            locationResults.put(opposite, fileObject.getName());
++                        }
++                    }
++
++                    allDone.countDown();
++                }
++            }
++        }
++
++        try {
++            allDone.await();
++        } catch (InterruptedException ex) {
++            Exceptions.printStackTrace(ex);
++        }
++
++        return locationResults.entrySet()
++                              .stream()
++                              .map(e -> new NamedLocation(e.getKey(),
++                                                          e.getValue()))
++                              .collect(Collectors.toList());
++    }
++
++    private TestLocator getLocatorFor(FileObject fo) {
++        Collection<? extends TestLocator> locators = Lookup.getDefault().lookupAll(TestLocator.class);
++        for (TestLocator locator : locators) {
++            if (locator.appliesTo(fo)) {
++                return locator;
++            }
++        }
++
++        return null;
++    }
++
++    private TestLocator.FileType getFileType(FileObject fo) {
++        TestLocator locator = getLocatorFor(fo);
++        if (locator != null) {
++            return locator.getFileType(fo);
++        }
++
++        return TestLocator.FileType.NEITHER;
++    }
++
++    private TestLocator.FileType getCurrentFileType(FileObject fo) {
++        return (fo != null) ? getFileType(fo) : TestLocator.FileType.NEITHER;
++    }
++
++    /**
++     * A description of the found opposite files. Exactly one of {@code errorMessage}
++     * {@code locations} will be non-null;
++     */
++    public static final class LocatorResult {
++        public final String errorMessage;
++        public final Collection<NamedLocation> locations;
++
++        private LocatorResult(String errorMessage, Collection<NamedLocation> locations) {
++            if (errorMessage == null && locations == null) {
++                throw new IllegalArgumentException("Both errorMessage and locations is null!");
++            }
++            this.errorMessage = errorMessage;
++            this.locations = locations;
++        }
++    }
++
++    /**
++     * A location and a name of the location.
++     */
++    public static final class NamedLocation {
++        public @NonNull final LocationResult location;
++        public @NonNull final String displayName;
++
++        private NamedLocation(LocationResult location, String displayName) {
++            this.location = location;
++            this.displayName = displayName;
++        }
++    }
++}
+\ No newline at end of file
+diff --git a/ide/gototest/src/org/netbeans/modules/gototest/GotoOppositeAction.java b/ide/gototest/src/org/netbeans/modules/gototest/GotoOppositeAction.java
+index cee8765c6698..72581e4bbeb7 100644
+--- a/ide/gototest/src/org/netbeans/modules/gototest/GotoOppositeAction.java
++++ b/ide/gototest/src/org/netbeans/modules/gototest/GotoOppositeAction.java
+@@ -23,8 +23,6 @@
+ import java.awt.Point;
+ import java.awt.Rectangle;
+ import java.util.Collection;
+-import java.util.HashMap;
+-import java.util.concurrent.Semaphore;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
+ import javax.swing.Action;
+@@ -33,12 +31,11 @@
+ import javax.swing.text.BadLocationException;
+ import javax.swing.text.Document;
+ import javax.swing.text.JTextComponent;
++import org.netbeans.api.gototest.TestOppositesLocator;
++import org.netbeans.api.gototest.TestOppositesLocator.LocatorResult;
+ import org.netbeans.modules.gsf.testrunner.ui.api.TestCreatorPanelDisplayer;
+ import org.netbeans.modules.gsf.testrunner.ui.api.UICommonUtils;
+ import org.netbeans.modules.parsing.api.Source;
+-import org.netbeans.spi.gototest.TestLocator;
+-import org.netbeans.spi.gototest.TestLocator.FileType;
+-import org.netbeans.spi.gototest.TestLocator.LocationListener;
+ import org.netbeans.spi.gototest.TestLocator.LocationResult;
+ import org.openide.DialogDisplayer;
+ import org.openide.NotifyDescriptor;
+@@ -64,8 +61,6 @@
+  * @author Tor Norbye
+  */
+ public class GotoOppositeAction extends CallableSystemAction {
+-    private HashMap<LocationResult, String> locationResults = new HashMap<LocationResult, String>();
+-    private Semaphore lock;
+ 
+     public GotoOppositeAction() {
+         putValue("noIconInMenu", Boolean.TRUE); //NOI18N
+@@ -113,7 +108,6 @@ protected boolean asynchronous() {
+     }
+     
+     @Override
+-    @NbBundle.Messages("No_Test_Or_Tested_Class_Found=No Test or Tested class found")
+     public void performAction() {
+         int caretOffsetHolder[] = { -1 };
+         final FileObject fo = getApplicableFileObject(caretOffsetHolder);
+@@ -126,9 +120,10 @@ public void performAction() {
+ 
+                 @Override
+                 public void run() {
+-                    FileType currentFileType = getCurrentFileType();
+-                    if(currentFileType == FileType.NEITHER) {
+-                        StatusDisplayer.getDefault().setStatusText(Bundle.No_Test_Or_Tested_Class_Found());
++                    LocatorResult opposites = TestOppositesLocator.getDefault().findOpposites(fo, caretOffset);
++
++                    if (opposites.errorMessage != null) {
++                        StatusDisplayer.getDefault().setStatusText(opposites.errorMessage);
+                         SwingUtilities.invokeLater(new Runnable() {
+                             @Override
+                             public void run() {
+@@ -137,15 +132,14 @@ public void run() {
+                         });
+                     }
+                     else {
+-                        populateLocationResults(fo, caretOffset);
+                         SwingUtilities.invokeLater(new Runnable() {
+ 
+                             @Override
+                             public void run() {
+-                                if (locationResults.size() == 1) {
+-                                    handleResult(locationResults.keySet().iterator().next());
+-                                } else if (locationResults.size() > 1) {
+-                                    showPopup(fo);
++                                if (opposites.locations.size() == 1) {
++                                    handleResult(opposites.locations.iterator().next().location);
++                                } else if (opposites.locations.size() > 1) {
++                                    showPopup(fo, opposites);
+                                 }
+                             }
+                         });
+@@ -155,82 +149,8 @@ public void run() {
+         }
+     }
+ 
+-    private void populateLocationResults(FileObject fo, int caretOffset) {
+-        locationResults.clear();
+-
+-        Collection<? extends TestLocator> locators = Lookup.getDefault().lookupAll(TestLocator.class);
+-
+-        int permits = 0;
+-        for (TestLocator locator : locators) {
+-            if (locator.appliesTo(fo)) {
+-                permits++;
+-            }
+-        }
+-
+-        lock = new Semaphore(permits);
+-        try {
+-            lock.acquire(permits);
+-        } catch (InterruptedException e) {
+-        }
+-
+-        for (TestLocator locator : locators) {
+-            if (locator.appliesTo(fo)) {
+-                doPopulateLocationResults(fo, caretOffset, locator);
+-            }
+-        }
+-        try {
+-            lock.acquire(permits);
+-        } catch (InterruptedException ex) {
+-            Exceptions.printStackTrace(ex);
+-        }
+-    }
+-
+-    private void doPopulateLocationResults(FileObject fo, int caretOffset, TestLocator locator) {
+-        if (locator != null) {
+-            if (locator.appliesTo(fo)) {
+-                if (locator.asynchronous()) {
+-                    locator.findOpposite(fo, caretOffset, new LocationListener() {
+-
+-                        @Override
+-                        public void foundLocation(FileObject fo, LocationResult location) {
+-                            if (location != null) {
+-                                FileObject fileObject = location.getFileObject();
+-                                if(fileObject == null) {
+-                                    String msg = location.getErrorMessage();
+-                                    if (msg != null) {
+-                                        DialogDisplayer.getDefault().notify(
+-                                                new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE));
+-                                    }
+-                                } else {
+-                                    locationResults.put(location, fileObject.getName());
+-                                }
+-                            }
+-                            lock.release();
+-                        }
+-                    });
+-                } else {
+-                    LocationResult opposite = locator.findOpposite(fo, caretOffset);
+-
+-                    if (opposite != null) {
+-                        FileObject fileObject = opposite.getFileObject();
+-                        if (fileObject == null) {
+-                            String msg = opposite.getErrorMessage();
+-                            if (msg != null) {
+-                                DialogDisplayer.getDefault().notify(
+-                                        new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE));
+-                            }
+-                        } else {
+-                            locationResults.put(opposite, fileObject.getName());
+-                        }
+-                    }
+-                    lock.release();
+-                }
+-            }
+-        }
+-    }
+-
+     @NbBundle.Messages("LBL_PickExpression=Go to Test")
+-    private void showPopup(FileObject fo) {
++    private void showPopup(FileObject fo, LocatorResult opposites) {
+         JTextComponent pane;
+         Point l = new Point(-1, -1);
+ 
+@@ -243,7 +163,7 @@ private void showPopup(FileObject fo) {
+                 SwingUtilities.convertPointToScreen(l, pane);
+ 
+                 String label = Bundle.LBL_PickExpression();
+-                PopupUtil.showPopup(new OppositeCandidateChooser(this, label, locationResults), label, l.x, l.y, true, -1);
++                PopupUtil.showPopup(new OppositeCandidateChooser(this, label, opposites.locations), label, l.x, l.y, true, -1);
+             }
+         } catch (BadLocationException ex) {
+             Logger.getLogger(GotoOppositeAction.class.getName()).log(Level.WARNING, null, ex);
+@@ -262,32 +182,6 @@ public void handleResult(LocationResult opposite) {
+         }
+     }
+     
+-    private TestLocator getLocatorFor(FileObject fo) {
+-        Collection<? extends TestLocator> locators = Lookup.getDefault().lookupAll(TestLocator.class);
+-        for (TestLocator locator : locators) {
+-            if (locator.appliesTo(fo)) {
+-                return locator;
+-            }
+-        }
+-        
+-        return null;
+-    }
+-    
+-    private FileType getFileType(FileObject fo) {
+-        TestLocator locator = getLocatorFor(fo);
+-        if (locator != null) {
+-            return locator.getFileType(fo);
+-        }
+-        
+-        return FileType.NEITHER;
+-    }
+-    
+-    private FileType getCurrentFileType() {
+-        FileObject fo = getApplicableFileObject(new int[1]);
+-        
+-        return (fo != null) ? getFileType(fo) : FileType.NEITHER;
+-    }
+-
+     private FileObject getApplicableFileObject(int[] caretPosHolder) {
+         if (!EventQueue.isDispatchThread()) {
+             // Unsafe to ask for an editor pane from a random thread.
+diff --git a/ide/gototest/src/org/netbeans/modules/gototest/OppositeCandidateChooser.java b/ide/gototest/src/org/netbeans/modules/gototest/OppositeCandidateChooser.java
+index 8e1ec5f413c2..a27febc906c5 100644
+--- a/ide/gototest/src/org/netbeans/modules/gototest/OppositeCandidateChooser.java
++++ b/ide/gototest/src/org/netbeans/modules/gototest/OppositeCandidateChooser.java
+@@ -24,12 +24,13 @@
+ import java.awt.event.FocusListener;
+ import java.awt.event.KeyEvent;
+ import java.awt.event.MouseEvent;
+-import java.util.HashMap;
++import java.util.Collection;
+ import javax.swing.DefaultListCellRenderer;
+ import javax.swing.DefaultListModel;
+ import javax.swing.JList;
+ import javax.swing.JPanel;
+ import javax.swing.ListModel;
++import org.netbeans.api.gototest.TestOppositesLocator.NamedLocation;
+ import org.netbeans.spi.gototest.TestLocator.LocationResult;
+ 
+ /**
+@@ -39,10 +40,10 @@
+ public class OppositeCandidateChooser extends JPanel implements FocusListener {
+ 
+     private final String caption;
+-    private static HashMap<LocationResult, String> toShow;
++    private static Collection<NamedLocation> toShow;
+     private static GotoOppositeAction action;
+     
+-    public OppositeCandidateChooser(GotoOppositeAction action, String caption, HashMap<LocationResult, String> toShow) {
++    public OppositeCandidateChooser(GotoOppositeAction action, String caption, Collection<NamedLocation> toShow) {
+         this.caption = caption;
+         OppositeCandidateChooser.action = action;
+         OppositeCandidateChooser.toShow = toShow;
+@@ -129,8 +130,8 @@ private void openSelected() {
+     
+     private ListModel createListModel() {
+         DefaultListModel dlm = new DefaultListModel();
+-        for (LocationResult cand: toShow.keySet()) {
+-            dlm.addElement(cand);
++        for (NamedLocation cand: toShow) {
++            dlm.addElement(cand.location);
+         }
+         
+         return dlm;
+@@ -146,9 +147,9 @@ public Component getListCellRendererComponent(
+                 boolean cellHasFocus) {
+             Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+             
+-            if (value instanceof LocationResult) {
+-                LocationResult locator = (LocationResult) value;
+-                setText(toShow.get(locator));
++            if (value instanceof NamedLocation) {
++                NamedLocation locator = (NamedLocation) value;
++                setText(locator.displayName);
+             }
+             
+             return c;
+diff --git a/java/java.lsp.server/nbproject/project.xml b/java/java.lsp.server/nbproject/project.xml
+index 2994df98cff1..f66e913e54ab 100644
+--- a/java/java.lsp.server/nbproject/project.xml
++++ b/java/java.lsp.server/nbproject/project.xml
+@@ -305,6 +305,15 @@
+                         <specification-version>1.20</specification-version>
+                     </run-dependency>
+                 </dependency>
++                <dependency>
++                    <code-name-base>org.netbeans.modules.gototest</code-name-base>
++                    <build-prerequisite/>
++                    <compile-dependency/>
++                    <run-dependency>
++                        <release-version>1</release-version>
++                        <specification-version>1.57</specification-version>
++                    </run-dependency>
++                </dependency>
+                 <dependency>
+                     <code-name-base>org.netbeans.modules.gsf.testrunner</code-name-base>
+                     <build-prerequisite/>
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
+index 1674055e8f0b..61b30a9c7acd 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
+@@ -829,7 +829,8 @@ private InitializeResult constructInitResponse(InitializeParams init, JavaSource
+                         JAVA_ENABLE_PREVIEW,
+                         NBLS_DOCUMENT_SYMBOLS,
+                         NBLS_GET_DIAGNOSTICS,
+-                        NBLS_GET_SERVER_DIRECTORIES
++                        NBLS_GET_SERVER_DIRECTORIES,
++                        NBLS_GO_TO_TEST
+                 ));
+                 for (CodeActionsProvider codeActionsProvider : Lookup.getDefault().lookupAll(CodeActionsProvider.class)) {
+                     commands.addAll(codeActionsProvider.getCommands());
+@@ -1060,6 +1061,7 @@ public List<FileObject> getClientWorkspaceFolders() {
+     public static final String NBLS_GRAALVM_PAUSE_SCRIPT = "nbls.graalvm.pause.script";
+     public static final String NBLS_RUN_PROJECT_ACTION = "nbls.project.run.action";
+     public static final String NBLS_GET_ARCHIVE_FILE_CONTENT = "nbls.get.archive.file.content";
++    public static final String NBLS_GO_TO_TEST = "nbls.go.to.test";
+ 
+     /**
+      * Enumerates project configurations.
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+index 65f6514c121b..591a0c1c2b10 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+@@ -91,6 +91,8 @@
+ import org.netbeans.api.debugger.ActionsManager;
+ import org.netbeans.api.debugger.DebuggerManager;
+ import org.netbeans.api.editor.mimelookup.MimeLookup;
++import org.netbeans.api.gototest.TestOppositesLocator;
++import org.netbeans.api.gototest.TestOppositesLocator.LocatorResult;
+ import org.netbeans.api.java.classpath.ClassPath;
+ import org.netbeans.api.java.project.JavaProjectConstants;
+ import org.netbeans.api.java.queries.SourceForBinaryQuery;
+@@ -774,6 +776,25 @@ public CompletableFuture<Object> executeCommand(ExecuteCommandParams params) {
+                     }
+                     return (CompletableFuture<Object>)(CompletableFuture)((TextDocumentServiceImpl)server.getTextDocumentService()).computeDiagnostics(source, s);
+             }
++            case Server.NBLS_GO_TO_TEST: {
++                LocatorResult fileLocator = null;
++                List<FileObject> result = new ArrayList<>();
++                try {
++                    List<Object> arguments = params.getArguments();
++                    String source = ((JsonPrimitive) arguments.get(0)).getAsString();
++                    FileObject file;
++                    file = Utils.fromUri(source);
++                    fileLocator = TestOppositesLocator.getDefault().findOpposites(file, -1);
++                    fileLocator.locations.forEach(fileLocation -> {
++                        FileObject fo = fileLocation.location.getFileObject();
++                        result.add(fo);
++                    });
++                } catch (MalformedURLException ex) {
++                    Exceptions.printStackTrace(ex);
++                    return CompletableFuture.completedFuture(Collections.emptyList());
++                }
++                return CompletableFuture.completedFuture(result);
++            }
+             case Server.NBLS_GET_SERVER_DIRECTORIES: {
+                 JsonObject o = new JsonObject();
+                 o.addProperty("userdir", Places.getUserDirectory().toString());

@@ -440,6 +440,11 @@
 			{
 				"command": "jdk.download.jdk",
 				"title": "Download, install and use JDK"
+			},
+			{
+				"command": "jdk.goto.test",
+				"title": "Go To Test/Tested class...",
+				"category": "Java"
 			}
 		],
 		"keybindings": [
@@ -469,6 +474,11 @@
 					"group": "navigation@100"
 				},
 				{
+					"command": "jdk.goto.test",
+					"when": "nbJdkReady && editorLangId == java",
+					"group": "navigation@101"
+				},
+				{
 					"command": "jdk.project.run",
 					"when": "nbJdkReady && editorLangId == java && resourceExtname == .java",
 					"group": "javadebug@1"
@@ -484,6 +494,11 @@
 					"command": "jdk.workspace.new",
 					"when": "nbJdkReady && explorerResourceIsFolder",
 					"group": "navigation@3"
+				},
+				{
+					"command": "jdk.goto.test",
+					"when": "nbJdkReady && resourceExtname == .java",
+					"group": "goto@1"
 				},
 				{
 					"command": "jdk.project.run",
@@ -509,6 +524,10 @@
 				{
 					"command": "jdk.workspace.compile",
 					"when": "nbJdkReady"
+				},
+				{
+					"command": "jdk.goto.test",
+					"when": "nbJdkReady && editorLangId == java"
 				},
 				{
 					"command": "jdk.java.goto.super.implementation",
