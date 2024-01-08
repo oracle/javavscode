@@ -467,6 +467,16 @@
 					"command": "jdk.java.goto.super.implementation",
 					"when": "nbJdkReady && editorLangId == java && editorTextFocus",
 					"group": "navigation@100"
+				},
+				{
+					"command": "jdk.project.run",
+					"when": "nbJdkReady && editorLangId == java && resourceExtname == .java",
+					"group": "javadebug@1"
+				},
+				{
+					"command": "jdk.project.debug",
+					"when": "nbJdkReady && editorLangId == java && resourceExtname == .java",
+					"group": "javadebug@2"
 				}
 			],
 			"explorer/context": [
@@ -474,6 +484,16 @@
 					"command": "jdk.workspace.new",
 					"when": "nbJdkReady && explorerResourceIsFolder",
 					"group": "navigation@3"
+				},
+				{
+					"command": "jdk.project.run",
+					"when": "nbJdkReady && resourceExtname == .java",
+					"group": "javadebug@1"
+				},
+				{
+					"command": "jdk.project.debug",
+					"when": "nbJdkReady && resourceExtname == .java",
+					"group": "javadebug@2"
 				}
 			],
 			"commandPalette": [
@@ -482,6 +502,9 @@
 				},
 				{
 					"command": "jdk.workspace.newproject"
+				},
+				{
+					"command": "jdk.download.jdk"
 				},
 				{
 					"command": "jdk.workspace.compile",
@@ -696,7 +719,7 @@
 	"dependencies": {
 		"@vscode/debugadapter": "1.55.1",
 		"@vscode/webview-ui-toolkit": "^1.2.2",
-		"axios": "^1.5.0",
+		"axios": "^1.6.0",
 		"jsonc-parser": "3.2.0",
 		"vscode-languageclient": "^8.1.0"
 	}

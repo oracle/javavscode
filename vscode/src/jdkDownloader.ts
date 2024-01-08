@@ -21,11 +21,29 @@ import axios from 'axios';
 import * as https from 'https';
 import * as child_process from 'child_process';
 import * as vscode from 'vscode';
+import * as crypto from 'crypto';
 import { JDK_RELEASES_TRACK_URL, OPEN_JDK_VERSION_DOWNLOAD_LINKS, ORACLE_JDK_BASE_DOWNLOAD_URL, ORACLE_JDK_VERSION_FALLBACK_DOWNLOAD_VERSIONS } from './constants';
 import { handleLog } from './extension';
+import { promisify } from 'util';
 
 let customView: vscode.WebviewPanel;
 let logger: vscode.OutputChannel;
+
+export const calculateChecksum = async (filePath: string): Promise<string> => {
+  const ALGORITHM = 'sha256';
+  const hash = crypto.createHash(ALGORITHM);
+  const pipeline = promisify(require('stream').pipeline);
+  const readStream = fs.createReadStream(filePath);
+
+  await pipeline(
+    readStream,
+    hash
+  );
+
+  const checksum = hash.digest('hex');
+  return checksum;
+}
+
 export const fetchDropdownOptions = async () => {
 
   // Detect OS of the machine
@@ -172,9 +190,16 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
     response.pipe(writeStream);
 
     writeStream.on('finish', async () => {
-      vscode.window.showInformationMessage(`${JDKType} ${JDKVersion} for ${osType} download completed!`);
-
-      await extractJDK(path.join(targetDirectory, fileName), installationPath, JDKVersion, osType, JDKType);
+      const checkSumObtained = await calculateChecksum(filePath);
+      const checkSumExpected = (await axios.get(`${downloadUrl}.sha256`)).data;
+      if (checkSumExpected === checkSumObtained) {
+        vscode.window.showInformationMessage(`${JDKType} ${JDKVersion} for ${osType} download completed!`);
+        await extractJDK(filePath, installationPath, JDKVersion, osType, JDKType);
+      }
+      else {
+        handleLog(logger, `Checksums don't match! \n Expected: ${checkSumExpected} \n Obtained: ${checkSumObtained}`);
+        vscode.window.showErrorMessage(`"${JDKType} ${JDKVersion} for ${osType} download failed, wrong checksum."`);
+      }
     });
 
     writeStream.on('error', error => {

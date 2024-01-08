@@ -444,6 +444,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             throw `Client ${c} doesn't support new project`;
         }
     }));
+    context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".download.jdk", async () => { openJDKSelectionView(log); }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.compile', () =>
         wrapCommandWithProgress(COMMAND_PREFIX + '.build.workspace', 'Compiling workspace...', log, true)
     ));
@@ -1109,7 +1110,6 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
             }
         }));
         ctx.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".select.editor.projects", () => revealActiveEditor()));
-        ctx.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".download.jdk", () => openJDKSelectionView(log)));
 
         // attempt to reveal NOW:
         if (netbeansConfig.get("revealActiveInProjects")) {

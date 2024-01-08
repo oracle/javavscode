@@ -31,6 +31,7 @@
     <property name="nbplatform.default.harness.dir" location="${nbplatform.default.netbeans.dest.dir}/harness" />
     <property name="nbantext.jar" location="netbeans/nbbuild/build/nbantext.jar" />
     <property name="nb_all" location="netbeans" />
+    <property name="patches" value="patches/6218.diff patches/6330.diff patches/6478-6480.diff patches/6481.diff patches/6771.diff patches/mvn-sh.diff patches/rename-debugger.diff" />
     <condition property="cmd.suffix" value=".cmd" else="">
         <os family="windows"/>
     </condition>
@@ -141,7 +142,11 @@
 	<delete file="${basedir}/vscode/THIRD_PARTY_LICENSES.txt"/>
     </target>
     <target name="test-lsp-server" description="Tests the LSP server behavior">
-        <ant dir="nbcode" target="test" inheritall="false" inheritrefs="false" />
+        <ant dir="nbcode" target="test" inheritall="false" inheritrefs="false">
+            <property name="nbplatform.default.netbeans.dest.dir" location="${nbplatform.default.netbeans.dest.dir}" />
+            <property name="nbplatform.default.harness.dir" location="${nbplatform.default.harness.dir}" />
+            <property name="nbantext.jar" location="${nbantext.jar}" />
+        </ant>
     </target>
 
     <target name="test-vscode-ext" depends="test-lsp-server" description="Tests the Visual Studio Code extension built by 'build-vscode-ext' target.">
@@ -168,21 +173,42 @@
     </target>
 
     <target name="apply-patches">
-        <patch patchfile="patches/6218.diff" strip="1" dir="netbeans" failonerror="true"/>
-        <patch patchfile="patches/6330.diff" strip="1" dir="netbeans" failonerror="true"/>
-        <patch patchfile="patches/6478-6480.diff" strip="1" dir="netbeans" failonerror="true"/>
-        <patch patchfile="patches/6481.diff" strip="1" dir="netbeans" failonerror="true"/>
-        <patch patchfile="patches/mvn-sh.diff" strip="1" dir="netbeans" failonerror="true"/>
-        <patch patchfile="patches/rename-debugger.diff" strip="1" dir="netbeans" failonerror="true"/>
+        <exec executable="git">
+            <arg value="apply"/>
+            <arg value="--directory=netbeans"/>
+            <arg value="--whitespace=nowarn"/>
+            <arg line="${patches}"/>
+        </exec>
     </target>
 
     <target name="unapply-patches">
-        <patch patchfile="patches/rename-debugger.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
-        <patch patchfile="patches/mvn-sh.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
-        <patch patchfile="patches/6218.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
-        <patch patchfile="patches/6330.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
-        <patch patchfile="patches/6478-6480.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
-        <patch patchfile="patches/6481.diff" strip="1" dir="netbeans" failonerror="true" reverse="true"/>
+        <!--in the reverse order:-->
+        <echo file="${build.dir}/Reverse.java">
+            import java.util.Arrays;
+            import java.util.Collections;
+            import java.util.List;
+            import java.util.stream.Collectors;
+            public class Reverse {
+                 public static void main(String[] args) {
+                    List&lt;String> patches = Arrays.asList(args[0].split(" "));
+                    Collections.reverse(patches);
+                    System.out.print(patches.stream().collect(Collectors.joining(" ")));
+                 }
+            }
+        </echo>
+        <java sourcefile="${build.dir}/Reverse.java"
+              outputproperty="reverse.patches"
+              fork="true">
+             <arg value="${patches}" />
+        </java>
+        <echo>${reverse.patches}</echo>
+        <exec executable="git">
+            <arg value="apply"/>
+            <arg value="--directory=netbeans"/>
+            <arg value="--whitespace=nowarn"/>
+            <arg value="--reverse"/>
+            <arg line="${reverse.patches}"/>
+        </exec>
     </target>
 
     <target name="build-netbeans">
