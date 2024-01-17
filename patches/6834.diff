@@ -767,7 +767,7 @@ index 2994df98cff1..f66e913e54ab 100644
 +                    <compile-dependency/>
 +                    <run-dependency>
 +                        <release-version>1</release-version>
-+                        <specification-version>1.57</specification-version>
++                        <specification-version>1.56</specification-version>
 +                    </run-dependency>
 +                </dependency>
                  <dependency>
