@@ -192,10 +192,9 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
     writeStream.on('finish', async () => {
       const checkSumObtained = await calculateChecksum(filePath);
       const checkSumExpected = (await axios.get(`${downloadUrl}.sha256`)).data;
-
       if (checkSumExpected === checkSumObtained) {
         vscode.window.showInformationMessage(`${JDKType} ${JDKVersion} for ${osType} download completed!`);
-        await extractJDK(filePath, installationPath, JDKVersion, osType);
+        await extractJDK(filePath, installationPath, JDKVersion, osType, JDKType);
       }
       else {
         handleLog(logger, `Checksums don't match! \n Expected: ${checkSumExpected} \n Obtained: ${checkSumObtained}`);
@@ -215,35 +214,68 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
   request.end();
 }
 
-export async function extractJDK(jdkTarballPath: string, extractionTarget: string, jdkVersion: string, osType: string): Promise<void> {
-
-  const extractCommand = `tar -xzf "${jdkTarballPath}" -C "${extractionTarget}"`;
+export async function extractJDK(jdkTarballPath: string, extractionTarget: string, jdkVersion: string, osType: string, jdkType: string): Promise<void> {
+  // Extract jdk binaries in a temp folder
+  const downloadedDir = path.join(__dirname, 'jdk_downloads');
+  const extractCommand = `tar -xzf "${jdkTarballPath}" -C ${downloadedDir}`;
+  const tempDirName = `jdk-${jdkVersion}${osType === 'macOS' ? '.jdk' : ''}`;
+  const tempDirectoryPath = path.join(downloadedDir, tempDirName);
+  let newDirectoryPath: string | null = null;
 
   child_process.exec(extractCommand, async (error) => {
-
     if (error) {
       vscode.window.showErrorMessage('Error: ' + error);
     } else {
-      let installationPath;
-      if (osType === 'macOS') {
-        const extractedDirectoryName = `jdk-${jdkVersion}.jdk`;
-        installationPath = path.join(extractionTarget, extractedDirectoryName, 'Contents', 'Home');
+      // If directory with same name is present in the user selected download location then ask user if they want to delete it or not? 
+      const newDirName = `${jdkType.split(' ').join('_')}-${jdkVersion}`;
+      newDirectoryPath = await handleJdkPaths(newDirName, extractionTarget, osType);
+      if (newDirectoryPath === null) {
+        vscode.window.showInformationMessage(`Cannot install ${jdkType} ${jdkVersion}. Cannot delete ${newDirName}`);
+      } else {
+        // If user agrees for deleting the directory then delete it and move the temp directory to the user selected location
+        await fs.promises.rename(tempDirectoryPath, newDirectoryPath);
+
+        let binPath = newDirectoryPath;
+        if (osType === 'macOS') {
+          binPath = path.join(newDirectoryPath, 'Contents', 'Home');
+        }
+        vscode.workspace.getConfiguration('jdk').update('jdkhome', binPath, true);
       }
-      else {
-        const extractedDirectoryName = `jdk-${jdkVersion}`;
-        installationPath = path.join(extractionTarget, extractedDirectoryName);
-      }
-      vscode.workspace.getConfiguration('jdk').update('jdkhome', installationPath, true);
     }
 
     fs.unlink(jdkTarballPath, async (err) => {
       if (err) {
         vscode.window.showErrorMessage("Error: " + err);
       } else {
-        await installationCompletion("automatic");
+        if (fs.existsSync(tempDirectoryPath)) {
+          await fs.promises.rmdir(tempDirectoryPath, { recursive: true });
+        }
+        if (newDirectoryPath !== null) {
+          await installationCompletion("automatic");
+        }
       }
     });
   });
+}
+
+const handleJdkPaths = async (directoryName: string, parentPath: string, osType: string): Promise<string | null> => {
+  let name = directoryName;
+  if (osType === 'macOS') {
+    name = `${directoryName}.jdk`;
+  }
+  const directoryPath = path.join(parentPath, name);
+  if (fs.existsSync(directoryPath)) {
+    const CONFIRMATION_MESSAGE = `${name} is already present. Do you want to delete it and create with new contents?`;
+    const selected = await vscode.window.showInformationMessage(CONFIRMATION_MESSAGE, "Yes", "No");
+    if (selected === "Yes") {
+      await fs.promises.rmdir(directoryPath, { recursive: true });
+    }
+    else if (selected === "No") {
+      return null;
+    }
+  }
+
+  return directoryPath;
 }
 
 const selectPath = async (installType: string): Promise<string | null> => {
