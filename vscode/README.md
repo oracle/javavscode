@@ -37,7 +37,7 @@ In the VS Code command palette :
 * __Java: New Project...__ allows creation of new Maven or Gradle project 
 * __Java: New from Template...__ add various files to currently selected open project. Files are:
     * Java - broad selection of various predefined Java classes
-    * Unit tests - JUnit and TestNB templates for test suites and test cases
+    * Unit tests - JUnit and TestNG templates for test suites and test cases
     * Other - various templates for Javascript, JSON, YAML, properties, ... files
 * __Java: Compile Workspace__ - invoke Maven or Gradle build
 * __Java: Clean Workspace__ - clean Maven or Gradle build
@@ -45,6 +45,7 @@ In the VS Code command palette :
 * Debugger __Java+...__ - start main class or test on selected JDK. More in [Debugger section](#debugger-and-launch-configurations)
 * __Test Explorer__ for Java tests results visualization and execution including editor code Lenses.
 * Maven and Gradle support including multi-project projects, subprojects opening and Gradle priming builds.
+* __Java: Go To Test/Tested Class__ - Navigates to the corresponding test or source class file
 
 ## Project Explorer
 Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.  

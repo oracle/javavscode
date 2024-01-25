@@ -23,6 +23,10 @@
 <!-- This file has been modified for Oracle Java Platform extension -->
 
 # Oracle Java Platform Extension for Visual Studio Code
+[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/Oracle.oracle-java?style=for-the-badge&label=VS%20Marketplace&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=Oracle.oracle-java)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/Oracle.oracle-java?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=Oracle.oracle-java)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/oracle/javavscode/main.yml?branch=main&style=for-the-badge&logo=github)](https://github.com/oracle/javavscode/actions?query=workflow:Java%20Platform%20Support%20for%20Visual%20Studio%20Code)
+[![License](https://img.shields.io/github/license/oracle/javavscode?style=for-the-badge&logo=apache)](https://github.com/oracle/javavscode/blob/main/LICENSE.txt)
 
 The Oracle Java Platform extension brings full featured Java development (edit-compile-debug & test cycle) for Maven and Gradle projects to VS Code, and is available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=Oracle.oracle-java).
 
@@ -38,7 +42,7 @@ In the VS Code command palette :
 * __Java: New Project...__ allows creation of new Maven or Gradle project 
 * __Java: New from Template...__ add various files to currently selected open project. Files are:
     * Java - broad selection of various predefined Java classes
-    * Unit tests - JUnit and TestNB templates for test suites and test cases
+    * Unit tests - JUnit and TestNG templates for test suites and test cases
     * Other - various templates for Javascript, JSON, YAML, properties, ... files
 * __Java: Compile Workspace__ - invoke Maven or Gradle build
 * __Java: Clean Workspace__ - clean Maven or Gradle build
@@ -46,6 +50,7 @@ In the VS Code command palette :
 * Debugger __Java+...__ - start main class or test on selected JDK. More in [Debugger section](#debugger-and-launch-configurations)
 * __Test Explorer__ for Java tests results visualization and execution including editor code Lenses.
 * Maven and Gradle support including multi-project projects, subprojects opening and Gradle priming builds.
+* __Java: Go To Test/Tested Class__ - Navigates to the corresponding test or source class file
 
 ## Project Explorer
 Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.  
