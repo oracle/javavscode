@@ -46,6 +46,13 @@ $ ant build-netbeans
 
 ```
 
+## Building VS Code Lite extension
+```bash
+$ ant dev-regenerate-disabled-modules
+$ ant build-vscode-ext
+```
+Enabled netbeans modules can be found at [ComputeRequiredModules](https://github.com/oracle/javavscode/blob/lite-extension/util/compute.disabled.modules/src/org/openjdk/compute/disabled/modules/ComputeRequiredModules.java)
+
 ## Building VS Code extension
 
 To build the VS Code extension invoke:
