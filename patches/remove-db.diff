@@ -1,0 +1,765 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBAddConnection.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBAddConnection.java
+deleted file mode 100644
+index e56b87b19c..0000000000
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBAddConnection.java
++++ /dev/null
+@@ -1,323 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *   http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing,
+- * software distributed under the License is distributed on an
+- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+- * KIND, either express or implied.  See the License for the
+- * specific language governing permissions and limitations
+- * under the License.
+- */
+-package org.netbeans.modules.java.lsp.server.db;
+-
+-import com.google.gson.Gson;
+-import com.google.gson.JsonNull;
+-import com.google.gson.JsonObject;
+-
+-import java.net.URL;
+-import java.sql.DatabaseMetaData;
+-import java.sql.ResultSet;
+-import java.sql.SQLException;
+-import java.util.ArrayList;
+-import java.util.Collections;
+-import java.util.HashMap;
+-import java.util.IdentityHashMap;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
+-import java.util.concurrent.CompletableFuture;
+-import java.util.logging.Level;
+-import java.util.logging.Logger;
+-
+-import org.netbeans.api.db.explorer.ConnectionManager;
+-import org.netbeans.api.db.explorer.DatabaseConnection;
+-import org.netbeans.api.db.explorer.DatabaseException;
+-import org.netbeans.api.db.explorer.JDBCDriver;
+-import org.netbeans.api.db.explorer.JDBCDriverManager;
+-import org.netbeans.spi.lsp.CommandProvider;
+-import org.openide.DialogDisplayer;
+-import org.openide.NotifyDescriptor;
+-import org.openide.NotifyDescriptor.ComposedInput;
+-import org.openide.NotifyDescriptor.ComposedInput.Callback;
+-import org.openide.NotifyDescriptor.InputLine;
+-import org.openide.NotifyDescriptor.Message;
+-import org.openide.NotifyDescriptor.PasswordLine;
+-import org.openide.NotifyDescriptor.QuickPick;
+-import org.openide.NotifyDescriptor.QuickPick.Item;
+-import org.openide.filesystems.FileObject;
+-import org.openide.filesystems.URLMapper;
+-import org.openide.util.NbBundle;
+-import org.openide.util.lookup.ServiceProvider;
+-
+-/**
+- *
+- * @author Jan Horvath
+- */
+-@NbBundle.Messages({
+-    "MSG_AddDBConnection=Add Database Connection",
+-    "MSG_EnterDbUrl=Enter DB URL",
+-    "MSG_EnterUsername=Enter Username",
+-    "MSG_EnterPassword=Enter Password",
+-    "MSG_SelectDriver=Select db driver",
+-    "MSG_DriverNotFound=Driver not found",
+-    "MSG_ConnectionAdded=Connection added",
+-    "MSG_ConnectionFailed=Could not connect to the database \"{0}\", user {1}:\n{2}",
+-    "MSG_SelectSchema=Select Database Schema"
+-})
+-@ServiceProvider(service = CommandProvider.class)
+-public class DBAddConnection implements CommandProvider {
+-    public static final String DB_ADD_CONNECTION =  "nbls.db.add.connection"; // NOI18N
+-    public static final String USER_ID =  "userId"; // NOI18N
+-    public static final String PASSWORD =  "password"; // NOI18N
+-    public static final String DRIVER =  "driver"; // NOI18N
+-    public static final String DB_URL =  "url"; // NOI18N
+-    public static final String SCHEMA =  "schema"; // NOI18N
+-    public static final String DISPLAY_NAME =  "displayName"; // NOI18N
+-
+-    private static final Logger LOG = Logger.getLogger(DBAddConnection.class.getName());
+-    private static final Map<String, String> urlTemplates = new HashMap<> ();
+-    static {
+-        urlTemplates.put("org.postgresql.Driver", "jdbc:postgresql://<HOST>:5432/<DB>");
+-        urlTemplates.put("org.gjt.mm.mysql.Driver", "jdbc:mysql://<HOST>:3306/<DB>");
+-        urlTemplates.put("com.mysql.cj.jdbc.Driver", "jdbc:mysql://<HOST>:3306/<DB>");
+-        urlTemplates.put("org.mariadb.jdbc.Driver", "jdbc:mariadb://<HOST>:3306/<DB>");
+-        urlTemplates.put("oracle.jdbc.OracleDriver", "jdbc:oracle:thin:@//<HOST>[:<PORT>][/<SERVICE>]");
+-        urlTemplates.put("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://<HOST>\\<DB>[:<PORT>]");
+-    }
+-    private final Gson gson = new Gson();
+-
+-    @Override
+-    public CompletableFuture<Object> runCommand(String command, List<Object> arguments) {
+-        if (arguments != null && !arguments.isEmpty()) {
+-            final Map m = arguments.get(0) instanceof JsonNull ? Collections.emptyMap() : gson.fromJson((JsonObject) arguments.get(0), Map.class);
+-            String userId = m != null ? (String) m.get(USER_ID) : null;
+-            String password = m != null ? (String) m.get(PASSWORD) : null;
+-            String dbUrl = m != null ? (String) m.get(DB_URL) : null;
+-            String driverClass = m != null ? (String) m.get(DRIVER) : null;
+-            if (dbUrl != null && driverClass != null) {
+-
+-                JDBCDriver[] driver = JDBCDriverManager.getDefault().getDrivers(driverClass);
+-                if (driver != null && driver.length > 0) {
+-                    if (userId == null || password == null) {
+-                        Callback inputCallback = (input, number) -> {
+-                            switch (number) {
+-                                case 1: {
+-                                    InputLine inputLine = new InputLine("", Bundle.MSG_EnterUsername());
+-                                    String userIdVal = userId != null ? userId : "";
+-                                    inputLine.setInputText(userIdVal);
+-                                    return inputLine;
+-                                }
+-                                case 2: {
+-                                    PasswordLine inputLine = new PasswordLine("", Bundle.MSG_EnterUsername());
+-                                    String passwordVal = password != null ? password : "";
+-                                    inputLine.setInputText(passwordVal);
+-                                    return inputLine;
+-                                }
+-                                default:
+-                                    return null;
+-                            }
+-                        };
+-                        DialogDisplayer.getDefault().notifyFuture(new ComposedInput(Bundle.MSG_AddDBConnection(), 2, inputCallback)).thenAccept(input -> {
+-                            String newUser = ((InputLine) input.getInputs()[0]).getInputText();
+-                            String newPasswd = ((InputLine) input.getInputs()[1]).getInputText();
+-                            DatabaseConnection dbconn = DatabaseConnection.create(driver[0], dbUrl, newUser, (String) m.get(SCHEMA), newPasswd, true, (String) m.get(DISPLAY_NAME));
+-                            try {
+-                                ConnectionManager.getDefault().addConnection(dbconn);
+-                                DialogDisplayer.getDefault().notifyLater(new Message(Bundle.MSG_ConnectionAdded(), Message.INFORMATION_MESSAGE));
+-                            } catch (DatabaseException ex) {
+-                                LOG.log(Level.INFO, "Add connection", ex);
+-                                DialogDisplayer.getDefault().notifyLater(new Message(ex.getMessage(), Message.ERROR_MESSAGE));
+-                            }
+-                        });
+-                    } else {
+-                        DatabaseConnection dbconn = DatabaseConnection.create(driver[0], dbUrl, userId, (String) m.get(SCHEMA), password, true, (String) m.get(DISPLAY_NAME));
+-                        try {
+-                            ConnectionManager.getDefault().addConnection(dbconn);
+-                            DialogDisplayer.getDefault().notifyLater(new Message(Bundle.MSG_ConnectionAdded(), Message.INFORMATION_MESSAGE));
+-                        } catch (DatabaseException ex) {
+-                            LOG.log(Level.INFO, "Add connection with schema", ex);
+-                            DialogDisplayer.getDefault().notifyLater(new Message(ex.getMessage(), Message.ERROR_MESSAGE));
+-                        }
+-                    }
+-                }
+-                return CompletableFuture.completedFuture(null);
+-            }
+-        }
+-        
+-        JDBCDriver[] drivers = JDBCDriverManager.getDefault().getDrivers();
+-        List<Item> items = new ArrayList<>();
+-        Map<Item, JDBCDriver> item2Driver = new IdentityHashMap<>();
+-        for (int i = 0; i < drivers.length; i++) {
+-            URL[] jars = drivers[i].getURLs();
+-            if (jars != null && jars.length > 0) {
+-                FileObject jarFO = URLMapper.findFileObject(jars[0]);
+-                if (jarFO != null && jarFO.isValid()) {
+-                    Item item =
+-                            new Item(drivers[i].getName(), drivers[i].getDisplayName() + " (" + drivers[i].getClassName() + ")"); // NOI18N
+-                    items.add(item);
+-                    item2Driver.put(item, drivers[i]);
+-                }
+-            }
+-        }
+-        if (items.isEmpty()) {
+-            DialogDisplayer.getDefault().notifyLater(new Message(Bundle.MSG_DriverNotFound(), Message.ERROR_MESSAGE));
+-        } else {
+-            List<String> schemas = new ArrayList<>();
+-            Map<Item, String> item2Scheme = new IdentityHashMap<>();
+-            Callback inputCallback = new Callback() {
+-                @Override
+-                public NotifyDescriptor createInput(ComposedInput input, int number) {
+-                    switch (number) {
+-                        case 1:
+-                            return new QuickPick("", Bundle.MSG_SelectDriver(), items, false);
+-                        case 2: {
+-                            JDBCDriver driver = item2Driver.get(getSelectedItem((QuickPick) input.getInputs()[0]));
+-                            String urlTemplate = driver.getClassName() != null ? urlTemplates.get(driver.getClassName()) : "";
+-
+-                            if (urlTemplate == null) {
+-                                urlTemplate = "";
+-                            }
+-
+-                            InputLine line = new InputLine("", Bundle.MSG_EnterDbUrl());
+-
+-                            line.setInputText(urlTemplate);
+-
+-                            return line;
+-                        }
+-                        case 3: {
+-                            return new InputLine("", Bundle.MSG_EnterUsername());
+-                        }
+-                        case 4: {
+-                            //should be:
+-                            PasswordLine passwd = new PasswordLine("", Bundle.MSG_EnterPassword());
+-                            passwd.setInputTextEventEnabled(true);
+-                            passwd.addPropertyChangeListener(evt -> {
+-                                if (evt.getPropertyName() == null ||
+-                                    InputLine.PROP_INPUT_TEXT.equals(evt.getPropertyName())) {
+-                                    validateConnection(passwd, input);
+-                                }
+-                            });
+-                            return passwd;
+-                        }
+-                        case 5: {
+-                            if (schemas.isEmpty()) {
+-                                DialogDisplayer.getDefault().notifyLater(new Message(Bundle.MSG_ConnectionAdded(), Message.INFORMATION_MESSAGE));
+-                                return null;
+-                            } else {
+-                                List<Item> schemaItems = new ArrayList<>();
+-
+-                                for (String schema : schemas) {
+-                                    Item item = new Item(schema, schema);
+-                                    schemaItems.add(item);
+-                                    item2Scheme.put(item, schema);
+-                                }
+-
+-                                return new QuickPick("", Bundle.MSG_SelectSchema(), schemaItems, false);
+-                            }
+-                        }
+-                        default:
+-                            return null;
+-                    }
+-                }
+-
+-                private void validateConnection(NotifyDescriptor current, ComposedInput input) {
+-                    JDBCDriver driver = item2Driver.get(getSelectedItem((QuickPick) input.getInputs()[0]));
+-                    String url = ((InputLine) input.getInputs()[1]).getInputText();
+-                    String user = ((InputLine) input.getInputs()[2]).getInputText();
+-                    String passwd = ((InputLine) input.getInputs()[3]).getInputText();
+-                    boolean failed = true;
+-
+-                    schemas.clear();
+-
+-                    DatabaseConnection dbconn = DatabaseConnection.create(driver, url, user, null, passwd, true);
+-                    try {
+-                        ConnectionManager.getDefault().addConnection(dbconn);
+-                        schemas.addAll(getSchemas(dbconn));
+-                        failed = false;
+-                    } catch(SQLException ex) {
+-                        LOG.log(Level.INFO, "validate", ex);
+-                        current.createNotificationLineSupport().setErrorMessage(ex.getMessage());
+-                        current.setValid(false);
+-                    } catch (DatabaseException ex) {
+-                        String message;
+-                        Throwable cause = ex.getCause();
+-                        if (cause == null) cause = ex;
+-                        if (cause.getCause() != null) {
+-                            message = Bundle.MSG_ConnectionFailed(url, user, cause.getCause().getMessage());
+-                        } else {
+-                            message = cause.getMessage();
+-                        }
+-                        LOG.log(Level.INFO, "validate", ex);
+-                        current.createNotificationLineSupport().setErrorMessage(message);
+-                        current.setValid(false);
+-                    } finally {
+-                        try {
+-                            if (failed || !schemas.isEmpty()) {
+-                                ConnectionManager.getDefault().removeConnection(dbconn);
+-                            }
+-                        } catch (DatabaseException ex) {}
+-                    }
+-                }
+-            };
+-            return DialogDisplayer.getDefault().notifyFuture(new ComposedInput(Bundle.MSG_AddDBConnection(), 4, inputCallback)).thenApply(input -> {
+-                JDBCDriver driver = item2Driver.get(getSelectedItem((QuickPick) input.getInputs()[0]));
+-                String url = ((InputLine) input.getInputs()[1]).getInputText();
+-                String user = ((InputLine) input.getInputs()[2]).getInputText();
+-                String passwd = ((InputLine) input.getInputs()[3]).getInputText();
+-                String schema = item2Scheme.get(getSelectedItem((QuickPick) input.getInputs()[4]));
+-
+-                if (driver != null && url != null && user != null && passwd != null && schema != null) {
+-                    DatabaseConnection dbconn = DatabaseConnection.create(driver, url, user, schema, passwd, true);
+-                    try {
+-                        ConnectionManager.getDefault().addConnection(dbconn);
+-                        DialogDisplayer.getDefault().notifyLater(new Message(Bundle.MSG_ConnectionAdded(), Message.INFORMATION_MESSAGE));
+-                    } catch (DatabaseException ex) {
+-                        LOG.log(Level.INFO, "add", ex);
+-                        DialogDisplayer.getDefault().notifyLater(new Message(ex.getMessage(), Message.ERROR_MESSAGE));
+-                    }
+-                }
+-                return null;
+-            });
+-        }
+-        return null;
+-    }
+-
+-    private static Item getSelectedItem(QuickPick pick) {
+-        for (Item i : pick.getItems()) {
+-            if (i.isSelected()) {
+-                return i;
+-            }
+-        }
+-        return null;
+-    }
+-
+-    private static List<String> getSchemas(DatabaseConnection dbconn) throws SQLException, DatabaseException {
+-        List<String> schemas = new ArrayList<>();
+-        if (ConnectionManager.getDefault().connect(dbconn)) {
+-            DatabaseMetaData dbMetaData = dbconn.getJDBCConnection().getMetaData();
+-            if (dbMetaData.supportsSchemasInTableDefinitions()) {
+-                ResultSet rs = dbMetaData.getSchemas();
+-                if (rs != null) {
+-                    while (rs.next()) {
+-                        schemas.add(rs.getString(1).trim());
+-                    }
+-                }
+-            }
+-        }
+-        return schemas;
+-    }
+-
+-    @Override
+-    public Set<String> getCommands() {
+-        return Collections.singleton(DB_ADD_CONNECTION);
+-    }
+-
+-}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBCommandProvider.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBCommandProvider.java
+deleted file mode 100644
+index 0dccd718e8..0000000000
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBCommandProvider.java
++++ /dev/null
+@@ -1,72 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *   http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing,
+- * software distributed under the License is distributed on an
+- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+- * KIND, either express or implied.  See the License for the
+- * specific language governing permissions and limitations
+- * under the License.
+- */
+-package org.netbeans.modules.java.lsp.server.db;
+-
+-import java.util.Arrays;
+-import java.util.Collections;
+-import java.util.HashSet;
+-import java.util.List;
+-import java.util.Set;
+-import java.util.concurrent.CompletableFuture;
+-import java.util.concurrent.CompletionStage;
+-
+-import org.netbeans.api.db.explorer.ConnectionManager;
+-import org.netbeans.api.db.explorer.DatabaseConnection;
+-import org.netbeans.modules.java.lsp.server.explorer.TreeNodeRegistry;
+-import org.netbeans.spi.lsp.CommandProvider;
+-import org.openide.nodes.Node;
+-import org.openide.util.Lookup;
+-import org.openide.util.lookup.ServiceProvider;
+-
+-/**
+- *
+- * @author sdedic
+- */
+-@ServiceProvider(service = CommandProvider.class)
+-public class DBCommandProvider implements CommandProvider{
+-    private static final String  COMMAND_GET_PREFERRED_CONNECTION = "nbls.db.preferred.connection";
+-    
+-    private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(
+-        COMMAND_GET_PREFERRED_CONNECTION
+-    ));
+-
+-    @Override
+-    public CompletableFuture<Object> runCommand(String command, List<Object> arguments) {
+-        TreeNodeRegistry r = Lookup.getDefault().lookup(TreeNodeRegistry.class);
+-        DatabaseConnection conn = ConnectionManager.getDefault().getPreferredConnection(true);
+-        if (conn == null || r == null) {
+-            return CompletableFuture.completedFuture(null);
+-        }
+-        return r.createProvider(DBConnectionExplorer.ID).thenCompose((m) -> {
+-                Node root = m.getExplorerManager().getRootContext();
+-                for (Node n : root.getChildren().getNodes(true)) {
+-                    DatabaseConnection d = n.getLookup().lookup(DatabaseConnection.class);
+-                    if (d != null && d.getName().equals(conn.getName())) {
+-                        return (CompletionStage<Object>)(CompletionStage)m.getNodeId(n);
+-                    }
+-                }
+-                return CompletableFuture.completedFuture(null);
+-            }).toCompletableFuture();
+-    }
+-
+-    @Override
+-    public Set<String> getCommands() {
+-        return Collections.singleton(COMMAND_GET_PREFERRED_CONNECTION);
+-    }
+-}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBConnectionExplorer.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBConnectionExplorer.java
+deleted file mode 100644
+index e3a89225a1..0000000000
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBConnectionExplorer.java
++++ /dev/null
+@@ -1,46 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *   http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing,
+- * software distributed under the License is distributed on an
+- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+- * KIND, either express or implied.  See the License for the
+- * specific language governing permissions and limitations
+- * under the License.
+- */
+-package org.netbeans.modules.java.lsp.server.db;
+-
+-import java.util.concurrent.CompletableFuture;
+-import java.util.concurrent.CompletionStage;
+-import org.netbeans.api.db.explorer.support.DatabaseExplorerUIs;
+-import org.netbeans.modules.java.lsp.server.explorer.api.ExplorerManagerFactory;
+-import org.openide.explorer.ExplorerManager;
+-import org.openide.util.Lookup;
+-import org.openide.util.lookup.ServiceProvider;
+-
+-/**
+- *
+- * @author sdedic
+- */
+-@ServiceProvider(path = "Explorers/" + DBConnectionExplorer.ID, service = ExplorerManagerFactory.class)
+-public class DBConnectionExplorer implements ExplorerManagerFactory {
+-    public static final String ID = "database.connections"; // NOI18N
+-    
+-    @Override
+-    public CompletionStage<ExplorerManager> createManager(String id, Lookup context) {
+-        if (!ID.equals(id)) {
+-            throw new IllegalArgumentException("Unsupported view");
+-        }
+-        ExplorerManager em = new ExplorerManager();
+-        em.setRootContext(DatabaseExplorerUIs.connectionsNode());
+-        return CompletableFuture.completedFuture(em);
+-    }
+-}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBConnectionProvider.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBConnectionProvider.java
+deleted file mode 100644
+index 239890a9e8..0000000000
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBConnectionProvider.java
++++ /dev/null
+@@ -1,219 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *   http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing,
+- * software distributed under the License is distributed on an
+- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+- * KIND, either express or implied.  See the License for the
+- * specific language governing permissions and limitations
+- * under the License.
+- */
+-package org.netbeans.modules.java.lsp.server.db;
+-
+-import java.io.FileWriter;
+-import java.io.IOException;
+-import java.io.Writer;
+-import java.nio.charset.Charset;
+-import java.nio.file.DirectoryStream;
+-import java.nio.file.FileSystems;
+-import java.nio.file.Files;
+-import java.nio.file.LinkOption;
+-import java.nio.file.Path;
+-import java.nio.file.attribute.AclEntry;
+-import java.nio.file.attribute.AclEntryPermission;
+-import static java.nio.file.attribute.AclEntryPermission.*;
+-import java.nio.file.attribute.AclFileAttributeView;
+-import java.nio.file.attribute.DosFileAttributeView;
+-import java.nio.file.attribute.FileAttribute;
+-import java.nio.file.attribute.PosixFileAttributeView;
+-import java.nio.file.attribute.PosixFilePermission;
+-import static java.nio.file.attribute.PosixFilePermission.*;
+-import java.nio.file.attribute.PosixFilePermissions;
+-import java.util.Collections;
+-import java.util.EnumSet;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Properties;
+-import java.util.Set;
+-import java.util.concurrent.CompletableFuture;
+-import java.util.logging.Level;
+-import java.util.logging.Logger;
+-import org.eclipse.lsp4j.CodeAction;
+-import org.eclipse.lsp4j.CodeActionParams;
+-import org.netbeans.api.db.explorer.ConnectionManager;
+-import org.netbeans.api.db.explorer.DatabaseConnection;
+-import org.netbeans.modules.java.lsp.server.protocol.CodeActionsProvider;
+-import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
+-import org.netbeans.modules.parsing.api.ResultIterator;
+-import org.openide.util.lookup.ServiceProvider;
+-
+-/**
+- *
+- * @author Jan Horvath
+- */
+-@ServiceProvider(service = CodeActionsProvider.class)
+-public class DBConnectionProvider extends CodeActionsProvider{
+-    private static final Logger LOG = Logger.getLogger(DBConnectionProvider.class.getName());
+-    private static final String  GET_DB_CONNECTION = "nbls.db.connection"; //NOI18N
+-
+-    private static final boolean POSIX = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");  // NOI18N
+-    private static final EnumSet<PosixFilePermission> readWritePosix = EnumSet.of(OWNER_READ, OWNER_WRITE);
+-    private static final EnumSet<AclEntryPermission> readOnlyAcl = EnumSet.of(READ_ACL, READ_ATTRIBUTES, WRITE_ATTRIBUTES, READ_DATA, READ_NAMED_ATTRS, DELETE, SYNCHRONIZE);
+-
+-    // temporary directory location
+-    private static final Path tmpdir = Path.of(System.getProperty("java.io.tmpdir"));       // NOI18N
+-
+-    public DBConnectionProvider() {
+-        try {
+-            deleteOldFiles(generateDirPath());
+-        } catch (IOException ex) {
+-            LOG.log(Level.SEVERE, "deleteOldFiles", ex);
+-        }
+-    }
+-
+-    @Override
+-    public List<CodeAction> getCodeActions(NbCodeLanguageClient client, ResultIterator resultIterator, CodeActionParams params) throws Exception {
+-        return Collections.emptyList();
+-    }
+-
+-    @Override
+-    public CompletableFuture<Object> processCommand(NbCodeLanguageClient client, String command, List<Object> arguments) {
+-        Map<String, String> result = new HashMap<> ();
+-        CompletableFuture ret = new CompletableFuture();
+-        Properties dbProps = new Properties();
+-        DatabaseConnection conn = ConnectionManager.getDefault().getPreferredConnection(true);
+-
+-        if (conn != null) {
+-            Path temp = null;
+-            Path dir = generateDirPath();
+-
+-            try {
+-                if (!Files.isDirectory(dir, LinkOption.NOFOLLOW_LINKS)) {
+-                    Files.createDirectory(dir);
+-                }
+-                if (POSIX) {
+-                    FileAttribute<?> readWriteAttribs = PosixFilePermissions.asFileAttribute(readWritePosix);
+-//                  FileAttribute<?> readWriteAttribs = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"));
+-                    temp = Files.createTempFile(dir, "db-", ".properties", readWriteAttribs);       // NOI18N
+-                } else {
+-                    temp = Files.createTempFile(dir, "db-", ".properties");                         // NOI18N
+-                    AclFileAttributeView acl = Files.getFileAttributeView(temp, AclFileAttributeView.class);
+-                    AclEntry ownerEntry = null;
+-                    for(AclEntry e : acl.getAcl()) {
+-                        if (e.principal().equals(acl.getOwner())) {
+-                            ownerEntry = e;
+-                            break;
+-                        }
+-                    }
+-                    if (ownerEntry != null) {
+-                        acl.setAcl(Collections.singletonList(ownerEntry));
+-                    } else {
+-                        deleteTempFile(temp);
+-                        ret.completeExceptionally(new IOException("Owner missing, file:"+temp.toString())); // NOI18N
+-                        return ret;
+-                    }
+-                }
+-            } catch (IOException ex) {
+-                deleteTempFile(temp);
+-                ret.completeExceptionally(ex);
+-                return ret;
+-            }
+-
+-            try (Writer writer = new FileWriter(temp.toFile(), Charset.defaultCharset());) {
+-                dbProps.put("datasources.default.url", conn.getDatabaseURL()); //NOI18N
+-                dbProps.put("datasources.default.username", conn.getUser()); //NOI18N
+-                dbProps.put("datasources.default.password", conn.getPassword()); //NOI18N
+-                dbProps.put("datasources.default.driverClassName", conn.getDriverClass()); //NOI18N
+-                String ocid = (String) conn.getConnectionProperties().get("OCID"); //NOI18N
+-                if (ocid != null && !ocid.isEmpty()) {
+-                    dbProps.put("datasources.default.ocid", ocid); //NOI18N
+-                }
+-                dbProps.store(writer, "");
+-                if (POSIX) {
+-                    PosixFileAttributeView attribs = Files.getFileAttributeView(temp, PosixFileAttributeView.class);
+-                    attribs.setPermissions(EnumSet.of(OWNER_READ));
+-                } else {
+-                    DosFileAttributeView attribs = Files.getFileAttributeView(temp, DosFileAttributeView.class);
+-                    attribs.setReadOnly(true);
+-                    AclFileAttributeView acl = Files.getFileAttributeView(temp, AclFileAttributeView.class);
+-                    AclEntry ownerEntry = null;
+-                    if (acl.getAcl().size() != 1) {
+-                        deleteTempFile(temp);
+-                        ret.completeExceptionally(new IOException("Too many Acls, file:"+temp.toString()));     // NOI18N
+-                        return ret;
+-                    }
+-                    for(AclEntry e : acl.getAcl()) {
+-                        if (e.principal().equals(acl.getOwner())) {
+-                            ownerEntry = e;
+-                            break;
+-                        }
+-                    }
+-                    if (ownerEntry != null) {
+-                        AclEntry readOnly = AclEntry.newBuilder(ownerEntry).setPermissions(readOnlyAcl).build();
+-                        acl.setAcl(Collections.singletonList(readOnly));
+-                    } else {
+-                        deleteTempFile(temp);
+-                        ret.completeExceptionally(new IOException("Owner missing, file:"+temp.toString()));     // NOI18N
+-                        return ret;
+-                    }
+-                }
+-                temp.toFile().deleteOnExit();
+-                result.put("MICRONAUT_CONFIG_FILES", temp.toAbsolutePath().toString());     // NOI18N
+-            } catch (IOException ex) {
+-                deleteTempFile(temp);
+-                ret.completeExceptionally(ex);
+-                return ret;
+-            }
+-        }
+-
+-        ret.complete(result);
+-        return ret;
+-    }
+-
+-    @Override
+-    public Set<String> getCommands() {
+-        return Collections.singleton(GET_DB_CONNECTION);
+-    }
+-
+-    private static Path generateDirPath() {
+-        String s = GET_DB_CONNECTION + "_" + System.getProperty("user.name");       // NOI18N
+-        Path name = tmpdir.getFileSystem().getPath(s);
+-        return tmpdir.resolve(name);
+-    }
+-
+-    private static void deleteOldFiles(Path dir) throws IOException {
+-        if (Files.isDirectory(dir, LinkOption.NOFOLLOW_LINKS)) {
+-            try (DirectoryStream<Path> stream  = Files.newDirectoryStream(dir)) {
+-                for (Path f : stream) {
+-                    deleteTempFile(f);
+-                }
+-            }
+-        }
+-    }
+-
+-    private static void deleteTempFile(Path temp) {
+-        if (temp != null && Files.isRegularFile(temp, LinkOption.NOFOLLOW_LINKS)) {
+-            try {
+-                if (POSIX) {
+-                    PosixFileAttributeView attribs = Files.getFileAttributeView(temp, PosixFileAttributeView.class);
+-                    attribs.setPermissions(readWritePosix);
+-                } else {
+-                    DosFileAttributeView attribs = Files.getFileAttributeView(temp, DosFileAttributeView.class);
+-                    attribs.setReadOnly(false);
+-                }
+-                Files.delete(temp);
+-            } catch (IOException ex) {
+-                LOG.log(Level.WARNING, "deleteTempFile", ex);
+-            }
+-        }
+-    }
+-}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBDecorationProvider.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBDecorationProvider.java
+deleted file mode 100644
+index e057526173..0000000000
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/db/DBDecorationProvider.java
++++ /dev/null
+@@ -1,75 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *   http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing,
+- * software distributed under the License is distributed on an
+- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+- * KIND, either express or implied.  See the License for the
+- * specific language governing permissions and limitations
+- * under the License.
+- */
+-package org.netbeans.modules.java.lsp.server.db;
+-
+-import java.util.logging.Level;
+-import java.util.logging.Logger;
+-import org.netbeans.api.db.explorer.DatabaseConnection;
+-import org.netbeans.modules.java.lsp.server.explorer.api.TreeDataListener;
+-import org.netbeans.modules.java.lsp.server.explorer.api.TreeDataProvider;
+-import org.netbeans.modules.java.lsp.server.explorer.api.TreeItemData;
+-import org.openide.nodes.Node;
+-import org.openide.util.lookup.ServiceProvider;
+-
+-/**
+- * Provides decorations (connection status) for the Database node.
+- *
+- * @author Tomas Hurka
+- */
+-@ServiceProvider(service = TreeDataProvider.Factory.class, path = "Explorers/database.connections")
+-public class DBDecorationProvider implements TreeDataProvider.Factory {
+-
+-    private static final String CONNECTED = "is:connected";             // NOI18N
+-    private static final String DISCONNECTED = "is:disconnected";       // NOI18N
+-    private static final Logger LOG = Logger.getLogger(DBDecorationProvider.class.getName());
+-
+-    @Override
+-    public TreeDataProvider createProvider(String treeId) {
+-        LOG.log(Level.FINE, "Creating default DBDecorationProvider for {0}", treeId);   // NOI18N
+-        return new DBDataProvider();
+-    }
+-
+-    private static class DBDataProvider implements TreeDataProvider {
+-
+-        @Override
+-        public TreeItemData createDecorations(Node n, boolean expanded) {
+-            DatabaseConnection conn = n.getLookup().lookup(DatabaseConnection.class);
+-
+-            if (conn != null) {
+-                String status = conn.getJDBCConnection() != null ? CONNECTED : DISCONNECTED;
+-                TreeItemData data = new TreeItemData();
+-                data.setContextValues(status);
+-                return data;
+-            }
+-            return null;
+-        }
+-
+-        @Override
+-        public void addTreeItemDataListener(TreeDataListener l) {
+-        }
+-
+-        @Override
+-        public void removeTreeItemDataListener(TreeDataListener l) {
+-        }
+-
+-        @Override
+-        public void nodeReleased(Node n) {
+-        }
+-    }
+-}
