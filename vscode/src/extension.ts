@@ -956,6 +956,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
             documentSelector: documentSelectors,
             synchronize: {
                 configurationSection: [
+                    'jdk.hints',
                     'jdk.format',
                     'jdk.java.imports',
                     'jdk.runConfig.vmOptions'

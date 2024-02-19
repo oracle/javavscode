@@ -126,6 +126,11 @@
 					"description": "Path to the file containing exported formatter settings",
 					"default": null
 				},
+				"jdk.hints.preferences": {
+					"type": "string",
+					"description": "Path to the file containing exported hints preferences",
+					"default": null
+				},
 				"jdk.java.onSave.organizeImports": {
 					"type": "boolean",
 					"default": true,
