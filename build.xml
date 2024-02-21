@@ -93,7 +93,7 @@
             </not>
         </condition>
         <property name="vsix.version" value="0.1.0"/>
-
+        <property name="vsce.extra.args" value="" />
         <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
             <arg value="--allow-same-version"/>
             <arg value="version" />
@@ -133,6 +133,7 @@
 	
         <exec executable="${build.dir}/vsce/node_modules/.bin/vsce${cmd.suffix}" failonerror="true" dir="${basedir}/vscode">
             <arg value="package" />
+            <arg line="${vsce.extra.args}" />
             <arg value="--baseImagesUrl" />
             <arg value="https://github.com/oracle/javavscode/raw/${metabuild.hash}/vscode" />
             <arg value="--out" />
