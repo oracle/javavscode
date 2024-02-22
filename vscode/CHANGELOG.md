@@ -24,15 +24,11 @@
 -->
 
 <!-- This file has been modified for Oracle Java SE extension -->
-
-## Version 1.0.0
-* Initial release
-
-## Version 1.0.1
+## Version 1.0.1 (February 22nd, 2024)
 ### What’s Changed
 
 ### Enhancements
-* Working with JDK 22 ea binaries added https://github.com/apache/netbeans/pull/6742
+* Implementing support for features in JDK 22 by utilizing OpenJDK 22 Early Access binaries https://github.com/apache/netbeans/pull/6742
 * [JAVAVSCODE-16] Added option for running any Java project using context menu https://github.com/oracle/javavscode/pull/75
 * [JAVAVSCODE-22] Added support for using different jdk in each workspace and deprecated jdk.userdir configuration https://github.com/oracle/javavscode/pull/67
 * [JAVAVSCODE-28] Include TestNG tests in the test explorer.https://github.com/oracle/javavscode/pull/40
@@ -42,12 +38,11 @@
 * [JAVAVSCODE-76] Support for parameter hints added https://github.com/apache/netbeans/pull/6476
 * [JAVAVSCODE-78] Added checksum match for jdk downloader https://github.com/oracle/javavscode/pull/81
 * [JAVAVSCODE-80] Renamed downloaded jdk binaries so that it is not replaced by the already present binaries https://github.com/oracle/javavscode/pull/82
-* Upgraded available JDK versions in JDK downloader https://github.com/oracle/javavscode/pull/104
 * Update to NetBeans 20 https://github.com/oracle/javavscode/pull/92
 
 ### Bugs
 * [JAVAVSCODE-23] Class outline/structure missing in some cases fixed https://github.com/apache/netbeans/pull/6642
-* [JAVAVSCODE-24]  Error on formatting pom.xml fixed https://github.com/apache/netbeans/pull/6631
+* [JAVAVSCODE-24] Error on formatting pom.xml fixed https://github.com/apache/netbeans/pull/6631
 * [JAVAVSCODE-26] Don’t create “lock files” in the user’s project folders https://github.com/apache/netbeans/pull/6690
 * [JAVAVSCODE-35] String templates break formatting fixed https://github.com/apache/netbeans/pull/6637
 * [JAVAVSCODE-48] Renaming variable fails when using string template fixed https://github.com/apache/netbeans/pull/6637
@@ -74,3 +69,5 @@
 
 **Full Changelog**: https://github.com/oracle/javavscode/compare/v1.0.0...v1.0.0.1
 
+## Version 1.0.0 (October 18th, 2023)
+* Initial release
