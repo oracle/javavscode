@@ -28,10 +28,11 @@
 ## Version 1.0.0
 * Initial release
 
-## Version 1.0.0.1
+## Version 1.0.1
 ### What’s Changed
 
 ### Enhancements
+* Working with JDK 22 ea binaries possilbiity added https://github.com/apache/netbeans/pull/6742
 * [JAVAVSCODE-16] Added option for running any Java project using context menu https://github.com/oracle/javavscode/pull/75
 * [JAVAVSCODE-22] Added support for using different jdk in each workspace and deprecated jdk.userdir configuration https://github.com/oracle/javavscode/pull/67
 * [JAVAVSCODE-28] Include TestNG tests in the test explorer.https://github.com/oracle/javavscode/pull/40
@@ -41,7 +42,6 @@
 * [JAVAVSCODE-76] Support for parameter hints added https://github.com/apache/netbeans/pull/6476
 * [JAVAVSCODE-78] Added checksum match for jdk downloader https://github.com/oracle/javavscode/pull/81
 * [JAVAVSCODE-80] Renamed downloaded jdk binaries so that it is not replaced by the already present binaries https://github.com/oracle/javavscode/pull/82
-* JDK 22 ea support added https://github.com/apache/netbeans/pull/6742
 * Upgraded available JDK versions in JDK downloader https://github.com/oracle/javavscode/pull/104
 * Update to NetBeans 20 https://github.com/oracle/javavscode/pull/92
 
