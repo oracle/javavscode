@@ -32,7 +32,7 @@
 ### What’s Changed
 
 ### Enhancements
-* Working with JDK 22 ea binaries possilbiity added https://github.com/apache/netbeans/pull/6742
+* Working with JDK 22 ea binaries added https://github.com/apache/netbeans/pull/6742
 * [JAVAVSCODE-16] Added option for running any Java project using context menu https://github.com/oracle/javavscode/pull/75
 * [JAVAVSCODE-22] Added support for using different jdk in each workspace and deprecated jdk.userdir configuration https://github.com/oracle/javavscode/pull/67
 * [JAVAVSCODE-28] Include TestNG tests in the test explorer.https://github.com/oracle/javavscode/pull/40
