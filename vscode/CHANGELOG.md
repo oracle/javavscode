@@ -24,10 +24,6 @@
 -->
 
 <!-- This file has been modified for Oracle Java SE extension -->
-
-## Version 1.0.0
-* Initial release
-
 ## Version 1.0.1
 ### What’s Changed
 
@@ -74,3 +70,5 @@
 
 **Full Changelog**: https://github.com/oracle/javavscode/compare/v1.0.0...v1.0.0.1
 
+## Version 1.0.0
+* Initial release
