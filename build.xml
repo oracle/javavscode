@@ -134,6 +134,8 @@
         <exec executable="${build.dir}/vsce/node_modules/.bin/vsce${cmd.suffix}" failonerror="true" dir="${basedir}/vscode">
             <arg value="package" />
             <arg line="${vsce.extra.args}" />
+            <arg value="--baseContentUrl" />
+            <arg value="https://github.com/oracle/javavscode/blob/${metabuild.hash}/vscode" />
             <arg value="--baseImagesUrl" />
             <arg value="https://github.com/oracle/javavscode/raw/${metabuild.hash}/vscode" />
             <arg value="--out" />
