@@ -1,5 +1,5 @@
 diff --git a/ide/c.google.guava.failureaccess/external/binaries-list b/ide/c.google.guava.failureaccess/external/binaries-list
-index c71c3937fb..f4ff27670b 100644
+index c71c3937fb60..f4ff27670bf5 100644
 --- a/ide/c.google.guava.failureaccess/external/binaries-list
 +++ b/ide/c.google.guava.failureaccess/external/binaries-list
 @@ -14,4 +14,4 @@
@@ -12,7 +12,7 @@ diff --git a/ide/c.google.guava.failureaccess/external/failureaccess-1.0.1-licen
 similarity index 99%
 rename from ide/c.google.guava.failureaccess/external/failureaccess-1.0.1-license.txt
 rename to ide/c.google.guava.failureaccess/external/failureaccess-1.0.2-license.txt
-index 8db246aa2b..0c948ba081 100644
+index 8db246aa2be6..0c948ba081a4 100644
 --- a/ide/c.google.guava.failureaccess/external/failureaccess-1.0.1-license.txt
 +++ b/ide/c.google.guava.failureaccess/external/failureaccess-1.0.2-license.txt
 @@ -1,5 +1,5 @@
@@ -23,21 +23,21 @@ index 8db246aa2b..0c948ba081 100644
  Origin: https://github.com/google/guava
  Description: A Guava subproject
 diff --git a/ide/c.google.guava.failureaccess/nbproject/project.properties b/ide/c.google.guava.failureaccess/nbproject/project.properties
-index 2b0193d616..68cfb5ce83 100644
+index 1fcc19e43c10..68cfb5ce8306 100644
 --- a/ide/c.google.guava.failureaccess/nbproject/project.properties
 +++ b/ide/c.google.guava.failureaccess/nbproject/project.properties
 @@ -16,7 +16,7 @@
  # under the License.
  javac.compilerargs=-Xlint -Xlint:-serial
  javac.source=1.8
--spec.version.base=1.0.1
+-spec.version.base=1.1.0
 -release.external/failureaccess-1.0.1.jar=modules/com-google-guava-failureaccess.jar
 +spec.version.base=1.3.0
 +release.external/failureaccess-1.0.2.jar=modules/com-google-guava-failureaccess.jar
  is.autoload=true
  nbm.module.author=Tomas Stupka
 diff --git a/ide/c.google.guava.failureaccess/nbproject/project.xml b/ide/c.google.guava.failureaccess/nbproject/project.xml
-index 358696d3e2..9284279c26 100644
+index 358696d3e293..9284279c26eb 100644
 --- a/ide/c.google.guava.failureaccess/nbproject/project.xml
 +++ b/ide/c.google.guava.failureaccess/nbproject/project.xml
 @@ -28,7 +28,7 @@
@@ -50,7 +50,7 @@ index 358696d3e2..9284279c26 100644
          </data>
      </configuration>
 diff --git a/java/maven.embedder/build.xml b/java/maven.embedder/build.xml
-index 1cf5537607..9dd89c01e7 100644
+index 1cf553760703..9dd89c01e769 100644
 --- a/java/maven.embedder/build.xml
 +++ b/java/maven.embedder/build.xml
 @@ -25,7 +25,9 @@
@@ -65,17 +65,17 @@ index 1cf5537607..9dd89c01e7 100644
      <target name="check-binariesembedded-list">
          <taskdef name="checkjarssha1" classname="org.netbeans.nbbuild.extlibs.CheckEmbeddedBinaries" classpath="${nbantext.jar}"/>
 diff --git a/java/maven.embedder/external/binaries-list b/java/maven.embedder/external/binaries-list
-index 6000cd52f3..a8a108b397 100644
+index 94e918c9a5f8..c62571b895cb 100644
 --- a/java/maven.embedder/external/binaries-list
 +++ b/java/maven.embedder/external/binaries-list
 @@ -17,3 +17,4 @@
  DC15DFF8F701B227EE523EEB7A17F77C10EAFE2F org.jdom:jdom2:2.0.6.1
  5D9CE6ADD7B714B8095F0E3E396C5E9F8C5DCFEF org.apache.maven.shared:maven-dependency-tree:2.2
- 448660E65018FF4354574800D0EFA831C7F5F469 org.apache.maven:apache-maven:3.9.5:bin@zip
+ FC5C01A07E4A2DDF84AF0DFADF382E6F7993462D org.apache.maven:apache-maven:3.9.6:bin@zip
 +C4A06A64E650562F30B7BF9AAEC1BFED43ACA12B com.google.guava:failureaccess:1.0.2
 diff --git a/java/maven.embedder/external/failureaccess-1.0.2-license.txt b/java/maven.embedder/external/failureaccess-1.0.2-license.txt
 new file mode 100644
-index 0000000000..0c948ba081
+index 000000000000..0c948ba081a4
 --- /dev/null
 +++ b/java/maven.embedder/external/failureaccess-1.0.2-license.txt
 @@ -0,0 +1,208 @@
@@ -288,7 +288,7 @@ index 0000000000..0c948ba081
 +   See the License for the specific language governing permissions and
 +   limitations under the License.
 diff --git a/java/maven.embedder/nbproject/project.xml b/java/maven.embedder/nbproject/project.xml
-index a2020eb4a6..d90f63543c 100644
+index 8271d91403a2..69494e4f2e05 100644
 --- a/java/maven.embedder/nbproject/project.xml
 +++ b/java/maven.embedder/nbproject/project.xml
 @@ -305,7 +305,7 @@
@@ -301,11 +301,14 @@ index a2020eb4a6..d90f63543c 100644
              <class-path-extension>
                  <runtime-relative-path>../maven/lib/guava-32.0.1-jre.jar</runtime-relative-path>
 diff --git a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
-index eb4b13b21b..09df2c1194 100644
+index ec9973e06191..3082c90a21cc 100644
 --- a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
 +++ b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
-@@ -28,4 +28,4 @@ ide/db.sql.visualeditor/external/javacc-7.0.10.jar java/performance/external/jav
--java/maven.embedder/external/apache-maven-3.9.5-bin.zip ide/c.google.guava.failureaccess/external/failureaccess-1.0.1.jar
+@@ -26,7 +26,7 @@ ide/db.sql.visualeditor/external/javacc-7.0.10.jar java/performance/external/jav
+ java/maven.embedder/external/apache-maven-3.9.6-bin.zip ide/slf4j.api/external/slf4j-api-1.7.36.jar
+ java/maven.embedder/external/apache-maven-3.9.6-bin.zip platform/o.apache.commons.lang3/external/commons-lang3-3.12.0.jar
+ java/maven.embedder/external/apache-maven-3.9.6-bin.zip platform/o.apache.commons.codec/external/commons-codec-1.16.0.jar
+-java/maven.embedder/external/apache-maven-3.9.6-bin.zip ide/c.google.guava.failureaccess/external/failureaccess-1.0.1.jar
 +java/maven.embedder/external/failureaccess-1.0.2.jar ide/c.google.guava.failureaccess/external/failureaccess-1.0.2.jar
  
  # Used to parse data during build, but need to as a lib for ide cluster

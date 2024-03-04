@@ -1,0 +1,333 @@
+diff --git a/ide/api.lsp/apichanges.xml b/ide/api.lsp/apichanges.xml
+index d535b3a99344..faa0a1b27335 100644
+--- a/ide/api.lsp/apichanges.xml
++++ b/ide/api.lsp/apichanges.xml
+@@ -51,6 +51,19 @@
+ <!-- ACTUAL CHANGES BEGIN HERE: -->
+ 
+ <changes>
++    <change id="ErrorProvider.Context.getHintsConfigFile">
++        <api name="LSP_API"/>
++        <summary>Adding ErrorProvider.Context.getHintsConfigFile() method</summary>
++        <version major="1" minor="25"/>
++        <date day="14" month="12" year="2023"/>
++        <author login="Achal1607"/>
++        <compatibility binary="compatible" source="compatible" addition="yes" deletion="no" />
++        <description>
++            An <code>ErrorProvider.Context.getHintsConfigFile()</code> method introduced that allows to
++            get hints preference file config.
++        </description>
++        <class package="org.netbeans.spi.lsp" name="ErrorProvider"/>
++    </change>
+     <change id="Completion_getLabelDetail">
+         <api name="LSP_API"/>
+         <summary>Added Completion.getLabelDetail() and Completion.getLabelDescription() methods.</summary>
+diff --git a/ide/api.lsp/src/org/netbeans/spi/lsp/ErrorProvider.java b/ide/api.lsp/src/org/netbeans/spi/lsp/ErrorProvider.java
+index 577aee3e2240..33de28df4200 100644
+--- a/ide/api.lsp/src/org/netbeans/spi/lsp/ErrorProvider.java
++++ b/ide/api.lsp/src/org/netbeans/spi/lsp/ErrorProvider.java
+@@ -50,6 +50,7 @@ public static final class Context {
+         private final Kind errorKind;
+         private final AtomicBoolean cancel = new AtomicBoolean();
+         private final List<Runnable> cancelCallbacks = new ArrayList<>();
++        private final FileObject hintsConfigFile;
+ 
+         /**
+          * Construct a new {@code Context}.
+@@ -71,9 +72,38 @@ public Context(FileObject file, Kind errorKind) {
+          * @since 1.4
+          */
+         public Context(FileObject file, int offset, Kind errorKind) {
++            this(file, offset, errorKind, null);
++        }
++
++        /**
++         * Construct a new {@code Context}.
++         *
++         * @param file file for which the errors/warnings should be computed
++         * @param offset offset for which the errors/warnings should be computed
++         * @param errorKind the type of errors/warnings that should be computed
++         * @param hintsConfigFile file which contains preferences for the the errors/warnings to be computed
++         *
++         * @since 1.25
++         * 
++         */
++        public Context(FileObject file, int offset, Kind errorKind, FileObject hintsConfigFile) {
+             this.file = file;
+             this.offset = offset;
+             this.errorKind = errorKind;
++            this.hintsConfigFile = hintsConfigFile;
++        }
++
++        /**
++         *
++         * The file which contains preferences for the the errors/warnings to be computed.
++         *
++         * @return the file which contains preferences for the the errors/warnings to be computed
++         *
++         * @since 1.25
++         * 
++         */
++        public FileObject getHintsConfigFile() {
++            return hintsConfigFile;
+         }
+ 
+         /**
+diff --git a/java/java.hints/nbproject/project.xml b/java/java.hints/nbproject/project.xml
+index c5fa0eb0b2bd..5d467f2c2cc9 100644
+--- a/java/java.hints/nbproject/project.xml
++++ b/java/java.hints/nbproject/project.xml
+@@ -165,6 +165,14 @@
+                         <specification-version>1.28</specification-version>
+                     </run-dependency>
+                 </dependency>
++                <dependency>
++                    <code-name-base>org.netbeans.modules.editor.tools.storage</code-name-base>
++                    <build-prerequisite/>
++                    <compile-dependency/>
++                    <run-dependency>
++                        <specification-version>1.31</specification-version>
++                    </run-dependency>
++                </dependency>
+                 <dependency>
+                     <code-name-base>org.netbeans.modules.editor.util</code-name-base>
+                     <build-prerequisite/>
+diff --git a/java/java.hints/src/org/netbeans/modules/java/hints/infrastructure/JavaErrorProvider.java b/java/java.hints/src/org/netbeans/modules/java/hints/infrastructure/JavaErrorProvider.java
+index a756a2e9bd72..f332ca7c82cb 100644
+--- a/java/java.hints/src/org/netbeans/modules/java/hints/infrastructure/JavaErrorProvider.java
++++ b/java/java.hints/src/org/netbeans/modules/java/hints/infrastructure/JavaErrorProvider.java
+@@ -36,6 +36,7 @@
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.function.Consumer;
+ import java.util.function.Predicate;
++import java.util.prefs.Preferences;
+ import javax.lang.model.element.Element;
+ import org.netbeans.api.editor.mimelookup.MimeRegistration;
+ import org.netbeans.api.java.source.CompilationController;
+@@ -56,6 +57,7 @@
+ import org.netbeans.api.lsp.TextDocumentEdit;
+ import org.netbeans.api.lsp.TextEdit;
+ import org.netbeans.api.lsp.WorkspaceEdit;
++import org.netbeans.modules.editor.tools.storage.api.ToolPreferences;
+ import org.netbeans.modules.java.hints.errors.ModificationResultBasedFix;
+ import org.netbeans.modules.java.hints.errors.ImportClass;
+ import org.netbeans.modules.java.hints.project.IncompleteClassPath;
+@@ -85,7 +87,8 @@
+  */
+ @MimeRegistration(mimeType="text/x-java", service=ErrorProvider.class)
+ public class JavaErrorProvider implements ErrorProvider {
+-
++    
++    public static final String HINTS_TOOL_ID = "hints";
+     public static Consumer<ErrorProvider.Kind> computeDiagsCallback; //for tests
+ 
+     @Override
+@@ -113,7 +116,16 @@ public void run(ResultIterator it) throws Exception {
+                                 if (disabled.size() != Severity.values().length) {
+                                     AtomicBoolean cancel = new AtomicBoolean();
+                                     context.registerCancelCallback(() -> cancel.set(true));
+-                                    result.addAll(convert2Diagnostic(context.errorKind(), new HintsInvoker(HintsSettings.getGlobalSettings(), context.getOffset(), cancel).computeHints(cc), ed -> !disabled.contains(ed.getSeverity())));
++                                    HintsSettings settings;
++                                    
++                                    if (context.getHintsConfigFile() != null) {
++                                        Preferences hintSettings = ToolPreferences.from(context.getHintsConfigFile().toURI()).getPreferences(HINTS_TOOL_ID, "text/x-java");
++                                        settings = HintsSettings.createPreferencesBasedHintsSettings(hintSettings, true, null);
++                                    } else {
++                                        settings = HintsSettings.getGlobalSettings();
++                                    }
++                                    result.addAll(convert2Diagnostic(context.errorKind(), new HintsInvoker(settings, context.getOffset(), cancel).computeHints(cc), ed -> !disabled.contains(ed.getSeverity())));
++                                    
+                                 }
+                                 break;
+                         }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
+index 5d7abe9d1970..54f4109cde5d 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
+@@ -381,6 +381,7 @@ public static class LanguageServerImpl implements LanguageServer, LanguageClient
+ 
+         private static final String NETBEANS_FORMAT = "format";
+         private static final String NETBEANS_JAVA_IMPORTS = "java.imports";
++        private static final String NETBEANS_JAVA_HINTS = "hints";
+ 
+         // change to a greater throughput if the initialization waits on more processes than just (serialized) project open.
+         private static final RequestProcessor SERVER_INIT_RP = new RequestProcessor(LanguageServerImpl.class.getName());
+@@ -985,8 +986,18 @@ private void collectProjectCandidates(FileObject fo, List<FileObject> candidates
+ 
+         private void initializeOptions() {
+             getWorkspaceProjects().thenAccept(projects -> {
++                ConfigurationItem item = new ConfigurationItem();
++                item.setSection(client.getNbCodeCapabilities().getConfigurationPrefix() + NETBEANS_JAVA_HINTS);
++                client.configuration(new ConfigurationParams(Collections.singletonList(item))).thenAccept(c -> {
++                    if (c != null && !c.isEmpty() && c.get(0) instanceof JsonObject) {
++                        textDocumentService.updateJavaHintPreferences((JsonObject) c.get(0));
++                    }
++                    else {
++                        textDocumentService.hintsSettingsRead = true;
++                        textDocumentService.reRunDiagnostics();
++                    }
++                });
+                 if (projects != null && projects.length > 0) {
+-                    ConfigurationItem item = new ConfigurationItem();
+                     FileObject fo = projects[0].getProjectDirectory();
+                     item.setScopeUri(Utils.toUri(fo));
+                     item.setSection(client.getNbCodeCapabilities().getConfigurationPrefix() + NETBEANS_FORMAT);
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
+index 115f717dd23d..b09666bb1e23 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
+@@ -19,6 +19,7 @@
+ package org.netbeans.modules.java.lsp.server.protocol;
+ 
+ import com.google.gson.Gson;
++import com.google.gson.JsonElement;
+ import com.google.gson.JsonObject;
+ import com.google.gson.JsonPrimitive;
+ import com.sun.source.tree.ClassTree;
+@@ -31,6 +32,7 @@
+ import com.sun.source.util.TreePathScanner;
+ import com.sun.source.util.Trees;
+ import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
++import java.io.File;
+ import java.io.FileNotFoundException;
+ import java.net.URI;
+ import java.net.URL;
+@@ -40,6 +42,8 @@
+ import java.io.StringWriter;
+ import java.net.MalformedURLException;
+ import java.net.URISyntaxException;
++import java.nio.file.Path;
++import java.nio.file.Paths;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.Collection;
+@@ -246,6 +250,7 @@
+ import org.netbeans.spi.project.ProjectConfigurationProvider;
+ import org.openide.cookies.EditorCookie;
+ import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
+ import org.openide.filesystems.URLMapper;
+ import org.openide.loaders.DataObject;
+ import org.openide.text.NbDocument;
+@@ -257,6 +262,7 @@
+ import org.openide.util.Pair;
+ import org.openide.util.RequestProcessor;
+ import org.openide.util.Union2;
++import org.openide.util.Utilities;
+ import org.openide.util.WeakSet;
+ import org.openide.util.lookup.Lookups;
+ import org.openide.util.lookup.ProxyLookup;
+@@ -1957,7 +1963,8 @@ CompletableFuture<List<Diagnostic>> computeDiagnostics(String uri, EnumSet<Error
+     }
+ 
+     private static final int DELAY = 500;
+-
++    public boolean hintsSettingsRead = false;
++    private FileObject hintsPrefsFile = null;
+     
+     /**
+      * Recomputes a specific kinds of diagnostics for the file, and returns a complete set diagnostics for that
+@@ -1977,6 +1984,10 @@ private List<Diagnostic> computeDiags(String uri, int offset, ErrorProvider.Kind
+             // the file does not exist.
+             return result;
+         }
++        if(!this.hintsSettingsRead){
++            // hints preferences file is not read yet
++            return result;
++        }
+         try {
+             String keyPrefix = key(errorKind);
+             EditorCookie ec = file.getLookup().lookup(EditorCookie.class);
+@@ -1987,7 +1998,7 @@ private List<Diagnostic> computeDiags(String uri, int offset, ErrorProvider.Kind
+                                                     .lookup(ErrorProvider.class);
+             List<? extends org.netbeans.api.lsp.Diagnostic> errors;
+             if (errorProvider != null) {
+-                ErrorProvider.Context context = new ErrorProvider.Context(file, offset, errorKind);
++                ErrorProvider.Context context = new ErrorProvider.Context(file, offset, errorKind, hintsPrefsFile);
+                 class CancelListener implements DocumentListener {
+                     @Override
+                     public void insertUpdate(DocumentEvent e) {
+@@ -2063,6 +2074,24 @@ public void changedUpdate(DocumentEvent e) {}
+         return result;
+     }
+     
++    void updateJavaHintPreferences(JsonObject configuration) {
++        this.hintsSettingsRead = true;
++        
++        if (configuration != null && configuration.has("preferences") && configuration.get("preferences").isJsonPrimitive()) {
++            JsonElement pathPrimitive = configuration.get("preferences");
++            String path = pathPrimitive.getAsString();
++            Path p = Paths.get(path);
++            FileObject preferencesFile = FileUtil.toFileObject(p);
++            if (preferencesFile != null && preferencesFile.isValid() && preferencesFile.canRead() && preferencesFile.getExt().equals("xml")) {
++                this.hintsPrefsFile = preferencesFile;
++            }
++            else {
++                this.hintsPrefsFile = null;
++            }
++        }
++        reRunDiagnostics();
++    }
++    
+     private String key(ErrorProvider.Kind errorKind) {
+         return errorKind.name().toLowerCase(Locale.ROOT);
+     }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+index 517dbf4f6e5c..8a4df5807bbc 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+@@ -165,6 +165,7 @@ public final class WorkspaceServiceImpl implements WorkspaceService, LanguageCli
+ 
+     private static final RequestProcessor WORKER = new RequestProcessor(WorkspaceServiceImpl.class.getName(), 1, false, false);
+     private static final RequestProcessor PROJECT_WORKER = new RequestProcessor(WorkspaceServiceImpl.class.getName(), 5, false, false);
++    private static final String NETBEANS_JAVA_HINTS = "hints";
+ 
+     private final Gson gson = new Gson();
+     private final LspServerState server;
+@@ -175,7 +176,7 @@ public final class WorkspaceServiceImpl implements WorkspaceService, LanguageCli
+      * and then updated by didChangeWorkspaceFolder notifications.
+      */
+     private volatile List<FileObject> clientWorkspaceFolders = Collections.emptyList();
+-
++    
+     WorkspaceServiceImpl(LspServerState server) {
+         this.server = server;
+     }
+@@ -1331,6 +1332,7 @@ public void didChangeConfiguration(DidChangeConfigurationParams params) {
+         String fullConfigPrefix = client.getNbCodeCapabilities().getConfigurationPrefix();
+         String configPrefix = fullConfigPrefix.substring(0, fullConfigPrefix.length() - 1);
+         server.openedProjects().thenAccept(projects -> {
++            ((TextDocumentServiceImpl)server.getTextDocumentService()).updateJavaHintPreferences(((JsonObject) params.getSettings()).getAsJsonObject(configPrefix).getAsJsonObject(NETBEANS_JAVA_HINTS));
+             if (projects != null && projects.length > 0) {
+                 updateJavaFormatPreferences(projects[0].getProjectDirectory(), ((JsonObject) params.getSettings()).getAsJsonObject(configPrefix).getAsJsonObject("format"));
+                 updateJavaImportPreferences(projects[0].getProjectDirectory(), ((JsonObject) params.getSettings()).getAsJsonObject(configPrefix).getAsJsonObject("java").getAsJsonObject("imports"));
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+index b741fcb49358..22447ba8bf92 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+@@ -5681,7 +5681,24 @@ public void testDeclarativeHints() throws Exception {
+         List<String> actualItems = completion.getRight().getItems().stream().map(completionItemToString).collect(Collectors.toList());
+         assertEquals(Arrays.asList("Method:length() : int"), actualItems);
+     }
+-
++    
++    public void testHintsPrefsFileAbsent() throws Exception {
++        File src = new File(getWorkDir(), "test.hint");
++        src.getParentFile().mkdirs();
++        String code = "$1.length();;";
++        try (Writer w = new FileWriter(src)) {
++            w.write(code);
++        }
++        Launcher<LanguageServer> serverLauncher = createClientLauncherWithLogging(new LspClient(), client.getInputStream(), client.getOutputStream());
++        serverLauncher.startListening();
++        LanguageServer server = serverLauncher.getRemoteProxy();
++        InitializeResult result = server.initialize(new InitializeParams()).get();
++        
++        server.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(new TextDocumentItem(toURI(src), "jackpot-hint", 0, code)));
++        assertDiags(diags, "Error:0:0-0:2");//errors
++        assertDiags(diags, "Error:0:0-0:2");//hints
++    }
++    
+     /**
+      * Checks that the default Lookup contents is present just once in Lookup.getDefault() during server invocation in general,
+      * and specifically during command invocation.

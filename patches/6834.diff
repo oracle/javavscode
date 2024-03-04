@@ -58,7 +58,7 @@ index 000000000000..7ae8b88aba2b
 +    <change id="TestOppositeLocator">
 +        <api name="GOTOTEST_API"/>
 +        <summary>Adding TestOppositeLocator</summary>
-+        <version major="1" minor="56"/>
++        <version major="1" minor="57"/>
 +        <date day="12" month="1" year="2024"/>
 +        <author login="Achal1607"/>
 +        <compatibility binary="compatible" source="compatible" addition="yes" deletion="no"/>
@@ -109,8 +109,8 @@ index a5a1398fa5af..e7d21dbec7b5 100644
  OpenIDE-Module: org.netbeans.modules.gototest/1
  OpenIDE-Module-Layer: org/netbeans/modules/gototest/resources/layer.xml
  OpenIDE-Module-Localizing-Bundle: org/netbeans/modules/gototest/resources/Bundle.properties
--OpenIDE-Module-Specification-Version: 1.55
-+OpenIDE-Module-Specification-Version: 1.56
+-OpenIDE-Module-Specification-Version: 1.56
++OpenIDE-Module-Specification-Version: 1.57
 diff --git a/ide/gototest/nbproject/project.xml b/ide/gototest/nbproject/project.xml
 index 47a0a1c6e4de..a25850f94569 100644
 --- a/ide/gototest/nbproject/project.xml
@@ -226,7 +226,7 @@ index 000000000000..3c448efef055
 + * Find one or multiple test files for a source file,
 + * and one or multiple source files for a test file.
 + *
-+ * @since 1.56
++ * @since 1.57
 + */
 +public final class TestOppositesLocator {
 +
@@ -767,7 +767,7 @@ index 2994df98cff1..f66e913e54ab 100644
 +                    <compile-dependency/>
 +                    <run-dependency>
 +                        <release-version>1</release-version>
-+                        <specification-version>1.56</specification-version>
++                        <specification-version>1.57</specification-version>
 +                    </run-dependency>
 +                </dependency>
                  <dependency>
