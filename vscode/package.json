@@ -57,6 +57,16 @@
 				"language": "jackpot-hint",
 				"scopeName": "source.java",
 				"path": "./syntaxes/java.tmLanguage.json"
+			},
+			{
+				"injectTo": [
+					"source.java"
+				],
+				"scopeName": "inline.java.string.template",
+				"path": "./syntaxes/java-st-injection.json",
+				"embeddedLanguages": {
+					"meta.embedded.java.string.template": "java"
+				}
 			}
 		],
 		"views": {
@@ -124,6 +134,11 @@
 				"jdk.format.settingsPath": {
 					"type": "string",
 					"description": "Path to the file containing exported formatter settings",
+					"default": null
+				},
+				"jdk.hints.preferences": {
+					"type": "string",
+					"description": "Path to the file containing exported hints preferences",
 					"default": null
 				},
 				"jdk.java.onSave.organizeImports": {
