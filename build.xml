@@ -31,7 +31,7 @@
     <property name="nbplatform.default.harness.dir" location="${nbplatform.default.netbeans.dest.dir}/harness" />
     <property name="nbantext.jar" location="netbeans/nbbuild/build/nbantext.jar" />
     <property name="nb_all" location="netbeans" />
-    <property name="patches" value="patches/6330.diff patches/6760.diff patches/6834.diff patches/7001.diff patches/6968.diff patches/mvn-sh.diff patches/rename-debugger.diff" />
+    <property name="patches" value="patches/6330.diff patches/6760.diff patches/6834.diff patches/7001.diff patches/6968.diff patches/mvn-sh.diff patches/rename-debugger.diff patches/generate-dependencies.diff" />
     <condition property="cmd.suffix" value=".cmd" else="">
         <os family="windows"/>
     </condition>
@@ -217,4 +217,52 @@
     <target name="build-netbeans">
         <ant dir="netbeans" inheritAll="false" inheritRefs="false" useNativeBasedir="true"/>
     </target>
+
+    <target name="generate-netbeans-license-summary" depends="-set-use-jdk-javac,proxy-setup" description="Generate license summary">
+        <delete dir="${build.dir}/nblic" />
+        <mkdir dir="${build.dir}/nblic/nbcode" />
+        <mkdir dir="${build.dir}/nblic/summary" />
+
+        <ant dir="nbcode" target="build-zip" inheritall="false" inheritrefs="false">
+            <property name="nbplatform.default.netbeans.dest.dir" location="${nbplatform.default.netbeans.dest.dir}" />
+            <property name="nbplatform.default.harness.dir" location="${nbplatform.default.harness.dir}" />
+            <property name="nbantext.jar" location="${nbantext.jar}" />
+        </ant>
+        <unzip src="nbcode/dist/nbcode.zip" dest="${build.dir}/nblic/">
+        </unzip>
+
+        <delete dir="${build.dir}/nblic/nbcode/nbcode" />
+
+        <taskdef name="createlicensesummary" classname="org.netbeans.nbbuild.extlibs.CreateLicenseSummary" classpath="${nbantext.jar}"/>
+
+        <property name="config.javadoc.all" value="" />
+
+        <property file="${nb_all}/nbbuild/cluster.properties" />
+
+        <taskdef name="resolvelist" classname="org.netbeans.nbbuild.ResolveList" classpath="${nbantext.jar}" />
+        <resolvelist name="allmodules" path="modules.fullpath" dir="${nb_all}" list="${clusters.config.full.list}"/>
+
+        <createlicensesummary licenseStub="${nb_all}/LICENSE"
+                              noticeStub="${nb_all}/nbbuild/notice-stub.txt"
+                              report="${build.dir}/createlicensesummary.xml"
+                              nball="${nb_all}"
+                              build="${build.dir}/nblic/nbcode"
+                              license="${build.dir}/nblic/summary/LICENSE"
+                              notice="${build.dir}/nblic/summary/NOTICE"
+                              dependencies="${build.dir}/nblic/DEPENDENCIES"
+                              binary="true"
+                              excludes="${nb-extra-files}"
+                              includeAllFiles="true"
+        />
+        <concat destfile="${build.dir}/nblic/summary/NOTICE-ext">
+            <header>Content of the NOTICE file:
+
+</header>
+            <filelist dir="${build.dir}/nblic/summary" files="NOTICE"/>
+        </concat>
+        <concat destfile="${build.dir}/nblic/netbeans-third-party.txt">
+            <filelist dir="${build.dir}/nblic/summary" files="LICENSE,NOTICE-ext"/>
+        </concat>
+    </target>
+
 </project>
