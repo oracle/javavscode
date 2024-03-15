@@ -486,6 +486,29 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             throw `Client ${c} doesn't support go to test`;
         }
     }));
+
+    context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".delete.cache", async () => {
+        const storagePath = context.storageUri?.fsPath;
+        if(!storagePath){
+            vscode.window.showErrorMessage('Cannot find workspace path');
+            return;
+        }
+        const userDir = path.join(storagePath, "userdir");
+        if (userDir && fs.existsSync(userDir)) {
+            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace?',
+                'Yes', 'Cancel');
+            if (confirmation === 'Yes') {
+                await fs.promises.rmdir(userDir, {recursive : true});
+                const res = await vscode.window.showInformationMessage('Cache cleared successfully for this workspace', 'Reload window');
+                if (res === 'Reload window') {
+                    await vscode.commands.executeCommand('workbench.action.reloadWindow');
+                }
+            }
+        } else {
+            vscode.window.showErrorMessage('Cannot find userdir path');
+        }
+    }));
+
     context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".download.jdk", async () => { openJDKSelectionView(log); }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.compile', () =>
         wrapCommandWithProgress(COMMAND_PREFIX + '.build.workspace', 'Compiling workspace...', log, true)

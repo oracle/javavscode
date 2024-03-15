@@ -445,6 +445,10 @@
 				"command": "jdk.goto.test",
 				"title": "Go To Test/Tested class...",
 				"category": "Java"
+			},
+			{
+				"command": "jdk.delete.cache",
+				"title": "Delete oracle java extension cache for this workspace"
 			}
 		],
 		"keybindings": [

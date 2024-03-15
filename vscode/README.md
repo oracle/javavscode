@@ -168,6 +168,9 @@ As soon as one of the settings is changed, the Language Server is restarted.
 It is possible to run Oracle Java Platform extension per workspace (VSCode window). This allows separation of Language Server for given project as Language Server JVM is not shared for more VSCode open workspaces (projects).
 It is possible to change this in `View | Command Palette | Preferences:Open User Settings | Jdk: Userdir`. Set to `local` to use dedicated Language Server per workspace or set to `global` to have one Language Server for all VS Code workspaces.
 
+## Troubleshooting
+If your extension is not starting and throwing some error like no JDK found even if you have a working JDK installed in your machine, then you can try deleting cache for the workspace using `View | Command Palette | Delete oracle java extension cache for this workspace`.
+
 ## Contributing
 
 This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](../CONTRIBUTING.md)
