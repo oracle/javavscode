@@ -1,0 +1,737 @@
+diff --git a/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest.java b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest.java
+index 0dd76624d86f..f173387f11f7 100644
+--- a/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest.java
++++ b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest.java
+@@ -267,7 +267,7 @@ public void testUnnamedClass() throws Exception {
+                                "}\n",
+                                "21",
+                                //TODO: needs to be adjusted when the error in javac is fixed:
+-                               "0:0-0:13::Test.java:1:1: compiler.err.preview.feature.disabled.plural: (compiler.misc.feature.unnamed.classes)");
++                               "0:0-0:13::Test.java:1:1: compiler.err.preview.feature.disabled.plural: (compiler.misc.feature.implicit.classes)");
+     }
+ 
+     private void performInlinedTest(String name, String code) throws Exception {
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/NoJavacHelper.java b/java/java.source.base/src/org/netbeans/modules/java/source/NoJavacHelper.java
+index a5bad378e915..dded462b5ee8 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/NoJavacHelper.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/NoJavacHelper.java
+@@ -34,7 +34,7 @@
+  */
+ public class NoJavacHelper {
+ 
+-    public static final int REQUIRED_JAVAC_VERSION = 21; // <- TODO: increment on every release
++    public static final int REQUIRED_JAVAC_VERSION = 22; // <- TODO: increment on every release
+     private static final boolean HAS_WORKING_JAVAC;
+ 
+     static {
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/parsing/JavacParser.java b/java/java.source.base/src/org/netbeans/modules/java/source/parsing/JavacParser.java
+index b48c61e9faab..079bd21dd83d 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/parsing/JavacParser.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/parsing/JavacParser.java
+@@ -1079,8 +1079,8 @@ private static JavacTaskImpl createJavacTask(
+         NBJavacTrees.preRegister(context);
+         if (!backgroundCompilation) {
+             JavacFlowListener.preRegister(context, task);
+-            NBResolve.preRegister(context);
+         }
++        NBResolve.preRegister(context);
+         NBEnter.preRegister(context);
+         NBMemberEnter.preRegister(context, backgroundCompilation);
+         TIME_LOGGER.log(Level.FINE, "JavaC", context);
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/parsing/VanillaPartialReparser.java b/java/java.source.base/src/org/netbeans/modules/java/source/parsing/VanillaPartialReparser.java
+index 3c3f1e6a2779..51ebab9a8747 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/parsing/VanillaPartialReparser.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/parsing/VanillaPartialReparser.java
+@@ -424,7 +424,7 @@ public BlockTree reattrMethodBody(Context context, Scope scope, MethodTree metho
+         final Symbol.ClassSymbol owner = env.enclClass.sym;
+         if (tree.name == names.init && !owner.type.isErroneous() && owner.type != syms.objectType) {
+             JCTree.JCBlock body = tree.body;
+-            if (body.stats.isEmpty() || !TreeInfo.isSelfCall(body.stats.head)) {
++            if (!TreeInfo.hasAnyConstructorCall(tree)) {
+                 body.stats = body.stats.
+                 prepend(make.at(body.pos).Exec(make.Apply(com.sun.tools.javac.util.List.nil(), make.Ident(names._super), com.sun.tools.javac.util.List.nil())));
+             } else if ((env.enclClass.sym.flags() & Flags.ENUM) != 0 &&
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/CharBuffer.java b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/CharBuffer.java
+index 14eff95f80a8..5a6b31b269b2 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/CharBuffer.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/CharBuffer.java
+@@ -128,21 +128,6 @@ public void append(String s) {
+         for (int i = 0; i < len; i++) append0(s.charAt(i));
+     }
+     public void append(CharBuffer cb) { append(cb.chars, 0, cb.used); }
+-    public void appendUtf8(byte[] src, int i, int len) {
+-	    int limit = i + len;
+-	    while (i < limit) {
+-		int b = src[i++] & 0xFF;
+-		if (b >= 0xE0) {
+-		    b = (b & 0x0F) << 12;
+-		    b = b | (src[i++] & 0x3F) << 6;
+-		    b = b | (src[i++] & 0x3F);
+-		} else if (b >= 0xC0) {
+-		    b = (b & 0x1F) << 6;
+-		    b = b | (src[i++] & 0x3F);
+-		}
+-		append((char) b);
+-	    }
+-    }
+     public char[] toCharArray() {
+         char[] nm = new char[used];
+         System.arraycopy(chars, 0, nm, 0, used);
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java
+index 23851bb98550..9165e861226d 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java
+@@ -269,7 +269,7 @@ public final void print(String s) {
+     public final void print(Name n) {
+         if (n == null)
+             return;
+-	out.appendUtf8(n.getByteArray(), n.getByteOffset(), n.getByteLength());
++	out.append(n.toString());
+     }
+     
+     private void print(javax.lang.model.element.Name n) {
+@@ -1075,7 +1075,7 @@ public void visitVarDef(JCVariableDecl tree) {
+     public void printVarInit(final JCVariableDecl tree) {
+         int col = out.col;
+         if (!ERROR.contentEquals(tree.name))
+-            col -= tree.name.getByteLength();
++            col -= tree.name.length();
+         wrapAssignOpTree("=", col, new Runnable() {
+             @Override public void run() {
+                 printNoParenExpr(tree.init);
+@@ -3544,7 +3544,7 @@ public Name fullName(JCTree tree) {
+ 	case SELECT:
+             JCFieldAccess sel = (JCFieldAccess)tree;
+ 	    Name sname = fullName(sel.selected);
+-	    return sname != null && sname.getByteLength() > 0 ? sname.append('.', sel.name) : sel.name;
++	    return sname != null && !sname.isEmpty() ? sname.append('.', sel.name) : sel.name;
+ 	default:
+ 	    return null;
+ 	}
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/WidthEstimator.java b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/WidthEstimator.java
+index cfec39deb671..9a4a3fedf18b 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/WidthEstimator.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/WidthEstimator.java
+@@ -61,7 +61,7 @@ private void open(int contextPrec, int ownPrec) {
+ 	if (ownPrec < contextPrec)
+ 	    width += 2;
+     }
+-    private void width(Name n) { width += n.getByteLength(); }
++    private void width(Name n) { width += n.length(); }
+     private void width(String n) { width += n.length(); }
+     private void width(JCTree n) { if(width<maxwidth) n.accept(this); }
+     private void width(List<? extends JCTree> n, int pad) {
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java b/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java
+index 78846b4ba405..93ca03a57e8d 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java
+@@ -949,9 +949,9 @@ protected int diffClassDef(JCClassDecl oldT, JCClassDecl newT, int[] bounds) {
+         int insertHint = localPointer;
+         List<JCTree> filteredOldTDefs = filterHidden(oldT.defs);
+         List<JCTree> filteredNewTDefs = filterHidden(newT.defs);
+-        boolean unnamed = (oldT.mods.flags & Flags.UNNAMED_CLASS) != 0;
+-        // skip the section when printing anonymous or unnamed class
+-        if (anonClass == false && !unnamed) {
++        boolean implicit = (oldT.mods.flags & Flags.IMPLICIT_CLASS) != 0;
++        // skip the section when printing anonymous or implicit class
++        if (anonClass == false && !implicit) {
+         tokenSequence.move(oldT.pos);
+         tokenSequence.moveNext(); // First skip as move() does not position to token directly
+         tokenSequence.moveNext();
+@@ -1070,7 +1070,7 @@ protected int diffClassDef(JCClassDecl oldT, JCClassDecl newT, int[] bounds) {
+         tokenSequence.move(insertHint);
+         tokenSequence.moveNext();
+         insertHint = moveBackToToken(tokenSequence, insertHint, JavaTokenId.LBRACE) + 1;
+-        } else if (!unnamed) {
++        } else if (!implicit) {
+             insertHint = moveFwdToToken(tokenSequence, oldT.getKind() == Kind.ENUM ? localPointer : getOldPos(oldT), JavaTokenId.LBRACE);
+             tokenSequence.moveNext();
+             insertHint = tokenSequence.offset();
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/usages/ClassFileUtil.java b/java/java.source.base/src/org/netbeans/modules/java/source/usages/ClassFileUtil.java
+index c9210c697281..61a2073ae023 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/usages/ClassFileUtil.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/usages/ClassFileUtil.java
+@@ -303,21 +303,16 @@ private static void encodeType (final TypeMirror type, final StringBuilder sb) {
+     public static void encodeClassName (TypeElement te, final StringBuilder sb, final char separator) {
+         Name name = ((Symbol.ClassSymbol)te).flatname;
+         assert name != null;
+-        final int nameLength = name.getByteLength();
+-        final char[] nameChars = new char[nameLength];
+-        try {
+-            int charLength = Convert.utf2chars(name.getByteArray(), name.getByteOffset(), nameChars, 0, nameLength, Validation.NONE);
+-            if (separator != '.') {         //NOI18N
+-                for (int i=0; i<charLength; i++) {
+-                    if (nameChars[i] == '.') {  //NOI18N
+-                        nameChars[i] = separator;
+-                    }
++        final char[] nameChars = name.toString().toCharArray();
++        int charLength = nameChars.length;
++        if (separator != '.') {         //NOI18N
++            for (int i=0; i<charLength; i++) {
++                if (nameChars[i] == '.') {  //NOI18N
++                    nameChars[i] = separator;
+                 }
+             }
+-            sb.append(nameChars,0,charLength);
+-        } catch (InvalidUtfException ex) {
+-            throw new IllegalStateException(ex);
+         }
++        sb.append(nameChars,0,charLength);
+     }
+     
+     /**
+diff --git a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBAttr.java b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBAttr.java
+index 4c64615a2b77..0935891ddf5c 100644
+--- a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBAttr.java
++++ b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBAttr.java
+@@ -29,6 +29,7 @@
+ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+ import com.sun.tools.javac.tree.JCTree.JCExpression;
+ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
++import com.sun.tools.javac.tree.JCTree.JCStringTemplate;
+ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+ import com.sun.tools.javac.tree.TreeMaker;
+ import com.sun.tools.javac.util.Context;
+@@ -54,11 +55,13 @@ public Attr make(Context c) {
+     }
+ 
+     private final CancelService cancelService;
++    private final NBResolve rs;
+     private final TreeMaker tm;
+ 
+     public NBAttr(Context context) {
+         super(context);
+         cancelService = CancelService.instance(context);
++        rs = NBResolve.instance(context);
+         tm = TreeMaker.instance(context);
+     }
+ 
+@@ -108,6 +111,24 @@ public void visitCatch(JCCatch that) {
+         super.visitBlock(tm.Block(0, List.of(that.param, that.body)));
+     }
+ 
++    @Override
++    public void visitStringTemplate(JCStringTemplate tree) {
++        //workaround for:
++        //a) crash when tree.processor is null
++        //b) crash when the StringTemplate.process method does not exist
++        //should be removed when javac is improved to be more resilient w.r.t. these errors:
++        boolean prevInStringTemplate = rs.inStringTemplate;
++        try {
++            if (tree.processor == null) {
++                tree.processor = tm.Erroneous();
++            }
++            rs.inStringTemplate = true;
++            super.visitStringTemplate(tree);
++        } finally {
++            rs.inStringTemplate = prevInStringTemplate;
++        }
++    }
++
+     private boolean fullyAttribute;
+     private Env<AttrContext> fullyAttributeResult;
+ 
+diff --git a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBParserFactory.java b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBParserFactory.java
+index b4b649481142..4af392a707cc 100644
+--- a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBParserFactory.java
++++ b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBParserFactory.java
+@@ -90,7 +90,7 @@ public JCCompilationUnit parseCompilationUnit() {
+             if (!unit.getTypeDecls().isEmpty() && unit.getTypeDecls().get(0).getKind() == Kind.CLASS) {
+                 //workaround for JDK-8310326:
+                 JCClassDecl firstClass = (JCClassDecl) unit.getTypeDecls().get(0);
+-                if ((firstClass.mods.flags & Flags.UNNAMED_CLASS) != 0) {
++                if ((firstClass.mods.flags & Flags.IMPLICIT_CLASS) != 0) {
+                     firstClass.pos = getStartPos(firstClass.defs.head);
+                     firstClass.mods.pos = Position.NOPOS;
+                 }
+diff --git a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBResolve.java b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBResolve.java
+index da2c41104feb..c69f59e1941b 100644
+--- a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBResolve.java
++++ b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBResolve.java
+@@ -20,11 +20,17 @@
+ 
+ import com.sun.tools.javac.code.Symbol;
+ import com.sun.tools.javac.code.Symbol.TypeSymbol;
++import com.sun.tools.javac.code.Symtab;
+ import com.sun.tools.javac.code.Type;
++import com.sun.tools.javac.code.Type.MethodType;
+ import com.sun.tools.javac.comp.AttrContext;
+ import com.sun.tools.javac.comp.Env;
+ import com.sun.tools.javac.comp.Resolve;
+ import com.sun.tools.javac.util.Context;
++import com.sun.tools.javac.util.FatalError;
++import com.sun.tools.javac.util.JCDiagnostic;
++import com.sun.tools.javac.util.List;
++import com.sun.tools.javac.util.Name;
+ 
+ /**
+  *
+@@ -46,8 +52,12 @@ public static void preRegister(Context context) {
+         });
+     }
+ 
++    private final Symtab syms;
++    boolean inStringTemplate;
++
+     protected NBResolve(Context ctx) {
+         super(ctx);
++        syms = Symtab.instance(ctx);
+     }
+ 
+     private boolean accessibleOverride;
+@@ -75,4 +85,17 @@ public boolean isAccessible(Env<AttrContext> env, TypeSymbol c, boolean checkInn
+     public static boolean isStatic(Env<AttrContext> env) {
+         return Resolve.isStatic(env);
+     }
++
++    @Override
++    public Symbol.MethodSymbol resolveInternalMethod(JCDiagnostic.DiagnosticPosition pos, Env<AttrContext> env, Type site, Name name, List<Type> argtypes, List<Type> typeargtypes) {
++        try {
++            return super.resolveInternalMethod(pos, env, site, name, argtypes, typeargtypes);
++        } catch (FatalError ex) {
++            if (inStringTemplate) {
++                return new Symbol.MethodSymbol(0, name, new MethodType(argtypes, syms.errType, List.nil(), syms.methodClass), syms.noSymbol);
++            }
++            throw ex;
++        }
++    }
++
+ }
+diff --git a/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBAttrTest.java b/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBAttrTest.java
+index c374ef00daf9..8dd67a2a6ff7 100644
+--- a/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBAttrTest.java
++++ b/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBAttrTest.java
+@@ -99,6 +99,11 @@ private void checkIsAttributed() {
+         }.scan(parsed.second(), null);
+     }
+ 
++    public void testCrashNoProcessor() throws Exception {
++        String code = "public class Test { void t() { Object o = \"\\{}\"; } }";
++        Pair<JavacTask, CompilationUnitTree> parsed = compile(code);
++    }
++
+     //<editor-fold defaultstate="collapsed" desc=" Test Infrastructure ">
+     private static class MyFileObject extends SimpleJavaFileObject {
+         private String text;
+@@ -132,6 +137,7 @@ private Pair<JavacTask, CompilationUnitTree> compile(String code) throws Excepti
+         Context context = new Context();
+         NBLog.preRegister(context, DEV_NULL);
+         NBAttr.preRegister(context);
++        NBResolve.preRegister(context);
+         final JavacTaskImpl ct = (JavacTaskImpl) ((JavacTool)tool).getTask(null, std, null, Arrays.asList("-source", "1.8", "-target", "1.8"), null, Arrays.asList(new MyFileObject(code)), context);
+ 
+         CompilationUnitTree cut = ct.parse().iterator().next();
+diff --git a/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBJavacTreesTest.java b/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBJavacTreesTest.java
+index 20d3b5928dcd..cd590a7f12d5 100644
+--- a/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBJavacTreesTest.java
++++ b/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBJavacTreesTest.java
+@@ -115,6 +115,7 @@ private Pair<JavacTask, CompilationUnitTree> compile(String code) throws Excepti
+         Context context = new Context();
+         NBLog.preRegister(context, DEV_NULL);
+         NBAttr.preRegister(context);
++        NBResolve.preRegister(context);
+         NBJavacTrees.preRegister(context);
+         final JavacTaskImpl ct = (JavacTaskImpl) ((JavacTool)tool).getTask(null, std, null, Arrays.asList("-source", "1.8", "-target", "1.8"), null, Arrays.asList(new MyFileObject(code)), context);
+ 
+diff --git a/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBResolveTest.java b/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBResolveTest.java
+new file mode 100644
+index 000000000000..508b3b5a6065
+--- /dev/null
++++ b/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBResolveTest.java
+@@ -0,0 +1,99 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.lib.nbjavac.services;
++
++import com.sun.source.tree.CompilationUnitTree;
++import com.sun.source.util.JavacTask;
++import com.sun.tools.javac.api.JavacTaskImpl;
++import com.sun.tools.javac.api.JavacTool;
++import com.sun.tools.javac.util.Context;
++import java.io.File;
++import java.net.URI;
++import java.util.Arrays;
++import java.util.Collections;
++import javax.tools.JavaCompiler;
++import javax.tools.JavaFileObject;
++import javax.tools.SimpleJavaFileObject;
++import javax.tools.StandardJavaFileManager;
++import javax.tools.StandardLocation;
++import javax.tools.ToolProvider;
++import org.netbeans.junit.NbTestCase;
++
++import org.openide.util.Pair;
++
++/**
++ *
++ * @author lahvac
++ */
++public class NBResolveTest extends NbTestCase {
++
++    public NBResolveTest(String testName) {
++        super(testName);
++    }
++
++    public void testStringTemplateProcessMissing() throws Exception {
++        String code = "package test; public class Test { String t() { return STR.\"\"; } }";
++
++        compile(code, "21");
++    }
++
++    //<editor-fold defaultstate="collapsed" desc=" Test Infrastructure ">
++    private static class MyFileObject extends SimpleJavaFileObject {
++        private String text;
++
++        public MyFileObject(String text) {
++            super(URI.create("myfo:/Test.java"), JavaFileObject.Kind.SOURCE);
++            this.text = text;
++        }
++
++        @Override
++        public CharSequence getCharContent(boolean ignoreEncodingErrors) {
++            return text;
++        }
++    }
++
++    private File workingDir;
++
++    @Override
++    protected void setUp() throws Exception {
++        workingDir = getWorkDir();
++    }
++
++    private Pair<JavacTask, CompilationUnitTree> compile(String code, String release) throws Exception {
++        final JavaCompiler tool = ToolProvider.getSystemJavaCompiler();
++        assert tool != null;
++
++        StandardJavaFileManager std = tool.getStandardFileManager(null, null, null);
++
++        std.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singleton(workingDir));
++
++        Context context = new Context();
++        NBAttr.preRegister(context);
++        NBJavaCompiler.preRegister(context);
++        NBResolve.preRegister(context);
++        final JavacTaskImpl ct = (JavacTaskImpl) ((JavacTool)tool).getTask(null, std, null, Arrays.asList("--release", release, "-XDshould-stop.at=FLOW"), null, Arrays.asList(new MyFileObject(code)), context);
++
++        CompilationUnitTree cut = ct.parse().iterator().next();
++
++        ct.analyze();
++
++        return Pair.<JavacTask, CompilationUnitTree>of(ct, cut);
++    }
++    //</editor-fold>
++}
+diff --git a/java/libs.javacapi/external/binaries-list b/java/libs.javacapi/external/binaries-list
+index 91e07d5f8821..a7ba7aa6edc4 100644
+--- a/java/libs.javacapi/external/binaries-list
++++ b/java/libs.javacapi/external/binaries-list
+@@ -14,5 +14,5 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-D5113DE0BE3E296D3D9F2139F0102FDD9EB0D993 com.dukescript.nbjavac:nb-javac:jdk-21u:api
+-A9C5BABB481C07742E0C4FCD150DB6E6DE2C2119 com.dukescript.nbjavac:nb-javac:jdk-21u
++8F51DAC670C68C5F54EA1F6C114CCDB39A59CF50 com.dukescript.nbjavac:nb-javac:jdk-22+33:api
++BEBF599062B88260B9F75C0EE3DD33D2870B39E3 com.dukescript.nbjavac:nb-javac:jdk-22+33
+diff --git a/java/libs.javacapi/external/nb-javac-jdk-21u-license.txt b/java/libs.javacapi/external/nb-javac-jdk-22+33-license.txt
+similarity index 99%
+rename from java/libs.javacapi/external/nb-javac-jdk-21u-license.txt
+rename to java/libs.javacapi/external/nb-javac-jdk-22+33-license.txt
+index 4af2be67d067..e5ab1e297094 100644
+--- a/java/libs.javacapi/external/nb-javac-jdk-21u-license.txt
++++ b/java/libs.javacapi/external/nb-javac-jdk-22+33-license.txt
+@@ -1,10 +1,10 @@
+ Name: Javac Compiler Implementation
+ Description: Javac Compiler Implementation
+-Version: jdk-21u
+-Files: nb-javac-jdk-21u-api.jar nb-javac-jdk-21u.jar
++Version: jdk-22+33
++Files: nb-javac-jdk-22+33-api.jar nb-javac-jdk-22+33.jar
+ License: GPL-2-CP
+-Origin: OpenJDK (https://github.com/openjdk/jdk21)
+-Source: https://github.com/openjdk/jdk21
++Origin: OpenJDK (https://github.com/openjdk/jdk22)
++Source: https://github.com/openjdk/jdk22
+ Type: optional,reviewed
+ Comment: The binary has been reviewed to be under the Classpath Exception as a whole. Optional at runtime, but used by default.
+ 
+diff --git a/java/libs.javacapi/nbproject/org-netbeans-libs-javacapi.sig b/java/libs.javacapi/nbproject/org-netbeans-libs-javacapi.sig
+index 6a0f6f0dffa8..5ee0a1c62147 100644
+--- a/java/libs.javacapi/nbproject/org-netbeans-libs-javacapi.sig
++++ b/java/libs.javacapi/nbproject/org-netbeans-libs-javacapi.sig
+@@ -1,5 +1,5 @@
+ #Signature file v4.1
+-#Version 8.46.0
++#Version 8.48.0
+ 
+ CLSS public abstract interface com.sun.source.doctree.AttributeTree
+ innr public final static !enum ValueKind
+@@ -176,6 +176,7 @@ meth public abstract java.util.List<? extends com.sun.source.doctree.DocTree> ge
+ 
+ CLSS public abstract interface com.sun.source.doctree.InheritDocTree
+ intf com.sun.source.doctree.InlineTagTree
++meth public com.sun.source.doctree.ReferenceTree getSupertype()
+ 
+ CLSS public abstract interface com.sun.source.doctree.InlineTagTree
+ intf com.sun.source.doctree.DocTree
+@@ -966,6 +967,7 @@ meth public abstract com.sun.source.doctree.ValueTree newValueTree(com.sun.sourc
+ meth public abstract com.sun.source.doctree.VersionTree newVersionTree(java.util.List<? extends com.sun.source.doctree.DocTree>)
+ meth public abstract com.sun.source.util.DocTreeFactory at(int)
+ meth public abstract java.util.List<com.sun.source.doctree.DocTree> getFirstSentence(java.util.List<? extends com.sun.source.doctree.DocTree>)
++meth public com.sun.source.doctree.InheritDocTree newInheritDocTree(com.sun.source.doctree.ReferenceTree)
+ meth public com.sun.source.doctree.ReturnTree newReturnTree(boolean,java.util.List<? extends com.sun.source.doctree.DocTree>)
+ meth public com.sun.source.doctree.SummaryTree newSummaryTree(java.util.List<? extends com.sun.source.doctree.DocTree>)
+ meth public com.sun.source.doctree.ValueTree newValueTree(com.sun.source.doctree.TextTree,com.sun.source.doctree.ReferenceTree)
+@@ -1633,6 +1635,7 @@ fld public final static javax.lang.model.SourceVersion RELEASE_19
+ fld public final static javax.lang.model.SourceVersion RELEASE_2
+ fld public final static javax.lang.model.SourceVersion RELEASE_20
+ fld public final static javax.lang.model.SourceVersion RELEASE_21
++fld public final static javax.lang.model.SourceVersion RELEASE_22
+ fld public final static javax.lang.model.SourceVersion RELEASE_3
+ fld public final static javax.lang.model.SourceVersion RELEASE_4
+ fld public final static javax.lang.model.SourceVersion RELEASE_5
+@@ -1897,6 +1900,7 @@ intf javax.lang.model.element.Element
+ meth public abstract javax.lang.model.element.Element getEnclosingElement()
+ meth public abstract javax.lang.model.element.ExecutableElement getAccessor()
+ meth public abstract javax.lang.model.element.Name getSimpleName()
++meth public abstract javax.lang.model.type.TypeMirror asType()
+ 
+ CLSS public abstract interface javax.lang.model.element.TypeElement
+ intf javax.lang.model.element.Element
+@@ -1911,7 +1915,6 @@ meth public abstract javax.lang.model.element.Name getSimpleName()
+ meth public abstract javax.lang.model.element.NestingKind getNestingKind()
+ meth public abstract javax.lang.model.type.TypeMirror asType()
+ meth public abstract javax.lang.model.type.TypeMirror getSuperclass()
+-meth public boolean isUnnamed()
+ meth public java.util.List<? extends javax.lang.model.element.RecordComponentElement> getRecordComponents()
+ meth public java.util.List<? extends javax.lang.model.type.TypeMirror> getPermittedSubclasses()
+ 
+@@ -2078,7 +2081,7 @@ meth public abstract javax.lang.model.type.TypeMirror getExtendsBound()
+ meth public abstract javax.lang.model.type.TypeMirror getSuperBound()
+ 
+ CLSS public abstract javax.lang.model.util.AbstractAnnotationValueVisitor14<%0 extends java.lang.Object, %1 extends java.lang.Object>
+- anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_21)
++ anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_22)
+ cons protected init()
+ supr javax.lang.model.util.AbstractAnnotationValueVisitor9<{javax.lang.model.util.AbstractAnnotationValueVisitor14%0},{javax.lang.model.util.AbstractAnnotationValueVisitor14%1}>
+ 
+@@ -2109,7 +2112,7 @@ cons protected init()
+ supr javax.lang.model.util.AbstractAnnotationValueVisitor8<{javax.lang.model.util.AbstractAnnotationValueVisitor9%0},{javax.lang.model.util.AbstractAnnotationValueVisitor9%1}>
+ 
+ CLSS public abstract javax.lang.model.util.AbstractElementVisitor14<%0 extends java.lang.Object, %1 extends java.lang.Object>
+- anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_21)
++ anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_22)
+ cons protected init()
+ meth public abstract {javax.lang.model.util.AbstractElementVisitor14%0} visitRecordComponent(javax.lang.model.element.RecordComponentElement,{javax.lang.model.util.AbstractElementVisitor14%1})
+ supr javax.lang.model.util.AbstractElementVisitor9<{javax.lang.model.util.AbstractElementVisitor14%0},{javax.lang.model.util.AbstractElementVisitor14%1}>
+@@ -2144,7 +2147,7 @@ meth public abstract {javax.lang.model.util.AbstractElementVisitor9%0} visitModu
+ supr javax.lang.model.util.AbstractElementVisitor8<{javax.lang.model.util.AbstractElementVisitor9%0},{javax.lang.model.util.AbstractElementVisitor9%1}>
+ 
+ CLSS public abstract javax.lang.model.util.AbstractTypeVisitor14<%0 extends java.lang.Object, %1 extends java.lang.Object>
+- anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_21)
++ anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_22)
+ cons protected init()
+ supr javax.lang.model.util.AbstractTypeVisitor9<{javax.lang.model.util.AbstractTypeVisitor14%0},{javax.lang.model.util.AbstractTypeVisitor14%1}>
+ 
+@@ -2202,7 +2205,7 @@ supr java.lang.Object
+ hfds CONSTRUCTOR_KIND,FIELD_KINDS,METHOD_KIND,MODULE_KIND,PACKAGE_KIND,RECORD_COMPONENT_KIND,TYPE_KINDS
+ 
+ CLSS public javax.lang.model.util.ElementKindVisitor14<%0 extends java.lang.Object, %1 extends java.lang.Object>
+- anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_21)
++ anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_22)
+ cons protected init()
+ cons protected init({javax.lang.model.util.ElementKindVisitor14%0})
+ meth public {javax.lang.model.util.ElementKindVisitor14%0} visitRecordComponent(javax.lang.model.element.RecordComponentElement,{javax.lang.model.util.ElementKindVisitor14%1})
+@@ -2262,7 +2265,7 @@ meth public {javax.lang.model.util.ElementKindVisitor9%0} visitModule(javax.lang
+ supr javax.lang.model.util.ElementKindVisitor8<{javax.lang.model.util.ElementKindVisitor9%0},{javax.lang.model.util.ElementKindVisitor9%1}>
+ 
+ CLSS public javax.lang.model.util.ElementScanner14<%0 extends java.lang.Object, %1 extends java.lang.Object>
+- anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_21)
++ anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_22)
+ cons protected init()
+ cons protected init({javax.lang.model.util.ElementScanner14%0})
+ meth public {javax.lang.model.util.ElementScanner14%0} visitExecutable(javax.lang.model.element.ExecutableElement,{javax.lang.model.util.ElementScanner14%1})
+@@ -2282,6 +2285,7 @@ meth public final {javax.lang.model.util.ElementScanner6%0} scan(javax.lang.mode
+ meth public {javax.lang.model.util.ElementScanner6%0} scan(javax.lang.model.element.Element,{javax.lang.model.util.ElementScanner6%1})
+ meth public {javax.lang.model.util.ElementScanner6%0} visitExecutable(javax.lang.model.element.ExecutableElement,{javax.lang.model.util.ElementScanner6%1})
+ meth public {javax.lang.model.util.ElementScanner6%0} visitPackage(javax.lang.model.element.PackageElement,{javax.lang.model.util.ElementScanner6%1})
++meth public {javax.lang.model.util.ElementScanner6%0} visitRecordComponent(javax.lang.model.element.RecordComponentElement,{javax.lang.model.util.ElementScanner6%1})
+ meth public {javax.lang.model.util.ElementScanner6%0} visitType(javax.lang.model.element.TypeElement,{javax.lang.model.util.ElementScanner6%1})
+ meth public {javax.lang.model.util.ElementScanner6%0} visitTypeParameter(javax.lang.model.element.TypeParameterElement,{javax.lang.model.util.ElementScanner6%1})
+ meth public {javax.lang.model.util.ElementScanner6%0} visitVariable(javax.lang.model.element.VariableElement,{javax.lang.model.util.ElementScanner6%1})
+@@ -2337,6 +2341,7 @@ meth public javax.lang.model.element.ModuleElement getModuleElement(java.lang.Ch
+ meth public javax.lang.model.element.ModuleElement getModuleOf(javax.lang.model.element.Element)
+ meth public javax.lang.model.element.PackageElement getPackageElement(javax.lang.model.element.ModuleElement,java.lang.CharSequence)
+ meth public javax.lang.model.element.RecordComponentElement recordComponentFor(javax.lang.model.element.ExecutableElement)
++meth public javax.lang.model.element.TypeElement getEnumConstantBody(javax.lang.model.element.VariableElement)
+ meth public javax.lang.model.element.TypeElement getOutermostTypeElement(javax.lang.model.element.Element)
+ meth public javax.lang.model.element.TypeElement getTypeElement(javax.lang.model.element.ModuleElement,java.lang.CharSequence)
+ meth public javax.lang.model.util.Elements$Origin getOrigin(javax.lang.model.AnnotatedConstruct,javax.lang.model.element.AnnotationMirror)
+@@ -2355,7 +2360,7 @@ meth public static javax.lang.model.util.Elements$Origin[] values()
+ supr java.lang.Enum<javax.lang.model.util.Elements$Origin>
+ 
+ CLSS public javax.lang.model.util.SimpleAnnotationValueVisitor14<%0 extends java.lang.Object, %1 extends java.lang.Object>
+- anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_21)
++ anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_22)
+ cons protected init()
+ cons protected init({javax.lang.model.util.SimpleAnnotationValueVisitor14%0})
+ supr javax.lang.model.util.SimpleAnnotationValueVisitor9<{javax.lang.model.util.SimpleAnnotationValueVisitor14%0},{javax.lang.model.util.SimpleAnnotationValueVisitor14%1}>
+@@ -2404,7 +2409,7 @@ cons protected init({javax.lang.model.util.SimpleAnnotationValueVisitor9%0})
+ supr javax.lang.model.util.SimpleAnnotationValueVisitor8<{javax.lang.model.util.SimpleAnnotationValueVisitor9%0},{javax.lang.model.util.SimpleAnnotationValueVisitor9%1}>
+ 
+ CLSS public javax.lang.model.util.SimpleElementVisitor14<%0 extends java.lang.Object, %1 extends java.lang.Object>
+- anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_21)
++ anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_22)
+ cons protected init()
+ cons protected init({javax.lang.model.util.SimpleElementVisitor14%0})
+ meth public {javax.lang.model.util.SimpleElementVisitor14%0} visitRecordComponent(javax.lang.model.element.RecordComponentElement,{javax.lang.model.util.SimpleElementVisitor14%1})
+@@ -2448,7 +2453,7 @@ meth public {javax.lang.model.util.SimpleElementVisitor9%0} visitModule(javax.la
+ supr javax.lang.model.util.SimpleElementVisitor8<{javax.lang.model.util.SimpleElementVisitor9%0},{javax.lang.model.util.SimpleElementVisitor9%1}>
+ 
+ CLSS public javax.lang.model.util.SimpleTypeVisitor14<%0 extends java.lang.Object, %1 extends java.lang.Object>
+- anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_21)
++ anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_22)
+ cons protected init()
+ cons protected init({javax.lang.model.util.SimpleTypeVisitor14%0})
+ supr javax.lang.model.util.SimpleTypeVisitor9<{javax.lang.model.util.SimpleTypeVisitor14%0},{javax.lang.model.util.SimpleTypeVisitor14%1}>
+@@ -2495,7 +2500,7 @@ cons protected init({javax.lang.model.util.SimpleTypeVisitor9%0})
+ supr javax.lang.model.util.SimpleTypeVisitor8<{javax.lang.model.util.SimpleTypeVisitor9%0},{javax.lang.model.util.SimpleTypeVisitor9%1}>
+ 
+ CLSS public javax.lang.model.util.TypeKindVisitor14<%0 extends java.lang.Object, %1 extends java.lang.Object>
+- anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_21)
++ anno 0 javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion value=RELEASE_22)
+ cons protected init()
+ cons protected init({javax.lang.model.util.TypeKindVisitor14%0})
+ supr javax.lang.model.util.TypeKindVisitor9<{javax.lang.model.util.TypeKindVisitor14%0},{javax.lang.model.util.TypeKindVisitor14%1}>
+diff --git a/java/libs.javacapi/nbproject/project.xml b/java/libs.javacapi/nbproject/project.xml
+index 5f6ecacc70c1..d149113c6c6b 100644
+--- a/java/libs.javacapi/nbproject/project.xml
++++ b/java/libs.javacapi/nbproject/project.xml
+@@ -40,11 +40,11 @@
+             </public-packages>
+             <class-path-extension>
+                 <runtime-relative-path />
+-                <binary-origin>external/nb-javac-jdk-21u-api.jar</binary-origin>
++                <binary-origin>external/nb-javac-jdk-22+33-api.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path />
+-                <binary-origin>external/nb-javac-jdk-21u.jar</binary-origin>
++                <binary-origin>external/nb-javac-jdk-22+33.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+diff --git a/java/libs.nbjavacapi/external/binaries-list b/java/libs.nbjavacapi/external/binaries-list
+index 91e07d5f8821..a7ba7aa6edc4 100644
+--- a/java/libs.nbjavacapi/external/binaries-list
++++ b/java/libs.nbjavacapi/external/binaries-list
+@@ -14,5 +14,5 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-D5113DE0BE3E296D3D9F2139F0102FDD9EB0D993 com.dukescript.nbjavac:nb-javac:jdk-21u:api
+-A9C5BABB481C07742E0C4FCD150DB6E6DE2C2119 com.dukescript.nbjavac:nb-javac:jdk-21u
++8F51DAC670C68C5F54EA1F6C114CCDB39A59CF50 com.dukescript.nbjavac:nb-javac:jdk-22+33:api
++BEBF599062B88260B9F75C0EE3DD33D2870B39E3 com.dukescript.nbjavac:nb-javac:jdk-22+33
+diff --git a/java/libs.nbjavacapi/external/nb-javac-jdk-21u-license.txt b/java/libs.nbjavacapi/external/nb-javac-jdk-22+33-license.txt
+similarity index 99%
+rename from java/libs.nbjavacapi/external/nb-javac-jdk-21u-license.txt
+rename to java/libs.nbjavacapi/external/nb-javac-jdk-22+33-license.txt
+index 4af2be67d067..e5ab1e297094 100644
+--- a/java/libs.nbjavacapi/external/nb-javac-jdk-21u-license.txt
++++ b/java/libs.nbjavacapi/external/nb-javac-jdk-22+33-license.txt
+@@ -1,10 +1,10 @@
+ Name: Javac Compiler Implementation
+ Description: Javac Compiler Implementation
+-Version: jdk-21u
+-Files: nb-javac-jdk-21u-api.jar nb-javac-jdk-21u.jar
++Version: jdk-22+33
++Files: nb-javac-jdk-22+33-api.jar nb-javac-jdk-22+33.jar
+ License: GPL-2-CP
+-Origin: OpenJDK (https://github.com/openjdk/jdk21)
+-Source: https://github.com/openjdk/jdk21
++Origin: OpenJDK (https://github.com/openjdk/jdk22)
++Source: https://github.com/openjdk/jdk22
+ Type: optional,reviewed
+ Comment: The binary has been reviewed to be under the Classpath Exception as a whole. Optional at runtime, but used by default.
+ 
+diff --git a/java/libs.nbjavacapi/nbproject/project.properties b/java/libs.nbjavacapi/nbproject/project.properties
+index 32d86b7ed2e7..2412173bf9d8 100644
+--- a/java/libs.nbjavacapi/nbproject/project.properties
++++ b/java/libs.nbjavacapi/nbproject/project.properties
+@@ -18,8 +18,8 @@
+ javac.source=1.8
+ javac.compilerargs=-Xlint -Xlint:-serial
+ license.file.override=${nb_all}/nbbuild/licenses/GPL-2-CP
+-release.external/nb-javac-jdk-21u-api.jar=modules/ext/nb-javac-jdk-21u-api.jar
+-release.external/nb-javac-jdk-21u.jar=modules/ext/nb-javac-jdk-21u.jar
++release.external/nb-javac-jdk-22+33-api.jar=modules/ext/nb-javac-jdk-22-33-api.jar
++release.external/nb-javac-jdk-22+33.jar=modules/ext/nb-javac-jdk-22-33.jar
+ 
+ # for tests
+ requires.nb.javac=true
+diff --git a/java/libs.nbjavacapi/nbproject/project.xml b/java/libs.nbjavacapi/nbproject/project.xml
+index 91d7424159ad..c67c91e9c7ba 100644
+--- a/java/libs.nbjavacapi/nbproject/project.xml
++++ b/java/libs.nbjavacapi/nbproject/project.xml
+@@ -45,12 +45,12 @@
+             </test-dependencies>
+             <public-packages/>
+             <class-path-extension>
+-                <runtime-relative-path>ext/nb-javac-jdk-21u-api.jar</runtime-relative-path>
+-                <binary-origin>external/nb-javac-jdk-21u-api.jar</binary-origin>
++                <runtime-relative-path>ext/nb-javac-jdk-22-33-api.jar</runtime-relative-path>
++                <binary-origin>external/nb-javac-jdk-22+33-api.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/nb-javac-jdk-21u.jar</runtime-relative-path>
+-                <binary-origin>external/nb-javac-jdk-21u.jar</binary-origin>
++                <runtime-relative-path>ext/nb-javac-jdk-22-33.jar</runtime-relative-path>
++                <binary-origin>external/nb-javac-jdk-22+33.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+diff --git a/java/libs.nbjavacapi/src/org/netbeans/modules/nbjavac/api/Bundle.properties b/java/libs.nbjavacapi/src/org/netbeans/modules/nbjavac/api/Bundle.properties
+index cefdd78f9e65..25d08eb6130b 100644
+--- a/java/libs.nbjavacapi/src/org/netbeans/modules/nbjavac/api/Bundle.properties
++++ b/java/libs.nbjavacapi/src/org/netbeans/modules/nbjavac/api/Bundle.properties
+@@ -18,6 +18,6 @@
+ OpenIDE-Module-Display-Category=Java
+ OpenIDE-Module-Long-Description=\
+     This library provides a Java language parser for the IDE. \
+-    Supports JDK-21 features.
++    Supports JDK-22 features.
+ OpenIDE-Module-Name=The nb-javac Java editing support library
+ OpenIDE-Module-Short-Description=The nb-javac Java editing support library
+diff --git a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
+index 3ff21989737a..19dd81a68fcc 100644
+--- a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
++++ b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
+@@ -96,8 +96,8 @@ nb/ide.launcher/external/launcher-external-binaries-1-94a19f0.zip platform/o.n.b
+ nb/ide.launcher/external/launcher-external-binaries-1-94a19f0.zip harness/apisupport.harness/external/launcher-external-binaries-1-94a19f0.zip
+ 
+ # only one is part of the product:
+-java/libs.javacapi/external/nb-javac-jdk-21u-api.jar java/libs.nbjavacapi/external/nb-javac-jdk-21u-api.jar
+-java/libs.javacapi/external/nb-javac-jdk-21u.jar java/libs.nbjavacapi/external/nb-javac-jdk-21u.jar
++java/libs.javacapi/external/nb-javac-jdk-22+33-api.jar java/libs.nbjavacapi/external/nb-javac-jdk-22+33-api.jar
++java/libs.javacapi/external/nb-javac-jdk-22+33.jar java/libs.nbjavacapi/external/nb-javac-jdk-22+33.jar
+ 
+ # Used only in unittests for mysql db specific tests
+ ide/db.metadata.model/external/mysql-connector-j-8.0.31.jar ide/db.mysql/external/mysql-connector-j-8.0.31.jar

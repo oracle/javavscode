@@ -203,6 +203,13 @@ export namespace TextEditorDecorationSetNotification {
 export namespace TextEditorDecorationDisposeNotification {
     export const type = new ProtocolNotificationType<string, void>('window/disposeTextEditorDecoration');
 }
+export interface SaveDocumentRequestParams {
+    documents: string[];
+}
+
+export namespace SaveDocumentsRequest {
+    export const type = new ProtocolRequestType<SaveDocumentRequestParams, boolean, never, void, void>('window/documentSave');
+}
 
 export interface NodeChangedParams {
     rootId : number;

@@ -1,0 +1,564 @@
+diff --git a/java/java.lsp.server/build.xml b/java/java.lsp.server/build.xml
+index baa4e971cb..31e7cf3f33 100644
+--- a/java/java.lsp.server/build.xml
++++ b/java/java.lsp.server/build.xml
+@@ -163,4 +163,49 @@
+             <arg value="apisupport" />
+         </exec>
+     </target>
++
++    <target name="generate-netbeans-license-summary" depends="-set-use-jdk-javac,proxy-setup" description="Generate license summary">
++        <delete dir="${build.dir}/nblic" />
++        <mkdir dir="${build.dir}/nblic/nbcode" />
++        <mkdir dir="${build.dir}/nblic/summary" />
++
++        <ant dir="nbcode" target="build-zip" inheritall="false" inheritrefs="false">
++            <property name="nbplatform.default.netbeans.dest.dir" location="${nbplatform.default.netbeans.dest.dir}" />
++            <property name="nbplatform.default.harness.dir" location="${nbplatform.default.harness.dir}" />
++            <property name="nbantext.jar" location="${nbantext.jar}" />
++        </ant>
++        <unzip src="nbcode/dist/nbcode.zip" dest="${build.dir}/nblic/">
++        </unzip>
++
++        <delete dir="${build.dir}/nblic/nbcode/nbcode" />
++
++        <taskdef name="createlicensesummary" classname="org.netbeans.nbbuild.extlibs.CreateLicenseSummary" classpath="${nbantext.jar}"/>
++
++        <property name="config.javadoc.all" value="" />
++
++        <taskdef name="resolvelist" classname="org.netbeans.nbbuild.ResolveList" classpath="${nbantext.jar}" />
++        <resolvelist name="allmodules" path="modules.fullpath" dir="${nb_all}" list="${clusters.config.full.list}"/>
++
++        <createlicensesummary licenseStub="${nb_all}/LICENSE"
++                              noticeStub="${nb_all}/nbbuild/notice-stub.txt"
++                              report="${build.dir}/createlicensesummary.xml"
++                              nball="${nb_all}"
++                              build="${build.dir}/nblic/nbcode"
++                              license="${build.dir}/nblic/summary/LICENSE"
++                              notice="${build.dir}/nblic/summary/NOTICE"
++                              dependencies="${build.dir}/nblic/summary/DEPENDECIES"
++                              binary="true"
++                              excludes="${nb-extra-files}"
++                              includeAllFiles="true"
++        />
++        <concat destfile="${build.dir}/nblic/summary/NOTICE-ext">
++            <header>Content of the NOTICE file:
++
++</header>
++            <filelist dir="${build.dir}/nblic/summary" files="NOTICE"/>
++        </concat>
++        <concat destfile="${build.dir}/nblic/netbeans-third-party.txt">
++            <filelist dir="${build.dir}/nblic/summary" files="LICENSE,NOTICE"/>
++        </concat>
++    </target>
+ </project>
+diff --git a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/CreateDependencies.java b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/CreateDependencies.java
+index 2512043daf..eef8882085 100644
+--- a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/CreateDependencies.java
++++ b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/CreateDependencies.java
+@@ -41,6 +41,7 @@ import org.apache.tools.ant.BuildException;
+ import org.apache.tools.ant.Task;
+ import org.apache.tools.ant.types.DirSet;
+ import org.apache.tools.ant.types.Resource;
++import org.netbeans.nbbuild.extlibs.CreateLicenseSummary.BinaryDescription;
+ 
+ /**
+  * Creates a list of external binaries and their licenses.
+@@ -158,16 +159,17 @@ public class CreateDependencies extends Task {
+     private void processModule(String module, Map<String, Map<String, String>> file2LicenseHeaders) throws IOException {
+         File d = new File(new File(getProject().getProperty("nb_all"), module), "external");
+         Set<String> hgFiles = VerifyLibsAndLicenses.findHgControlledFiles(d);
+-        Map<String,Map<String,String>> binary2License = CreateLicenseSummary.findBinary2LicenseHeaderMapping(hgFiles, d);
++        Map<String, CreateLicenseSummary.BinaryDescription> binary2License = CreateLicenseSummary.findBinary2LicenseHeaderMapping(hgFiles, d);
+         for (String n : hgFiles) {
+             if (!n.endsWith(".jar") && !n.endsWith(".zip") && !n.endsWith(".xml") &&
+                     !n.endsWith(".js") && !n.endsWith(".dylib")) {
+                 continue;
+             }
+-            Map<String,String> headers = binary2License.get(n);
+-            if (headers == null) {
++            final BinaryDescription binaryDesc = binary2License.get(n);
++            if (binaryDesc == null) {
+                 continue;
+             }
++            Map<String,String> headers = binaryDesc.licenseFilesHeaders;
+             file2LicenseHeaders.put(n, headers); //TODO: check unique!
+         }
+     }
+diff --git a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/CreateLicenseSummary.java b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/CreateLicenseSummary.java
+index d7e1fec8f9..2ec5fa05e8 100644
+--- a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/CreateLicenseSummary.java
++++ b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/CreateLicenseSummary.java
+@@ -37,10 +37,12 @@ import java.util.Arrays;
+ import java.util.Enumeration;
+ import java.util.HashMap;
+ import java.util.HashSet;
++import java.util.Iterator;
+ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Map.Entry;
++import java.util.Properties;
+ import java.util.Set;
+ import java.util.TreeMap;
+ import java.util.TreeSet;
+@@ -110,6 +112,12 @@ public class CreateLicenseSummary extends Task {
+         this.notice = notice;
+     }
+ 
++    private File dependencies;
++
++    public void setDependencies(File dependencies) {
++        this.dependencies = dependencies;
++    }
++
+     private File noticeStub;
+ 
+     public void setNoticeStub(File noticeStub) {
+@@ -121,9 +129,9 @@ public class CreateLicenseSummary extends Task {
+     public void setReport(File report) {
+         this.reportFile = report;
+     }
+-    
++
+     private File licenseTargetDir = null;
+-    
++
+     public void setLicenseTargetDir(File licenseTargetDir) {
+         this.licenseTargetDir = licenseTargetDir;
+     }
+@@ -136,27 +144,27 @@ public class CreateLicenseSummary extends Task {
+         this.modules = new TreeSet<>();
+         this.modules.addAll(Arrays.asList(modules.split("[, ]+")));
+     }
+-    
++
+     private String extraExternalDirectory;
+     public void setExtraExternalDirectory(String directory) {
+         this.extraExternalDirectory = directory;
+     }
+-    
++
+     private String extraLicenseDirectory;
+     public void setExtraLicenseDirectory(String directory) {
+         this.extraLicenseDirectory = directory;
+     }
+-    
++
+     private boolean includeAllFiles;
+     public void setIncludeAllFiles(boolean includeAllFiles) {
+         this.includeAllFiles = includeAllFiles;
+     }
+-    
++
+     private boolean binary;
+     public void setBinary(boolean binary) {
+         this.binary = binary;
+     }
+-    
++
+     private FileSet moduleFiles;
+     public FileSet createModuleFiles() {
+         return (moduleFiles = new FileSet());
+@@ -183,7 +191,8 @@ public class CreateLicenseSummary extends Task {
+         pseudoTests = new LinkedHashMap<>();
+ 
+         try (PrintWriter licenseWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(license), "UTF-8"));
+-                PrintWriter noticeWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(notice), "UTF-8"))) {
++                PrintWriter noticeWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(notice), "UTF-8"));
++                PrintWriter dependencyWriter = dependencies != null ? new PrintWriter(new OutputStreamWriter(new FileOutputStream(dependencies), "UTF-8")) : null) {
+ 
+             try (Reader r = new InputStreamReader(new FileInputStream(licenseStub), "UTF-8")) {
+                 int read;
+@@ -204,6 +213,9 @@ public class CreateLicenseSummary extends Task {
+ 
+             if(binary) {
+                 evaluateBinaries(licenseWriter, noticeWriter, notices, licenseNames);
++                if (dependencyWriter != null) {
++                    printDependencyTree(dependencyWriter);
++                }
+             }
+             evaluateLicenseInfo(licenseWriter, noticeWriter, notices, licenseNames);
+ 
+@@ -256,20 +268,20 @@ public class CreateLicenseSummary extends Task {
+         log(license + ": written", Project.MSG_VERBOSE);
+         JUnitReportWriter.writeReport(this, null, reportFile, pseudoTests);
+     }
+-    
++
+     private void evaluateLicenseInfo(final PrintWriter licenseWriter, final PrintWriter noticeWriter, Set<String> notices, Set<String> licenseNames) throws IOException {
+         List<String> footnotes = new ArrayList<>();
+         boolean headerPrinted = false;
+-        
++
+         for(String module : modules) {
+             File moduleDir = new File(nball, module);
+             File licenseInfoFile = new File(moduleDir, "licenseinfo.xml");
+             if(! licenseInfoFile.exists()) {
+                 continue;
+             }
+-            
++
+             Licenseinfo licenseInfo = Licenseinfo.parse(licenseInfoFile);
+-            
++
+             for(Fileset fs: licenseInfo.getFilesets()) {
+                 if(binary && fs.isSourceOnly()) {
+                     continue;
+@@ -317,7 +329,7 @@ public class CreateLicenseSummary extends Task {
+                 addNotice(noticeWriter, fs.getNotice(), notices);
+             }
+         }
+-        
++
+         if (!footnotes.isEmpty()) {
+             licenseWriter.print("\n");
+             licenseWriter.print("Notes\n");
+@@ -330,15 +342,15 @@ public class CreateLicenseSummary extends Task {
+     }
+ 
+     private void evaluateBinaries(final PrintWriter licenseWriter, final PrintWriter noticeWriter, Set<String> notices, Set<String> licenseNames) throws IOException {
+-        Map<Long, Map<String, String>> crc2License = findCrc2LicenseHeaderMapping();
+-        Map<String, Map<String, String>> binaries2LicenseHeaders = new TreeMap<>();
++        Map<Long, BinaryDescription> crc2License = findCrc2LicenseHeaderMapping();
++        Map<String, BinaryDescription> binaries2LicenseHeaders = new TreeMap<>();
+         StringBuilder testBinariesAreUnique = new StringBuilder();
+         List<String> ignoredPatterns = VerifyLibsAndLicenses.loadPatterns("ignored-binary-overlaps");
+         if (build != null)
+             findBinaries(build, binaries2LicenseHeaders, crc2License, new HashMap<>(), "", testBinariesAreUnique, ignoredPatterns);
+         if (moduleFiles != null) {
+             for (Resource r : moduleFiles) {
+-                Entry<Map<String, String>,Long> headers = getHeaders(crc2License, () -> r.getInputStream());
++                Entry<BinaryDescription,Long> headers = getHeaders(crc2License, () -> r.getInputStream());
+                 if (headers != null) {
+                     binaries2LicenseHeaders.put(r.getName(), headers.getKey());
+                 }
+@@ -347,7 +359,7 @@ public class CreateLicenseSummary extends Task {
+         if (binaries2LicenseHeaders.isEmpty())
+             return ;
+         pseudoTests.put("testBinariesAreUnique", testBinariesAreUnique.length() > 0 ? "Some binaries are duplicated (edit nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-binary-overlaps as needed)" + testBinariesAreUnique : null);
+-        
++
+         licenseWriter.println();
+         licenseWriter.println("********************************************************************************");
+         licenseWriter.println("Apache NetBeans includes a number of components and libraries with separate");
+@@ -355,7 +367,7 @@ public class CreateLicenseSummary extends Task {
+         licenseWriter.println("subject to the terms and conditions of the following licenses. ");
+         licenseWriter.println("********************************************************************************");
+         licenseWriter.println();
+-        
++
+         licenseWriter.printf("%-68s%12s\n", "THIRD-PARTY COMPONENT FILE", "LICENSE");
+         if(licenseTargetDir != null) {
+             licenseWriter.printf("%-40s%40s\n", "(path in the installation)", "(text is in file in licenses directory)");
+@@ -363,10 +375,10 @@ public class CreateLicenseSummary extends Task {
+             licenseWriter.printf("%-40s%40s\n", "(path in the installation)", "(see license text reproduced below)");
+         }
+         licenseWriter.println("--------------------------------------------------------------------------------");
+-        
+-        for (Map.Entry<String, Map<String, String>> entry : binaries2LicenseHeaders.entrySet()) {
++
++        for (Map.Entry<String, BinaryDescription> entry : binaries2LicenseHeaders.entrySet()) {
+             String binary = entry.getKey();
+-            Map<String, String> headers = entry.getValue();
++            Map<String, String> headers = entry.getValue().licenseFilesHeaders;
+             licenseWriter.printf("%-69s %s\n", binary, getMaybeMissing(headers, "License"));
+             String license = headers.get("License");
+             if (license != null) {
+@@ -375,7 +387,7 @@ public class CreateLicenseSummary extends Task {
+                 //TODO: should be error/test failure, or something like that.
+                 System.err.println("No license for: " + binary);
+             }
+-            
++
+             addNotice(noticeWriter, headers.get("notice"), notices);
+         }
+ //                String[] otherHeaders = {"Name", "Version", "Description", "Origin"};
+@@ -402,6 +414,86 @@ public class CreateLicenseSummary extends Task {
+ //                }
+     }
+ 
++    private static final String INDENT = "  ";
++
++    private void printDependencyTree(final PrintWriter dependencyWriter) throws IOException {
++        Map<Long, BinaryDescription> crc2License = findCrc2LicenseHeaderMapping();
++        Map<String, BinaryDescription> binaries2LicenseHeaders = new TreeMap<>();
++        StringBuilder testBinariesAreUnique = new StringBuilder();
++        List<String> ignoredPatterns = VerifyLibsAndLicenses.loadPatterns("ignored-binary-overlaps");
++        if (build != null)
++            findBinaries(build, binaries2LicenseHeaders, crc2License, new HashMap<>(), "", testBinariesAreUnique, ignoredPatterns);
++        if (moduleFiles != null) {
++            for (Resource r : moduleFiles) {
++                Entry<BinaryDescription,Long> headers = getHeaders(crc2License, () -> r.getInputStream());
++                if (headers != null) {
++                    binaries2LicenseHeaders.put(r.getName(), headers.getKey());
++                }
++            }
++        }
++        if (binaries2LicenseHeaders.isEmpty())
++            return ;
++
++        postProcessBinaries2LicenseHeaders(binaries2LicenseHeaders);
++
++        Map<String, Map<String, Map<String, Map<String, Map<String, BinaryDescription>>>>> cluster2Module2BinaryHeader2Nested2Binary2Description = new TreeMap<>();
++
++        for (Map.Entry<String, BinaryDescription> entry : binaries2LicenseHeaders.entrySet()) {
++            cluster2Module2BinaryHeader2Nested2Binary2Description.computeIfAbsent(entry.getValue().cluster, x -> new TreeMap<>())
++                                                                 .computeIfAbsent(entry.getValue().moduleName, x -> new TreeMap<>())
++                                                                 .computeIfAbsent(entry.getValue().licenseFilesHeaders.getOrDefault("Name", "Unknown") + " - " + entry.getValue().licenseFilesHeaders.getOrDefault("Version", "Unknown"), x -> new TreeMap<>())
++                                                                 .computeIfAbsent(entry.getValue().licenseFilesHeaders.containsKey("NestedName") ? entry.getValue().licenseFilesHeaders.getOrDefault("NestedName", "Unknown") + " - " + entry.getValue().licenseFilesHeaders.getOrDefault("NestedVersion", "Unknown") : "", x -> new TreeMap<>())
++                                                                 .put(entry.getKey(), entry.getValue());
++        }
++
++        dependencyWriter.println("Apache NetBeans");
++        for (Entry<String, Map<String, Map<String, Map<String, Map<String, BinaryDescription>>>>> clusterEntry : cluster2Module2BinaryHeader2Nested2Binary2Description.entrySet()) {
++            dependencyWriter.println(INDENT + "+ " + clusterEntry.getKey() + " (NetBeans cluster)");
++            for (Entry<String, Map<String, Map<String, Map<String, BinaryDescription>>>> moduleEntry : clusterEntry.getValue().entrySet()) {
++                dependencyWriter.println(INDENT + INDENT + "+ " + moduleEntry.getKey());
++                for (Entry<String, Map<String, Map<String, BinaryDescription>>> binaryHeaderEntry : moduleEntry.getValue().entrySet()) {
++                    dependencyWriter.println(INDENT + INDENT + INDENT + "+ " + binaryHeaderEntry.getKey());
++                    for (Entry<String, Map<String, BinaryDescription>> nestedEntry : binaryHeaderEntry.getValue().entrySet()) {
++                        if (nestedEntry.getKey().isEmpty()) {
++                            for (Entry<String, BinaryDescription> binaryEntry : nestedEntry.getValue().entrySet()) {
++                                dependencyWriter.println(INDENT + INDENT + INDENT + INDENT + "+ " + binaryEntry.getKey());
++                            }
++                        } else {
++                            dependencyWriter.println(INDENT + INDENT + INDENT + INDENT + "+ " + nestedEntry.getKey());
++                            for (Entry<String, BinaryDescription> binaryEntry : nestedEntry.getValue().entrySet()) {
++                                dependencyWriter.println(INDENT + INDENT + INDENT + INDENT + INDENT + "+ " + binaryEntry.getKey());
++                            }
++                        }
++                    }
++                }
++            }
++        }
++    }
++
++    private void postProcessBinaries2LicenseHeaders(Map<String, BinaryDescription> binaries2LicenseHeaders) throws IOException {
++        for (Iterator<Entry<String, BinaryDescription>> it = binaries2LicenseHeaders.entrySet().iterator(); it.hasNext(); ) {
++            Entry<String, BinaryDescription> entry = it.next();
++
++            if (entry.getKey().endsWith(".lastModified")) {
++                it.remove();
++            } else if (entry.getKey().endsWith(".license")) {
++                String prefix = entry.getKey().substring(0, entry.getKey().length() - ".license".length());
++                for (Entry<String, BinaryDescription> e : binaries2LicenseHeaders.entrySet()) {
++                    if (e.getKey().startsWith(prefix) && e.getKey().endsWith(".jar")) {
++                        entry.setValue(e.getValue());
++                        break;
++                    }
++                }
++            } else if (entry.getKey().equals("ide/modules/com-google-guava-failureaccess.jar")) {
++                File failureAccess = new File(nball, "ide/c.google.guava.failureaccess/external");
++                Set<String> hgFiles = VerifyLibsAndLicenses.findHgControlledFiles(failureAccess);
++                BinaryDescription ideFailureAccess = findBinary2LicenseHeaderMapping(hgFiles, failureAccess).values().iterator().next();
++                ideFailureAccess = new BinaryDescription(ideFailureAccess.cluster, "c.google.guava", ideFailureAccess.licenseFilesHeaders);
++                entry.setValue(ideFailureAccess);
++            }
++        }
++    }
++
+     private String getMaybeMissing(Map<String, String> headers, String headerName) {
+         if (headers.containsKey(headerName)) {
+             return headers.get(headerName);
+@@ -410,8 +502,8 @@ public class CreateLicenseSummary extends Task {
+         }
+     }
+ 
+-    private Map<Long, Map<String, String>> findCrc2LicenseHeaderMapping() throws IOException {
+-        Map<Long, Map<String, String>> crc2LicenseHeaders = new HashMap<>();
++    private Map<Long, BinaryDescription> findCrc2LicenseHeaderMapping() throws IOException {
++        Map<Long, BinaryDescription> crc2LicenseHeaders = new HashMap<>();
+ 
+         if (extraExternalDirectory != null) {
+             readLicenseHeadersFromDirectory(new File(extraExternalDirectory), crc2LicenseHeaders);
+@@ -426,33 +518,33 @@ public class CreateLicenseSummary extends Task {
+ 
+             readLicenseHeadersFromDirectory(d, crc2LicenseHeaders);
+         }
+-        
++
+ 
+         return crc2LicenseHeaders;
+     }
+ 
+-    private void readLicenseHeadersFromDirectory(File d, Map<Long, Map<String, String>> crc2LicenseHeaders) throws IOException {
++    private void readLicenseHeadersFromDirectory(File d, Map<Long, BinaryDescription> crc2LicenseHeaders) throws IOException {
+         Set<String> hgFiles = VerifyLibsAndLicenses.findHgControlledFiles(d);
+-        Map<String, Map<String, String>> binary2License = findBinary2LicenseHeaderMapping(hgFiles, d);
++        Map<String, BinaryDescription> binary2License = findBinary2LicenseHeaderMapping(hgFiles, d);
+         for (String n : hgFiles) {
+             if (!n.endsWith(".jar") && !n.endsWith(".zip") && !n.endsWith(".xml")
+                     && !n.endsWith(".js") && !n.endsWith(".dylib")) {
+                 continue;
+             }
+-            Map<String, String> headers = binary2License.get(n);
++            BinaryDescription headers = binary2License.get(n);
+             if (headers == null) {
+                 continue;
+             }
+-            
++
+             File f = new File(d, n);
+-            
++
+             try(InputStream is = new FileInputStream(f)) {
+                 crc2LicenseHeaders.put(computeCRC32(is), headers);
+             }
+             if (!n.endsWith(".jar") && !n.endsWith(".zip")) {
+                 continue;
+             }
+-            
++
+             try(ZipFile zf = new ZipFile(f)) {
+                 Enumeration<? extends ZipEntry> entries = zf.entries();
+                 while (entries.hasMoreElements()) {
+@@ -461,13 +553,20 @@ public class CreateLicenseSummary extends Task {
+                     if (!innerName.endsWith(".jar") && !innerName.endsWith(".zip") && !includeAllFiles) {
+                         continue;
+                     }
+-                    Map<String, String> nestedHeaders = binary2License.get(n + "!/" + innerName);
+-                    if (nestedHeaders == null) {
+-                        nestedHeaders = headers;
++                    BinaryDescription nestedBinary = binary2License.get(n + "!/" + innerName);
++                    if (nestedBinary == null) {
++                        nestedBinary = headers;
++                    } else {
++                        Map<String, String> newNestedHeaders = new HashMap<>(nestedBinary.licenseFilesHeaders);
++                        newNestedHeaders.put("NestedName", newNestedHeaders.get("Name"));
++                        newNestedHeaders.put("NestedVersion", newNestedHeaders.get("Version"));
++                        newNestedHeaders.put("Name", headers.licenseFilesHeaders.get("Name"));
++                        newNestedHeaders.put("Version", headers.licenseFilesHeaders.get("Version"));
++                        nestedBinary = new BinaryDescription(headers.cluster, headers.moduleName, newNestedHeaders);
+                     }
+-                    
++
+                     try(InputStream is = zf.getInputStream(entry)) {
+-                        crc2LicenseHeaders.put(computeCRC32(is), nestedHeaders);
++                        crc2LicenseHeaders.put(computeCRC32(is), nestedBinary);
+                     }
+                 }
+             }
+@@ -511,9 +610,9 @@ public class CreateLicenseSummary extends Task {
+         output.println();
+     }
+ 
+-    private Entry<Map<String, String>, Long> getHeaders(Map<Long, Map<String, String>> crc2License,
+-                                                        OpenInputStream in) throws IOException {
+-        Map<String, String> headers;
++    private Entry<BinaryDescription, Long> getHeaders(Map<Long, BinaryDescription> crc2License,
++                                                      OpenInputStream in) throws IOException {
++        BinaryDescription headers;
+         long crc;
+ 
+         try (InputStream is = in.open()) {
+@@ -556,8 +655,10 @@ public class CreateLicenseSummary extends Task {
+         return crc32.getValue();
+     }
+ 
+-    static Map<String, Map<String, String>> findBinary2LicenseHeaderMapping(Set<String> cvsFiles, File d) throws IOException {
+-        Map<String, Map<String, String>> binary2LicenseHeaders = new HashMap<>();
++    static Map<String, BinaryDescription> findBinary2LicenseHeaderMapping(Set<String> cvsFiles, File d) throws IOException {
++        Map<String, BinaryDescription> binary2LicenseHeaders = new HashMap<>();
++        String cluster = d.getParentFile().getParentFile().getName();
++        String moduleName = moduleName(d.getParentFile());
+         for (String n : cvsFiles) {
+             if (!n.endsWith("-license.txt")) {
+                 continue;
+@@ -577,14 +678,14 @@ public class CreateLicenseSummary extends Task {
+             String files = headers.remove("Files");
+             if (files != null) {
+                 for (String file : files.split("[, ]+")) {
+-                    binary2LicenseHeaders.put(file, headers);
++                    binary2LicenseHeaders.put(file, new BinaryDescription(cluster, moduleName, headers));
+                 }
+             } else {
+-                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".jar"), headers);
+-                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".zip"), headers);
+-                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".xml"), headers);
+-                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".js"), headers);
+-                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".dylib"), headers);
++                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".jar"), new BinaryDescription(cluster, moduleName, headers));
++                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".zip"), new BinaryDescription(cluster, moduleName, headers));
++                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".xml"), new BinaryDescription(cluster, moduleName, headers));
++                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".js"), new BinaryDescription(cluster, moduleName, headers));
++                binary2LicenseHeaders.put(n.replaceFirst("-license\\.txt$", ".dylib"), new BinaryDescription(cluster, moduleName, headers));
+             }
+             File notice = new File(d, n.replace("-license.txt", "-notice.txt"));
+             if (notice.canRead()) {
+@@ -601,7 +702,47 @@ public class CreateLicenseSummary extends Task {
+         return binary2LicenseHeaders;
+     }
+ 
+-    private void findBinaries(File d, Map<String, Map<String, String>> binaries2LicenseHeaders, Map<Long, Map<String, String>> crc2LicenseHeaders,
++    private static String moduleName(File moduleDirectory) throws IOException {
++        File manifestFile = new File(moduleDirectory, "manifest.mf");
++
++        if (manifestFile.canRead()) {
++            Manifest mf;
++
++            try (InputStream in = new FileInputStream(manifestFile)) {
++                mf = new Manifest(in);
++            }
++
++            String bundle = mf.getMainAttributes().getValue("OpenIDE-Module-Localizing-Bundle");
++
++            if (bundle != null) {
++                File bundleFile = new File(new File(moduleDirectory, "src"), bundle);
++
++                if (bundleFile.canRead()) {
++                    try (InputStream in = new FileInputStream(bundleFile)) {
++                        Properties props = new Properties();
++
++                        props.load(in);
++
++                        String name = props.getProperty("OpenIDE-Module-Name");
++
++                        if (name != null) {
++                            return name + " (" + moduleDirectory.getName() + ")";
++                        }
++                    }
++                }
++            }
++
++            String name = mf.getMainAttributes().getValue("OpenIDE-Module-Name");
++
++            if (name != null) {
++                return name + " (" + moduleDirectory.getName() + ")";
++            }
++        }
++
++        return moduleDirectory.getName(); //fallback
++    }
++
++    private void findBinaries(File d, Map<String, BinaryDescription> binaries2LicenseHeaders, Map<Long, BinaryDescription> crc2LicenseHeaders,
+             Map<Long, String> crc2Binary, String prefix, StringBuilder testBinariesAreUnique, List<String> ignoredPatterns) throws IOException {
+         if (prefix.length() > 1000) {
+             log("#170823: possible loop in " + prefix, Project.MSG_WARN);
+@@ -616,7 +757,7 @@ public class CreateLicenseSummary extends Task {
+             if (f.isDirectory()) {
+                 findBinaries(f, binaries2LicenseHeaders, crc2LicenseHeaders, crc2Binary, prefix + n + "/", testBinariesAreUnique, ignoredPatterns);
+             } else if (n.endsWith(".jar") || n.endsWith(".zip") || n.endsWith(".xml") || n.endsWith(".js") || n.endsWith(".dylib") || includeAllFiles) {
+-                Entry<Map<String, String>,Long> headersAndCRC = getHeaders(crc2LicenseHeaders, () -> new FileInputStream(f));
++                Entry<BinaryDescription,Long> headersAndCRC = getHeaders(crc2LicenseHeaders, () -> new FileInputStream(f));
+                 if (headersAndCRC != null) {
+                     String path = prefix + n;
+                     binaries2LicenseHeaders.put(path, headersAndCRC.getKey());
+@@ -644,4 +785,17 @@ public class CreateLicenseSummary extends Task {
+         }
+     }
+ 
++    public static final class BinaryDescription {
++
++        public final String cluster;
++        public final String moduleName;
++        public final Map<String, String> licenseFilesHeaders;
++
++        public BinaryDescription(String cluster, String moduleName, Map<String, String> licenseFilesHeaders) {
++            this.cluster = cluster;
++            this.moduleName = moduleName;
++            this.licenseFilesHeaders = licenseFilesHeaders;
++        }
++
++    }
+ }

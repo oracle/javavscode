@@ -77,8 +77,8 @@ export function launch(
         ideArgs.push('-J-Dnetbeans.logger.console=true');
     }
     ideArgs.push(`-J-Dnetbeans.extra.dirs="${clusterPath}"`)
-    if (env['netbeans.extra.options']) {
-        ideArgs.push(env['netbeans.extra.options']);
+    if (env['netbeans.extra.options']) {     
+        ideArgs.push(...env['netbeans.extra.options'].split(' '));
     }
     ideArgs.push(...extraArgs);
     
