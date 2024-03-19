@@ -63,7 +63,6 @@ import { asRanges, StatusMessageRequest, ShowStatusMessageParams, QuickPickReque
 import * as launchConfigurations from './launchConfigurations';
 import { createTreeViewService, TreeViewService, Visualizer } from './explorer';
 import { initializeRunConfiguration, runConfigurationProvider, runConfigurationNodeProvider, configureRunSettings, runConfigurationUpdateAll } from './runConfiguration';
-import { onDidTerminateSession } from './dbConfigurationProvider';
 import { InputStep, MultiStepInput } from './utils';
 import { PropertiesView } from './propertiesView/propertiesView';
 import { openJDKSelectionView } from './jdkDownloader';
@@ -1525,3 +1524,14 @@ class NetBeansConfigurationResolver implements vscode.DebugConfigurationProvider
         return config;
     }
 }
+
+function onDidTerminateSession(session: vscode.DebugSession): any {
+    const config = session.configuration;
+    if (config.env) {
+        const file = config.env["MICRONAUT_CONFIG_FILES"];
+        if (file) {
+            vscode.workspace.fs.delete(vscode.Uri.file(file));
+        }
+    }
+}
+
