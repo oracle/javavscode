@@ -1,0 +1,167 @@
+diff --git a/java/maven.model/nbproject/project.xml b/java/maven.model/nbproject/project.xml
+index fb79e8b0476f..6a671ce7c2ba 100644
+--- a/java/maven.model/nbproject/project.xml
++++ b/java/maven.model/nbproject/project.xml
+@@ -225,6 +225,7 @@
+                 <friend>org.netbeans.modules.maven.jaxws</friend>
+                 <friend>org.netbeans.modules.maven.osgi</friend>
+                 <friend>org.netbeans.modules.maven.persistence</friend>
++                <friend>org.netbeans.modules.maven.refactoring</friend>
+                 <friend>org.netbeans.modules.maven.repository</friend>
+                 <friend>org.netbeans.modules.maven.refactoring</friend>
+                 <friend>org.netbeans.modules.selenium.maven</friend>
+diff --git a/java/maven.refactoring/nbproject/project.xml b/java/maven.refactoring/nbproject/project.xml
+index 4e7b42e231c9..eb83e7325583 100644
+--- a/java/maven.refactoring/nbproject/project.xml
++++ b/java/maven.refactoring/nbproject/project.xml
+@@ -100,7 +100,7 @@
+                     <compile-dependency/>
+                     <run-dependency>
+                         <release-version>1</release-version>
+-                        <specification-version>1.26</specification-version>
++                        <specification-version>1.67</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+diff --git a/java/maven.refactoring/src/org/netbeans/modules/maven/refactoring/MavenRefactoringPlugin.java b/java/maven.refactoring/src/org/netbeans/modules/maven/refactoring/MavenRefactoringPlugin.java
+index e336fb8f558b..3e6f8b8b1a57 100644
+--- a/java/maven.refactoring/src/org/netbeans/modules/maven/refactoring/MavenRefactoringPlugin.java
++++ b/java/maven.refactoring/src/org/netbeans/modules/maven/refactoring/MavenRefactoringPlugin.java
+@@ -19,6 +19,7 @@
+ package org.netbeans.modules.maven.refactoring;
+ 
+ import java.io.IOException;
++import java.util.Arrays;
+ import java.util.concurrent.atomic.AtomicReference;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
+@@ -26,29 +27,48 @@
+ import javax.lang.model.element.TypeElement;
+ import org.netbeans.api.java.source.CancellableTask;
+ import org.netbeans.api.java.source.CompilationController;
++import org.netbeans.api.java.source.ElementHandle;
+ import org.netbeans.api.java.source.JavaSource;
+ import org.netbeans.api.java.source.TreePathHandle;
++import org.netbeans.api.project.FileOwnerQuery;
++import org.netbeans.api.project.Project;
+ import org.netbeans.modules.maven.indexer.api.RepositoryQueries;
+ import org.netbeans.modules.maven.indexer.api.RepositoryQueries.ClassUsage;
++import org.netbeans.modules.maven.model.ModelOperation;
++import static org.netbeans.modules.maven.model.Utilities.performPOMModelOperations;
++import org.netbeans.modules.maven.model.pom.POMModel;
++import org.netbeans.modules.maven.model.pom.Properties;
++import static org.netbeans.modules.maven.refactoring.MavenRefactoringPluginFactory.RUN_MAIN_CLASS;
+ import org.netbeans.modules.refactoring.api.Problem;
++import org.netbeans.modules.refactoring.api.RenameRefactoring;
+ import org.netbeans.modules.refactoring.api.WhereUsedQuery;
+ import org.netbeans.modules.refactoring.spi.RefactoringElementsBag;
+ import org.netbeans.modules.refactoring.spi.RefactoringPlugin;
++import org.openide.filesystems.FileObject;
++import org.openide.util.Exceptions;
+ 
+ class MavenRefactoringPlugin implements RefactoringPlugin {
+ 
+     private static final Logger LOG = Logger.getLogger(MavenRefactoringPlugin.class.getName());
+-    
++
++    private final RenameRefactoring refactoring;
+     private final WhereUsedQuery query;
+     private final TreePathHandle handle;
+ 
+     MavenRefactoringPlugin(WhereUsedQuery query, TreePathHandle handle) {
+         this.query = query;
+         this.handle = handle;
++        this.refactoring = null;
++    }
++
++    MavenRefactoringPlugin(RenameRefactoring refactoring, TreePathHandle handle) {
++        this.refactoring = refactoring;
++        this.handle = handle;
++        this.query = null;
+     }
+ 
+     @Override public Problem prepare(RefactoringElementsBag refactoringElements) {
+-        if (!query.getBooleanValue(WhereUsedQuery.FIND_REFERENCES)) {
++        if (query != null && !query.getBooleanValue(WhereUsedQuery.FIND_REFERENCES)) {
+             return null;
+         }
+         final AtomicReference<String> fqn = new AtomicReference<String>();
+@@ -73,6 +93,44 @@ class MavenRefactoringPlugin implements RefactoringPlugin {
+             }
+             @Override public void cancel() {}
+         };
++        
++        if (refactoring != null) {
++            ModelOperation<POMModel> renameMainClassProp = (final POMModel model) -> {
++                Properties pr = model.getProject().getProperties();
++                ElementHandle e = handle.getElementHandle();
++                if (e != null) {
++                    String oldName = e.getBinaryName();
++                    String newName = refactoring.getNewName();
++
++                    if (pr.getProperty(RUN_MAIN_CLASS) != null) {
++                        String oldProperty = pr.getProperty(RUN_MAIN_CLASS);
++                        if (oldProperty.equals(oldName)) {
++                            int lastIndex = oldName.lastIndexOf('.');
++                            String newPropertyValue = newName;
++                            if (lastIndex >= 0) {
++                                String packageName = oldName.substring(0, lastIndex + 1);
++                                newPropertyValue = packageName + newPropertyValue;
++                            }
++                            pr.setProperty(RUN_MAIN_CLASS, newPropertyValue);
++                        }
++                    }
++                }
++            };
++
++            try {
++                FileObject fo = handle.getFileObject();
++                Project p = FileOwnerQuery.getOwner(fo);
++                final FileObject pom = p.getProjectDirectory().getFileObject("pom.xml"); // NOI18N
++                pom.getFileSystem().runAtomicAction(() -> {
++                    performPOMModelOperations(pom, Arrays.asList(renameMainClassProp));
++                });
++            } catch (IOException ex) {
++                Exceptions.printStackTrace(ex);
++            }
++
++            return null;
++        }
++
+         JavaSource source = JavaSource.forFileObject(handle.getFileObject());
+         if (source != null) {
+             try {
+diff --git a/java/maven.refactoring/src/org/netbeans/modules/maven/refactoring/MavenRefactoringPluginFactory.java b/java/maven.refactoring/src/org/netbeans/modules/maven/refactoring/MavenRefactoringPluginFactory.java
+index eef40cb62b61..a5ce1597dbc5 100644
+--- a/java/maven.refactoring/src/org/netbeans/modules/maven/refactoring/MavenRefactoringPluginFactory.java
++++ b/java/maven.refactoring/src/org/netbeans/modules/maven/refactoring/MavenRefactoringPluginFactory.java
+@@ -29,6 +29,7 @@
+ import org.netbeans.modules.maven.api.NbMavenProject;
+ import org.netbeans.modules.refactoring.api.AbstractRefactoring;
+ import org.netbeans.modules.refactoring.api.WhereUsedQuery;
++import org.netbeans.modules.refactoring.api.RenameRefactoring;
+ import org.netbeans.modules.refactoring.spi.RefactoringPlugin;
+ import org.netbeans.modules.refactoring.spi.RefactoringPluginFactory;
+ import org.openide.filesystems.FileObject;
+@@ -39,8 +40,21 @@
+ public class MavenRefactoringPluginFactory implements RefactoringPluginFactory {
+ 
+     private static final Logger LOG = Logger.getLogger(MavenRefactoringPluginFactory.class.getName());
++    public static final String RUN_MAIN_CLASS = "exec.mainClass";
+ 
+     @Override public RefactoringPlugin createInstance(AbstractRefactoring refactoring) {
++        if (refactoring instanceof RenameRefactoring) {
++            TreePathHandle handle = refactoring.getRefactoringSource().lookup(TreePathHandle.class);
++            if (handle != null && handle.getKind() == Tree.Kind.CLASS) {
++                FileObject fo = handle.getFileObject();
++                Project p = FileOwnerQuery.getOwner(fo);
++                if (p != null && p.getLookup().lookup(NbMavenProject.class) != null) {
++                    LOG.log(Level.FINE, "Renaming {0} field in a project pom.xml", RUN_MAIN_CLASS);
++                    return new MavenRefactoringPlugin((RenameRefactoring) refactoring, handle);
++                }
++                return null;
++            }
++        } 
+         if (!(refactoring instanceof WhereUsedQuery)) {
+             return null;
+         }
