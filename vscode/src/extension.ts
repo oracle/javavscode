@@ -63,7 +63,6 @@ import { asRanges, StatusMessageRequest, ShowStatusMessageParams, QuickPickReque
 import * as launchConfigurations from './launchConfigurations';
 import { createTreeViewService, TreeViewService, Visualizer } from './explorer';
 import { initializeRunConfiguration, runConfigurationProvider, runConfigurationNodeProvider, configureRunSettings, runConfigurationUpdateAll } from './runConfiguration';
-import { onDidTerminateSession } from './dbConfigurationProvider';
 import { InputStep, MultiStepInput } from './utils';
 import { PropertiesView } from './propertiesView/propertiesView';
 import { openJDKSelectionView } from './jdkDownloader';
@@ -167,6 +166,7 @@ export function awaitClient() : Promise<NbLanguageClient> {
 
 function findJDK(onChange: (path : string | null) => void): void {
     let nowDark : boolean = isDarkColorTheme();
+    let nowNbJavacDisabled : boolean = isNbJavacDisabled();
     function find(): string | null {
         let nbJdk = workspace.getConfiguration('jdk').get('jdkhome');
         if (nbJdk) {
@@ -210,9 +210,11 @@ function findJDK(onChange: (path : string | null) => void): void {
             timeout = undefined;
             let newJdk = find();
             let newD = isDarkColorTheme();
-            if (newJdk !== currentJdk || newD != nowDark) {
+            let newNbJavacDisabled = isNbJavacDisabled();
+            if (newJdk !== currentJdk || newD != nowDark || newNbJavacDisabled != nowNbJavacDisabled) {
                 nowDark = newD;
                 currentJdk = newJdk;
+                nowNbJavacDisabled = newNbJavacDisabled;
                 onChange(currentJdk);
             }
         }, 0);
@@ -491,6 +493,29 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             throw `Client ${c} doesn't support go to test`;
         }
     }));
+
+    context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".delete.cache", async () => {
+        const storagePath = context.storageUri?.fsPath;
+        if(!storagePath){
+            vscode.window.showErrorMessage('Cannot find workspace path');
+            return;
+        }
+        const userDir = path.join(storagePath, "userdir");
+        if (userDir && fs.existsSync(userDir)) {
+            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace?',
+                'Yes', 'Cancel');
+            if (confirmation === 'Yes') {
+                await fs.promises.rmdir(userDir, {recursive : true});
+                const res = await vscode.window.showInformationMessage('Cache cleared successfully for this workspace', 'Reload window');
+                if (res === 'Reload window') {
+                    await vscode.commands.executeCommand('workbench.action.reloadWindow');
+                }
+            }
+        } else {
+            vscode.window.showErrorMessage('Cannot find userdir path');
+        }
+    }));
+
     context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".download.jdk", async () => { openJDKSelectionView(log); }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.compile', () =>
         wrapCommandWithProgress(COMMAND_PREFIX + '.build.workspace', 'Compiling workspace...', log, true)
@@ -814,6 +839,10 @@ function isDarkColorTheme() : boolean {
     return false;
 }
 
+function isNbJavacDisabled() : boolean {
+    return workspace.getConfiguration('jdk')?.get('advanced.disable.nbjavac') as boolean;
+}
+
 function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContext, log : vscode.OutputChannel, notifyKill: boolean,
     setClient : [(c : NbLanguageClient) => void, (err : any) => void]
 ): void {
@@ -842,12 +871,22 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
             // assume storage is path on disk
     }
 
+    let disableModules : string[] = [];
+    let enableModules : string[] = [];
+    if (isNbJavacDisabled()) {
+        disableModules.push('org.netbeans.libs.nbjavacapi');
+    } else {
+        enableModules.push('org.netbeans.libs.nbjavacapi');
+    }
+
     let info = {
         clusters : findClusters(context.extensionPath),
         extensionPath: context.extensionPath,
         storagePath : userdir,
         jdkHome : specifiedJDK,
-        verbose: beVerbose
+        verbose: beVerbose,
+        disableModules : disableModules,
+        enableModules : enableModules,
     };
 
     let launchMsg = `Launching ${SERVER_NAME} with ${specifiedJDK ? specifiedJDK : 'default system JDK'} and userdir ${userdir}`;
@@ -1293,38 +1332,51 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
     function checkInstallNbJavac(msg : string) {
         const NO_JAVA_SUPPORT = "Cannot initialize Java support";
         if (msg.startsWith(NO_JAVA_SUPPORT)) {
-            const yes = "Install GPLv2+CPEx code";
-            window.showErrorMessage("Additional Java Support is needed", yes).then(reply => {
-                if (yes === reply) {
-                    vscode.window.setStatusBarMessage(`Preparing ${SERVER_NAME} for additional installation`, 2000);
-                    restartWithJDKLater = function() {
-                        handleLog(log, `Ignoring request for restart of ${SERVER_NAME}`);
-                    };
-                    maintenance = new Promise((resolve, reject) => {
-                        const kill : Promise<void> = killNbProcess(false, log);
-                        kill.then(() => {
-                            let installProcess = launcher.launch(info, "-J-Dnetbeans.close=true", "--modules", "--install", ".*nbjavac.*");
-                            handleLog(log, "Launching installation process: " + installProcess.pid);
-                            let logData = function(d: any) {
-                                handleLogNoNL(log, d.toString());
-                            };
-                            installProcess.stdout.on('data', logData);
-                            installProcess.stderr.on('data', logData);
-                            installProcess.addListener("error", reject);
-                            // MUST wait on 'close', since stdout is inherited by children. The installProcess dies but
-                            // the inherited stream will be closed by the last child dying.
-                            installProcess.on('close', function(code: number) {
-                                handleLog(log, "Installation completed: " + installProcess.pid);
-                                handleLog(log, "Additional Java Support installed with exit code " + code);
-                                // will be actually run after maintenance is resolve()d.
-                                activateWithJDK(specifiedJDK, context, log, notifyKill)
-                                resolve();
+            if (isNbJavacDisabled()) {
+                const message = "Supported version of javac needed. Please either enable the nb-javac library, or use JDK 22+";
+                const enable = "Enable the nb-javac library";
+                const settings = "Open settings";
+                window.showErrorMessage(message, enable, settings).then(reply => {
+                    if (enable === reply) {
+                        workspace.getConfiguration().update('jdk.advanced.disable.nbjavac', false);
+                    } else if (settings === reply) {
+                        vscode.commands.executeCommand('workbench.action.openSettings', 'jdk.jdkhome');
+                    }
+                });
+            } else {
+                const yes = "Install GPLv2+CPEx code";
+                window.showErrorMessage("Additional Java Support is needed", yes).then(reply => {
+                    if (yes === reply) {
+                        vscode.window.setStatusBarMessage(`Preparing ${SERVER_NAME} for additional installation`, 2000);
+                        restartWithJDKLater = function() {
+                            handleLog(log, `Ignoring request for restart of ${SERVER_NAME}`);
+                        };
+                        maintenance = new Promise((resolve, reject) => {
+                            const kill : Promise<void> = killNbProcess(false, log);
+                            kill.then(() => {
+                                let installProcess = launcher.launch(info, "-J-Dnetbeans.close=true", "--modules", "--install", ".*nbjavac.*");
+                                handleLog(log, "Launching installation process: " + installProcess.pid);
+                                let logData = function(d: any) {
+                                    handleLogNoNL(log, d.toString());
+                                };
+                                installProcess.stdout.on('data', logData);
+                                installProcess.stderr.on('data', logData);
+                                installProcess.addListener("error", reject);
+                                // MUST wait on 'close', since stdout is inherited by children. The installProcess dies but
+                                // the inherited stream will be closed by the last child dying.
+                                installProcess.on('close', function(code: number) {
+                                    handleLog(log, "Installation completed: " + installProcess.pid);
+                                    handleLog(log, "Additional Java Support installed with exit code " + code);
+                                    // will be actually run after maintenance is resolve()d.
+                                    activateWithJDK(specifiedJDK, context, log, notifyKill)
+                                    resolve();
+                                });
+                                return installProcess;
                             });
-                            return installProcess;
                         });
-                    });
-                }
-            });
+                    }
+                });
+            }
         }
     }
 }
@@ -1525,3 +1577,14 @@ class NetBeansConfigurationResolver implements vscode.DebugConfigurationProvider
         return config;
     }
 }
+
+function onDidTerminateSession(session: vscode.DebugSession): any {
+    const config = session.configuration;
+    if (config.env) {
+        const file = config.env["MICRONAUT_CONFIG_FILES"];
+        if (file) {
+            vscode.workspace.fs.delete(vscode.Uri.file(file));
+        }
+    }
+}
+
