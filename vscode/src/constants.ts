@@ -18,17 +18,9 @@ export const JDK_RELEASES_TRACK_URL = `https://www.java.com/releases/releases.js
 
 export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java/`;
 
-export const ORACLE_JDK_VERSION_FALLBACK_DOWNLOAD_VERSIONS = {
-  latestVersion :{
-    version: '21.0.2',
-    family: '21'
-  },
-  latestLtsVersion :{
-    version: '17.0.10',
-    family: '17'
-  },
-};
+export const ORACLE_JDK_DOWNLOAD_VERSIONS = ['22','21','17'];
 
 export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-  "21.0.2": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2"
+  "22": "https://download.java.net/java/GA/jdk22/830ec9fcccef480bb3e73fb7ecafe059/36/GPL/openjdk-22",
+  "21": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2"
 };
