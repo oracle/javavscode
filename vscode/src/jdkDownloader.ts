@@ -22,12 +22,15 @@ import * as https from 'https';
 import * as child_process from 'child_process';
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
-import { JDK_RELEASES_TRACK_URL, OPEN_JDK_VERSION_DOWNLOAD_LINKS, ORACLE_JDK_BASE_DOWNLOAD_URL, ORACLE_JDK_VERSION_FALLBACK_DOWNLOAD_VERSIONS } from './constants';
 import { handleLog } from './extension';
 import { promisify } from 'util';
+import * as glob from 'glob';
 
 let customView: vscode.WebviewPanel;
 let logger: vscode.OutputChannel;
+let jdkConfContent: any;
+const JDK_DOWNLOADER_CONF_FILE_PATH = "https://raw.githubusercontent.com/oracle/javavscode/main/vscode/src/jdkDownloaderManagement.json";
+
 
 export const calculateChecksum = async (filePath: string): Promise<string> => {
   const ALGORITHM = 'sha256';
@@ -73,36 +76,13 @@ export const fetchDropdownOptions = async () => {
   // Fetch version of the JDK available
   let versions;
   try {
-    const response = await axios.get(JDK_RELEASES_TRACK_URL, { data: { ResponseType: 'document' }, timeout: 3500 });
-    versions = filterLatestJDKVersionsAvail(response.data.data.releases);
-  } catch (error) {
-    versions = ORACLE_JDK_VERSION_FALLBACK_DOWNLOAD_VERSIONS;
-    handleLog(logger, "Using fallback versions for oracle JDK");
+    const res = await axios.get(JDK_DOWNLOADER_CONF_FILE_PATH, { timeout: 4000 });
+    versions = await res.data;
+  } catch (err: any) {
+    vscode.window.showErrorMessage("Error fetching JDK download versions");
+    handleLog(logger, err?.messge);
   }
-
   return { machineArch, osType, versions };
-}
-
-const filterLatestJDKVersionsAvail = (json: Array<any>) => {
-  const deliveredVersions = json.filter(release => release.status == "delivered");
-
-  const sortedVersionWise = deliveredVersions.sort((a, b) => parseInt(b.family) - parseInt(a.family));
-  const latestVersion = sortedVersionWise[0];
-
-  const ltsVersions = deliveredVersions.filter(release => {
-    if (release.type === "Feature") {
-      const dateDiff: number = new Date(release.eosl).getFullYear() - new Date(release.ga).getFullYear();
-      return dateDiff > 5;
-    }
-    return false;
-  });
-
-  let latestLtsVersion = sortedVersionWise.filter(release => release.family === ltsVersions[0].family)[0];
-  if (latestLtsVersion.family == latestVersion.family) {
-    latestLtsVersion = sortedVersionWise.filter(release => release.family === ltsVersions[1].family)[0];
-  }
-
-  return { latestVersion, latestLtsVersion }
 }
 
 export async function openJDKSelectionView(log: vscode.OutputChannel) {
@@ -118,6 +98,7 @@ export async function openJDKSelectionView(log: vscode.OutputChannel) {
   );
   logger = log;
   const { machineArch, osType, versions } = await fetchDropdownOptions();
+  jdkConfContent = versions;
   customView.webview.html = fetchJDKDownloadView(machineArch, osType, versions);
 
   customView.webview.onDidReceiveMessage(async message => {
@@ -132,7 +113,7 @@ export async function openJDKSelectionView(log: vscode.OutputChannel) {
           return;
         }
 
-        vscode.window.showInformationMessage(`Downloading and completing setup of ${jdkType} ${jdkVersion.split('.')[0]}...`);
+        vscode.window.showInformationMessage(`Downloading and completing setup of ${jdkType} ${jdkVersion}...`);
         JDKDownloader(jdkType, jdkOS, jdkArch, jdkVersion, installationPath);
       }
     }
@@ -143,22 +124,13 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
   let downloadUrl: string = '';
 
   // Generate download url on the basis of the jdk type chosen
-  if (JDKType === 'OpenJDK') {
-    if (osType === 'windows') {
-      downloadUrl = `${OPEN_JDK_VERSION_DOWNLOAD_LINKS[`${JDKVersion}`]}_${osType.toLowerCase()}-${osArchitecture}_bin.zip`;
-    }
-    else {
-      downloadUrl = `${OPEN_JDK_VERSION_DOWNLOAD_LINKS[`${JDKVersion}`]}_${osType.toLowerCase()}-${osArchitecture}_bin.tar.gz`;
-    }
+  const { baseDownloadUrl } = JDKType === 'OpenJDK' ? jdkConfContent.openJdk[`${JDKVersion}`] : jdkConfContent.oracleJdk[`${JDKVersion}`];
+
+  if (osType === 'windows') {
+    downloadUrl = `${baseDownloadUrl}_${osType.toLowerCase()}-${osArchitecture}_bin.zip`;
   }
-  else if (JDKType === 'Oracle JDK') {
-    const baseVersion = JDKVersion.split('.')[0];
-    if (osType === 'windows') {
-      downloadUrl = `${ORACLE_JDK_BASE_DOWNLOAD_URL}/${baseVersion}/latest/jdk-${baseVersion}_${osType.toLowerCase()}-${osArchitecture}_bin.zip`;
-    }
-    else {
-      downloadUrl = `${ORACLE_JDK_BASE_DOWNLOAD_URL}/${baseVersion}/latest/jdk-${baseVersion}_${osType.toLowerCase()}-${osArchitecture}_bin.tar.gz`;
-    }
+  else {
+    downloadUrl = `${baseDownloadUrl}_${osType.toLowerCase()}-${osArchitecture}_bin.tar.gz`;
   }
 
   // Define the target directory and file name
@@ -215,17 +187,25 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
 }
 
 export async function extractJDK(jdkTarballPath: string, extractionTarget: string, jdkVersion: string, osType: string, jdkType: string): Promise<void> {
-  // Extract jdk binaries in a temp folder
   const downloadedDir = path.join(__dirname, 'jdk_downloads');
+
+  // Remove already present version of a particular JDK from temp dir
+  const oldTempExtractedDirs = glob.sync(`jdk-${jdkVersion}*`, { cwd: downloadedDir });
+  for await (const oldDirName of oldTempExtractedDirs) {
+    await fs.promises.rmdir(path.join(downloadedDir, oldDirName), { recursive: true });
+  }
+
+  // Extract jdk binaries in a temp folder
   const extractCommand = `tar -xzf "${jdkTarballPath}" -C ${downloadedDir}`;
-  const tempDirName = `jdk-${jdkVersion}${osType === 'macOS' ? '.jdk' : ''}`;
-  const tempDirectoryPath = path.join(downloadedDir, tempDirName);
+  let tempDirectoryPath: string | null = null;
   let newDirectoryPath: string | null = null;
 
   child_process.exec(extractCommand, async (error) => {
     if (error) {
       vscode.window.showErrorMessage('Error: ' + error);
     } else {
+      const tempDirName = glob.sync(`jdk-${jdkVersion}*`, { cwd: downloadedDir })?.[0];
+      tempDirectoryPath = path.join(downloadedDir, tempDirName);
       // If directory with same name is present in the user selected download location then ask user if they want to delete it or not? 
       const newDirName = `${jdkType.split(' ').join('_')}-${jdkVersion}`;
       newDirectoryPath = await handleJdkPaths(newDirName, extractionTarget, osType);
@@ -247,7 +227,7 @@ export async function extractJDK(jdkTarballPath: string, extractionTarget: strin
       if (err) {
         vscode.window.showErrorMessage("Error: " + err);
       } else {
-        if (fs.existsSync(tempDirectoryPath)) {
+        if (tempDirectoryPath && fs.existsSync(tempDirectoryPath)) {
           await fs.promises.rmdir(tempDirectoryPath, { recursive: true });
         }
         if (newDirectoryPath !== null) {
@@ -421,7 +401,7 @@ export const fetchJDKDownloadView = (machineArch: string, osType: string, versio
   </style>
   <body>
     <h1>JDK Downloader</h1>
-    <p>This tool enables you to download either the Oracle Java SE JDK with <a href="https://www.java.com/freeuselicense"> Oracle No-Fee Terms and Conditions</a> or the Oracle OpenJDK builds under the <a href="http://openjdk.org/legal/gplv2+ce.html">GNU Public License with ClassPath Exception</a>.
+    <p>This tool enables you to download either the latest Oracle Java SE JDK with <a href="https://www.java.com/freeuselicense"> Oracle No-Fee Terms and Conditions</a> or the Oracle OpenJDK builds under the <a href="http://openjdk.org/legal/gplv2+ce.html">GNU Public License with ClassPath Exception</a>.
     It will then handle the installation and configuration on your behalf.</p>
     <p>This enables you to take full advantage of all the features offered by this extension.</p>
     <br>
@@ -438,8 +418,12 @@ export const fetchJDKDownloadView = (machineArch: string, osType: string, versio
         <br />
         <div class="jdk-version-dropdown">
           <select id="oracleJDKVersionDropdown">
-            <option value="${versions.latestVersion.version}" default>JDK ${versions.latestVersion.family}(${versions.latestVersion.version})</option>
-            <option value="${versions.latestLtsVersion.version}">JDK ${versions.latestLtsVersion.family}(${versions.latestLtsVersion.version})</option>   
+          ${Object.keys(versions.oracleJdk).sort((a, b) => parseFloat(b)-parseFloat(a)).map((el, index) => {
+    if (index === 0) {
+      return `<option value=${el} default>JDK ${el}</option>`
+    }
+    return `<option value=${el}>JDK ${el}</option>`
+  })}
           </select>
         </div>
       </div>
@@ -474,11 +458,11 @@ export const fetchJDKDownloadView = (machineArch: string, osType: string, versio
         <br />
         <div class="jdk-version-dropdown">
           <select id="openJDKVersionDropdown">
-            ${Object.keys(OPEN_JDK_VERSION_DOWNLOAD_LINKS).map((el, index) => {
+            ${Object.keys(versions.openJdk).sort((a, b) => parseFloat(b)-parseFloat(a)).map((el, index) => {
     if (index === 0) {
-      return `<option value=${el} default>JDK ${el.split('.')[0]}(${el})</option>`
+      return `<option value=${el} default>JDK ${el}</option>`
     }
-    return `<option value=${el}>JDK ${el.split('.')[0]}(${el})</option>`
+    return `<option value=${el}>JDK ${el}</option>`
   })}
           </select>
         </div>
