@@ -1,0 +1,62 @@
+diff --git a/java/maven.hints/src/org/netbeans/modules/maven/hints/pom/ParentVersionError.java b/java/maven.hints/src/org/netbeans/modules/maven/hints/pom/ParentVersionError.java
+index 65bd4dfd502d..c0cfcfc93c84 100644
+--- a/java/maven.hints/src/org/netbeans/modules/maven/hints/pom/ParentVersionError.java
++++ b/java/maven.hints/src/org/netbeans/modules/maven/hints/pom/ParentVersionError.java
+@@ -40,6 +40,7 @@
+ import org.netbeans.modules.maven.indexer.api.RepositoryQueries.Result;
+ import org.netbeans.modules.maven.model.pom.POMModel;
+ import org.netbeans.modules.maven.model.pom.Parent;
++import org.netbeans.modules.maven.model.pom.Properties;
+ import org.netbeans.modules.xml.xam.Model;
+ import org.netbeans.spi.editor.hints.ChangeInfo;
+ import org.netbeans.spi.editor.hints.ErrorDescription;
+@@ -108,6 +109,15 @@ public List<ErrorDescription> getErrorsForDocument(POMModel model, Project prj)
+                         NbMavenProject nbprj = parentPrj.getLookup().lookup(NbMavenProject.class);
+                         if (nbprj != null) { //do we have some non-maven project maybe?
+                             MavenProject mav = nbprj.getMavenProject();
++                            if (PomModelUtils.isPropertyExpression(declaredVersion)) {
++                                String propVal = PomModelUtils.getProperty(model, declaredVersion);
++                                if (propVal != null) {
++                                    declaredVersion = propVal;
++                                } else {
++                                    String key = PomModelUtils.getPropertyName(declaredVersion);
++                                    declaredVersion = mav.getProperties().getProperty(key, declaredVersion);
++                                }
++                            }
+                             //#167711 check the coordinates to filter out parents in non-default location without relative-path elemnt
+                             if (parGr.equals(mav.getGroupId()) &&
+                                 parArt.equals(mav.getArtifactId())) {
+diff --git a/java/maven.hints/test/unit/src/org/netbeans/modules/maven/hints/pom/ParentVersionErrorTest.java b/java/maven.hints/test/unit/src/org/netbeans/modules/maven/hints/pom/ParentVersionErrorTest.java
+index 29a75a5398fa..e3524d091ef5 100644
+--- a/java/maven.hints/test/unit/src/org/netbeans/modules/maven/hints/pom/ParentVersionErrorTest.java
++++ b/java/maven.hints/test/unit/src/org/netbeans/modules/maven/hints/pom/ParentVersionErrorTest.java
+@@ -86,5 +86,28 @@ public void testSpecialRelativePath() throws Exception { // #194281
+         Project prj = ProjectManager.getDefault().findProject(pom.getParent());
+         assertEquals(Collections.<ErrorDescription>emptyList(), new ParentVersionError().getErrorsForDocument(model, prj));
+     }
+-
++    
++    public void testVariablePresentInVersion() throws Exception { // #194281
++        TestFileUtils.writeFile(work, "pom.xml", "<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'>\n" +
++                "    <modelVersion>4.0.0</modelVersion>\n" +
++                "    <groupId>grp</groupId>\n" +
++                "    <artifactId>common</artifactId>\n" +
++                "    <version>${revision}</version>\n" +
++                "    <properties>\n" +
++                "       <revision>1.1</revision>\n" +
++                "    </properties>\n" +
++                "</project>\n");
++        FileObject pom = TestFileUtils.writeFile(work, "prj/pom.xml", "<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'>\n" +
++                "    <modelVersion>4.0.0</modelVersion>\n" +
++                "    <parent>\n" +
++                "        <groupId>grp</groupId>\n" +
++                "        <artifactId>common</artifactId>\n" +
++                "        <version>${revision}</version>\n" +
++                "    </parent>\n" +
++                "    <artifactId>prj</artifactId>\n" +
++                "</project>\n");
++        POMModel model = POMModelFactory.getDefault().getModel(Utilities.createModelSource(pom));
++        Project prj = ProjectManager.getDefault().findProject(pom.getParent());
++        assertEquals(Collections.<ErrorDescription>emptyList(), new ParentVersionError().getErrorsForDocument(model, prj));
++    }
+ }
