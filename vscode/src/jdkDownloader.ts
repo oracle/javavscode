@@ -24,7 +24,6 @@ import * as vscode from 'vscode';
 import * as crypto from 'crypto';
 import { handleLog } from './extension';
 import { promisify } from 'util';
-import * as glob from 'glob';
 
 let customView: vscode.WebviewPanel;
 let logger: vscode.OutputChannel;
@@ -190,8 +189,9 @@ export async function extractJDK(jdkTarballPath: string, extractionTarget: strin
   const downloadedDir = path.join(__dirname, 'jdk_downloads');
 
   // Remove already present version of a particular JDK from temp dir
-  const oldTempExtractedDirs = glob.sync(`jdk-${jdkVersion}*`, { cwd: downloadedDir });
-  for await (const oldDirName of oldTempExtractedDirs) {
+  const oldDirs = await fs.promises.readdir(downloadedDir);
+  const matchingOldDirs = oldDirs.filter(file => file.startsWith(`jdk-${jdkVersion}`));
+  for await (const oldDirName of matchingOldDirs) {
     await fs.promises.rmdir(path.join(downloadedDir, oldDirName), { recursive: true });
   }
 
@@ -204,7 +204,9 @@ export async function extractJDK(jdkTarballPath: string, extractionTarget: strin
     if (error) {
       vscode.window.showErrorMessage('Error: ' + error);
     } else {
-      const tempDirName = glob.sync(`jdk-${jdkVersion}*`, { cwd: downloadedDir })?.[0];
+      const dirsPresent = await fs.promises.readdir(downloadedDir);
+      const matchingJdkDir = dirsPresent.filter(file => file.startsWith(`jdk-${jdkVersion}`));
+      const tempDirName = matchingJdkDir[0] || "";
       tempDirectoryPath = path.join(downloadedDir, tempDirName);
       // If directory with same name is present in the user selected download location then ask user if they want to delete it or not? 
       const newDirName = `${jdkType.split(' ').join('_')}-${jdkVersion}`;
