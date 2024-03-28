@@ -24,6 +24,31 @@
 -->
 
 <!-- This file has been modified for Oracle Java SE extension -->
+## Version 22.0.0 (April 28th, 2024)
+### What's Changed
+
+### Enhancements
+* [JAVAVSCODE-9] Disable hints according to user preference https://github.com/apache/netbeans/pull/6760
+* [JAVAVSCODE-110] Added option to delete workspace cache with respect to oracle java extension https://github.com/oracle/javavscode/pull/124
+* [JAVAVSCODE-123] Update to NetBeans 21 and JDK 22 javac support https://github.com/oracle/javavscode/pull/128
+* [JAVAVSCODE-131] Added JDK 22 GA download option in JDK downloader https://github.com/oracle/javavscode/pull/133
+* Adding an advanced option to disable the embedded nb-javac, hence use javac from the JDK https://github.com/oracle/javavscode/pull/130
+* Bump up axios 1.6.0 to 1.6.8 https://github.com/oracle/javavscode/pull/127
+* Bump up @vscode/debugadapter from 1.55.1 to 1.65.0 https://github.com/oracle/javavscode/pull/135
+
+### Bugs
+* [JAVAVSCODE-29] vscode reports a need to upgrade Gradle to an earlier version for JDK-21 https://github.com/apache/netbeans/pull/6807
+* [JAVAVSCODE-30] Fixed refactoring of pom.xml as well on renaming class name https://github.com/oracle/javavscode/pull/120
+* [JAVAVSCODE-95] Fixed false error thrown if parent pom version uses variable https://github.com/oracle/javavscode/pull/125
+* Fix readme urls vscode https://github.com/oracle/javavscode/pull/121
+
+### Other Changes
+* [JAVAVSCODE-137] Updated Third party licenses related to Node JS third party dependencies https://github.com/oracle/javavscode/pull/138
+* Removing (unused) DB support from netbeans side https://github.com/oracle/javavscode/pull/112
+* Removed db support from frontend as well https://github.com/oracle/javavscode/pull/129
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v1.0.1...v22
+
 ## Version 1.0.1 (February 22nd, 2024)
 ### What’s Changed
 
