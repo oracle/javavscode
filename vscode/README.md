@@ -127,6 +127,11 @@ Go to VSCode `View | Command Palette | Preferences:Open User Settings | Extensio
 
 Please refer to [Java formatting preferences](https://github.com/oracle/javavscode/wiki/Java-formatting-preferences) wiki for more info.
 
+## Hints Preferences
+Easily update default hint preferences by adjusting a simple configuration option to tailor hint preferences to specific needs.
+
+Go to VSCode `View | Command Palette | Preferences:Open User Settings | Extensions | Java`  and set `Jdk › Hints: Preferences:` option to the xml hint preferences file.
+
 ## Organize Imports
 Out of the box support for organizing imports in Java sources is available. It removes unused imports, groups imports by packages and updates your imports whenever a file is saved. In addition to the defaults, there is a rich set of configuration options. 
 
@@ -163,6 +168,9 @@ following locations:
 - current system path
 
 As soon as one of the settings is changed, the Language Server is restarted.
+
+## Disable the embedded nb-javac and use javac from the JDK
+`View | Command Palette | Preferences:Open User Settings | Jdk > Advanced > Disable: Nbjavac` setting facilitates simpler experimentation with early access JDK builds. JDK early access builds can be specified in `jdk.jdkhome`, and nb-javac can be disabled, ensuring that the extension utilizes the javac from the early access build.
 
 ## Running Language Server per VSCode workspace or for user
 It is possible to run Oracle Java Platform extension per workspace (VSCode window). This allows separation of Language Server for given project as Language Server JVM is not shared for more VSCode open workspaces (projects).
