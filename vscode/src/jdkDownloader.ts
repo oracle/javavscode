@@ -403,7 +403,7 @@ export const fetchJDKDownloadView = (machineArch: string, osType: string, versio
   </style>
   <body>
     <h1>JDK Downloader</h1>
-    <p>This tool enables you to download either the latest Oracle Java SE JDK with <a href="https://www.java.com/freeuselicense"> Oracle No-Fee Terms and Conditions</a> or the Oracle OpenJDK builds under the <a href="http://openjdk.org/legal/gplv2+ce.html">GNU Public License with ClassPath Exception</a>.
+    <p>This tool enables you to download either the latest Oracle Java SE JDK with <a href="https://www.java.com/freeuselicense"> Oracle No-Fee Terms and Conditions</a> or the Oracle OpenJDK builds under the <a href="https://openjdk.org/legal/gplv2+ce.html">GNU Public License with ClassPath Exception</a>.
     It will then handle the installation and configuration on your behalf.</p>
     <p>This enables you to take full advantage of all the features offered by this extension.</p>
     <br>
