@@ -32,7 +32,8 @@
 * [JAVAVSCODE-110] Added option to delete workspace cache with respect to oracle java extension https://github.com/oracle/javavscode/pull/124
 * [JAVAVSCODE-123] Update to NetBeans 21 and JDK 22 features support https://github.com/oracle/javavscode/pull/128
 * [JAVAVSCODE-131] Added JDK 22 GA download option in JDK downloader https://github.com/oracle/javavscode/pull/133
-* Option to work with JDK 23 ea by disabling javac bundled with Netbeans https://github.com/oracle/javavscode/pull/130
+* [JAVAVSCODE-146] Rename "Java Platform Support" as "Java" https://github.com/oracle/javavscode/pull/147
+* Option to work with JDK 23 early access by disabling javac bundled with Netbeans https://github.com/oracle/javavscode/pull/130
 * Bump up axios 1.6.0 to 1.6.8 https://github.com/oracle/javavscode/pull/127
 * Bump up @vscode/debugadapter from 1.55.1 to 1.65.0 https://github.com/oracle/javavscode/pull/135
 
