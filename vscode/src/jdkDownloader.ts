@@ -22,14 +22,12 @@ import * as https from 'https';
 import * as child_process from 'child_process';
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
+import { OPEN_JDK_VERSION_DOWNLOAD_LINKS, ORACLE_JDK_BASE_DOWNLOAD_URL, ORACLE_JDK_DOWNLOAD_VERSIONS } from './constants';
 import { handleLog } from './extension';
 import { promisify } from 'util';
 
 let customView: vscode.WebviewPanel;
 let logger: vscode.OutputChannel;
-let jdkConfContent: any;
-const JDK_DOWNLOADER_CONF_FILE_PATH = "https://raw.githubusercontent.com/oracle/javavscode/main/vscode/src/jdkDownloaderManagement.json";
-
 
 export const calculateChecksum = async (filePath: string): Promise<string> => {
   const ALGORITHM = 'sha256';
@@ -73,14 +71,8 @@ export const fetchDropdownOptions = async () => {
   }
 
   // Fetch version of the JDK available
-  let versions;
-  try {
-    const res = await axios.get(JDK_DOWNLOADER_CONF_FILE_PATH, { timeout: 4000 });
-    versions = await res.data;
-  } catch (err: any) {
-    vscode.window.showErrorMessage("Error fetching JDK download versions");
-    handleLog(logger, err?.messge);
-  }
+  const versions = ORACLE_JDK_DOWNLOAD_VERSIONS;
+
   return { machineArch, osType, versions };
 }
 
@@ -97,7 +89,6 @@ export async function openJDKSelectionView(log: vscode.OutputChannel) {
   );
   logger = log;
   const { machineArch, osType, versions } = await fetchDropdownOptions();
-  jdkConfContent = versions;
   customView.webview.html = fetchJDKDownloadView(machineArch, osType, versions);
 
   customView.webview.onDidReceiveMessage(async message => {
@@ -123,13 +114,21 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
   let downloadUrl: string = '';
 
   // Generate download url on the basis of the jdk type chosen
-  const { baseDownloadUrl } = JDKType === 'OpenJDK' ? jdkConfContent.openJdk[`${JDKVersion}`] : jdkConfContent.oracleJdk[`${JDKVersion}`];
-
-  if (osType === 'windows') {
-    downloadUrl = `${baseDownloadUrl}_${osType.toLowerCase()}-${osArchitecture}_bin.zip`;
+  if (JDKType === 'OpenJDK') {
+    if (osType === 'windows') {
+      downloadUrl = `${OPEN_JDK_VERSION_DOWNLOAD_LINKS[`${JDKVersion}`]}_${osType.toLowerCase()}-${osArchitecture}_bin.zip`;
+    }
+    else {
+      downloadUrl = `${OPEN_JDK_VERSION_DOWNLOAD_LINKS[`${JDKVersion}`]}_${osType.toLowerCase()}-${osArchitecture}_bin.tar.gz`;
+    }
   }
-  else {
-    downloadUrl = `${baseDownloadUrl}_${osType.toLowerCase()}-${osArchitecture}_bin.tar.gz`;
+  else if (JDKType === 'Oracle JDK') {
+    if (osType === 'windows') {
+      downloadUrl = `${ORACLE_JDK_BASE_DOWNLOAD_URL}/${JDKVersion}/latest/jdk-${JDKVersion}_${osType.toLowerCase()}-${osArchitecture}_bin.zip`;
+    }
+    else {
+      downloadUrl = `${ORACLE_JDK_BASE_DOWNLOAD_URL}/${JDKVersion}/latest/jdk-${JDKVersion}_${osType.toLowerCase()}-${osArchitecture}_bin.tar.gz`;
+    }
   }
 
   // Define the target directory and file name
@@ -293,7 +292,7 @@ const installationCompletion = async (installType: string) => {
   }
 }
 
-export const fetchJDKDownloadView = (machineArch: string, osType: string, versions: any): string => {
+export const fetchJDKDownloadView = (machineArch: string, osType: string, versions: Array<String>): string => {
   return `<!DOCTYPE html>
   <head>
     <title>JDK Downloader</title>
@@ -420,7 +419,7 @@ export const fetchJDKDownloadView = (machineArch: string, osType: string, versio
         <br />
         <div class="jdk-version-dropdown">
           <select id="oracleJDKVersionDropdown">
-          ${Object.keys(versions.oracleJdk).sort((a, b) => parseFloat(b)-parseFloat(a)).map((el, index) => {
+          ${versions.map((el, index) => {
     if (index === 0) {
       return `<option value=${el} default>JDK ${el}</option>`
     }
@@ -460,7 +459,7 @@ export const fetchJDKDownloadView = (machineArch: string, osType: string, versio
         <br />
         <div class="jdk-version-dropdown">
           <select id="openJDKVersionDropdown">
-            ${Object.keys(versions.openJdk).sort((a, b) => parseFloat(b)-parseFloat(a)).map((el, index) => {
+            ${Object.keys(OPEN_JDK_VERSION_DOWNLOAD_LINKS).map((el, index) => {
     if (index === 0) {
       return `<option value=${el} default>JDK ${el}</option>`
     }
