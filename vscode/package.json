@@ -420,10 +420,6 @@
 				"title": "Clean Project"
 			},
 			{
-				"command": "jdk.local.db.set.preferred.connection",
-				"title": "Set as Default Connection"
-			},
-			{
 				"command": "jdk.workspace.configureRunSettings",
 				"title": "Edit",
 				"icon": "$(edit)"
