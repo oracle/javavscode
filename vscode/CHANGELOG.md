@@ -24,7 +24,7 @@
 -->
 
 <!-- This file has been modified for Oracle Java SE extension -->
-## Version 22.0.0 (April 28th, 2024)
+## Version 22.0.0 (April 25th, 2024)
 ### What's Changed
 
 ### Enhancements
