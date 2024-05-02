@@ -1,7 +1,7 @@
 {
 	"name": "oracle-java",
 	"displayName": "Java",
-	"description": "Oracle Java Platform Extension for Visual Studio Code",
+	"description": "Java Platform Extension for Visual Studio Code",
 	"author": "Oracle",
 	"license": "Apache 2.0",
 	"version": "1.0.0",
