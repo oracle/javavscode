@@ -16,9 +16,16 @@
 		"Programming Languages",
 		"Debuggers",
 		"Testing",
+		"Snippets",
+		"Linters",
+		"Formatters",
 		"Other"
 	],
 	"keywords": [
+		"JDK",
+		"OpenJDK",
+		"Maven",
+		"Gradle",
 		"multi-root ready"
 	],
 	"engines": {
