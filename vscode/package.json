@@ -22,14 +22,14 @@
 		"Other"
 	],
 	"keywords": [
-		"jdk",
-		"openjdk",
+		"JDK",
+		"OpenJDK",
 		"Maven",
 		"Gradle",
 		"java properties", 
 		"junit",
 		"multi-root ready",
-		"multi-root"
+		"multiroot"
 	],
 	"engines": {
 		"vscode": "^1.76.0"
