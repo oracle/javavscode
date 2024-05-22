@@ -22,10 +22,12 @@
 		"Other"
 	],
 	"keywords": [
-		"JDK",
-		"OpenJDK",
+		"jdk",
+		"openjdk",
 		"Maven",
 		"Gradle",
+		"java properties", 
+		"junit",
 		"multi-root ready"
 	],
 	"engines": {
