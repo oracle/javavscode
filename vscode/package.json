@@ -28,7 +28,8 @@
 		"Gradle",
 		"java properties", 
 		"junit",
-		"multi-root ready"
+		"multi-root ready",
+		"multi-root"
 	],
 	"engines": {
 		"vscode": "^1.76.0"
