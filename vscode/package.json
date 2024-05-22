@@ -16,10 +16,20 @@
 		"Programming Languages",
 		"Debuggers",
 		"Testing",
+		"Snippets",
+		"Linters",
+		"Formatters",
 		"Other"
 	],
 	"keywords": [
-		"multi-root ready"
+		"JDK",
+		"OpenJDK",
+		"Maven",
+		"Gradle",
+		"java properties", 
+		"junit",
+		"multi-root ready",
+		"multiroot"
 	],
 	"engines": {
 		"vscode": "^1.76.0"
