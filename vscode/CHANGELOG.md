@@ -24,7 +24,7 @@
 -->
 
 <!-- This file has been modified for Oracle Java SE extension -->
-## Version 22.0.1
+## Version 22.0.1 (May 30th, 2024)
 ### What's Changed
 
 ### Bugs
@@ -33,7 +33,7 @@
 
 ### Other Changes
 * Disable unused modules https://github.com/oracle/javavscode/pull/159
-* Bump up copyright from 2023 to 2024 in README https://github.com/oracle/javavscode/pull/155
+* Copyright modification in README https://github.com/oracle/javavscode/pull/155
 * Minor README updates https://github.com/oracle/javavscode/pull/157
 * Provide better tags in vscode marketplace https://github.com/oracle/javavscode/pull/162
 
