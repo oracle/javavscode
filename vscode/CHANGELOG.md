@@ -24,6 +24,21 @@
 -->
 
 <!-- This file has been modified for Oracle Java SE extension -->
+## Version 22.0.1 (May 30th, 2024)
+### What's Changed
+
+### Bugs
+* [JAVAVSCODE-59] In VSCode provide quickfix relevant to the position of the cursor https://github.com/apache/netbeans/pull/7353
+* [JAVAVSCODE-101] Command jdk.java.project.resolveProjectProblems' not found https://github.com/apache/netbeans/pull/7370
+
+### Other Changes
+* Disable unused modules https://github.com/oracle/javavscode/pull/159
+* Copyright modification in README https://github.com/oracle/javavscode/pull/155
+* Minor README updates https://github.com/oracle/javavscode/pull/157
+* Provide better tags in vscode marketplace https://github.com/oracle/javavscode/pull/162
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v22.0.0...v22.0.1
+
 ## Version 22.0.0 (April 25th, 2024)
 ### What's Changed
 
