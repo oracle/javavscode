@@ -24,15 +24,31 @@
 -->
 
 <!-- This file has been modified for Oracle Java SE extension -->
-## Version 22.0.0 (April 28th, 2024)
+## Version 22.0.1 (May 30th, 2024)
+### What's Changed
+
+### Bugs
+* [JAVAVSCODE-59] In VSCode provide quickfix relevant to the position of the cursor https://github.com/apache/netbeans/pull/7353
+* [JAVAVSCODE-101] Command jdk.java.project.resolveProjectProblems' not found https://github.com/apache/netbeans/pull/7370
+
+### Other Changes
+* Disable unused modules https://github.com/oracle/javavscode/pull/159
+* Copyright modification in README https://github.com/oracle/javavscode/pull/155
+* Minor README updates https://github.com/oracle/javavscode/pull/157
+* Provide better tags in vscode marketplace https://github.com/oracle/javavscode/pull/162
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v22.0.0...v22.0.1
+
+## Version 22.0.0 (April 25th, 2024)
 ### What's Changed
 
 ### Enhancements
 * [JAVAVSCODE-9] Disable hints according to user preference https://github.com/apache/netbeans/pull/6760
 * [JAVAVSCODE-110] Added option to delete workspace cache with respect to oracle java extension https://github.com/oracle/javavscode/pull/124
-* [JAVAVSCODE-123] Update to NetBeans 21 and JDK 22 javac support https://github.com/oracle/javavscode/pull/128
+* [JAVAVSCODE-123] Update to NetBeans 21 and JDK 22 features support https://github.com/oracle/javavscode/pull/128
 * [JAVAVSCODE-131] Added JDK 22 GA download option in JDK downloader https://github.com/oracle/javavscode/pull/133
-* Adding an advanced option to disable the embedded nb-javac, hence use javac from the JDK https://github.com/oracle/javavscode/pull/130
+* [JAVAVSCODE-146] Rename "Java Platform Support" as "Java" https://github.com/oracle/javavscode/pull/147
+* Option to work with JDK 23 early access by disabling javac bundled with Netbeans https://github.com/oracle/javavscode/pull/130
 * Bump up axios 1.6.0 to 1.6.8 https://github.com/oracle/javavscode/pull/127
 * Bump up @vscode/debugadapter from 1.55.1 to 1.65.0 https://github.com/oracle/javavscode/pull/135
 
@@ -40,14 +56,12 @@
 * [JAVAVSCODE-29] vscode reports a need to upgrade Gradle to an earlier version for JDK-21 https://github.com/apache/netbeans/pull/6807
 * [JAVAVSCODE-30] Fixed refactoring of pom.xml as well on renaming class name https://github.com/oracle/javavscode/pull/120
 * [JAVAVSCODE-95] Fixed false error thrown if parent pom version uses variable https://github.com/oracle/javavscode/pull/125
-* Fix readme urls vscode https://github.com/oracle/javavscode/pull/121
 
 ### Other Changes
 * [JAVAVSCODE-137] Updated Third party licenses related to Node JS third party dependencies https://github.com/oracle/javavscode/pull/138
-* Removing (unused) DB support from netbeans side https://github.com/oracle/javavscode/pull/112
-* Removed db support from frontend as well https://github.com/oracle/javavscode/pull/129
+* Removing (unused) DB support from extension https://github.com/oracle/javavscode/pull/112
 
-**Full Changelog**: https://github.com/oracle/javavscode/compare/v1.0.1...v22
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v1.0.1...v22.0.0
 
 ## Version 1.0.1 (February 22nd, 2024)
 ### What’s Changed
@@ -92,7 +106,7 @@
 * Upgrade commons-codec from 1.15 to 1.16.0 https://github.com/oracle/javavscode/pull/107
 * Upgrade of failureaccess (component of Guava) https://github.com/oracle/javavscode/pull/109
 
-**Full Changelog**: https://github.com/oracle/javavscode/compare/v1.0.0...v1.0.0.1
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v1.0.0...v1.0.1
 
 ## Version 1.0.0 (October 18th, 2023)
 * Initial release

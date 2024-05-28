@@ -1,7 +1,7 @@
 {
 	"name": "oracle-java",
-	"displayName": "Java Platform Support",
-	"description": "Oracle Java Platform Extension for Visual Studio Code",
+	"displayName": "Java",
+	"description": "Java Platform Extension for Visual Studio Code",
 	"author": "Oracle",
 	"license": "Apache 2.0",
 	"version": "1.0.0",
@@ -16,10 +16,20 @@
 		"Programming Languages",
 		"Debuggers",
 		"Testing",
+		"Snippets",
+		"Linters",
+		"Formatters",
 		"Other"
 	],
 	"keywords": [
-		"multi-root ready"
+		"JDK",
+		"OpenJDK",
+		"Maven",
+		"Gradle",
+		"java properties", 
+		"junit",
+		"multi-root ready",
+		"multiroot"
 	],
 	"engines": {
 		"vscode": "^1.76.0"
@@ -418,10 +428,6 @@
 				"command": "jdk.project.clean",
 				"category": "Project",
 				"title": "Clean Project"
-			},
-			{
-				"command": "jdk.local.db.set.preferred.connection",
-				"title": "Set as Default Connection"
 			},
 			{
 				"command": "jdk.workspace.configureRunSettings",

@@ -22,9 +22,9 @@
 
 <!-- This file has been modified for Oracle Java Platform extension -->
 
-# Oracle Java Platform Extension for Visual Studio Code
+# Java Platform Extension for Visual Studio Code
 
-Oracle Java Platform extension brings full featured Java development (edit-compile-debug & test cycle) for Maven and Gradle projects to VSCode. As well as other features.
+Java Platform extension from Oracle brings full featured development support (edit-compile-debug & test cycle) to VS Code. It offers support for Maven and Gradle projects.
 ## Getting Started
 1. Set JDK in `View | Command Palette | Preferences:Open User Settings (JSON) ...` __jdk: Jdkhome__ setting to point to JDK which Language Server will run on and projects will be compiled with. More below in section [Selecting the JDK](#selecting-the-jdk)
 2. If no JDK is present in your system then extension can setup things for you. More below in section [JDK Downloader](#jdk-downloader)  
@@ -179,6 +179,9 @@ It is possible to change this in `View | Command Palette | Preferences:Open User
 ## Troubleshooting
 If your extension is not starting and throwing some error like no JDK found even if you have a working JDK installed in your machine, then you can try deleting cache for the workspace using `View | Command Palette | Delete oracle java extension cache for this workspace`.
 
+## Workspace
+The extension will analyze the content of the opened workspace, and relevant other files. If the workspace contains a lot of data, this may take a long time. It is therefore recommended to avoid adding unnecessarily big folders in a workspace. Specifically, it is not recommended to open user's home directory as a part of the workspace.
+
 ## Contributing
 
 This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](../CONTRIBUTING.md)
@@ -190,7 +193,7 @@ Please consult the [security guide](../SECURITY.md) for our responsible security
 
 ## License
 
-Copyright (c) 2023 Oracle and/or its affiliates.
+Copyright (c) 2024 Oracle and/or its affiliates.
 
 Oracle Java Platform Extension for Visual Studio Code is licensed under [Apache 2.0 License](../LICENSE.txt). 
 The [THIRD_PARTY_LICENSES](../THIRD_PARTY_LICENSES.txt) file contains third party notices and licenses.

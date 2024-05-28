@@ -22,13 +22,13 @@
 
 <!-- This file has been modified for Oracle Java Platform extension -->
 
-# Oracle Java Platform Extension for Visual Studio Code
+# Java Platform Extension for Visual Studio Code
 [![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/Oracle.oracle-java?style=for-the-badge&label=VS%20Marketplace&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=Oracle.oracle-java)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/Oracle.oracle-java?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=Oracle.oracle-java)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/oracle/javavscode/main.yml?branch=main&style=for-the-badge&logo=github)](https://github.com/oracle/javavscode/actions?query=workflow:Java%20Platform%20Support%20for%20Visual%20Studio%20Code)
 [![License](https://img.shields.io/github/license/oracle/javavscode?style=for-the-badge&logo=apache)](https://github.com/oracle/javavscode/blob/main/LICENSE.txt)
 
-The Oracle Java Platform extension brings full featured Java development (edit-compile-debug & test cycle) for Maven and Gradle projects to VS Code, and is available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=Oracle.oracle-java).
+Java Platform extension from Oracle brings full featured development support (edit-compile-debug & test cycle) to VS Code. It offers support for Maven and Gradle projects.
 
 ## Getting Started
 1. Set JDK in `View | Command Palette | Preferences:Open User Settings (JSON) ...` __jdk: Jdkhome__ setting to point to JDK which Language Server will run on and projects will be compiled with. More below in section [Selecting the JDK](#selecting-the-jdk)
@@ -185,6 +185,9 @@ It is possible to change this in `View | Command Palette | Preferences:Open User
 ## Troubleshooting
 If your extension is not starting and throwing some error like no JDK found even if you have a working JDK installed in your machine, then you can try deleting cache for the workspace using `View | Command Palette | Delete oracle java extension cache for this workspace`. 
 
+## Workspace
+The extension will analyze the content of the opened workspace, and relevant other files. If the workspace contains a lot of data, this may take a long time. It is therefore recommended to avoid adding unnecessarily big folders in a workspace. Specifically, it is not recommended to open user's home directory as a part of the workspace.
+
 ## Contributing
 
 This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
@@ -195,7 +198,7 @@ Please consult the [security guide](https://github.com/oracle/javavscode/blob/ma
 
 ## License
 
-Copyright (c) 2023 Oracle and/or its affiliates.
+Copyright (c) 2024 Oracle and/or its affiliates.
 
 Oracle Java Platform Extension for Visual Studio Code is licensed under [Apache 2.0 License](https://github.com/oracle/javavscode/blob/main/LICENSE.txt). 
 The [THIRD_PARTY_LICENSES](https://github.com/oracle/javavscode/blob/main/THIRD_PARTY_LICENSES.txt) file contains third party notices and licenses.
