@@ -26,7 +26,7 @@
 		"OpenJDK",
 		"Maven",
 		"Gradle",
-		"java properties", 
+		"java properties",
 		"junit",
 		"multi-root ready",
 		"multiroot"
@@ -504,7 +504,7 @@
 					"group": "navigation@100"
 				},
 				{
-					"command": "jdk.goto.test",
+					"command": "jdk.open.test",
 					"when": "nbJdkReady && editorLangId == java",
 					"group": "navigation@101"
 				},
@@ -526,7 +526,7 @@
 					"group": "navigation@3"
 				},
 				{
-					"command": "jdk.goto.test",
+					"command": "jdk.open.test",
 					"when": "nbJdkReady && resourceExtname == .java",
 					"group": "goto@1"
 				},
@@ -556,7 +556,7 @@
 					"when": "nbJdkReady"
 				},
 				{
-					"command": "jdk.goto.test",
+					"command": "jdk.open.test",
 					"when": "nbJdkReady && editorLangId == java"
 				},
 				{
