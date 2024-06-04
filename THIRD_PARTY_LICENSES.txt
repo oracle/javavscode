@@ -290,17 +290,15 @@ extide/ant/lib/ant.jar                                                Apache-2.0
 extide/modules/gradle/gradle-tooling-api.jar                          Apache-2.0
 harness/.lastModified                                                 MIT-vscode-uri
 ide/.lastModified                                                     MIT-vscode-uri
-ide/docs/html5doc.zip                                                 HTML5DOC
 ide/docs/jaxb-api-doc.jar                                             EDL-1.0
 ide/modules/com-google-gson.jar                                       Apache-2.0
 ide/modules/com-google-guava-failureaccess.jar                        Apache-2.0
 ide/modules/com-google-guava.jar                                      Apache-2.0
 ide/modules/com-googlecode-javaewah-JavaEWAH.jar                      Apache-2.0
-ide/modules/com-jcraft-jsch.jar                                       BSD-jsch
-ide/modules/com-jcraft-jzlib.jar                                      BSD-jzlib
-ide/modules/ext/antlr-runtime-3.5.2.jar                               BSD-antlr-runtime3
-ide/modules/ext/antlr4-runtime-4.11.1.jar                             BSD-antlr-runtime4-2
-ide/modules/ext/commons-compress-1.25.0.jar                           Apache-2.0
+ide/modules/ext/antlr-runtime-3.5.3.jar                               BSD-antlr-runtime3
+ide/modules/ext/antlr4-runtime-4.13.1.jar                             BSD-antlr-runtime4-3
+ide/modules/ext/collections-24.0.0.jar                                UPL
+ide/modules/ext/commons-compress-1.26.1.jar                           Apache-2.0
 ide/modules/ext/flexmark-0.64.8.jar                                   BSD-flexmark
 ide/modules/ext/flexmark-ext-anchorlink-0.64.8.jar                    BSD-flexmark
 ide/modules/ext/flexmark-ext-emoji-0.64.8.jar                         BSD-flexmark
@@ -318,21 +316,21 @@ ide/modules/ext/flexmark-util-misc-0.64.8.jar                         BSD-flexma
 ide/modules/ext/flexmark-util-sequence-0.64.8.jar                     BSD-flexmark
 ide/modules/ext/flexmark-util-visitor-0.64.8.jar                      BSD-flexmark
 ide/modules/ext/freemarker-2.3.32.jar                                 Apache-2.0-freemarker
-ide/modules/ext/graal-sdk-20.3.0.jar                                  UPL
-ide/modules/ext/html5-parser.jar                                      MIT-html5-parser
-ide/modules/ext/icu4j-4_4_2.jar                                       MIT-icu4j
 ide/modules/ext/jaxb/activation.jar                                   EDL-1.0
 ide/modules/ext/jaxb/api/jaxb-api.jar                                 EDL-1.0
 ide/modules/ext/jaxb/jaxb-impl.jar                                    CDDL-1.1
 ide/modules/ext/jaxb/jaxb-xjc.jar                                     CDDL-1.1-MIT-jaxb-xjc
 ide/modules/ext/jcodings-1.0.18.jar                                   MIT-nocopyright
+ide/modules/ext/jline-24.0.0.jar                                      BSD-jline3
+ide/modules/ext/jniutils-24.0.0.jar                                   UPL
 ide/modules/ext/joni-2.1.11.jar                                       MIT-jruby
 ide/modules/ext/json-simple-1.1.1.jar                                 Apache-2.0
 ide/modules/ext/jsoup-1.15.4.jar                                      MIT-jsoup
 ide/modules/ext/junixsocket-common-2.5.1.jar                          Apache-2.0
 ide/modules/ext/junixsocket-native-common-2.5.1.jar                   Apache-2.0
-ide/modules/ext/launcher-common-20.3.0.jar                            UPL
+ide/modules/ext/launcher-common-24.0.0.jar                            UPL
 ide/modules/ext/lucene-core-3.6.2.jar                                 Apache-2.0-lucene
+ide/modules/ext/nativeimage-24.0.0.jar                                UPL
 ide/modules/ext/org.eclipse.lsp4j-0.13.0.jar                          EPL-v20
 ide/modules/ext/org.eclipse.lsp4j.debug-0.13.0.jar                    EPL-v20
 ide/modules/ext/org.eclipse.lsp4j.generator-0.13.0.jar                EPL-v20
@@ -342,14 +340,17 @@ ide/modules/ext/org.eclipse.tm4e.core-0.4.1-pack1.jar                 EPL-v20
 ide/modules/ext/org.eclipse.xtend.lib-2.24.0.jar                      EPL-v20
 ide/modules/ext/org.eclipse.xtend.lib.macro-2.24.0.jar                EPL-v20
 ide/modules/ext/org.eclipse.xtext.xbase.lib-2.24.0.jar                EPL-v20
+ide/modules/ext/polyglot-24.0.0.jar                                   UPL
 ide/modules/ext/processtreekiller-2.0.1.jar                           MIT-processtreekiller
 ide/modules/ext/resolver-1.2.jar                                      Apache-2.0
 ide/modules/ext/simplevalidation-swing.jar                            Apache-2.0
 ide/modules/ext/simplevalidation.jar                                  Apache-2.0
-ide/modules/ext/snakeyaml-engine.jar                                  Apache-2.0
-ide/modules/ext/tomlj.jar                                             Apache-2.0
-ide/modules/ext/truffle-api-20.3.0.jar                                UPL
+ide/modules/ext/toml-java-13.4.1.jar                                  Apache-2.0
+ide/modules/ext/truffle-api-24.0.0.jar                                UPL-MIT-jcodings
+ide/modules/ext/truffle-compiler-24.0.0.jar                           UPL-MIT-jcodings
+ide/modules/ext/truffle-runtime-24.0.0.jar                            UPL-MIT-jcodings
 ide/modules/ext/winp-1.28.jar                                         MIT-winp
+ide/modules/ext/word-24.0.0.jar                                       UPL
 ide/modules/lib/aarch64/junixsocket-native-2.5.1.dll                  Apache-2.0
 ide/modules/lib/aarch64/libjunixsocket-native-2.5.1.dylib             Apache-2.0
 ide/modules/lib/aarch64/linux/libjunixsocket-native-2.5.1.so          Apache-2.0
@@ -467,18 +468,18 @@ java/modules/ext/eclipselink/org.eclipse.persistence.moxy-2.7.12.jar  EPL-v20
 java/modules/ext/jdktools-11.0.11.jar                                 Apache-2.0
 java/modules/ext/maven/gson-2.10.1.jar                                Apache-2.0
 java/modules/ext/maven/indexer-core-7.1.2.jar                         Apache-2.0
-java/modules/ext/maven/javax.annotation-api-1.2.jar                   CDDL-1.1
+java/modules/ext/maven/javax.annotation-api-1.3.2.jar                 CDDL-1.1
 java/modules/ext/maven/jdom2-2.0.6.1.jar                              BSD-JDOM
-java/modules/ext/maven/lucene-analysis-common-9.9.1.jar               Apache-2.0-lucene-9.8.0
-java/modules/ext/maven/lucene-backward-codecs-9.9.1.jar               Apache-2.0-lucene-9.8.0
-java/modules/ext/maven/lucene-core-9.9.1.jar                          Apache-2.0-lucene-9.8.0
-java/modules/ext/maven/lucene-highlighter-9.9.1.jar                   Apache-2.0-lucene-9.8.0
-java/modules/ext/maven/lucene-queryparser-9.9.1.jar                   Apache-2.0-lucene-9.8.0
+java/modules/ext/maven/lucene-analysis-common-9.10.0.jar              Apache-2.0-lucene2
+java/modules/ext/maven/lucene-backward-codecs-9.10.0.jar              Apache-2.0-lucene2
+java/modules/ext/maven/lucene-core-9.10.0.jar                         Apache-2.0-lucene2
+java/modules/ext/maven/lucene-highlighter-9.10.0.jar                  Apache-2.0-lucene2
+java/modules/ext/maven/lucene-queryparser-9.10.0.jar                  Apache-2.0-lucene2
 java/modules/ext/maven/maven-dependency-tree-2.2.jar                  Apache-2.0
 java/modules/ext/maven/search-api-7.1.2.jar                           Apache-2.0
 java/modules/ext/maven/search-backend-smo-7.1.2.jar                   Apache-2.0
-java/modules/ext/nb-javac-jdk-22-33-api.jar                           GPL-2-CP
-java/modules/ext/nb-javac-jdk-22-33.jar                               GPL-2-CP
+java/modules/ext/nb-javac-jdk-22u1-8-api.jar                          GPL-2-CP
+java/modules/ext/nb-javac-jdk-22u1-8.jar                              GPL-2-CP
 java/modules/ext/org.eclipse.lsp4j-0.13.0.jar                         EPL-v20
 java/modules/ext/org.eclipse.lsp4j.debug-0.13.0.jar                   EPL-v20
 java/modules/ext/org.eclipse.lsp4j.generator-0.13.0.jar               EPL-v20
@@ -489,53 +490,36 @@ java/modules/ext/org.eclipse.xtend.lib.macro-2.24.0.jar               EPL-v20
 java/modules/ext/org.eclipse.xtext.xbase.lib-2.24.0.jar               EPL-v20
 nb/.lastModified                                                      MIT-vscode-uri
 platform/.lastModified                                                MIT-vscode-uri
-platform/core/asm-9.6.jar                                             BSD-INRIA
-platform/core/asm-commons-9.6.jar                                     BSD-INRIA
-platform/core/asm-tree-9.6.jar                                        BSD-INRIA
+platform/core/asm-9.7.jar                                             BSD-INRIA
+platform/core/asm-commons-9.7.jar                                     BSD-INRIA
+platform/core/asm-tree-9.7.jar                                        BSD-INRIA
 platform/docs/junit-4.13.2-javadoc.jar                                EPL-v10
 platform/docs/junit-4.13.2-sources.jar                                EPL-v10
-platform/docs/junit-jupiter-api-5.6.0-javadoc.jar                     EPL-v20
-platform/docs/junit-jupiter-api-5.6.0-sources.jar                     EPL-v20
-platform/docs/junit-jupiter-engine-5.6.0-javadoc.jar                  EPL-v20
-platform/docs/junit-jupiter-engine-5.6.0-sources.jar                  EPL-v20
-platform/docs/junit-jupiter-params-5.6.0-javadoc.jar                  EPL-v20
-platform/docs/junit-jupiter-params-5.6.0-sources.jar                  EPL-v20
+platform/docs/junit-jupiter-api-5.10.2-javadoc.jar                    EPL-v20
+platform/docs/junit-jupiter-api-5.10.2-sources.jar                    EPL-v20
+platform/docs/junit-jupiter-engine-5.10.2-javadoc.jar                 EPL-v20
+platform/docs/junit-jupiter-engine-5.10.2-sources.jar                 EPL-v20
+platform/docs/junit-jupiter-params-5.10.2-javadoc.jar                 EPL-v20
+platform/docs/junit-jupiter-params-5.10.2-sources.jar                 EPL-v20
 platform/docs/testng-6.13.1-javadoc.jar                               Apache-2.0+MIT+testng
 platform/lib/nbexec.dll                                               Apache-2.0
 platform/lib/nbexec.exe                                               Apache-2.0
 platform/lib/nbexec64.dll                                             Apache-2.0
 platform/lib/nbexec64.exe                                             Apache-2.0
-platform/modules/ext/batik-anim-1.17.jar                              Apache-2.0
-platform/modules/ext/batik-awt-util-1.17.jar                          Apache-2.0
-platform/modules/ext/batik-bridge-1.17.jar                            Apache-2.0
-platform/modules/ext/batik-constants-1.17.jar                         Apache-2.0
-platform/modules/ext/batik-css-1.17.jar                               Apache-2.0
-platform/modules/ext/batik-dom-1.17.jar                               Apache-2.0
-platform/modules/ext/batik-ext-1.17.jar                               Apache-2.0
-platform/modules/ext/batik-gvt-1.17.jar                               Apache-2.0
-platform/modules/ext/batik-i18n-1.17.jar                              Apache-2.0
-platform/modules/ext/batik-parser-1.17.jar                            Apache-2.0
-platform/modules/ext/batik-script-1.17.jar                            Apache-2.0
-platform/modules/ext/batik-svg-dom-1.17.jar                           Apache-2.0
-platform/modules/ext/batik-util-1.17.jar                              Apache-2.0
-platform/modules/ext/batik-xml-1.17.jar                               Apache-2.0
-platform/modules/ext/commons-io-2.15.1.jar                            Apache-2.0
+platform/modules/ext/commons-io-2.16.0.jar                            Apache-2.0
 platform/modules/ext/flatlaf-3.3.jar                                  Apache-2.0
 platform/modules/ext/hamcrest-core-1.3.jar                            BSD-hamcrest
 platform/modules/ext/jcommander-1.78.jar                              Apache-2.0
-platform/modules/ext/jna-5.12.1.jar                                   Apache-2.0
-platform/modules/ext/jna-platform-5.12.1.jar                          Apache-2.0
+platform/modules/ext/jna-5.14.0.jar                                   Apache-2.0
+platform/modules/ext/jna-platform-5.14.0.jar                          Apache-2.0
 platform/modules/ext/junit-4.13.2.jar                                 EPL-v10
-platform/modules/ext/junit-jupiter-api-5.6.0.jar                      EPL-v20
-platform/modules/ext/junit-jupiter-engine-5.6.0.jar                   EPL-v20
-platform/modules/ext/junit-jupiter-params-5.6.0.jar                   EPL-v20
+platform/modules/ext/junit-jupiter-api-5.10.2.jar                     EPL-v20
+platform/modules/ext/junit-jupiter-engine-5.10.2.jar                  EPL-v20
+platform/modules/ext/junit-jupiter-params-5.10.2.jar                  EPL-v20
 platform/modules/ext/org.eclipse.osgi_3.9.1.nb9.jar                   OSGi
 platform/modules/ext/osgi.cmpn-7.0.0.jar                              Apache-2.0
 platform/modules/ext/osgi.core-8.0.0.jar                              Apache-2.0
 platform/modules/ext/testng-6.14.3.jar                                Apache-2.0+MIT+testng
-platform/modules/ext/xml-apis-1.4.01.jar                              Apache-2.0-XML-Commons-APIs-api
-platform/modules/ext/xml-apis-ext-1.3.04.jar                          Apache-2.0-XML-Commons-APIs-api-ext
-platform/modules/ext/xmlgraphics-commons-2.9.jar                      Apache-2.0
 platform/modules/lib/aarch64/jnidispatch-nb.dll                       Apache-2.0
 platform/modules/lib/aarch64/libjnidispatch-nb.jnilib                 Apache-2.0
 platform/modules/lib/aarch64/linux/libjnidispatch-nb.so               Apache-2.0
@@ -551,12 +535,9 @@ platform/modules/lib/libflatlaf-macos-x86_64.dylib                    Apache-2.0
 platform/modules/lib/riscv64/linux/libjnidispatch-nb.so               Apache-2.0
 platform/modules/lib/x86/jnidispatch-nb.dll                           Apache-2.0
 platform/modules/lib/x86_64/libjnidispatch-nb.jnilib                  Apache-2.0
-platform/modules/net-java-html-boot-fx.jar                            Apache-2.0
 platform/modules/net-java-html-boot-script.jar                        Apache-2.0
 platform/modules/net-java-html-boot.jar                               Apache-2.0
-platform/modules/net-java-html-geo.jar                                Apache-2.0
 platform/modules/net-java-html-json.jar                               Apache-2.0
-platform/modules/net-java-html-sound.jar                              Apache-2.0
 platform/modules/net-java-html.jar                                    Apache-2.0
 platform/modules/org-apache-commons-codec.jar                         Apache-2.0
 platform/modules/org-apache-commons-lang3.jar                         Apache-2.0
@@ -565,12 +546,11 @@ platform/modules/org-netbeans-html-ko4j.jar                           Apache-2.0
 platform/modules/org-netbeans-html-presenters-spi.jar                 Apache-2.0
 platform/modules/org-netbeans-html-xhr4j.jar                          Apache-2.0
 webcommon/.lastModified                                               MIT-vscode-uri
-webcommon/jsstubs/core-stubs.zip                                      Apache-2.0-typescript2
-webcommon/jsstubs/dom-stubs.zip                                       Apache-2.0-typescript2
-webcommon/modules/ext/icu4j-67.1.jar                                  MIT-icu4j-58
-webcommon/modules/ext/js-20.3.0.jar                                   UPL
-webcommon/modules/ext/js-launcher-20.3.0.jar                          UPL
-webcommon/modules/ext/regex-20.3.0.jar                                UPL
+webcommon/modules/ext/icu4j-24.0.0.jar                                MIT-icu4j-74
+webcommon/modules/ext/js-language-24.0.0.jar                          UPL
+webcommon/modules/ext/js-launcher-24.0.0.jar                          UPL
+webcommon/modules/ext/js-scriptengine-24.0.0.jar                      UPL
+webcommon/modules/ext/regex-24.0.0.jar                                UPL
 
 ******************************************************************************************************************************************************
 Apache NetBeans includes a number of source files that are not covered by the apache license. The following files are part of this distribution.
@@ -677,16 +657,24 @@ enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/application_1
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/application_10.xsd                                                EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/application-client_10.mdd                                         EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/application-client_10.xsd                                         EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/application_11.mdd                                                EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/application_11.xsd                                                EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/application-client_11.mdd                                         EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/application-client_11.xsd                                         EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/connector_2_0.xsd                                                 EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/connector_2_1.xsd                                                 EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/ejb-jar_4_0.mdd                                                   EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/ejb-jar_4_0.xsd                                                   EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/jakartaee_9.xsd                                                   EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/jakartaee_10.xsd                                                  EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/jakartaee_11.xsd                                                  EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/jakartaee_web_services_2_0.xsd                                    EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/jakartaee_web_services_client_2_0.xsd                             EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/jsp_3_0.xsd                                                       EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/jsp_3_1.xsd                                                       EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/jsp_4_0.xsd                                                       EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/permissions_9.xsd                                                 EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/permissions_10.xsd                                                EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-app_5_0.mdd                                                   EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-app_5_0.xsd                                                   EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-common_5_0.xsd                                                EPL-v20          
@@ -697,6 +685,11 @@ enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-app_6_0.x
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-common_6_0.xsd                                                EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-fragment_6_0.mdd                                              EPL-v20          
 enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-fragment_6_0.xsd                                              EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-app_6_1.mdd                                                   EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-app_6_1.xsd                                                   EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-common_6_1.xsd                                                EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-fragment_6_1.mdd                                              EPL-v20          
+enterprise/j2ee.dd/src/org/netbeans/modules/j2ee/dd/impl/resources/web-fragment_6_1.xsd                                              EPL-v20          
 enterprise/j2ee.dd.webservice/src/org/netbeans/modules/j2ee/dd/impl/resources/j2ee_1_4.xsd                                          CDDL-1.1          
 enterprise/j2ee.dd.webservice/src/org/netbeans/modules/j2ee/dd/impl/resources/j2ee_web_services_1_1.xsd                             CDDL-1.1          
 enterprise/j2ee.dd.webservice/src/org/netbeans/modules/j2ee/dd/impl/resources/j2ee_web_services_client_1_1.xsd                      CDDL-1.1          
@@ -793,6 +786,8 @@ enterprise/web.jsf/src/org/netbeans/modules/web/jsf/resources/web-facelettaglibr
 enterprise/web.jsf/src/org/netbeans/modules/web/jsf/resources/web-facesconfig_3_0.xsd                                                EPL-v20          
 enterprise/web.jsf/src/org/netbeans/modules/web/jsf/resources/web-facelettaglibrary_4_0.xsd                                          EPL-v20          
 enterprise/web.jsf/src/org/netbeans/modules/web/jsf/resources/web-facesconfig_4_0.xsd                                                EPL-v20          
+enterprise/web.jsf/src/org/netbeans/modules/web/jsf/resources/web-facelettaglibrary_4_1.xsd                                          EPL-v20          
+enterprise/web.jsf/src/org/netbeans/modules/web/jsf/resources/web-facesconfig_4_1.xsd                                                EPL-v20          
 enterprise/websvc.core/src/org/netbeans/modules/websvc/core/resources/sun-jaxws.xsd                                                 CDDL-1.0          
 enterprise/websvc.core/src/org/netbeans/modules/websvc/core/resources/javaee_web_services_metadata_handler_2_0.xsd                  CDDL-1.1          
 enterprise/websvc.core/src/org/netbeans/modules/websvc/core/resources/wsdl_customizationschema_2_0.xsd                              CDDL-1.1          
@@ -817,8 +812,8 @@ ide/css.editor/src/org/netbeans/modules/css/resources/icons/opera20.png         
 ide/css.editor/src/org/netbeans/modules/css/resources/icons/safari20-disabled.png                                                   CDDL-1.0          
 ide/css.editor/src/org/netbeans/modules/css/resources/icons/safari20.png                                                            CDDL-1.0          
 ide/css.lib/src/org/netbeans/modules/css/lib/Css3.g                                                                         BSD-css3-grammar          
-ide/go.lang/src/org/antlr/parser/golang/GoLexer.g4                                                                      BSD-antlr-go-grammar          
-ide/go.lang/src/org/antlr/parser/golang/GoParser.g4                                                                     BSD-antlr-go-grammar          
+ide/go.lang/src/org/antlr/parser/golang/g4/GoLexer.g4                                                                   BSD-antlr-go-grammar          
+ide/go.lang/src/org/antlr/parser/golang/g4/GoParser.g4                                                                  BSD-antlr-go-grammar          
 ide/go.lang/src/org/antlr/parser/golang/GoParserBase.java                                                               BSD-antlr-go-grammar          
 ide/html.editor/src/org/netbeans/modules/html/editor/resources/DTDs/3_2/html32.dtd                                                      W3C2          
 ide/html.editor/src/org/netbeans/modules/html/editor/resources/DTDs/3_2/lat1.ent                                                        W3C2          
@@ -878,22 +873,20 @@ java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/orm
 java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/persistence_2_2.xsd                                     EDL-1.0         5
 java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/orm_3_0.xsd                                             EDL-1.0         6
 java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/orm_3_1.xsd                                             EDL-1.0         6
+java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/orm_3_2.xsd                                             EDL-1.0         6
 java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/persistence_3_0.xsd                                     EDL-1.0         6
+java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/persistence_3_2.xsd                                     EDL-1.0         6
 java/java.lsp.server/vscode/syntaxes/java.tmLanguage.json                                                                   MIT-java-grammar          
 java/junit.ui/src/org/netbeans/modules/junit/ui/resources/junit5-logo.png                                                            EPL-v20          
-java/languages.antlr/src/org/antlr/parser/antlr3/ANTLRv3Lexer.g4                                                          BSD-antlr4-grammar          
-java/languages.antlr/src/org/antlr/parser/antlr3/ANTLRv3Parser.g4                                                         BSD-antlr4-grammar          
+java/languages.antlr/src/org/antlr/parser/antlr3/g4/ANTLRv3Lexer.g4                                                       BSD-antlr4-grammar          
+java/languages.antlr/src/org/antlr/parser/antlr3/g4/ANTLRv3Parser.g4                                                      BSD-antlr4-grammar          
 java/languages.antlr/src/org/antlr/parser/antlr3/LexerAdaptor.java                                                        BSD-antlr4-grammar          
-java/languages.antlr/src/org/antlr/parser/antlr4/ANTLRv4Lexer.g4                                                          BSD-antlr4-grammar          
-java/languages.antlr/src/org/antlr/parser/antlr4/ANTLRv4Parser.g4                                                         BSD-antlr4-grammar          
-java/languages.antlr/src/org/antlr/parser/antlr4/LexBasic.g4                                                              BSD-antlr4-grammar          
+java/languages.antlr/src/org/antlr/parser/antlr4/g4/ANTLRv4Lexer.g4                                                       BSD-antlr4-grammar          
+java/languages.antlr/src/org/antlr/parser/antlr4/g4/ANTLRv4Parser.g4                                                      BSD-antlr4-grammar          
+java/languages.antlr/src/org/antlr/parser/antlr4/g4/LexBasic.g4                                                           BSD-antlr4-grammar          
 java/languages.antlr/src/org/antlr/parser/antlr4/LexerAdaptor.java                                                        BSD-antlr4-grammar          
 java/languages.antlr/src/org/netbeans/modules/languages/antlr/resources/antlr.png                                            BSD-antlr-icons          
 java/xml.jaxb/src/org/netbeans/modules/xml/jaxb/resources/eclipselink_oxm_2_3.xsd                                                    EDL-1.0         7
-nb/welcome/src/org/netbeans/modules/welcome/resources/xhtml1-transitional.dtd                                                           W3C2          
-nb/welcome/src/org/netbeans/modules/welcome/resources/xhtml-lat1.ent                                                                    W3C2          
-nb/welcome/src/org/netbeans/modules/welcome/resources/xhtml-special.ent                                                                 W3C2          
-nb/welcome/src/org/netbeans/modules/welcome/resources/xhtml-symbol.ent                                                                  W3C2          
 php/php.code.analysis/src/org/netbeans/modules/php/analysis/ui/resources/phpstan.png                                             MIT-phpstan          
 php/php.smarty/src/org/netbeans/modules/php/smarty/resources/tpl-icon.png                                                           CDDL-1.0          
 php/php.twig/src/org/netbeans/modules/php/twig/resources/twig-icon.png                                                              CDDL-1.0          
@@ -1772,7 +1765,7 @@ developed by QOS.ch, 2004-2024
 
 
 Apache Commons Codec
-Copyright 2002-2023 The Apache Software Foundation
+Copyright 2002-2024 The Apache Software Foundation
 
 
 junixsocket
@@ -2000,7 +1993,7 @@ Copyright 2001-2024 The Apache Software Foundation
 
 
 Apache Commons IO
-Copyright 2002-2023 The Apache Software Foundation
+Copyright 2002-2024 The Apache Software Foundation
 
 
 ====== license text follows
@@ -2690,596 +2683,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
-
-===
-======
-========================= Apache-2.0-XML-Commons-APIs-api =========================
-
-====== The following are the NOTICEs pertaining to components using this license. For the full license text, please see the license text below the NOTICEs
-Apache XML Commons XML APIs
-Copyright 2006 The Apache Software Foundation.
-
-Portions of this software were originally based on the following:
-  - software copyright (c) 1999, IBM Corporation., http://www.ibm.com.
-  - software copyright (c) 1999, Sun Microsystems., http://www.sun.com.
-  - software copyright (c) 2000 World Wide Web Consortium, http://www.w3.org
-
-
-====== license text follows
-======================  Parts of this work are licensed: ======================
-
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
-
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-
-   1. Definitions.
-
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
-
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
-
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
-
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
-
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
-
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
-
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
-
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
-
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
-
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
-
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
-
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
-
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
-
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
-
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
-
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
-
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
-
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
-
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
-
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
-
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
-
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
-
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
-
-   END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright [yyyy] [name of copyright owner]
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-======================  Parts of this work are licensed: ======================
-
-W3C® SOFTWARE NOTICE AND LICENSE
-Copyright © 2004 World Wide Web Consortium, (Massachusetts Institute of Technology,
-European Research Consortium for Informatics and Mathematics, Keio University).
-All Rights Reserved.
-
-The DOM bindings are published under the W3C Software Copyright Notice and
-License. The software license requires "Notice of any changes or modifications
-to the W3C files, including the date changes were made." Consequently, modified
-versions of the DOM bindings must document that they do not conform to the W3C
-standard; in the case of the IDL definitions, the pragma prefix can no longer
-be 'w3c.org'; in the case of the Java language binding, the package names can no
-longer be in the 'org.w3c' package.
-
-Note: The original version of the W3C Software Copyright Notice and License could
-be found at http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
-
-This work (and included software, documentation such as READMEs, or other
-related items) is being provided by the copyright holders under the following
-license. By obtaining, using and/or copying this work, you (the licensee) agree
-that you have read, understood, and will comply with the following terms and
-conditions.
-
-Permission to copy, modify, and distribute this software and its documentation,
-with or without modification, for any purpose and without fee or royalty is
-hereby granted, provided that you include the following on ALL copies of the
-software and documentation or portions thereof, including modifications:
-
-  1. The full text of this NOTICE in a location viewable to users of the
-     redistributed or derivative work.
-  2. Any pre-existing intellectual property disclaimers, notices, or terms
-     and conditions. If none exist, the W3C Software Short Notice should be
-     included (hypertext is preferred, text is permitted) within the body
-     of any redistributed or derivative code.
-  3. Notice of any changes or modifications to the files, including the date
-     changes were made. (We recommend you provide URIs to the location from
-     which the code is derived.)
-
-THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE
-NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
-TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT
-THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY
-PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
-
-COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR
-CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION.
-
-The name and trademarks of copyright holders may NOT be used in advertising or
-publicity pertaining to the software without specific, written prior permission.
-Title to copyright in this software and any associated documentation will at
-all times remain with copyright holders.
-
-xml-commons/java/external/LICENSE.sax.txt $Id: LICENSE.sax.txt 225954 2002-01-31 23:26:48Z curcuru $
-
-
-This license came from: http://www.megginson.com/SAX/copying.html
-  However please note future versions of SAX may be covered
-  under http://saxproject.org/?selected=pd
-
-
-This page is now out of date -- see the new SAX site at
-http://www.saxproject.org/ for more up-to-date
-releases and other information. Please change your bookmarks.
-
-
-SAX2 is Free!
-
-I hereby abandon any property rights to SAX 2.0 (the Simple API for
-XML), and release all of the SAX 2.0 source code, compiled code, and
-documentation contained in this distribution into the Public Domain.
-SAX comes with NO WARRANTY or guarantee of fitness for any
-purpose.
-
-David Megginson, david@megginson.com
-2000-05-05
-
-
-===
-======
-========================= Apache-2.0-XML-Commons-APIs-api-ext =========================
-
-====== The following are the NOTICEs pertaining to components using this license. For the full license text, please see the license text below the NOTICEs
-Apache XML Commons XML APIs
-Copyright 2006 The Apache Software Foundation.
-
-Portions of this software were originally based on the following:
-  - software copyright (c) 1999, IBM Corporation., http://www.ibm.com.
-  - software copyright (c) 1999, Sun Microsystems., http://www.sun.com.
-  - software copyright (c) 2000 World Wide Web Consortium, http://www.w3.org
-
-
-====== license text follows
-======================  Parts of this work are licensed: ======================
-
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
-
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-
-   1. Definitions.
-
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
-
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
-
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
-
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
-
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
-
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
-
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
-
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
-
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
-
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
-
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
-
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
-
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
-
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
-
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
-
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
-
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
-
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
-
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
-
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
-
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
-
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
-
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
-
-   END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright [yyyy] [name of copyright owner]
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-======================  Parts of this work are licensed: ======================
-
-W3C® SOFTWARE NOTICE AND LICENSE
-Copyright © 2004 World Wide Web Consortium, (Massachusetts Institute of Technology,
-European Research Consortium for Informatics and Mathematics, Keio University).
-All Rights Reserved.
-
-The DOM bindings are published under the W3C Software Copyright Notice and
-License. The software license requires "Notice of any changes or modifications
-to the W3C files, including the date changes were made." Consequently, modified
-versions of the DOM bindings must document that they do not conform to the W3C
-standard; in the case of the IDL definitions, the pragma prefix can no longer
-be 'w3c.org'; in the case of the Java language binding, the package names can no
-longer be in the 'org.w3c' package.
-
-Note: The original version of the W3C Software Copyright Notice and License could
-be found at http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
-
-This work (and included software, documentation such as READMEs, or other
-related items) is being provided by the copyright holders under the following
-license. By obtaining, using and/or copying this work, you (the licensee) agree
-that you have read, understood, and will comply with the following terms and
-conditions.
-
-Permission to copy, modify, and distribute this software and its documentation,
-with or without modification, for any purpose and without fee or royalty is
-hereby granted, provided that you include the following on ALL copies of the
-software and documentation or portions thereof, including modifications:
-
-  1. The full text of this NOTICE in a location viewable to users of the
-     redistributed or derivative work.
-  2. Any pre-existing intellectual property disclaimers, notices, or terms
-     and conditions. If none exist, the W3C Software Short Notice should be
-     included (hypertext is preferred, text is permitted) within the body
-     of any redistributed or derivative code.
-  3. Notice of any changes or modifications to the files, including the date
-     changes were made. (We recommend you provide URIs to the location from
-     which the code is derived.)
-
-THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE
-NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
-TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT
-THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY
-PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
-
-COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR
-CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION.
-
-The name and trademarks of copyright holders may NOT be used in advertising or
-publicity pertaining to the software without specific, written prior permission.
-Title to copyright in this software and any associated documentation will at
-all times remain with copyright holders.
-
-W3C IPR SOFTWARE NOTICE
-Copyright © 2002 World Wide Web Consortium, (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University). All Rights Reserved.
-
-Note: The original version of the W3C Software Copyright Notice and License could be found at http://www.w3.org/Consortium/Legal/copyright-software-19980720
-Copyright © 1994-2002 World Wide Web Consortium, (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University). All Rights Reserved. http://www.w3.org/Consortium/Legal/
-
-This W3C work (including software, documents, or other related items) is being provided by the copyright holders under the following license. By obtaining, using and/or copying this work, you (the licensee) agree that you have read, understood, and will comply with the following terms and conditions:
-
-Permission to use, copy, and modify this software and its documentation, with or without modification,  for any purpose and without fee or royalty is hereby granted, provided that you include the following on ALL copies of the software and documentation or portions thereof, including modifications, that you make:
-
-    The full text of this NOTICE in a location viewable to users of the redistributed or derivative work.
-    Any pre-existing intellectual property disclaimers, notices, or terms and conditions. If none exist, a short notice of the following form (hypertext is preferred, text is permitted) should be used within the body of any redistributed or derivative code: "Copyright © 2002 World Wide Web Consortium, (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University). All Rights Reserved. http://www.w3.org/Consortium/Legal/"
-    Notice of any changes or modifications to the W3C files, including the date changes were made. (We recommend you provide URIs to the location from which the code is derived.)
-
-THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
-
-COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION.
-
-The name and trademarks of copyright holders may NOT be used in advertising or publicity pertaining to the software without specific, written prior permission. Title to copyright in this software and any associated documentation will at all times remain with copyright holders.
 
 
 ===
@@ -4319,8 +3722,7 @@ SUCH DAMAGE.
 
 ===
 ======
-========================= Apache-2.0-lucene-9.8.0 =========================
-
+========================= Apache-2.0-lucene2 =========================
 ====== The following are the NOTICEs pertaining to components using this license. For the full license text, please see the license text below the NOTICEs
 Apache Lucene
 Copyright 2001-2022 The Apache Software Foundation
@@ -5074,23 +4476,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
  */
 
 
-===
-======
-========================= Apache-2.0-typescript2 =========================
-
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-
 
 ===
 ======
@@ -5131,7 +4516,6 @@ and limitations under the License.
 ===
 ======
 ========================= BSD-JDOM =========================
-
 ====== The following are the NOTICEs pertaining to components using this license. For the full license text, please see the license text below the NOTICEs
 This product includes software developed by the
 JDOM Project (http://www.jdom.org/).
@@ -5300,9 +4684,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ===
 ======
-========================= BSD-antlr-runtime4-2 =========================
+========================= BSD-antlr-runtime4-3 =========================
 
-Use of Antlr version 4.11.1 is governed by the terms of the license below:
+Use of Antlr version 4.13.1 is governed by the terms of the license below:
 
  [The "BSD license"]
 Copyright (c) 2012-2022 The ANTLR Project. All rights reserved.
@@ -5471,34 +4855,42 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ===
 ======
-========================= BSD-jsch =========================
+========================= BSD-jline3 =========================
 
-Copyright (c) 2002-2015 Atsuhiko Yamanaka, JCraft,Inc.
+Copyright (c) 2002-2023, the original author or authors.
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+https://opensource.org/licenses/BSD-3-Clause
 
-  1. Redistributions of source code must retain the above copyright notice,
-     this list of conditions and the following disclaimer.
+Redistribution and use in source and binary forms, with or
+without modification, are permitted provided that the following
+conditions are met:
 
-  2. Redistributions in binary form must reproduce the above copyright
-     notice, this list of conditions and the following disclaimer in
-     the documentation and/or other materials provided with the distribution.
+Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
 
-  3. The names of the authors may not be used to endorse or promote products
-     derived from this software without specific prior written permission.
+Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with
+the distribution.
 
-THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+Neither the name of JLine nor the names of its contributors
+may be used to endorse or promote products derived from this
+software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ===
@@ -5526,37 +4918,6 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-===
-======
-========================= BSD-jzlib =========================
-
-Copyright (c) 2000-2011 ymnk, JCraft,Inc. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-  1. Redistributions of source code must retain the above copyright notice,
-     this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-     notice, this list of conditions and the following disclaimer in
-     the documentation and/or other materials provided with the distribution.
-
-  3. The names of the authors may not be used to endorse or promote products
-     derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ===
@@ -7894,15 +7255,6 @@ See:
 
 ===
 ======
-========================= HTML5DOC =========================
-
-© Copyright 2004-2010 Apple Computer, Inc., Mozilla Foundation, and Opera Software ASA.
-
-You are granted a license to use, reproduce and create derivative works of this document.
-
-
-===
-======
 ========================= MIT-checker =========================
 
 Copyright 2004-present by the Checker Framework developers
@@ -7958,183 +7310,49 @@ SOFTWARE.
 
 ===
 ======
-========================= MIT-html5-parser =========================
+========================= MIT-icu4j-74 =========================
 
-This is for the HTML parser as a whole except the rewindable input stream,
-the named character classes and the Live DOM Viewer.
-For the copyright notices for individual files, please see individual files.
-
-/*
- * Copyright (c) 2005, 2006, 2007 Henri Sivonen
- * Copyright (c) 2007-2012 Mozilla Foundation
- * Portions of comments Copyright 2004-2007 Apple Computer, Inc., Mozilla
- * Foundation, and Opera Software ASA.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- */
-
-The following license is for the WHATWG spec from which the named character
-data was extracted.
-
-/*
- * Copyright 2004-2010 Apple Computer, Inc., Mozilla Foundation, and Opera
- * Software ASA.
- *
- * You are granted a license to use, reproduce and create derivative works of
- * this document.
- */
-
-The following license is for the rewindable input stream.
-
-/*
- * Copyright (c) 2001-2003 Thai Open Source Software Center Ltd
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *  * Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above
- *    copyright notice, this list of conditions and the following
- *    disclaimer in the documentation and/or other materials provided
- *    with the distribution.
- *  * Neither the name of the Thai Open Source Software Center Ltd nor
- *    the names of its contributors may be used to endorse or promote
- *    products derived from this software without specific prior
- *    written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
-
-The following license applies to the Live DOM Viewer:
-
-Copyright (c) 2000, 2006, 2008 Ian Hickson and various contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
-===
-======
-========================= MIT-icu4j =========================
-
-ICU License - ICU 1.8.1 and later
+UNICODE LICENSE V3
 
 COPYRIGHT AND PERMISSION NOTICE
 
-Copyright (c) 1995-2010 International Business Machines Corporation and others
+Copyright © 2016-2023 Unicode, Inc.
 
-All rights reserved.
+NOTICE TO USER: Carefully read the following legal agreement. BY
+DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
+SOFTWARE, YOU UNEQUIVOCALLY ACCEPT, AND AGREE TO BE BOUND BY, ALL OF THE
+TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT
+DOWNLOAD, INSTALL, COPY, DISTRIBUTE OR USE THE DATA FILES OR SOFTWARE.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, and/or sell copies of the
-Software, and to permit persons to whom the Software is furnished to do so,
-provided that the above copyright notice(s) and this permission notice appear
-in all copies of the Software and that both the above copyright notice(s) and
-this permission notice appear in supporting documentation.
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of data files and any associated documentation (the "Data Files") or
+software and any associated documentation (the "Software") to deal in the
+Data Files or Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, and/or sell
+copies of the Data Files or Software, and to permit persons to whom the
+Data Files or Software are furnished to do so, provided that either (a)
+this copyright and permission notice appear with all copies of the Data
+Files or Software, or (b) this copyright and permission notice appear in
+associated Documentation.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS.
-IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE BE
-LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY
-DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
-AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
-IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+THIRD PARTY RIGHTS.
 
-Except as contained in this notice, the name of a copyright holder shall not
-be used in advertising or otherwise to promote the sale, use or other dealings
-in this Software without prior written authorization of the copyright holder.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES,
+OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE DATA
+FILES OR SOFTWARE.
 
-All trademarks and registered trademarks mentioned herein are the property of
-their respective owners.
+Except as contained in this notice, the name of a copyright holder shall
+not be used in advertising or otherwise to promote the sale, use or other
+dealings in these Data Files or Software without prior written
+authorization of the copyright holder.
 
-
-===
-======
-========================= MIT-icu4j-58 =========================
-
-COPYRIGHT AND PERMISSION NOTICE (ICU 58 and later)
-
-Copyright © 1991-2020 Unicode, Inc. All rights reserved.
-Distributed under the Terms of Use in https://www.unicode.org/copyright.html.
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of the Unicode data files and any associated documentation
-(the "Data Files") or Unicode software and any associated documentation
-(the "Software") to deal in the Data Files or Software
-without restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, and/or sell copies of
-the Data Files or Software, and to permit persons to whom the Data Files
-or Software are furnished to do so, provided that either
-(a) this copyright and permission notice appear with all copies
-of the Data Files or Software, or
-(b) this copyright and permission notice appear in associated
-Documentation.
-
-THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF
-ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT OF THIRD PARTY RIGHTS.
-IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS
-NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL
-DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
-DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
-TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THE DATA FILES OR SOFTWARE.
-
-Except as contained in this notice, the name of a copyright holder
-shall not be used in advertising or otherwise to promote the sale,
-use or other dealings in these Data Files or Software without prior
-written authorization of the copyright holder.
-
----------------------
+----------------------------------------------------------------------
 
 Third-Party Software Licenses
 
@@ -8142,7 +7360,9 @@ This section contains third-party software notices and/or additional
 terms for licensed third-party software components included within ICU
 libraries.
 
-1. ICU License - ICU 1.8.1 to ICU 57.1
+----------------------------------------------------------------------
+
+ICU License - ICU 1.8.1 to ICU 57.1
 
 COPYRIGHT AND PERMISSION NOTICE
 
@@ -8177,7 +7397,9 @@ of the copyright holder.
 All trademarks and registered trademarks mentioned herein are the
 property of their respective owners.
 
-2. Chinese/Japanese Word Break Dictionary Data (cjdict.txt)
+----------------------------------------------------------------------
+
+Chinese/Japanese Word Break Dictionary Data (cjdict.txt)
 
  #     The Google Chrome software developed by Google is licensed under
  # the BSD license. Other software included in this distribution is
@@ -8381,33 +7603,33 @@ property of their respective owners.
  #
  #  ---------------COPYING.ipadic-----END----------------------------------
 
-3. Lao Word Break Dictionary Data (laodict.txt)
+----------------------------------------------------------------------
 
- #  Copyright (c) 2013 International Business Machines Corporation
- #  and others. All Rights Reserved.
+Lao Word Break Dictionary Data (laodict.txt)
+
+ # Copyright (C) 2016 and later: Unicode, Inc. and others.
+ # License & terms of use: http://www.unicode.org/copyright.html
+ # Copyright (c) 2015 International Business Machines Corporation
+ # and others. All Rights Reserved.
  #
- # Project: http://code.google.com/p/lao-dictionary/
- # Dictionary: http://lao-dictionary.googlecode.com/git/Lao-Dictionary.txt
- # License: http://lao-dictionary.googlecode.com/git/Lao-Dictionary-LICENSE.txt
- #              (copied below)
+ # Project: https://github.com/rober42539/lao-dictionary
+ # Dictionary: https://github.com/rober42539/lao-dictionary/laodict.txt
+ # License: https://github.com/rober42539/lao-dictionary/LICENSE.txt
+ #          (copied below)
  #
- #  This file is derived from the above dictionary, with slight
- #  modifications.
+ #	This file is derived from the above dictionary version of Nov 22, 2020
  #  ----------------------------------------------------------------------
  #  Copyright (C) 2013 Brian Eugene Wilson, Robert Martin Campbell.
  #  All rights reserved.
  #
  #  Redistribution and use in source and binary forms, with or without
- #  modification,
- #  are permitted provided that the following conditions are met:
+ #  modification, are permitted provided that the following conditions are met:
  #
- #
- # Redistributions of source code must retain the above copyright notice, this
- #  list of conditions and the following disclaimer. Redistributions in
- #  binary form must reproduce the above copyright notice, this list of
- #  conditions and the following disclaimer in the documentation and/or
- #  other materials provided with the distribution.
- #
+ #  Redistributions of source code must retain the above copyright notice, this
+ #  list of conditions and the following disclaimer. Redistributions in binary
+ #  form must reproduce the above copyright notice, this list of conditions and
+ #  the following disclaimer in the documentation and/or other materials
+ #  provided with the distribution.
  #
  # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -8423,7 +7645,9 @@ property of their respective owners.
  # OF THE POSSIBILITY OF SUCH DAMAGE.
  #  --------------------------------------------------------------------------
 
-4. Burmese Word Break Dictionary Data (burmesedict.txt)
+----------------------------------------------------------------------
+
+Burmese Word Break Dictionary Data (burmesedict.txt)
 
  #  Copyright (c) 2014 International Business Machines Corporation
  #  and others. All Rights Reserved.
@@ -8463,7 +7687,9 @@ property of their respective owners.
  #  SUCH DAMAGE.
  #  --------------------------------------------------------------------------
 
-5. Time Zone Database
+----------------------------------------------------------------------
+
+Time Zone Database
 
   ICU uses the public domain data and code derived from Time Zone
 Database for its time zone support. The ownership of the TZ database
@@ -8486,7 +7712,9 @@ Database section 7.
  #    making a contribution to the database or code waives all rights to
  #    future claims in that contribution or in the TZ Database.
 
-6. Google double-conversion
+----------------------------------------------------------------------
+
+Google double-conversion
 
 Copyright 2006-2011, the V8 project authors. All rights reserved.
 Redistribution and use in source and binary forms, with or without
@@ -8514,6 +7742,88 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+----------------------------------------------------------------------
+
+File: aclocal.m4 (only for ICU4C)
+Section: pkg.m4 - Macros to locate and utilise pkg-config.
+
+
+Copyright © 2004 Scott James Remnant <scott@netsplit.com>.
+Copyright © 2012-2015 Dan Nicholson <dbn.lists@gmail.com>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+02111-1307, USA.
+
+As a special exception to the GNU General Public License, if you
+distribute this file as part of a program that contains a
+configuration script generated by Autoconf, you may include it under
+the same distribution terms that you use for the rest of that
+program.
+
+
+(The condition for the exception is fulfilled because
+ICU4C includes a configuration script generated by Autoconf,
+namely the `configure` script.)
+
+----------------------------------------------------------------------
+
+File: config.guess (only for ICU4C)
+
+
+This file is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+As a special exception to the GNU General Public License, if you
+distribute this file as part of a program that contains a
+configuration script generated by Autoconf, you may include it under
+the same distribution terms that you use for the rest of that
+program.  This Exception is an additional permission under section 7
+of the GNU General Public License, version 3 ("GPLv3").
+
+
+(The condition for the exception is fulfilled because
+ICU4C includes a configuration script generated by Autoconf,
+namely the `configure` script.)
+
+----------------------------------------------------------------------
+
+File: install-sh (only for ICU4C)
+
+
+Copyright 1991 by the Massachusetts Institute of Technology
+
+Permission to use, copy, modify, distribute, and sell this software and its
+documentation for any purpose is hereby granted without fee, provided that
+the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation, and that the name of M.I.T. not be used in advertising or
+publicity pertaining to distribution of the software without specific,
+written prior permission.  M.I.T. makes no representations about the
+suitability of this software for any purpose.  It is provided "as is"
+without express or implied warranty.
 
 
 ===
@@ -8711,6 +8021,8 @@ SOFTWARE.
 ===
 ======
 ========================= MIT-processtreekiller =========================
+
+The MIT License
 
 Copyright (c) 2004-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi
 
@@ -9206,6 +8518,53 @@ The above copyright notice and either this complete permission notice or at a mi
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
+
+===
+======
+========================= UPL-MIT-jcodings =========================
+
+GraalVM Community Edition - UPL
+
+Copyright (c) __YEARS__, __NAMES__
+
+The Universal Permissive License (UPL), Version 1.0
+
+Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software, associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
+
+(a) the Software, and
+
+(b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software each a "Larger Work" to which the Software is contributed by such licensors),
+
+without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
+
+This license is subject to the following condition:
+
+The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+--------------------------------------------------------------------------------
+
+jcodings - MIT
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 ===
