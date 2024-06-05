@@ -970,6 +970,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                 } else {
                     handleLog(log, "Cannot find org.netbeans.modules.java.lsp.server in the log!");
                 }
+                handleLog(log, `Please refer to troubleshooting section for more info: https://github.com/oracle/javavscode/blob/main/README.md#troubleshooting`);
                 log.show(false);
                 killNbProcess(false, log, p);
                 reject(`${SERVER_NAME} not enabled!`);
