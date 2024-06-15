@@ -26,6 +26,8 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as myExtension from '../../extension';
+import * as util from 'util';
+import * as cp from 'child_process';
 import * as path from 'path';
 import { spawn, ChildProcessByStdio } from 'child_process';
 import { Readable } from 'stream';
@@ -192,3 +194,16 @@ export async function dumpJava(): Promise<void> {
     });
     console.log(`${cmd} ${args.join(' ')} finished with code ${n}`);
 }
+
+
+export const runShellCommand = async (command: string) => {
+    console.log(`commaned being executed: ${command}`);
+    const exec = util.promisify(cp.exec);
+    const { stdout, stderr } = await exec(command);
+    console.log(stdout);
+    console.error(stderr);
+}
+
+// export const deleteUserdir = async (extensionPath: string) => {
+//     const dir = path.join(extensionPath, 'userdir', 'var', )
+// }
