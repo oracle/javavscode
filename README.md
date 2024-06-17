@@ -175,8 +175,11 @@ following locations:
 
 As soon as one of the settings is changed, the Language Server is restarted.
 
-## Disable the embedded nb-javac and use javac from the JDK
-`View | Command Palette | Preferences:Open User Settings | Jdk > Advanced > Disable: Nbjavac` setting facilitates simpler experimentation with early access JDK builds. JDK early access builds can be specified in `jdk.jdkhome`, and nb-javac can be disabled, ensuring that the extension utilizes the javac from the early access build.
+## How to use JDK early access builds
+This setup makes it easier to experiment with early access JDK builds. Follow these steps to enable the use of an early access JDK:
+Step-1: Navigate to `View | Command Palette | Preferences:Open User Settings | Jdk > Advanced > Disable: Nbjavac` and set it to `true` . 
+
+Step-2: Set the JDK in `View | Command Palette | Preferences:Open User Settings (JSON) ...` by updating the __jdk: Jdkhome__ setting to point to the early access JDK path.
 
 ## Running Language Server per VSCode workspace or for user
 It is possible to run Oracle Java Platform extension per workspace (VSCode window). This allows separation of Language Server for given project as Language Server JVM is not shared for more VSCode open workspaces (projects).
