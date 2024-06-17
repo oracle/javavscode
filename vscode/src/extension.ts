@@ -1044,7 +1044,8 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                     'jdk.hints',
                     'jdk.format',
                     'jdk.java.imports',
-                    'jdk.runConfig.vmOptions'
+                    'jdk.runConfig.vmOptions',
+                    'jdk.runConfig.cwd'
                 ],
                 fileEvents: [
                     workspace.createFileSystemWatcher('**/*.java')

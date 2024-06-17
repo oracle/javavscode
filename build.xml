@@ -31,7 +31,7 @@
     <property name="nbplatform.default.harness.dir" location="${nbplatform.default.netbeans.dest.dir}/harness" />
     <property name="nbantext.jar" location="netbeans/nbbuild/build/nbantext.jar" />
     <property name="nb_all" location="netbeans" />
-    <property name="patches" value="patches/6330.diff patches/7001.diff patches/7271.diff patches/7353.diff patches/7368.diff patches/7370.diff patches/mvn-sh.diff patches/generate-dependencies.diff patches/rename-debugger.diff patches/remove-db.diff" />
+    <property name="patches" value="patches/6330.diff patches/7001.diff patches/7271.diff patches/7353.diff patches/7368.diff patches/7370.diff patches/7382.diff patches/mvn-sh.diff patches/generate-dependencies.diff patches/rename-debugger.diff patches/remove-db.diff" />
     <condition property="cmd.suffix" value=".cmd" else="">
         <os family="windows"/>
     </condition>
