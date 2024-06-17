@@ -203,7 +203,3 @@ export const runShellCommand = async (command: string) => {
     console.log(stdout);
     console.error(stderr);
 }
-
-// export const deleteUserdir = async (extensionPath: string) => {
-//     const dir = path.join(extensionPath, 'userdir', 'var', )
-// }

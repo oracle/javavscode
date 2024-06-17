@@ -166,5 +166,7 @@ public class RefactorActions {
 `;
 
 export const OPENJDK_CHECK_FILES_RESOLVES: string[] = [
-    path.join("src","jdk.javadoc","share","classes","jdk","javadoc","doclet","StandardDoclet.java")  
+    "src/jdk.javadoc/share/classes/jdk/javadoc/doclet/StandardDoclet.java",
+    "src/jdk.zipfs/share/classes/jdk/nio/zipfs/ZipUtils.java",
+    "src/jdk.zipfs/share/classes/jdk/nio/zipfs/ZipPath.java"
 ] 

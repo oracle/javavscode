@@ -28,8 +28,10 @@ import * as path from 'path';
 import * as myExtension from '../../extension';
 
 
-import { languages, Uri, window } from 'vscode';
+import { commands, env, ExtensionMode, extensions, languages, Uri, window, workspace } from 'vscode';
 import { assertWorkspace, openFile, runShellCommand, waitCommandsReady } from './testutils';
+import { OPENJDK_CHECK_FILES_RESOLVES } from './constants';
+import { TelemetryEventNotification } from 'vscode-languageclient';
 
 const checkSymbolsResolved = (path: string): boolean => {
     let d = languages.getDiagnostics(Uri.file(path));
@@ -44,15 +46,61 @@ const checkExtensionLoaded = (path: string): boolean => {
     return d.length != 0;
 }
 
-const checkIfSymbolsResolved = (path: string) => {
+const checkIfSymbolsResolved = (path: string, isExtensionLoaded: boolean = false) => {
     return new Promise((resolve, reject) => {
         let isTaskCompleted = false;
-        let isExtensionLoaded = false;
         const checkInterval = setInterval(() => {
-            if(!isExtensionLoaded && checkExtensionLoaded(path)){
+            if (!isExtensionLoaded && checkExtensionLoaded(path)) {
                 isExtensionLoaded = true;
             }
             if (isExtensionLoaded && checkSymbolsResolved(path)) {
+                clearInterval(checkInterval);
+                if (!isTaskCompleted) {
+                    isTaskCompleted = true;
+                    resolve('Symbols resolved');
+                }
+            }
+        }, 100);
+
+        // Set the timeout
+        setTimeout(() => {
+            if (!isTaskCompleted) {
+                isTaskCompleted = true;
+                reject(new Error('Symbols did not resolved within the timeout period'));
+            }
+        }, 10 * 60 * 1000);
+    });
+}
+let lastFileSize = 0;
+let count = 0;
+const pollLogFile = (logFilePath: string)=>{
+    fs.stat(logFilePath, async (err, stats) => {
+        if (err) {
+            console.error(`Error reading file stats: ${err.message}`);
+            return;
+        }
+
+        if (stats.size > lastFileSize) {
+            fs.createReadStream(logFilePath, {
+                start: lastFileSize,
+                end: stats.size
+            })
+            .on('data', chunk => {
+                // console.log(`New log data: ${chunk}`);
+                // console.log('--------------------------------------');
+                const matches = chunk.toString().match(/INFO \[[^\]]+\]: \d+ projects opened in \d+/g);
+                count+= matches?.length || 0;
+            });
+            lastFileSize = stats.size;
+        }
+    });
+}
+const checkIfIndexingCompleted = () => {
+    return new Promise((resolve, reject) => {
+        let isTaskCompleted = false;
+        const checkInterval = setInterval(() => {
+            console.log("COUNT "+ count);
+            if (count>=2) {
                 clearInterval(checkInterval);
                 if (!isTaskCompleted) {
                     isTaskCompleted = true;
@@ -88,21 +136,30 @@ suite('Perfomance Test Suite', function () {
         await runShellCommand(gitCmd);
 
         await waitCommandsReady();
-        await myExtension.awaitClient();
+        const t = await myExtension.awaitClient();
         console.log("Extension Loaded");
         
-        const p = path.join(folder, "src/jdk.javadoc/share/classes/jdk/javadoc/doclet/StandardDoclet.java");
-        assert(fs.existsSync(p), "file doesn't exists");
-        await openFile(p);
-        
         try {
+            assert(myExtension.extensionContext?.storageUri, "extension context is undefined");
+            const logPath = path.join(myExtension.extensionContext.storageUri.fsPath, 'userdir','var','log','messages.log');
+            setInterval(()=> pollLogFile(logPath), 1000);
             const startTime = Date.now();
-            await checkIfSymbolsResolved(p);
+            for await (const [idx, f] of OPENJDK_CHECK_FILES_RESOLVES.entries()) {
+                const p = path.join(...[folder, ...f.split('/')]);
+                assert(fs.existsSync(p), "file doesn't exists");
+                console.log(f);
+                await openFile(p);
+                idx == 0 ? await checkIfSymbolsResolved(p) : await checkIfSymbolsResolved(p, true);
+            }
+
+            await checkIfIndexingCompleted(); 
             const endTime = Date.now() - startTime;
             console.log("END_TIME: " + endTime);
+            
         } catch (err: any) {
             throw new Error("Symbols not resolved");
         }
+
 
     }).timeout(3600 * 1000);
 
