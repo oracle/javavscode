@@ -26,13 +26,12 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as myExtension from '../../extension';
-
-
-import { commands, env, ExtensionMode, extensions, languages, Uri, window, workspace } from 'vscode';
+import { languages, Uri, window, workspace } from 'vscode';
 import { assertWorkspace, openFile, runShellCommand, waitCommandsReady } from './testutils';
 import { OPENJDK_CHECK_FILES_RESOLVES } from './constants';
-import { TelemetryEventNotification } from 'vscode-languageclient';
 
+let lastFileSize = 0;
+let count = 0;
 const checkSymbolsResolved = (path: string): boolean => {
     let d = languages.getDiagnostics(Uri.file(path));
     const filterErrorsList = d.filter(el => el.severity == 0);
@@ -42,8 +41,27 @@ const checkSymbolsResolved = (path: string): boolean => {
 
 const checkExtensionLoaded = (path: string): boolean => {
     let d = languages.getDiagnostics(Uri.file(path));
-    console.log("Diagnostics Length: " + d.length);
     return d.length != 0;
+}
+
+const pollLogFile = (logFilePath: string) => {
+    fs.stat(logFilePath, async (err, stats) => {
+        if (err) {
+            console.error(`Error reading file stats: ${err.message}`);
+            return;
+        }
+
+        if (stats.size > lastFileSize) {
+            fs.createReadStream(logFilePath, {
+                start: lastFileSize,
+                end: stats.size
+            }).on('data', chunk => {
+                const matches = chunk.toString().match(/INFO \[[^\]]+\]: \d+ projects opened in \d+/g);
+                count += matches?.length || 0;
+            });
+            lastFileSize = stats.size;
+        }
+    });
 }
 
 const checkIfSymbolsResolved = (path: string, isExtensionLoaded: boolean = false) => {
@@ -62,7 +80,6 @@ const checkIfSymbolsResolved = (path: string, isExtensionLoaded: boolean = false
             }
         }, 100);
 
-        // Set the timeout
         setTimeout(() => {
             if (!isTaskCompleted) {
                 isTaskCompleted = true;
@@ -71,36 +88,13 @@ const checkIfSymbolsResolved = (path: string, isExtensionLoaded: boolean = false
         }, 10 * 60 * 1000);
     });
 }
-let lastFileSize = 0;
-let count = 0;
-const pollLogFile = (logFilePath: string)=>{
-    fs.stat(logFilePath, async (err, stats) => {
-        if (err) {
-            console.error(`Error reading file stats: ${err.message}`);
-            return;
-        }
 
-        if (stats.size > lastFileSize) {
-            fs.createReadStream(logFilePath, {
-                start: lastFileSize,
-                end: stats.size
-            })
-            .on('data', chunk => {
-                // console.log(`New log data: ${chunk}`);
-                // console.log('--------------------------------------');
-                const matches = chunk.toString().match(/INFO \[[^\]]+\]: \d+ projects opened in \d+/g);
-                count+= matches?.length || 0;
-            });
-            lastFileSize = stats.size;
-        }
-    });
-}
 const checkIfIndexingCompleted = () => {
     return new Promise((resolve, reject) => {
         let isTaskCompleted = false;
         const checkInterval = setInterval(() => {
-            console.log("COUNT "+ count);
-            if (count>=2) {
+            console.log("Number of times opened projects appeared in log file: " + count);
+            if (count >= 2) {
                 clearInterval(checkInterval);
                 if (!isTaskCompleted) {
                     isTaskCompleted = true;
@@ -109,11 +103,10 @@ const checkIfIndexingCompleted = () => {
             }
         }, 100);
 
-        // Set the timeout
         setTimeout(() => {
             if (!isTaskCompleted) {
                 isTaskCompleted = true;
-                reject(new Error('Symbols did not resolved within the timeout period'));
+                reject(new Error(`Indexing didn't complete within the timeout period`));
             }
         }, 10 * 60 * 1000);
     });
@@ -130,19 +123,19 @@ suite('Perfomance Test Suite', function () {
         await fs.promises.mkdir(folder, { recursive: true });
     }).timeout(10000);
 
-    test("OpenJDK perfomance test", async () => {
+    test("Performance test on OpenJDK repository", async () => {
         const args = ["--depth", 1, "--branch", "jdk-23+25"];
         const gitCmd = `cd ${folder} && git clone ${args.join(' ')} https://github.com/openjdk/jdk.git .`;
         await runShellCommand(gitCmd);
 
+        await myExtension.awaitClient();
         await waitCommandsReady();
-        const t = await myExtension.awaitClient();
         console.log("Extension Loaded");
-        
+
         try {
             assert(myExtension.extensionContext?.storageUri, "extension context is undefined");
-            const logPath = path.join(myExtension.extensionContext.storageUri.fsPath, 'userdir','var','log','messages.log');
-            setInterval(()=> pollLogFile(logPath), 1000);
+            const logPath = path.join(myExtension.extensionContext.storageUri.fsPath, 'userdir', 'var', 'log', 'messages.log');
+            setInterval(() => pollLogFile(logPath), 1000);
             const startTime = Date.now();
             for await (const [idx, f] of OPENJDK_CHECK_FILES_RESOLVES.entries()) {
                 const p = path.join(...[folder, ...f.split('/')]);
@@ -152,10 +145,10 @@ suite('Perfomance Test Suite', function () {
                 idx == 0 ? await checkIfSymbolsResolved(p) : await checkIfSymbolsResolved(p, true);
             }
 
-            await checkIfIndexingCompleted(); 
+            await checkIfIndexingCompleted();
             const endTime = Date.now() - startTime;
             console.log("END_TIME: " + endTime);
-            
+
         } catch (err: any) {
             throw new Error("Symbols not resolved");
         }
