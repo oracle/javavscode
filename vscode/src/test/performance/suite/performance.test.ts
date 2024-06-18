@@ -25,8 +25,8 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as myExtension from '../../extension';
-import { languages, Uri, window, workspace } from 'vscode';
+import * as myExtension from '../../../extension';
+import { extensions, languages, Uri, window, workspace } from 'vscode';
 import { assertWorkspace, openFile, runShellCommand, waitCommandsReady } from './testutils';
 import { OPENJDK_CHECK_FILES_RESOLVES } from './constants';
 
@@ -128,10 +128,8 @@ suite('Perfomance Test Suite', function () {
         const gitCmd = `cd ${folder} && git clone ${args.join(' ')} https://github.com/openjdk/jdk.git .`;
         await runShellCommand(gitCmd);
 
-        await myExtension.awaitClient();
         await waitCommandsReady();
         console.log("Extension Loaded");
-
         try {
             assert(myExtension.extensionContext?.storageUri, "extension context is undefined");
             const logPath = path.join(myExtension.extensionContext.storageUri.fsPath, 'userdir', 'var', 'log', 'messages.log');
@@ -148,6 +146,10 @@ suite('Perfomance Test Suite', function () {
             await checkIfIndexingCompleted();
             const endTime = Date.now() - startTime;
             console.log("END_TIME: " + endTime);
+            const extension = extensions.getExtension('oracle.oracle-java');
+            await workspace.fs.writeFile(
+                Uri.file(path.join(__dirname,'..',extension?.packageJSON.version)), 
+                new TextEncoder().encode(endTime.toString()));
 
         } catch (err: any) {
             throw new Error("Symbols not resolved");

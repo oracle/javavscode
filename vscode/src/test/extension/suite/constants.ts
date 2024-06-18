@@ -14,8 +14,6 @@
   limitations under the License.
 */
 
-import * as path from 'path';
-
 export const MAIN_TEST_JAVA = `/*
 * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 */
@@ -164,9 +162,3 @@ public class RefactorActions {
    }
 }
 `;
-
-export const OPENJDK_CHECK_FILES_RESOLVES: string[] = [
-    "src/jdk.javadoc/share/classes/jdk/javadoc/doclet/StandardDoclet.java",
-    "src/jdk.zipfs/share/classes/jdk/nio/zipfs/ZipUtils.java",
-    "src/jdk.zipfs/share/classes/jdk/nio/zipfs/ZipPath.java"
-] 
