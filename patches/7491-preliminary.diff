@@ -1500,19 +1500,22 @@ index 9ac80a3c09..1f7e220870 100644
                      <code-name-base>org.netbeans.libs.javacapi</code-name-base>
                      <build-prerequisite/>
 diff --git a/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementJavadoc.java b/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementJavadoc.java
-index fdabe50444..b1d1aa9ffd 100644
+index fdabe50444..0ce9410f9e 100644
 --- a/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementJavadoc.java
 +++ b/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementJavadoc.java
-@@ -119,6 +119,8 @@ import javax.tools.SimpleJavaFileObject;
+@@ -119,6 +119,11 @@ import javax.tools.SimpleJavaFileObject;
  import com.sun.source.tree.ImportTree;
  import com.sun.source.tree.Tree;
  import com.sun.source.util.JavacTask;
++import com.vladsch.flexmark.ext.tables.TablesExtension;
 +import com.vladsch.flexmark.html.HtmlRenderer;
 +import com.vladsch.flexmark.parser.Parser;
++import com.vladsch.flexmark.util.data.DataHolder;
++import com.vladsch.flexmark.util.data.MutableDataSet;
  import javax.lang.model.element.RecordComponentElement;
  import org.netbeans.api.java.queries.SourceLevelQuery;
  import org.netbeans.api.java.queries.SourceLevelQuery.Profile;
-@@ -1275,7 +1277,7 @@ public class ElementJavadoc {
+@@ -1275,7 +1280,7 @@ public class ElementJavadoc {
      private StringBuilder inlineTags(List<? extends DocTree> tags, TreePath docPath, DocCommentTree doc, DocTrees trees, CharSequence inherited) {
          StringBuilder sb = new StringBuilder();
          Integer snippetCount=0;
@@ -1521,7 +1524,7 @@ index fdabe50444..b1d1aa9ffd 100644
              switch (tag.getKind()) {
                  case REFERENCE:
                      ReferenceTree refTag = (ReferenceTree)tag;
-@@ -1395,6 +1397,42 @@ public class ElementJavadoc {
+@@ -1395,6 +1400,53 @@ public class ElementJavadoc {
          return sb;
      }
  
@@ -1543,7 +1546,18 @@ index fdabe50444..b1d1aa9ffd 100644
 +            }
 +        }
 +
-+        String html = HtmlRenderer.builder().build().render(Parser.builder().build().parse(markdownSource.toString()));
++        TablesExtension tablesExtension = TablesExtension.create();
++
++        Parser.Builder parserBuilder = Parser.builder();
++        tablesExtension.extend(parserBuilder);
++
++        HtmlRenderer.Builder rendererBuilder = HtmlRenderer.builder();
++        tablesExtension.extend(rendererBuilder, "HTML");
++
++        String html = rendererBuilder.build()
++                                     .render(parserBuilder.build()
++                                                          .parse(markdownSource.toString()));
++
 +        if (html.startsWith("<p>")) {
 +            html = html.substring("<p>".length());
 +        }
@@ -1564,3 +1578,158 @@ index fdabe50444..b1d1aa9ffd 100644
      private void processDocSnippet(StringBuilder sb, SnippetTree javadocSnippet, Integer snippetCount, TreePath docPath,DocCommentTree doc, DocTrees trees) {
          sb.append("<div id=\"snippet").append(snippetCount).append("\" style=\"font-size: 10px; border: 1px solid black; margin-top: 2px; margin-bottom: 2px\">"); //NOI18N
          sb.append("<div align=right>" //NOI18N
+diff --git a/java/java.sourceui/test/unit/src/org/netbeans/api/java/source/ui/ElementJavadocTest.java b/java/java.sourceui/test/unit/src/org/netbeans/api/java/source/ui/ElementJavadocTest.java
+new file mode 100644
+index 0000000000..9aaa49ecb5
+--- /dev/null
++++ b/java/java.sourceui/test/unit/src/org/netbeans/api/java/source/ui/ElementJavadocTest.java
+@@ -0,0 +1,149 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.api.java.source.ui;
++
++import com.sun.source.util.TreePath;
++import java.io.File;
++import java.util.ArrayList;
++import java.util.List;
++import javax.lang.model.element.Element;
++import javax.swing.text.Document;
++import org.netbeans.api.java.lexer.JavaTokenId;
++import org.netbeans.api.java.source.CompilationInfo;
++import org.netbeans.api.java.source.JavaSource;
++import org.netbeans.api.java.source.JavaSource.Phase;
++import org.netbeans.api.java.source.SourceUtilsTestUtil;
++import org.netbeans.api.java.source.TestUtilities;
++import org.netbeans.api.lexer.Language;
++import org.netbeans.junit.NbTestCase;
++import org.netbeans.modules.java.JavaDataLoader;
++import org.openide.cookies.EditorCookie;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
++import org.openide.loaders.DataObject;
++
++public class ElementJavadocTest extends NbTestCase {
++
++    private static final String CARET_MARK = "<caret>";
++
++    public ElementJavadocTest(String testName) {
++        super(testName);
++    }
++
++    private void prepareTest(String fileName, String code) throws Exception {
++        int pos = code.indexOf(CARET_MARK);
++
++        if (pos == (-1)) {
++            throw new AssertionError("Does not have caret position!");
++        }
++
++        code = code.substring(0, pos) + code.substring(pos + CARET_MARK.length());
++
++        List<Object> extras = new ArrayList<>();
++        extras.add(JavaDataLoader.class);
++        SourceUtilsTestUtil.prepareTest(new String[] {
++                    "org/netbeans/modules/java/platform/resources/layer.xml",
++                    "org/netbeans/modules/java/j2seplatform/resources/layer.xml"
++                },
++                extras.toArray(new Object[0])
++        );
++
++        clearWorkDir();
++
++        FileUtil.refreshAll();
++
++        FileObject workFO = FileUtil.toFileObject(getWorkDir());
++
++        assertNotNull(workFO);
++
++        sourceRoot = workFO.createFolder("src");
++
++        FileObject buildRoot  = workFO.createFolder("build");
++        FileObject cache = workFO.createFolder("cache");
++
++        FileObject data = FileUtil.createData(sourceRoot, fileName);
++        File dataFile = FileUtil.toFile(data);
++
++        assertNotNull(dataFile);
++
++        TestUtilities.copyStringToFile(dataFile, code);
++
++        SourceUtilsTestUtil.prepareTest(sourceRoot, buildRoot, cache, new FileObject[0]);
++
++        DataObject od = DataObject.find(data);
++        EditorCookie ec = od.getCookie(EditorCookie.class);
++
++        assertNotNull(ec);
++
++        doc = ec.openDocument();
++        doc.putProperty(Language.class, JavaTokenId.language());
++
++        JavaSource js = JavaSource.forFileObject(data);
++
++        assertNotNull(js);
++
++        info = SourceUtilsTestUtil.getCompilationInfo(js, Phase.RESOLVED);
++
++        assertNotNull(info);
++
++        selectedPath = info.getTreeUtilities().pathFor(pos);
++        selectedElement = info.getTrees().getElement(selectedPath);
++
++        assertNotNull(selectedElement);
++    }
++
++    private FileObject sourceRoot;
++    private CompilationInfo info;
++    private Document doc;
++    private TreePath selectedPath;
++    private Element selectedElement;
++
++    protected void performTest(String fileName, String code, int pos, String format, String golden) throws Exception {
++        prepareTest(fileName, code);
++
++        TreePath path = info.getTreeUtilities().pathFor(pos);
++
++        assertEquals(golden, ElementHeaders.getHeader(path, info, format));
++    }
++
++    public void testMarkdownTables() throws Exception {
++        prepareTest("test/Test.java",
++                    "///| header1 | header2 |\n" +
++                    "///|---------|---------|\n" +
++                    "///| cr11    | cr12    |\n" +
++                    "///| cr21    | cr22    |\n" +
++                    "public class T<caret>est {\n" +
++                    "}\n");
++
++        String actualJavadoc = ElementJavadoc.create(info, selectedElement).getText();
++        String expectedJavadoc = "<pre>public class <b>Test</b><br>extends <a href='*0'>Object</a></pre><p><table>\n" +
++                                 "<thead>\n" +
++                                 "<tr><th>header1</th><th>header2</th></tr>\n" +
++                                 "</thead>\n" +
++                                 "<tbody>\n" +
++                                 "<tr><td>cr11</td><td>cr12</td></tr>\n" +
++                                 "<tr><td>cr21</td><td>cr22</td></tr>\n" +
++                                 "</tbody>\n" +
++                                 "</table>\n" +
++                                 "<p>";
++
++        assertEquals(expectedJavadoc, actualJavadoc);
++    }
++
++}
