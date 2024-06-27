@@ -26,7 +26,7 @@
 		"OpenJDK",
 		"Maven",
 		"Gradle",
-		"java properties", 
+		"java properties",
 		"junit",
 		"multi-root ready",
 		"multiroot"
@@ -45,6 +45,18 @@
 	"main": "./out/extension.js",
 	"contributes": {
 		"languages": [
+			{
+				"id": "java",
+				"extensions": [
+					".java",
+					".jav"
+				],
+				"aliases": [
+					"Java",
+					"java"
+				],
+				"configuration": "./language-configuration.json"
+			},
 			{
 				"id": "javascript",
 				"mimetypes": [
@@ -468,13 +480,13 @@
 				"title": "Download, install and use JDK"
 			},
 			{
-				"command": "jdk.goto.test",
+				"command": "jdk.open.test",
 				"title": "Go To Test/Tested class...",
 				"category": "Java"
 			},
 			{
 				"command": "jdk.delete.cache",
-				"title": "Delete oracle java extension cache for this workspace"
+				"title": "Delete Oracle Java extension cache for this workspace"
 			}
 		],
 		"keybindings": [
@@ -504,7 +516,7 @@
 					"group": "navigation@100"
 				},
 				{
-					"command": "jdk.goto.test",
+					"command": "jdk.open.test",
 					"when": "nbJdkReady && editorLangId == java",
 					"group": "navigation@101"
 				},
@@ -526,7 +538,7 @@
 					"group": "navigation@3"
 				},
 				{
-					"command": "jdk.goto.test",
+					"command": "jdk.open.test",
 					"when": "nbJdkReady && resourceExtname == .java",
 					"group": "goto@1"
 				},
@@ -556,7 +568,7 @@
 					"when": "nbJdkReady"
 				},
 				{
-					"command": "jdk.goto.test",
+					"command": "jdk.open.test",
 					"when": "nbJdkReady && editorLangId == java"
 				},
 				{

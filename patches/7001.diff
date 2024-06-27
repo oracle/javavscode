@@ -1,54 +1,3 @@
-diff --git a/ide/c.google.guava.failureaccess/external/binaries-list b/ide/c.google.guava.failureaccess/external/binaries-list
-index c71c3937fb60..f4ff27670bf5 100644
---- a/ide/c.google.guava.failureaccess/external/binaries-list
-+++ b/ide/c.google.guava.failureaccess/external/binaries-list
-@@ -14,4 +14,4 @@
- # KIND, either express or implied.  See the License for the
- # specific language governing permissions and limitations
- # under the License.
--1DCF1DE382A0BF95A3D8B0849546C88BAC1292C9 com.google.guava:failureaccess:1.0.1
-+C4A06A64E650562F30B7BF9AAEC1BFED43ACA12B com.google.guava:failureaccess:1.0.2
-diff --git a/ide/c.google.guava.failureaccess/external/failureaccess-1.0.1-license.txt b/ide/c.google.guava.failureaccess/external/failureaccess-1.0.2-license.txt
-similarity index 99%
-rename from ide/c.google.guava.failureaccess/external/failureaccess-1.0.1-license.txt
-rename to ide/c.google.guava.failureaccess/external/failureaccess-1.0.2-license.txt
-index 8db246aa2be6..0c948ba081a4 100644
---- a/ide/c.google.guava.failureaccess/external/failureaccess-1.0.1-license.txt
-+++ b/ide/c.google.guava.failureaccess/external/failureaccess-1.0.2-license.txt
-@@ -1,5 +1,5 @@
- Name: Guava - Failure Access Library
--Version: 1.0.1
-+Version: 1.0.2
- License: Apache-2.0
- Origin: https://github.com/google/guava
- Description: A Guava subproject
-diff --git a/ide/c.google.guava.failureaccess/nbproject/project.properties b/ide/c.google.guava.failureaccess/nbproject/project.properties
-index 1fcc19e43c10..68cfb5ce8306 100644
---- a/ide/c.google.guava.failureaccess/nbproject/project.properties
-+++ b/ide/c.google.guava.failureaccess/nbproject/project.properties
-@@ -16,7 +16,7 @@
- # under the License.
- javac.compilerargs=-Xlint -Xlint:-serial
- javac.source=1.8
--spec.version.base=1.1.0
--release.external/failureaccess-1.0.1.jar=modules/com-google-guava-failureaccess.jar
-+spec.version.base=1.3.0
-+release.external/failureaccess-1.0.2.jar=modules/com-google-guava-failureaccess.jar
- is.autoload=true
- nbm.module.author=Tomas Stupka
-diff --git a/ide/c.google.guava.failureaccess/nbproject/project.xml b/ide/c.google.guava.failureaccess/nbproject/project.xml
-index 358696d3e293..9284279c26eb 100644
---- a/ide/c.google.guava.failureaccess/nbproject/project.xml
-+++ b/ide/c.google.guava.failureaccess/nbproject/project.xml
-@@ -28,7 +28,7 @@
-            <public-packages/>
-            <class-path-extension>
-                <runtime-relative-path>com-google-guava-failureaccess.jar</runtime-relative-path>
--               <binary-origin>external/failureaccess-1.0.1.jar</binary-origin>
-+               <binary-origin>external/failureaccess-1.0.2.jar</binary-origin>
-             </class-path-extension>
-         </data>
-     </configuration>
 diff --git a/java/maven.embedder/build.xml b/java/maven.embedder/build.xml
 index 1cf553760703..9dd89c01e769 100644
 --- a/java/maven.embedder/build.xml
@@ -301,15 +250,15 @@ index 8271d91403a2..69494e4f2e05 100644
              <class-path-extension>
                  <runtime-relative-path>../maven/lib/guava-32.0.1-jre.jar</runtime-relative-path>
 diff --git a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
-index ec9973e06191..3082c90a21cc 100644
+index ec07902509..dd52e08038 100644
 --- a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
 +++ b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
 @@ -26,7 +26,7 @@ ide/db.sql.visualeditor/external/javacc-7.0.10.jar java/performance/external/jav
  java/maven.embedder/external/apache-maven-3.9.6-bin.zip ide/slf4j.api/external/slf4j-api-1.7.36.jar
  java/maven.embedder/external/apache-maven-3.9.6-bin.zip platform/o.apache.commons.lang3/external/commons-lang3-3.12.0.jar
- java/maven.embedder/external/apache-maven-3.9.6-bin.zip platform/o.apache.commons.codec/external/commons-codec-1.16.0.jar
--java/maven.embedder/external/apache-maven-3.9.6-bin.zip ide/c.google.guava.failureaccess/external/failureaccess-1.0.1.jar
+ java/maven.embedder/external/apache-maven-3.9.6-bin.zip platform/o.apache.commons.codec/external/commons-codec-1.16.1.jar
+-java/maven.embedder/external/apache-maven-3.9.6-bin.zip ide/c.google.guava.failureaccess/external/failureaccess-1.0.2.jar
 +java/maven.embedder/external/failureaccess-1.0.2.jar ide/c.google.guava.failureaccess/external/failureaccess-1.0.2.jar
+ java/maven.embedder/external/apache-maven-3.9.6-bin.zip java/maven.indexer/external/javax.annotation-api-1.3.2.jar
  
  # Used to parse data during build, but need to as a lib for ide cluster
- nbbuild/external/json-simple-1.1.1.jar ide/libs.json_simple/external/json-simple-1.1.1.jar

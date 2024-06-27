@@ -53,6 +53,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { ChildProcess } from 'child_process';
 import * as vscode from 'vscode';
+import * as ls from 'vscode-languageserver-protocol';
 import * as launcher from './nbcode';
 import { StreamDebugAdapter} from './streamDebugAdapter';
 import { NbTestAdapter } from './testAdapter';
@@ -452,21 +453,37 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
         }
     }));
 
-    context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.goto.test', async (ctx) => {
+    context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.open.test', async (ctx) => {
         let c: LanguageClient = await client;
         const commands = await vscode.commands.getCommands();
         if (commands.includes(COMMAND_PREFIX + '.go.to.test')) {
             try {
-                const res: Array<string> = await vscode.commands.executeCommand(COMMAND_PREFIX + '.go.to.test', contextUri(ctx)?.toString());
-                if (res?.length) {
-                    if (res.length === 1) {
-                        let file = vscode.Uri.parse(res[0]);
-                        await vscode.window.showTextDocument(file, { preview: false });
+                const res: any = await vscode.commands.executeCommand(COMMAND_PREFIX + '.go.to.test', contextUri(ctx)?.toString());
+                if("errorMessage" in res){
+                    throw new Error(res.errorMessage);
+                }
+                res?.providerErrors?.map((error: any) => {
+                    if(error?.message){
+                        vscode.window.showErrorMessage(error.message);
+                    }
+                });
+                if (res?.locations?.length) {
+                    if (res.locations.length === 1) {
+                        const { file, offset } = res.locations[0];
+                        const filePath = vscode.Uri.parse(file);
+                        const editor = await vscode.window.showTextDocument(filePath, { preview: false });
+                        if (offset != -1) {
+                            const pos: vscode.Position = editor.document.positionAt(offset);
+                            editor.selections = [new vscode.Selection(pos, pos)];
+                            const range = new vscode.Range(pos, pos);
+                            editor.revealRange(range);
+                        }
+
                     } else {
                         const namePathMapping: { [key: string]: string } = {}
-                        res.forEach(fp => {
-                            const fileName = path.basename(fp);
-                            namePathMapping[fileName] = fp
+                        res.locations.forEach((fp:any) => {
+                            const fileName = path.basename(fp.file);
+                            namePathMapping[fileName] = fp.file
                         });
                         const selected = await window.showQuickPick(Object.keys(namePathMapping), {
                             title: 'Select files to open',
@@ -483,11 +500,8 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                         }
                     }
                 }
-                else {
-                    throw new Error("No corresponding file found");
-                }
-            } catch (err) {
-                vscode.window.showInformationMessage("Source file does not have corresponding test file or vice versa");
+            } catch (err:any) {
+                vscode.window.showInformationMessage(err?.message || "No Test or Tested class found");
             }
         } else {
             throw `Client ${c} doesn't support go to test`;
@@ -557,18 +571,20 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.surround.with', async (items) => {
         const selected: any = await window.showQuickPick(items, { placeHolder: 'Surround with ...' });
         if (selected) {
-            if (selected.userData.edit && selected.userData.edit.changes) {
-                let edit = new vscode.WorkspaceEdit();
-                Object.keys(selected.userData.edit.changes).forEach(key => {
-                    edit.set(vscode.Uri.parse(key), selected.userData.edit.changes[key].map((change: any) => {
-                        let start = new vscode.Position(change.range.start.line, change.range.start.character);
-                        let end = new vscode.Position(change.range.end.line, change.range.end.character);
-                        return new vscode.TextEdit(new vscode.Range(start, end), change.newText);
-                    }));
-                });
+            if (selected.userData.edit) {
+                const edit = await (await client).protocol2CodeConverter.asWorkspaceEdit(selected.userData.edit as ls.WorkspaceEdit);
                 await workspace.applyEdit(edit);
+                await commands.executeCommand('workbench.action.focusActiveEditorGroup');
             }
             await commands.executeCommand(selected.userData.command.command, ...(selected.userData.command.arguments || []));
+        }
+    }));
+    context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.generate.code', async (command, data) => {
+        const edit: any = await commands.executeCommand(command, data);
+        if (edit) {
+            const wsEdit = await (await client).protocol2CodeConverter.asWorkspaceEdit(edit as ls.WorkspaceEdit);
+            await workspace.applyEdit(wsEdit);
+            await commands.executeCommand('workbench.action.focusActiveEditorGroup');
         }
     }));
 
@@ -688,11 +704,11 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
         const c = await client;
         return (await c.sendRequest<SymbolInformation[]>("workspace/symbol", { "query": query })) ?? [];
     }));
-    context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + 'java.complete.abstract.methods', async () => {
+    context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.java.complete.abstract.methods', async () => {
         const active = vscode.window.activeTextEditor;
         if (active) {
             const position = new vscode.Position(active.selection.start.line, active.selection.start.character);
-            await commands.executeCommand(COMMAND_PREFIX + 'java.implement.all.abstract.methods', active.document.uri.toString(), position);
+            await commands.executeCommand(COMMAND_PREFIX + '.java.implement.all.abstract.methods', active.document.uri.toString(), position);
         }
     }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.startup.condition', async () => {
@@ -954,6 +970,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                 } else {
                     handleLog(log, "Cannot find org.netbeans.modules.java.lsp.server in the log!");
                 }
+                handleLog(log, `Please refer to troubleshooting section for more info: https://github.com/oracle/javavscode/blob/main/README.md#troubleshooting`);
                 log.show(false);
                 killNbProcess(false, log, p);
                 reject(`${SERVER_NAME} not enabled!`);
@@ -1027,7 +1044,8 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                     'jdk.hints',
                     'jdk.format',
                     'jdk.java.imports',
-                    'jdk.runConfig.vmOptions'
+                    'jdk.runConfig.vmOptions',
+                    'jdk.runConfig.cwd'
                 ],
                 fileEvents: [
                     workspace.createFileSystemWatcher('**/*.java')

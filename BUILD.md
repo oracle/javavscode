@@ -27,7 +27,7 @@
 
 ## Prerequisities
 
-- JDK, version 11 or later upto JDK 20
+- JDK, version 11 or later upto JDK 22
 - Ant, latest version
 - Maven, latest version
 - node.js, latest LTS (to build VSIX)
@@ -38,7 +38,7 @@
 ```bash
 $ git clone https://github.com/apache/netbeans.git
 $ cd netbeans/
-$ git checkout 21
+$ git checkout 22
 $ cd ..
 # the following target requires git executable to be on PATH:
 $ ant apply-patches
