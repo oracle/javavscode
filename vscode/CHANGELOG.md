@@ -24,6 +24,21 @@
 -->
 
 <!-- This file has been modified for Oracle Java SE extension -->
+## Version 22.1.1
+### What's Changed
+
+### Enhancements
+* Upgrading to NB-22 https://github.com/oracle/javavscode/pull/169
+* [JAVAVSCODE-175] Support for JEP-467 (Markdown Javadoc) added https://github.com/oracle/javavscode/pull/176
+* [JAVAVSCODE-74] Support for relative paths to in the source file launcher's paths https://github.com/oracle/javavscode/pull/173 
+
+### Other Changes
+* Bump braces from 3.0.2 to 3.0.3 https://github.com/oracle/javavscode/pull/171
+* [JAVAVSCODE-172] Updated README for how to use JDK EA builds with extension https://github.com/oracle/javavscode/pull/174
+* [JAVAVSCODE-110] Updated README for troubleshoot guide https://github.com/oracle/javavscode/pull/169
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v22.0.1...v22.1.1
+
 ## Version 22.0.1 (May 30th, 2024)
 ### What's Changed
 
