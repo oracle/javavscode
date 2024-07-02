@@ -162,3 +162,37 @@ public class RefactorActions {
    }
 }
 `;
+
+export const SAMPLE_BUILD_GRADLE = 
+`
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClassName = 'org.yourCompany.yourProject.App'
+}
+`;
+
+export const SAMPLE_SETTINGS_GRADLE = 
+`
+rootProject.name = 'yourProject'
+
+include ':yourProject'
+`;
+
+export const SAMPLE_APP_JAVA = 
+`
+package org.yourCompany.yourProject;
+
+public class App {
+    public static void main(String[] args) {
+        System.out.println("Hello, yourProject!");
+    }
+}
+`
