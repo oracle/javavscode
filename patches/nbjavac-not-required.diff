@@ -1,0 +1,9 @@
+diff --git a/java/java.source.base/manifest.mf b/java/java.source.base/manifest.mf
+index e47516a822..8e95ab8e59 100644
+--- a/java/java.source.base/manifest.mf
++++ b/java/java.source.base/manifest.mf
+@@ -3,4 +3,3 @@ OpenIDE-Module: org.netbeans.modules.java.source.base
+ OpenIDE-Module-Implementation-Version: 6
+ OpenIDE-Module-Localizing-Bundle: org/netbeans/modules/java/source/base/Bundle.properties
+ OpenIDE-Module-Layer: org/netbeans/modules/java/source/base/layer.xml
+-OpenIDE-Module-Recommends: org.netbeans.libs.nbjavac
