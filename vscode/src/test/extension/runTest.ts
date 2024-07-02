@@ -27,7 +27,7 @@ async function main() {
     try {
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
-        const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+        const extensionDevelopmentPath = path.resolve(__dirname, '../../../');
 
         const vscodeExecutablePath: string = await downloadAndUnzipVSCode('stable');
 
@@ -35,7 +35,7 @@ async function main() {
         // Passed to --extensionTestsPath
         const extensionTestsPath = path.resolve(__dirname, './suite/index');
 
-        const workspaceDir = path.join(extensionDevelopmentPath, 'out', 'test', 'ws');
+        const workspaceDir = path.join(extensionDevelopmentPath, 'out', 'test', 'extension', 'ws');
 
         const outRoot = path.join(extensionDevelopmentPath, "out");
         const extDir = path.join(outRoot, "test", "vscode", "exts");

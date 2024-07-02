@@ -25,7 +25,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as myExtension from '../../extension';
+import * as myExtension from '../../../extension';
 import * as path from 'path';
 import { spawn, ChildProcessByStdio } from 'child_process';
 import { Readable } from 'stream';
