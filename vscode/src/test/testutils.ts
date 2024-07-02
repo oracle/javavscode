@@ -54,7 +54,6 @@ export function assertWorkspace(): string {
   assert.ok(dirs?.length, "There are some workspace folders: " + dirs);
   assert.strictEqual(dirs.length, 1, "One folder provided");
   let folder: string = dirs[0].uri.fsPath;
-console.log(folder);
   return folder;
 }
 
@@ -323,7 +322,6 @@ export function runTestSuite(folder: string): Promise<void> {
 			}
 			// Add files to the test suite
 			files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
-			console.log(files);
 
 			try {
 				// Run the mocha test
