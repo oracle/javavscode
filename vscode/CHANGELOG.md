@@ -28,7 +28,7 @@
 ### What's Changed
 
 ### Enhancements
-* [JAVAVSCODE-172] Support for using JDK 23 EA builds with the extension https://github.com/oracle/javavscode/pull/174
+* [JAVAVSCODE-172] Support for using JDK 23 EA builds with the extension including features like ClassFile API, Implicitly Declared Classes and Instance Main Methods, etc. https://github.com/oracle/javavscode/pull/174
 * [JAVAVSCODE-175] Support for JEP 467 (Markdown format for Javadoc) added https://github.com/oracle/javavscode/pull/176
 * [JAVAVSCODE-74] Support for running a project with dependencies not managed by Maven or Gradle https://github.com/oracle/javavscode/pull/173 
 * Upgrading to NB-22 https://github.com/oracle/javavscode/pull/169
