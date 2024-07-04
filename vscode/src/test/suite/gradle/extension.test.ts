@@ -23,22 +23,14 @@
 
 import * as assert from "assert";
 import * as fs from "fs";
-import * as path from "path";
-import * as vscode from "vscode";
 import * as Mocha from 'mocha';
+import * as path from "path";
 
-import {
-  commands,
-  window
-} from "vscode";
-import {
-  assertWorkspace,
-  dumpJava,
-  gradleInitJavaApplication
-} from "../../testutils";
+import { commands, window } from "vscode";
+import { assertWorkspace, dumpJava, gradleInitJavaApplication } from "../../testutils";
 
 Mocha.before(async () => {
-  vscode.window.showInformationMessage('Cleaning up workspace.');
+  window.showInformationMessage('Cleaning up workspace.');
   let folder: string = assertWorkspace();
   await fs.promises.rmdir(folder, { recursive: true });
   await fs.promises.mkdir(folder, { recursive: true });
@@ -51,11 +43,11 @@ suite("Extension gradle tests", function () {
   test("Compile workspace - Gradle ", async () => {
     let folder: string = assertWorkspace();
     try {
-    await gradleInitJavaApplication(folder);
+      await gradleInitJavaApplication(folder);
       let compile = await commands.executeCommand("jdk.workspace.compile");
       assert.ok(compile, " Compile workspace command not working");
       const mainClass = path.join(
-       folder,
+        folder,
         "build",
         "classes/java",
         "main/org/yourCompany/yourProject",

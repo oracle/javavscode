@@ -37,23 +37,23 @@ async function main() {
 
         const testSuites = fs.readdirSync(path.resolve(__dirname, './suite'));
 
-        for(const suiteName of testSuites){
+        for (const suiteName of testSuites) {
             // The path to test runner
             // Passed to --extensionTestsPath
             const extensionTestsPath = path.resolve(__dirname, `./suite/${suiteName}/index`);
-            const workspaceDir = path.join(extensionDevelopmentPath, 'out', 'test','suite',suiteName, 'ws');
+            const workspaceDir = path.join(extensionDevelopmentPath, 'out', 'test', 'suite', suiteName, 'ws');
             if (!fs.statSync(workspaceDir).isDirectory()) {
                 throw `Expecting ${workspaceDir} to be a directory!`;
             }
-    
+
             // Download VS Code, unzip it and run the integration test
             await runTests({
                 vscodeExecutablePath,
                 extensionDevelopmentPath,
                 extensionTestsPath,
                 extensionTestsEnv: {
-                    'ENABLE_CONSOLE_LOG' : 'true',
-                    "netbeans.extra.options" : `-J-Dproject.limitScanRoot=${outRoot} -J-Dnetbeans.logger.console=true`
+                    'ENABLE_CONSOLE_LOG': 'true',
+                    "netbeans.extra.options": `-J-Dproject.limitScanRoot=${outRoot} -J-Dnetbeans.logger.console=true`
                 },
                 launchArgs: [
                     '--disable-extensions',

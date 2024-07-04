@@ -163,8 +163,8 @@ public class RefactorActions {
 }
 `;
 
-export const SAMPLE_BUILD_GRADLE = 
-`
+export const SAMPLE_BUILD_GRADLE =
+    `
 plugins {
     id 'java'
     id 'application'
@@ -179,15 +179,15 @@ application {
 }
 `;
 
-export const SAMPLE_SETTINGS_GRADLE = 
-`
+export const SAMPLE_SETTINGS_GRADLE =
+    `
 rootProject.name = 'yourProject'
 
 include ':yourProject'
 `;
 
-export const SAMPLE_APP_JAVA = 
-`
+export const SAMPLE_APP_JAVA =
+    `
 package org.yourCompany.yourProject;
 
 public class App {
