@@ -1,8 +1,18 @@
 diff --git a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
-index 5349a20e091a..d24c6f5ec98a 100644
+index 5349a20e09..952709d10b 100644
 --- a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
 +++ b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
-@@ -107,18 +107,16 @@ public static void main(String... args) throws IOException, InterruptedException
+@@ -58,7 +58,8 @@ public class PrepareBundles {
+         Pattern.compile("license", Pattern.CASE_INSENSITIVE),
+         Pattern.compile("LICENSE.txt", Pattern.CASE_INSENSITIVE),
+         Pattern.compile("LICENSE-MIT.txt", Pattern.CASE_INSENSITIVE),
+-        Pattern.compile("LICENSE.md", Pattern.CASE_INSENSITIVE)
++        Pattern.compile("LICENSE.md", Pattern.CASE_INSENSITIVE),
++        Pattern.compile("LICENSE.markdown", Pattern.CASE_INSENSITIVE)
+     );
+     private static final String nl = "\n";
+ 
+@@ -107,18 +108,18 @@ public class PrepareBundles {
                  if ("@types".equals(module.getFileName().toString())) continue;
                  if ("@esbuild".equals(module.getFileName().toString())) continue;
                  if ("@microsoft".equals(module.getFileName().toString())) continue;
@@ -13,6 +23,8 @@ index 5349a20e091a..d24c6f5ec98a 100644
 -                        }
 -                    }
 -                    continue;
++                if ("eastasianwidth".equals(module.getFileName().toString())) continue;
++                if ("isarray".equals(module.getFileName().toString())) continue;
 +                Path packageJson = module.resolve("package.json");
 +                if (Files.isReadable(packageJson)) {
 +                    checkModule(module, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
