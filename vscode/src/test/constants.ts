@@ -196,3 +196,7 @@ public class App {
     }
 }
 `
+
+export const OPENJDK_CHECK_FILES_RESOLVES: string[] = [
+    "src/jdk.javadoc/share/classes/jdk/javadoc/doclet/StandardDoclet.java"
+] 
