@@ -21,6 +21,7 @@
 
 import * as vscode from 'vscode';
 import { homedir } from 'os';
+import { l10n } from './localiser';
 
 export async function initializeRunConfiguration(): Promise<boolean> {
     if (vscode.workspace.name || vscode.workspace.workspaceFile) {
@@ -200,7 +201,7 @@ const vmOptionsNode = new VMOptionsNode();
 class EnvironmentVariablesNode extends RunConfigurationNode {
 
 	constructor() {
-        super('Environment:', 'Customize environment variables', 'Example: var1=one, varTwo=2', 'env');
+        super(l10n.translate("jdk.extension.runConfig.env.label"), l10n.translate("jdk.extension.runConfig.env.prompt"), 'Example: var1=one, varTwo=2', 'env');
     }
 
 }
@@ -209,7 +210,7 @@ const environmentVariablesNode = new EnvironmentVariablesNode();
 class WorkingDirectoryNode extends RunConfigurationNode {
 
 	constructor() {
-        super('Working Dir:', 'Customize working directory', WorkingDirectoryNode.getExample(), 'cwd');
+        super(l10n.translate("jdk.extension.runConfig.wrkdir.label"), l10n.translate("Customize working directory"), WorkingDirectoryNode.getExample(), 'cwd');
     }
 
 	static getExample(): string {
