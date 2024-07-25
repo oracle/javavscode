@@ -21,7 +21,7 @@ import { ThemeIcon } from 'vscode';
 import {  LanguageClient } from 'vscode-languageclient/node';
 import { NbLanguageClient } from './extension';
 import { NodeChangedParams, NodeInfoNotification, NodeInfoRequest, GetResourceParams, NodeChangeType, NodeChangesParams } from './protocol';
-
+import { l10n } from './localiser';
 const doLog : boolean = false;
 const EmptyIcon = "EMPTY_ICON";
 
@@ -907,7 +907,9 @@ export function createTreeViewService(log : vscode.OutputChannel, c : NbLanguage
         let v = args as Visualizer;
         let ok = await c.sendRequest(NodeInfoRequest.destroy, { nodeId : v.data.id });
         if (!ok) {
-            vscode.window.showErrorMessage('Cannot delete node ' + v.label);
+            vscode.window.showErrorMessage(l10n.translateMap("jdk.explorer.error_message.cannotDeleteNode" , {
+              label:v.label
+            }));
         }
     });
     const ts : TreeViewService = new TreeViewService(log, c, [ d ]);
