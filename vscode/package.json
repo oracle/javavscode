@@ -43,6 +43,7 @@
 		"onDebugDynamicConfigurations"
 	],
 	"main": "./out/extension.js",
+	"l10n": "./l10n",
 	"contributes": {
 		"languages": [
 			{
@@ -100,8 +101,8 @@
 				},
 				{
 					"id": "run-config",
-					"name": "Run Configuration",
-					"contextualTitle": "Run Configuration",
+					"name": "%jdk.views.run.config%",
+					"contextualTitle": "%jdk.views.run.config%",
 					"when": "runConfigurationInitialized"
 				}
 			]
@@ -116,61 +117,61 @@
 						"null"
 					],
 					"default": null,
-					"description": "Specifies JDK for the Oracle Visual Studio Code Extension",
+					"description": "%jdk.configuration.specifyJdk.description%",
 					"scope": "machine-overridable"
 				},
 				"jdk.verbose": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enables verbose messages from the Oracle Visual Studio Code Extension"
+					"description": "%jdk.configuration.verbose.description%"
 				},
 				"jdk.userdir": {
-					"description": "Keep settings and caches as 'global' or 'local' per workspace?",
+					"description": "%jdk.configuration.userdir.description%",
 					"type": "string",
 					"enum": [
 						"global",
 						"local"
 					],
 					"enumDescriptions": [
-						"Share data between all workspaces (more effective)",
-						"Each workspace has its own data (more isolated)"
+						"%jdk.configuration.userdir.description.shareData%",
+						"%jdk.configuration.userdir.description.isolated%"
 					],
 					"default": "local",
-					"deprecationMessage": "Separate userdir for each workspace is the default behaviour"
+					"deprecationMessage": "%jdk.configuration.userdir.deprecationMessage%"
 				},
 				"jdk.revealActiveInProjects": {
 					"type": "boolean",
 					"default": true,
-					"description": "Reveals active text editor in Projects view"
+					"description": "%jdk.configuration.revealActiveInProjects.description%"
 				},
 				"jdk.test.editor.enableShortcuts": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enable Run/Debug test in editor"
+					"description": "%jdk.configuration.testEditor.description%"
 				},
 				"jdk.javadoc.load.timeout": {
 					"type": "integer",
 					"default": 100,
-					"description": "Timeout (in milliseconds) for loading Javadoc in code completion (-1 for unlimited)"
+					"description": "%jdk.configuration.javadoc.timeout.description%"
 				},
 				"jdk.format.settingsPath": {
 					"type": "string",
-					"description": "Path to the file containing exported formatter settings",
+					"description": "%jdk.configuration.formatterSettings.description%",
 					"default": null
 				},
 				"jdk.hints.preferences": {
 					"type": "string",
-					"description": "Path to the file containing exported hints preferences",
+					"description": "%jdk.configuration.hints.preferences.description%",
 					"default": null
 				},
 				"jdk.java.onSave.organizeImports": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enable organize imports action on a document save"
+					"description": "%jdk.configuration.organiseImports.description%"
 				},
 				"jdk.java.imports.groups": {
 					"type": "array",
-					"description": "Groups of import statements (specified by their package prefixes) and their sorting order. Import statements within a group are ordered alphabetically",
+					"description": "%jdk.configuration.organiseImports.sortingOrder.description%",
 					"default": [
 						"java",
 						"javax",
@@ -181,46 +182,46 @@
 				},
 				"jdk.java.imports.countForUsingStarImport": {
 					"type": "integer",
-					"description": "Class count to use a star-import",
+					"description": "%jdk.configuration.countForUsingStarImport.description%",
 					"default": 999,
 					"minimum": 1
 				},
 				"jdk.java.imports.countForUsingStaticStarImport": {
 					"type": "integer",
-					"description": "Members count to use a static star-import",
+					"description": "%jdk.configuration.countForUsingStaticStarImport.description%",
 					"default": 999,
 					"minimum": 1
 				},
 				"jdk.runConfig.arguments": {
 					"type": "string",
 					"default": "",
-					"description": "Arguments"
+					"description": "%jdk.configuration.arguments.description%"
 				},
 				"jdk.runConfig.vmOptions": {
 					"type": "string",
 					"default": "",
-					"description": "VM options"
+					"description": "%jdk.configuration.vmOptions.description%"
 				},
 				"jdk.serverVmOptions": {
 					"type": "array",
 					"default": [],
-					"description": "Specifies extra VM arguments used to launch the Java Language Server",
+					"description": "%jdk.configuration.serverVmOptions.description%",
 					"scope": "machine-overridable"
 				},
 				"jdk.runConfig.env": {
 					"type": "string",
 					"default": "",
-					"description": "Environment variables"
+					"description": "%jdk.configuration.runConfig.env.description%"
 				},
 				"jdk.runConfig.cwd": {
 					"type": "string",
 					"default": "",
-					"description": "Working directory"
+					"description": "%jdk.configuration.runConfig.cwd.description%"
 				},
 				"jdk.advanced.disable.nbjavac": {
 					"type": "boolean",
 					"default": false,
-					"description": "Advanced option: disable nb-javac library, javac from the selected JDK will be used. The selected JDK must be at least JDK 22."
+					"description": "%jdk.configuration.disableNbJavac.description%"
 				}
 			}
 		},
@@ -245,7 +246,7 @@
 						"properties": {
 							"mainClass": {
 								"type": "string",
-								"description": "Absolute path to the program main class.",
+								"description": "%jdk.debugger.configuration.mainClass.description%",
 								"default": "${file}"
 							},
 							"classPaths": {
@@ -253,7 +254,7 @@
 								"items": {
 									"type": "string"
 								},
-								"description": "The classpaths for launching the JVM.",
+								"description": "%jdk.debugger.configuration.classPaths.description%",
 								"default": []
 							},
 							"console": {
@@ -261,7 +262,7 @@
 								"enum": [
 									"internalConsole"
 								],
-								"description": "The specified console to launch the program.",
+								"description": "%jdk.debugger.configuration.console.description%",
 								"default": "internalConsole"
 							},
 							"args": {
@@ -269,7 +270,7 @@
 									"string",
 									"null"
 								],
-								"description": "Arguments for the executed class",
+								"description": "%jdk.debugger.configuration.args.description%",
 								"default": null
 							},
 							"vmArgs": {
@@ -277,7 +278,7 @@
 									"string",
 									"null"
 								],
-								"description": "Arguments for the Java VM",
+								"description": "%jdk.debugger.configuration.vmArgs.description%",
 								"default": null
 							},
 							"cwd": {
@@ -285,14 +286,14 @@
 									"string",
 									"null"
 								],
-								"description": "Working directory for the program execution",
+								"description": "%jdk.debugger.configuration.cwd.description%",
 								"default": null
 							},
 							"env": {
 								"type": [
 									"object"
 								],
-								"description": "Environment variables for the program execution",
+								"description": "%jdk.debugger.configuration.env.description%",
 								"default": {}
 							},
 							"launchConfiguration": {
@@ -300,7 +301,7 @@
 									"string",
 									"null"
 								],
-								"description": "Mode and default behaviour for launch"
+								"description": "%jdk.debugger.configuration.launchConfiguration.description%"
 							}
 						}
 					},
@@ -309,31 +310,31 @@
 							"hostName": {
 								"type": "string",
 								"default": "localhost",
-								"description": "Host name or IP address to which to attach"
+								"description": "%jdk.debugger.configuration.attach.hostName.description%"
 							},
 							"port": {
 								"type": "string",
 								"default": "8000",
-								"description": "Port number to which to attach"
+								"description": "%jdk.debugger.configuration.attach.port.description%"
 							},
 							"sharedMemoryName": {
 								"type": "string",
-								"description": "Shared memory name of the debuggee"
+								"description": "%jdk.debugger.configuration.attach.sharedMemoryName.description%"
 							},
 							"processId": {
 								"type": "string",
 								"default": "${command:jdk.java.attachDebugger.pickProcess}",
-								"description": "Process Id of the debuggee"
+								"description": "%jdk.debugger.configuration.attach.processId.description%"
 							},
 							"listen": {
 								"type": "string",
 								"default": "false",
-								"description": "Listen for the debuggee to attach"
+								"description": "%jdk.debugger.configuration.attach.listen.description%"
 							},
 							"timeout": {
 								"type": "string",
 								"default": "30000",
-								"description": "Timeout while waiting to attach"
+								"description": "%jdk.debugger.configuration.attach.timeout.description%"
 							}
 						}
 					}
@@ -342,17 +343,17 @@
 					{
 						"type": "jdk",
 						"request": "launch",
-						"name": "Launch Java App"
+						"name": "%jdk.initialConfigurations.launchJavaApp.name%"
 					}
 				],
 				"configurationSnippets": [
 					{
-						"label": "Java+: Launch Java Application",
-						"description": "Launch a Java Application in debug mode",
+						"label": "%jdk.configurationSnippets.label%",
+						"description": "%jdk.configurationSnippets.description%",
 						"body": {
 							"type": "jdk",
 							"request": "launch",
-							"name": "Launch Java App"
+							"name": "%jdk.initialConfigurations.launchJavaApp.name%"
 						}
 					}
 				]
@@ -361,132 +362,132 @@
 		"commands": [
 			{
 				"command": "jdk.node.properties.edit",
-				"title": "Properties"
+				"title": "%jdk.node.properties.edit%"
 			},
 			{
 				"command": "jdk.workspace.compile",
-				"title": "Compile Workspace",
+				"title": "%jdk.workspace.compile%",
 				"category": "Java"
 			},
 			{
 				"command": "jdk.workspace.clean",
-				"title": "Clean Workspace",
+				"title": "%jdk.workspace.clean%",
 				"category": "Java"
 			},
 			{
 				"command": "jdk.workspace.new",
-				"title": "New from Template...",
+				"title": "%jdk.workspace.new%",
 				"category": "Java",
 				"icon": "$(new-file)"
 			},
 			{
 				"command": "jdk.workspace.newproject",
-				"title": "New Project...",
+				"title": "%jdk.workspace.newproject%",
 				"category": "Java",
 				"icon": "$(new-folder)"
 			},
 			{
 				"command": "jdk.java.goto.super.implementation",
-				"title": "Go to Super Implementation",
+				"title": "%jdk.java.goto.super.implementation%",
 				"category": "Java"
 			},
 			{
 				"command": "jdk.open.type",
-				"title": "Open Type...",
+				"title": "%jdk.open.type%",
 				"category": "Java"
 			},
 			{
 				"command": "jdk.foundProjects.deleteEntry",
-				"title": "Delete"
+				"title": "%jdk.foundProjects.deleteEntry%"
 			},
 			{
 				"command": "jdk:Edit:org.openide.actions.DeleteAction",
-				"title": "Delete"
+				"title": "%jdk.Edit.org.openide.actions.DeleteAction%"
 			},
 			{
 				"command": "workbench.action.debug.run",
-				"title": "Run Without Debugging",
+				"title": "%workbench.action.debug.run%",
 				"icon": "$(run)"
 			},
 			{
 				"command": "workbench.action.debug.start",
-				"title": "Start Debugging",
+				"title": "%workbench.action.debug.start%",
 				"icon": "$(debug-alt)"
 			},
 			{
 				"command": "jdk.project.run",
+				"title": "%jdk.project.run%",
 				"category": "Project",
-				"title": "Run Project Without Debugging",
 				"icon": "$(run)"
 			},
 			{
 				"command": "jdk.project.debug",
+				"title": "%jdk.project.debug%",
 				"category": "Project",
-				"title": "Debug Project",
 				"icon": "$(debug-alt)"
 			},
 			{
 				"command": "jdk.project.test",
+				"title": "%jdk.project.test%",
 				"category": "Project",
-				"title": "Test Project",
 				"icon": "$(testing-run-all-icon)"
 			},
 			{
 				"command": "jdk.project.compile",
-				"category": "Project",
-				"title": "Compile Project"
+				"title": "%jdk.project.compile%",
+				"category": "Project"
 			},
 			{
 				"command": "jdk.project.clean",
-				"category": "Project",
-				"title": "Clean Project"
+				"title": "%jdk.project.clean%",
+				"category": "Project"
 			},
 			{
 				"command": "jdk.workspace.configureRunSettings",
-				"title": "Edit",
+				"title": "%jdk.workspace.configureRunSettings%",
 				"icon": "$(edit)"
 			},
 			{
 				"command": "jdk.select.editor.projects",
-				"title": "Reveal active editor in Projects",
+				"title": "%jdk.select.editor.projects%",
 				"category": "Project"
 			},
 			{
 				"command": "workbench.action.debug.run",
-				"title": "Run Without Debugging",
+				"title": "%workbench.action.debug.run%",
 				"icon": "$(run)"
 			},
 			{
 				"command": "workbench.action.debug.start",
-				"title": "Start Debugging",
+				"title": "%workbench.action.debug.start%",
 				"icon": "$(debug-alt)"
 			},
 			{
 				"command": "testing.runAll",
-				"title": "Run All Tests",
+				"title": "%testing.runAll%",
 				"category": "Test"
 			},
 			{
 				"command": "jdk.addEventListener",
-				"title": "Add event listener"
+				"title": "%jdk.addEventListener%"
 			},
 			{
 				"command": "jdk.select.editor.projects",
-				"title": "Reveal active editor in Projects",
+				"title": "%jdk.select.editor.projects%",
 				"category": "Project"
 			},
 			{
 				"command": "jdk.download.jdk",
-				"title": "Download, install and use JDK"
+				"title": "%jdk.download.jdk%"
 			},
 			{
 				"command": "jdk.open.test",
-				"title": "Go To Test/Tested class...",
+				"title": "%jdk.open.test%",
 				"category": "Java"
 			},
 			{
 				"command": "jdk.delete.cache",
-				"title": "Delete Oracle Java extension cache for this workspace"
+				"title": "%jdk.delete.cache%"
 			}
 		],
 		"keybindings": [
@@ -779,6 +780,7 @@
 	},
 	"dependencies": {
 		"@vscode/debugadapter": "^1.65.0",
+		"@vscode/l10n": "^0.0.18",
 		"@vscode/webview-ui-toolkit": "^1.2.2",
 		"axios": "^1.6.8",
 		"jsonc-parser": "3.2.0",

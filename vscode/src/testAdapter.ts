@@ -29,7 +29,7 @@ import { COMMAND_PREFIX } from "./extension";
 export class NbTestAdapter {
 
     private readonly testController: TestController;
-	private disposables: { dispose(): void }[] = [];
+    private disposables: { dispose(): void }[] = [];
     private currentRun: TestRun | undefined;
     private itemsToRun: Set<TestItem> | undefined;
     private started: boolean = false;
@@ -76,7 +76,7 @@ export class NbTestAdapter {
                 this.testController.items.forEach(item => this.set(item, 'enqueued'));
                 for (let workspaceFolder of workspace.workspaceFolders || []) {
                     if (!cancellation.isCancellationRequested) {
-                        await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? COMMAND_PREFIX + '.debug.test': COMMAND_PREFIX + '.run.test', workspaceFolder.uri.toString());
+                        await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? COMMAND_PREFIX + '.debug.test' : COMMAND_PREFIX + '.run.test', workspaceFolder.uri.toString());
                     }
                 }
             }
@@ -89,7 +89,7 @@ export class NbTestAdapter {
         }
     }
 
-    set(item: TestItem, state: 'enqueued' | 'started' | 'passed' | 'failed' | 'skipped' | 'errored', message?: TestMessage | readonly TestMessage[], noPassDown? : boolean): void {
+    set(item: TestItem, state: 'enqueued' | 'started' | 'passed' | 'failed' | 'skipped' | 'errored', message?: TestMessage | readonly TestMessage[], noPassDown?: boolean): void {
         if (this.currentRun) {
             switch (state) {
                 case 'enqueued':
@@ -119,12 +119,12 @@ export class NbTestAdapter {
     }
 
     dispose(): void {
-		this.cancel();
-		for (const disposable of this.disposables) {
-			disposable.dispose();
-		}
-		this.disposables = [];
-	}
+        this.cancel();
+        for (const disposable of this.disposables) {
+            disposable.dispose();
+        }
+        this.disposables = [];
+    }
 
     testOutput(output: string): void {
         if (this.currentRun && output) {
@@ -287,15 +287,15 @@ export class NbTestAdapter {
         return undefined;
     }
 
-    selectParent(parents: Map<TestItem, string>): {test: TestItem, label: string} | undefined {
-        let ret: {test: TestItem, label: string} | undefined = undefined;
+    selectParent(parents: Map<TestItem, string>): { test: TestItem, label: string } | undefined {
+        let ret: { test: TestItem, label: string } | undefined = undefined;
         parents.forEach((label, parentTest) => {
             if (ret) {
                 if (parentTest.id.replace(/#\w*/g, '').length > ret.test.id.replace(/#\w*/g, '').length) {
-                    ret = {test: parentTest, label};
+                    ret = { test: parentTest, label };
                 }
             } else {
-                ret = {test: parentTest, label};
+                ret = { test: parentTest, label };
             }
         });
         return ret;
