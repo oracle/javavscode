@@ -32,7 +32,7 @@ const watchConfig = {
   };
 
 const NON_NPM_ARTIFACTORY = new RegExp(
-  String.raw`"resolved": "(?!https://registry.npmjs.org).*"`,
+  String.raw`(")resolved\1\s*:\s*(")http[s]*://(?!registry.npmjs.org)[^"']+\2`,
   "g"
 );
 
