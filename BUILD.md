@@ -2,7 +2,7 @@
 
 <!--
 
-    Copyright (c) 2023, Oracle and/or its affiliates.
+    Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -30,12 +30,13 @@
 - JDK, version 11 or later upto JDK 22
 - Ant, latest version
 - Maven, latest version
-- node.js, latest LTS (to build VSIX)
+- Node.js, latest LTS (to build VSIX)
 
-
-## Fetching and building netbeans code
+## Fetching and building the code
 
 ```bash
+$ git clone https://github.com/oracle/javavscode.git
+$ cd javavscode/
 $ git clone https://github.com/apache/netbeans.git
 $ cd netbeans/
 $ git checkout 22
@@ -43,7 +44,6 @@ $ cd ..
 # the following target requires git executable to be on PATH:
 $ ant apply-patches
 $ ant build-netbeans
-
 ```
 
 ## Building VS Code extension
