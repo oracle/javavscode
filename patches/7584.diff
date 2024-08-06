@@ -1,0 +1,87 @@
+diff --git a/java/java.hints/nbproject/project.properties b/java/java.hints/nbproject/project.properties
+index 5d2a4f82802e..d47624c2d8ad 100644
+--- a/java/java.hints/nbproject/project.properties
++++ b/java/java.hints/nbproject/project.properties
+@@ -17,7 +17,7 @@
+ 
+ spec.version.base=1.107.0
+ 
+-javac.source=1.8
++javac.release=17
+ 
+ nbroot=../..
+ jbrowse.external=${nbroot}/retouche
+diff --git a/java/java.hints/src/org/netbeans/modules/java/hints/bugs/Unused.java b/java/java.hints/src/org/netbeans/modules/java/hints/bugs/Unused.java
+index e681ed7b97ea..182d05231fb2 100644
+--- a/java/java.hints/src/org/netbeans/modules/java/hints/bugs/Unused.java
++++ b/java/java.hints/src/org/netbeans/modules/java/hints/bugs/Unused.java
+@@ -19,7 +19,6 @@
+ package org.netbeans.modules.java.hints.bugs;
+ 
+ import com.sun.source.tree.Tree.Kind;
+-import java.util.ArrayList;
+ import java.util.List;
+ import javax.lang.model.element.ElementKind;
+ import org.netbeans.modules.java.editor.base.semantic.UnusedDetector;
+@@ -34,6 +33,8 @@
+ import org.netbeans.spi.java.hints.TriggerTreeKind;
+ import org.openide.util.NbBundle.Messages;
+ 
++import static org.netbeans.api.java.source.CompilationInfo.CacheClearPolicy.ON_TASK_END;
++
+ /**
+  *
+  * @author lahvac
+@@ -52,24 +53,46 @@ public class Unused {
+     @BooleanOption(displayName="#LBL_UnusedPackagePrivate", tooltip="#TP_UnusedPackagePrivate", defaultValue=DETECT_UNUSED_PACKAGE_PRIVATE_DEFAULT)
+     public static final String DETECT_UNUSED_PACKAGE_PRIVATE = "detect.unused.package.private";
+ 
+-    @TriggerTreeKind(Kind.COMPILATION_UNIT)
++    @TriggerTreeKind({
++        //class-like kinds:
++        Kind.ANNOTATION_TYPE, Kind.CLASS, Kind.ENUM, Kind.INTERFACE, Kind.RECORD,
++        Kind.VARIABLE,
++        Kind.METHOD
++    })
+     public static List<ErrorDescription> unused(HintContext ctx) {
+         List<UnusedDescription> unused = UnusedDetector.findUnused(ctx.getInfo(), () -> ctx.isCanceled());
+-        List<ErrorDescription> result = new ArrayList<>(unused.size());
+-        boolean detectUnusedPackagePrivate = ctx.getPreferences().getBoolean(DETECT_UNUSED_PACKAGE_PRIVATE, DETECT_UNUSED_PACKAGE_PRIVATE_DEFAULT);
++        if (unused.isEmpty()) {
++            return null;
++        }
++        boolean detectUnusedPackagePrivate = getTaskCachedBoolean(ctx, DETECT_UNUSED_PACKAGE_PRIVATE, DETECT_UNUSED_PACKAGE_PRIVATE_DEFAULT);
+         for (UnusedDescription ud : unused) {
+             if (ctx.isCanceled()) {
+                 break;
+             }
++            if (ud.unusedElementPath.getLeaf() != ctx.getPath().getLeaf()) {
++                continue;
++            }
+             if (!detectUnusedPackagePrivate && ud.packagePrivate) {
+                 continue;
+             }
+             ErrorDescription err = convertUnused(ctx, ud);
+             if (err != null) {
+-                result.add(err);
++                return List.of(err);
+             }
++            break;
++        }
++        return null;
++    }
++
++    // reading from AuxiliaryConfigBasedPreferences in inner loops is not cheap since it needs a mutex
++    private static boolean getTaskCachedBoolean(HintContext ctx, String key, boolean defaultVal) {
++        Object cached = ctx.getInfo().getCachedValue(key);
++        if (cached instanceof Boolean val) {
++            return val;
+         }
+-        return result;
++        boolean fromPrefs = ctx.getPreferences().getBoolean(key, defaultVal);
++        ctx.getInfo().putCachedValue(key, fromPrefs, ON_TASK_END);
++        return fromPrefs;
+     }
+ 
+     @Messages({
+
