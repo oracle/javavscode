@@ -1101,21 +1101,19 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
             });
             c.onRequest(UpdateConfigurationRequest.type, async (param) => {
                 handleLog(log, "Received config update: " + param.section + "." + param.key + "=" + param.value);
-                if (vscode.workspace) {
-                    let wsFile: vscode.Uri | undefined = vscode.workspace.workspaceFile;
-                    let wsConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(param.section);
-                    if (wsConfig) {
-                        try {
-                            wsConfig.update(param.key, param.value, wsFile ? null : true)
-                                .then(() => {
-                                    handleLog(log, "Updated configuration: " + param.section + "." + param.key + "=" + param.value + "; in: " + (wsFile ? wsFile.toString() : "Global"));
-                                })
-                                .then(() => {
-                                    runConfigurationUpdateAll();
-                                });
-                        } catch (err) {
-                            handleLog(log, "Failed to update configuration. Reason: " + (typeof err === "string" ? err : err instanceof Error ? err.message : "error"));
-                        }
+                let wsFile: vscode.Uri | undefined = vscode.workspace.workspaceFile;
+                let wsConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(param.section);
+                if (wsConfig) {
+                    try {
+                        wsConfig.update(param.key, param.value, wsFile ? null : true)
+                            .then(() => {
+                                handleLog(log, "Updated configuration: " + param.section + "." + param.key + "=" + param.value + "; in: " + (wsFile ? wsFile.toString() : "Global"));
+                            })
+                            .then(() => {
+                                runConfigurationUpdateAll();
+                            });
+                    } catch (err) {
+                        handleLog(log, "Failed to update configuration. Reason: " + (typeof err === "string" ? err : err instanceof Error ? err.message : "error"));
                     }
                 }
             });
