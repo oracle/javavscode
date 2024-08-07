@@ -1,0 +1,174 @@
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/api/execute/GradleDistributionManager.java b/extide/gradle/src/org/netbeans/modules/gradle/api/execute/GradleDistributionManager.java
+index 024f95a6702b..8b93f19d3208 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/api/execute/GradleDistributionManager.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/api/execute/GradleDistributionManager.java
+@@ -38,9 +38,7 @@
+ import java.nio.file.SimpleFileVisitor;
+ import java.nio.file.attribute.BasicFileAttributes;
+ import java.util.ArrayList;
+-import java.util.Arrays;
+ import java.util.EnumSet;
+-import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Objects;
+@@ -84,7 +82,7 @@ public final class GradleDistributionManager {
+ 
+     private static final String DOWNLOAD_URI = "https://services.gradle.org/distributions/gradle-%s-%s.zip"; //NOI18N
+     private static final Pattern DIST_VERSION_PATTERN = Pattern.compile(".*(gradle-(\\d+\\.\\d+.*))-(bin|all)\\.zip"); //NOI18N
+-    private static final Set<String> VERSION_BLACKLIST = new HashSet<>(Arrays.asList("2.3", "2.13")); //NOI18N
++    private static final Set<String> VERSION_BLACKLIST = Set.of("2.3", "2.13"); //NOI18N
+     private static final Map<File, GradleDistributionManager> CACHE = new WeakHashMap<>();
+     private static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.version("3.0"); //NOI18N
+     private static final GradleVersion[] JDK_COMPAT = new GradleVersion[]{
+@@ -101,9 +99,10 @@ public final class GradleDistributionManager {
+         GradleVersion.version("7.6"), // JDK-19
+         GradleVersion.version("8.3"), // JDK-20
+         GradleVersion.version("8.5"), // JDK-21
++        GradleVersion.version("8.8"), // JDK-22
+     };
+ 
+-    private static final GradleVersion LAST_KNOWN_GRADLE = GradleVersion.version("8.7"); //NOI18N
++    private static final GradleVersion LAST_KNOWN_GRADLE = GradleVersion.version("8.9"); //NOI18N
+ 
+     final File gradleUserHome;
+ 
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/loaders/ExtensionPropertiesExtractor.java b/extide/gradle/src/org/netbeans/modules/gradle/loaders/ExtensionPropertiesExtractor.java
+index 10c3ebe9fe36..474b66becda5 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/loaders/ExtensionPropertiesExtractor.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/loaders/ExtensionPropertiesExtractor.java
+@@ -44,8 +44,8 @@ public class ExtensionPropertiesExtractor implements ProjectInfoExtractor {
+     public Result fallback(GradleFiles files) {
+         return new Result() {
+             @Override
+-            public Set getExtract() {
+-                return Collections.emptySet();
++            public Set<?> getExtract() {
++                return Set.of();
+             }
+ 
+             @Override
+@@ -59,18 +59,18 @@ public Set<String> getProblems() {
+     public Result extract(Map<String, Object> props, Map<Class, Object> otherInfo) {
+         return new Result() {
+             @Override
+-            public Set getExtract() {
++            public Set<?> getExtract() {
+                 Map<String, String> values = (Map<String, String>)props.getOrDefault("extensions.propertyValues", Collections.emptyMap()); // NOI18N
+                 Map<String, String> types = (Map<String, String>)props.getOrDefault("extensions.propertyTypes", Collections.emptyMap()); // NOI18N
+                 Map<String, String> taskValues = (Map<String, String>)props.getOrDefault("tasks.propertyValues", Collections.emptyMap()); // NOI18N
+                 Map<String, String> taskTypes = (Map<String, String>)props.getOrDefault("tasks.propertyTypes", Collections.emptyMap()); // NOI18N
+                 PropertyEvaluator a = new PropertyEvaluator(values, types, taskValues, taskTypes);
+-                return Collections.singleton(a);
++                return Set.of(a);
+             }
+ 
+             @Override
+             public Set<String> getProblems() {
+-                return Collections.emptySet();
++                return Set.of();
+             }
+         };
+     }
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/spi/ProjectInfoExtractor.java b/extide/gradle/src/org/netbeans/modules/gradle/spi/ProjectInfoExtractor.java
+index 04254082a3af..564e0d8d4fc8 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/spi/ProjectInfoExtractor.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/spi/ProjectInfoExtractor.java
+@@ -41,17 +41,17 @@ interface Result {
+         static Result NONE = new Result() {
+ 
+             @Override
+-            public Set getExtract() {
+-                return Collections.emptySet();
++            public Set<?> getExtract() {
++                return Set.of();
+             }
+ 
+             @Override
+             public Set<String> getProblems() {
+-                return Collections.emptySet();
++                return Set.of();
+             }
+         };
+ 
+-        Set getExtract();
++        Set<?> getExtract();
+ 
+         Set<String> getProblems();
+     }
+@@ -72,8 +72,8 @@ public DefaultResult(Object extract, String... problems) {
+         }
+ 
+         @Override
+-        public Set getExtract() {
+-            return Collections.singleton(extract);
++        public Set<?> getExtract() {
++            return Set.of(extract);
+         }
+ 
+         @Override
+diff --git a/extide/libs.gradle/external/binaries-list b/extide/libs.gradle/external/binaries-list
+index 2e58f89b85fd..dff2c2265b37 100644
+--- a/extide/libs.gradle/external/binaries-list
++++ b/extide/libs.gradle/external/binaries-list
+@@ -15,4 +15,4 @@
+ # specific language governing permissions and limitations
+ # under the License.
+ 
+-5F48B9BB9099B900FC33864A3794F31C439D9F73 https://repo.gradle.org/artifactory/libs-releases/org/gradle/gradle-tooling-api/8.7/gradle-tooling-api-8.7.jar gradle-tooling-api-8.7.jar
++7BCC4423C529A42ECA9D0CE5B5275369EF4DF55A https://repo.gradle.org/artifactory/libs-releases/org/gradle/gradle-tooling-api/8.9/gradle-tooling-api-8.9.jar gradle-tooling-api-8.9.jar
+diff --git a/extide/libs.gradle/external/gradle-tooling-api-8.7-license.txt b/extide/libs.gradle/external/gradle-tooling-api-8.9-license.txt
+similarity index 99%
+rename from extide/libs.gradle/external/gradle-tooling-api-8.7-license.txt
+rename to extide/libs.gradle/external/gradle-tooling-api-8.9-license.txt
+index 84a9de902f75..74cb1addb8d6 100644
+--- a/extide/libs.gradle/external/gradle-tooling-api-8.7-license.txt
++++ b/extide/libs.gradle/external/gradle-tooling-api-8.9-license.txt
+@@ -1,7 +1,7 @@
+ Name: Gradle Tooling API
+ Description: Gradle Tooling API
+-Version: 8.7
+-Files: gradle-tooling-api-8.7.jar
++Version: 8.9
++Files: gradle-tooling-api-8.9.jar
+ License: Apache-2.0
+ Origin: Gradle Inc.
+ URL: https://gradle.org/
+diff --git a/extide/libs.gradle/external/gradle-tooling-api-8.7-notice.txt b/extide/libs.gradle/external/gradle-tooling-api-8.9-notice.txt
+similarity index 100%
+rename from extide/libs.gradle/external/gradle-tooling-api-8.7-notice.txt
+rename to extide/libs.gradle/external/gradle-tooling-api-8.9-notice.txt
+diff --git a/extide/libs.gradle/manifest.mf b/extide/libs.gradle/manifest.mf
+index 64b5cf508e40..a489976e11ed 100644
+--- a/extide/libs.gradle/manifest.mf
++++ b/extide/libs.gradle/manifest.mf
+@@ -2,4 +2,4 @@ Manifest-Version: 1.0
+ AutoUpdate-Show-In-Client: false
+ OpenIDE-Module: org.netbeans.modules.libs.gradle/8
+ OpenIDE-Module-Localizing-Bundle: org/netbeans/modules/libs/gradle/Bundle.properties
+-OpenIDE-Module-Specification-Version: 8.7
++OpenIDE-Module-Specification-Version: 8.9
+diff --git a/extide/libs.gradle/nbproject/project.properties b/extide/libs.gradle/nbproject/project.properties
+index 6cd0e22d8315..6e4605fe4922 100644
+--- a/extide/libs.gradle/nbproject/project.properties
++++ b/extide/libs.gradle/nbproject/project.properties
+@@ -22,4 +22,4 @@ javac.compilerargs=-Xlint -Xlint:-serial
+ # Sigtest fails to read the classes in the gradle-tooling-api
+ sigtest.skip.gen=true
+ 
+-release.external/gradle-tooling-api-8.7.jar=modules/gradle/gradle-tooling-api.jar
++release.external/gradle-tooling-api-8.9.jar=modules/gradle/gradle-tooling-api.jar
+diff --git a/extide/libs.gradle/nbproject/project.xml b/extide/libs.gradle/nbproject/project.xml
+index dc58e80a4500..d82027b5e615 100644
+--- a/extide/libs.gradle/nbproject/project.xml
++++ b/extide/libs.gradle/nbproject/project.xml
+@@ -39,7 +39,7 @@
+             </public-packages>
+             <class-path-extension>
+                 <runtime-relative-path>gradle/gradle-tooling-api.jar</runtime-relative-path>
+-                <binary-origin>external/gradle-tooling-api-8.7.jar</binary-origin>
++                <binary-origin>external/gradle-tooling-api-8.9.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+

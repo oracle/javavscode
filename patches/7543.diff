@@ -1,0 +1,315 @@
+diff --git a/extide/gradle/nbproject/project.properties b/extide/gradle/nbproject/project.properties
+index aa352d0d3fd9..d22871c0a89b 100644
+--- a/extide/gradle/nbproject/project.properties
++++ b/extide/gradle/nbproject/project.properties
+@@ -17,8 +17,7 @@
+ 
+ file.reference.netbeans-gradle-tooling.jar=release/modules/gradle/netbeans-gradle-tooling.jar
+ is.autoload=true
+-javac.source=1.8
+-javac.target=1.8
++javac.release=17
+ javac.compilerargs=-Xlint -Xlint:-serial
+ javadoc.arch=${basedir}/arch.xml
+ javadoc.apichanges=${basedir}/apichanges.xml
+@@ -37,4 +36,9 @@ release.build/tooling/nb-tooling.gradle=modules/gradle/nb-tooling.gradle
+ 
+ extra.module.files=\
+     modules/gradle/netbeans-gradle-tooling.jar,\
+-    modules/gradle/nb-tooling.gradle
+\ No newline at end of file
++    modules/gradle/nb-tooling.gradle
++
++# These properties are used for compiling the netbeans-gradle-tooling library
++# It shall be built on the lowest language level that the Gradle integration supports
++tooling.javac.release=8
++tooling.gradle.version=7.4
+diff --git a/extide/gradle/netbeans-gradle-tooling/build.xml b/extide/gradle/netbeans-gradle-tooling/build.xml
+index 7c994be3b7f3..96f6bbb3f535 100644
+--- a/extide/gradle/netbeans-gradle-tooling/build.xml
++++ b/extide/gradle/netbeans-gradle-tooling/build.xml
+@@ -23,7 +23,7 @@
+     <description>Builds, tests, and runs the project org.netbeans.modules.gradle</description>
+ 
+     <property name="tooling" value="netbeans-gradle-tooling"/>
+-    <property name="gradle.version" value="7.4" />
++    <property file="../nbproject/project.properties"/>
+ 
+     <available property="has.gradle-libs" file="build/gradle-libs" type="dir"/>
+     
+@@ -33,16 +33,16 @@
+     
+     <target name="prepare-libs" unless="has.gradle-libs">
+         <mkdir dir="build/gradle-libs"/>
+-        <unzip src="../external/gradle-${gradle.version}-bin.zip" dest="build/gradle-libs">
++        <unzip src="../external/gradle-${tooling.gradle.version}-bin.zip" dest="build/gradle-libs">
+             <patternset>
+-                <include name="gradle-${gradle.version}/lib/**/*.jar"/>
++                <include name="gradle-${tooling.gradle.version}/lib/**/*.jar"/>
+             </patternset>
+             <mapper type="flatten"/>
+         </unzip>    
+     </target>
+     <target name="compile" depends="prepare-libs">
+         <mkdir dir="build/classes/java/main"/>
+-        <javac srcdir="src/main/java" destdir="build/classes/java/main" classpathref="compile.classpath" release="8" includeantruntime="false" debug="true"/>
++        <javac srcdir="src/main/java" destdir="build/classes/java/main" classpathref="compile.classpath" release="${tooling.javac.release}" includeantruntime="false" debug="true"/>
+     </target>
+ 
+     <target name="jar" depends="compile">
+diff --git a/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/internal/NbProjectInfo.java b/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/internal/NbProjectInfo.java
+index afceb0878207..a5a10170dfa6 100644
+--- a/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/internal/NbProjectInfo.java
++++ b/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/internal/NbProjectInfo.java
+@@ -20,6 +20,7 @@
+ package org.netbeans.modules.gradle.tooling.internal;
+ 
+ import org.netbeans.modules.gradle.tooling.Model;
++import org.gradle.tooling.BuildAction;
+ import java.util.Map;
+ import java.util.Set;
+ 
+@@ -68,4 +69,8 @@ enum Severity {
+         public String getDetail();
+         public Report getCause();
+     }
++
++    public static BuildAction<NbProjectInfo> createAction() {
++        return new NbProjectInfoAction();
++    }
+ }
+diff --git a/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/internal/NbProjectInfoAction.java b/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/internal/NbProjectInfoAction.java
+new file mode 100644
+index 000000000000..e6de7fc029a3
+--- /dev/null
++++ b/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/internal/NbProjectInfoAction.java
+@@ -0,0 +1,35 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.gradle.tooling.internal;
++
++import java.io.Serializable;
++import org.gradle.tooling.BuildAction;
++import org.gradle.tooling.BuildController;
++
++/**
++ *
++ * @author lkishalmi
++ */
++class NbProjectInfoAction implements Serializable, BuildAction<NbProjectInfo>{
++
++        @Override
++        public NbProjectInfo execute(BuildController bc) {
++            return bc.getModel(NbProjectInfo.class);
++        }
++}
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/loaders/LegacyProjectLoader.java b/extide/gradle/src/org/netbeans/modules/gradle/loaders/LegacyProjectLoader.java
+index 518aab7bd6b4..7fdfb72b129f 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/loaders/LegacyProjectLoader.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/loaders/LegacyProjectLoader.java
+@@ -481,7 +481,7 @@ private static GradleReport createReport(File p, Throwable e, boolean top, boole
+     }
+ 
+     private static BuildActionExecuter<NbProjectInfo> createInfoAction(ProjectConnection pconn, GradleCommandLine cmd, CancellationToken token, ProgressListener pl) {
+-        BuildActionExecuter<NbProjectInfo> ret = pconn.action(new NbProjectInfoAction());
++        BuildActionExecuter<NbProjectInfo> ret = pconn.action(NbProjectInfo.createAction());
+         cmd.configure(ret);
+         if (DEBUG_GRADLE_INFO_ACTION) {
+             // This would start the Gradle Daemon in Debug Mode, so the Tooling API can be debugged as well
+@@ -652,14 +652,6 @@ public void run() {
+         }
+     }
+     
+-    private static class NbProjectInfoAction implements Serializable, BuildAction<NbProjectInfo> {
+-
+-        @Override
+-        public NbProjectInfo execute(BuildController bc) {
+-            return bc.getModel(NbProjectInfo.class);
+-        }
+-    }
+-
+     private static class ProjectLoaderTask implements Callable<GradleProject>, Cancellable {
+ 
+         private final ReloadContext ctx;
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/newproject/GradleInitPanelVisual.java b/extide/gradle/src/org/netbeans/modules/gradle/newproject/GradleInitPanelVisual.java
+index 61e9a964a11b..af9a859de853 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/newproject/GradleInitPanelVisual.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/newproject/GradleInitPanelVisual.java
+@@ -228,7 +228,7 @@ void read(WizardDescriptor settings) {
+ 
+         if (settings.getProperty(PROP_JAVA_VERSIONS) != null) {
+             List<Integer> javaVersions = (List<Integer>) settings.getProperty(PROP_JAVA_VERSIONS);
+-            DefaultComboBoxModel<Integer> versionModel = new DefaultComboBoxModel<>(javaVersions.toArray(new Integer[0]));
++            DefaultComboBoxModel<Integer> versionModel = new DefaultComboBoxModel<>(javaVersions.toArray(Integer[]::new));
+             cbJavaVersion.setModel(versionModel);
+ 
+             if (settings.getProperty(PROP_JAVA_VERSION) != null) {
+@@ -241,7 +241,7 @@ void read(WizardDescriptor settings) {
+ 
+         if (settings.getProperty(PROP_TEST_FRAMEWORKS) != null) {
+             List<TestFramework> testframeworks = (List<TestFramework>) settings.getProperty(PROP_TEST_FRAMEWORKS);
+-            DefaultComboBoxModel<TestFramework> frameworkModel = new DefaultComboBoxModel<>(testframeworks.toArray(new TestFramework[0]));
++            DefaultComboBoxModel<TestFramework> frameworkModel = new DefaultComboBoxModel<>(testframeworks.toArray(TestFramework[]::new));
+             cbTestFramework.setModel(frameworkModel);
+             if (settings.getProperty(PROP_TEST_FRAMEWORK) != null) {
+                 cbTestFramework.setSelectedItem(settings.getProperty(PROP_TEST_FRAMEWORK));
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/output/GradleProcessorFactory.java b/extide/gradle/src/org/netbeans/modules/gradle/output/GradleProcessorFactory.java
+index fd528f433bbb..d61325d77c47 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/output/GradleProcessorFactory.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/output/GradleProcessorFactory.java
+@@ -59,12 +59,12 @@ public class GradleProcessorFactory implements OutputProcessorFactory {
+ 
+     @Override
+     public Set<? extends OutputProcessor> createOutputProcessors(RunConfig cfg) {
+-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
++        return Set.of(
+                 GRADLE_PROCESSOR,
+                 JAVAC_PROCESSOR,
+                 GROOVYC_PROCESSOR,
+                 new WarningModeAllProcessor(cfg)
+-        )));
++        );
+     }
+ 
+     private static final Pattern GRADLE_ERROR = Pattern.compile("(Build file|Script) '(.*)\\.gradle' line: ([0-9]+)");
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/spi/newproject/GradleInitWizard.java b/extide/gradle/src/org/netbeans/modules/gradle/spi/newproject/GradleInitWizard.java
+index 56fdfe17e459..15b861ecbbfa 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/spi/newproject/GradleInitWizard.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/spi/newproject/GradleInitWizard.java
+@@ -19,10 +19,8 @@
+ package org.netbeans.modules.gradle.spi.newproject;
+ 
+ import java.io.File;
+-import java.util.Collections;
+ import java.util.List;
+ import java.util.Map;
+-import java.util.stream.Collectors;
+ import org.netbeans.modules.gradle.newproject.GradleInitPanel;
+ import org.netbeans.spi.project.ui.support.CommonProjectActions;
+ import org.openide.WizardDescriptor;
+@@ -51,11 +49,10 @@ public enum GradleDSL {
+ 
+         @Override
+         public String toString() {
+-            switch(this) {
+-                case GROOVY: return Bundle.LBL_DSL_GROOVY();
+-                case KOTLIN: return Bundle.LBL_DSL_KOTLIN();
+-                default: throw new IllegalStateException("update switch");
+-            }
++            return switch(this) {
++                case GROOVY -> Bundle.LBL_DSL_GROOVY();
++                case KOTLIN -> Bundle.LBL_DSL_KOTLIN();
++            };
+         }
+     }
+ 
+@@ -91,17 +88,16 @@ public String getId() {
+         
+         @Override
+         public String toString() {
+-            switch(this) {
+-                case CPP_TEST: return Bundle.LBL_TFW_CPP_TEST();
+-                case JUNIT: return Bundle.LBL_TFW_JUNIT();
+-                case JUNIT_5: return Bundle.LBL_TFW_JUNIT_5();
+-                case KOTLIN_TEST: return Bundle.LBL_TFW_KOTLIN_TEST();
+-                case SCALA_TEST: return Bundle.LBL_TFW_SCALA_TEST();
+-                case SPOCK: return Bundle.LBL_TFW_SPOCK();
+-                case TESTNG: return Bundle.LBL_TFW_TESTNG();
+-                case XCTEST: return Bundle.LBL_TFW_XCTEST();
+-                default: throw new IllegalStateException("update switch");
+-            }
++            return switch(this) {
++                case CPP_TEST -> Bundle.LBL_TFW_CPP_TEST();
++                case JUNIT -> Bundle.LBL_TFW_JUNIT();
++                case JUNIT_5 -> Bundle.LBL_TFW_JUNIT_5();
++                case KOTLIN_TEST -> Bundle.LBL_TFW_KOTLIN_TEST();
++                case SCALA_TEST -> Bundle.LBL_TFW_SCALA_TEST();
++                case SPOCK -> Bundle.LBL_TFW_SPOCK();
++                case TESTNG -> Bundle.LBL_TFW_TESTNG();
++                case XCTEST-> Bundle.LBL_TFW_XCTEST();
++            };
+         }
+     }
+ 
+@@ -112,7 +108,7 @@ public String toString() {
+     private TestFramework preferredTestFramework;
+     private List<Integer> javaVersions;
+     private List<TestFramework> testFrameworks;
+-    private List<String> important = Collections.emptyList();
++    private List<String> important = List.of();
+ 
+     private GradleInitWizard(String type, String title) {
+         this.type = type;
+@@ -215,14 +211,14 @@ protected void collectOperations(TemplateOperation ops, Map<String, Object> para
+             List<String> open = important.stream()
+                     .map((s) -> packageBase != null ? s.replace("${package}", packageBase.replace('.', '/')) : s) //NOI18N
+                     .map((s) -> s.replace("${projectName}", name)) //NOI18N
+-                    .collect(Collectors.toList());
++                    .toList();
+             ops.addProjectPreload(root, open);
+         }
+ 
+ 
+         @Override
+         protected List<? extends WizardDescriptor.Panel<WizardDescriptor>> createPanels() {
+-            return Collections.singletonList(new GradleInitPanel());
++            return List.of(new GradleInitPanel());
+         }
+ 
+         @Override
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/spi/newproject/TemplateOperation.java b/extide/gradle/src/org/netbeans/modules/gradle/spi/newproject/TemplateOperation.java
+index 8eeadadc7121..32832f8f5fcb 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/spi/newproject/TemplateOperation.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/spi/newproject/TemplateOperation.java
+@@ -479,7 +479,7 @@ public final Set<FileObject> execute() {
+                 } catch (IOException ex) {
+                 }
+             }
+-            return Collections.<FileObject>emptySet();
++            return Set.of();
+         }
+ 
+     }
+@@ -489,7 +489,7 @@ private static final class PreloadProject extends BaseOperationStep {
+         final List<String> importantFiles;
+ 
+         public PreloadProject(File dir) {
+-            this(dir, Collections.emptyList());
++            this(dir, List.of());
+         }
+ 
+         public PreloadProject(File dir, List<String> importantFiles) {
+@@ -643,7 +643,7 @@ public Set<FileObject> execute() {
+                     } catch (IOException | ScriptException ex) {
+                         throw new IOException(ex.getMessage(), ex);
+                     }
+-                    return important ? Collections.singleton(fo) : null;
++                    return important ? Set.of(fo) : null;
+                 } catch (IOException ex) {}
+             } catch (IOException ex) {}
+             return null;
+@@ -680,7 +680,7 @@ public Set<FileObject> execute() {
+                     DataFolder targetFolder = DataFolder.findFolder(targetParent);
+                     DataObject o = DataObject.find(template);
+                     DataObject newData = o.createFromTemplate(targetFolder, targetName, tokens);
+-                    return important ? Collections.singleton(newData.getPrimaryFile()) : null;
++                    return important ? Set.of(newData.getPrimaryFile()) : null;
+                 } catch (IOException ex) {
+ 
+                 }
