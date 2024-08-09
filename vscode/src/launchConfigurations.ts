@@ -26,10 +26,10 @@ import { InsertTextFormat } from 'vscode-languageclient';
 import * as jsoncp from 'jsonc-parser';
 import * as fs from 'fs';
 import { COMMAND_PREFIX } from "./extension";
-
+import { l10n } from './localiser';
 export function updateLaunchConfig() {
     workspace.findFiles('.vscode/launch.json').then(async files => {
-        const updateOption = 'Update the existing launch.json file(s)';
+
         let selection: any = undefined;
         for (const file of files) {
             let edits: jsoncp.Edit[] = [];
@@ -58,9 +58,10 @@ export function updateLaunchConfig() {
                 }
             });
             const newContent = jsoncp.applyEdits(content, edits);
+            const updateOption = l10n.translate("jdk.extension.runConfig.label.updateExistingLaunchJson");
             if (newContent !== content) {
                 if (!selection) {
-                    selection = await window.showWarningMessage('Java 8+ debug configuration has been renamed to Java+', updateOption);
+                    selection = await window.showWarningMessage(l10n.translate("jdk.extension.runConfig.warning_message.renamedDebugConfig"), updateOption);
                 }
                 if (selection === updateOption) {
                     fs.writeFileSync(file.fsPath, newContent);

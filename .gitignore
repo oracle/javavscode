@@ -1,3 +1,4 @@
 build/
 netbeans/
 .DS_STORE
+.idea/
