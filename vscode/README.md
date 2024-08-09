@@ -68,6 +68,9 @@ Default launch configurations provided by Language Server can modified in `launc
 ### Run Configurations panel
 Program arguments, VM options, evironment variables,... can be set in Run Configuration panel a part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).  
 ![Run Configuration](images/run_config.png) 
+#### Enabling Java Preview Features 
+To experiment with preview features modify the VM options in the run configuration panel.
+![Enable Preview](images/enable_preview.png)
 
 ## JDK Downloader
 If the system does not detect any JDK, the extension will offer a downloader and setup prompt to help you set up a JDK. This setup provides options for Oracle JDK, OpenJDK, and allows you to choose from any installed JDK on your system.
