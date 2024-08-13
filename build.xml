@@ -43,7 +43,8 @@
             patches/7491-preliminary.diff
             patches/7548_source-1.8.diff
             patches/7583_source-1.8.diff
-            patches/7621.diff 
+            patches/7621.diff
+            patches/7641.diff
             patches/mvn-sh.diff
             patches/generate-dependencies.diff
             patches/rename-debugger.diff
