@@ -77,7 +77,7 @@ You can also access the JDK downloader through the "Download, install, and Use J
 ### Enabling Java Preview Features 
 When using preview features use the quick fix action option to easily enable them.
 
-![Enable Preview](images/enable_preview.png)
+![Enable Preview](images/enable_preview.gif)
 ## Supported Refactorings
 
 Class level refactorings as well as variable refactorings are supported in VS Code via Oracle Java Platform extension. See following screenshots:
