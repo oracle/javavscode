@@ -73,15 +73,16 @@ Default launch configurations provided by Language Server can modified in `launc
 ### Run Configurations panel
 Program arguments, VM options, evironment variables,... can be set in Run Configuration panel a part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).  
 ![Run Configuration](vscode/images/run_config.png) 
-#### Enabling Java Preview Features 
-To experiment with preview features modify the VM options in the run configuration panel.
-![Enable Preview](vscode/images/enable_preview.png)
+
 ## JDK Downloader
 If the system does not detect any JDK, the extension will offer a downloader and setup prompt to help you set up a JDK. This setup provides options for Oracle JDK, OpenJDK, and allows you to choose from any installed JDK on your system.
 Alternatively, you can manually specify the path to JDK binaries by utilizing the JDK downloader.
 You can also access the JDK downloader through the "Download, install, and Use JDK" option in the command palette.  
 ![JDK Downloader](vscode/images/jdk_downloader.png) 
+### Enabling Java Preview Features 
+When using preview features use the quick fix action option to easily enable them.
 
+![Enable Preview](vscode/images/enable_preview.png)
 ## Supported Refactorings
 
 Class level refactorings as well as variable refactorings are supported in VSCode via Oracle Java Platform extension. See following screenshots:
