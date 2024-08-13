@@ -116,7 +116,16 @@
 						"null"
 					],
 					"default": null,
-					"description": "Specifies JDK for the Oracle Visual Studio Code Extension",
+					"description": "Specifies the JDK on which the Oracle Visual Studio Code Extension is run",
+					"scope": "machine-overridable"
+				},
+				"jdk.project.jdkhome": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": null,
+					"description": "Specifies the JDK on which user's project will be run. Defaults to the value of jdk.jdkhome",
 					"scope": "machine-overridable"
 				},
 				"jdk.verbose": {
