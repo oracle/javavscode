@@ -1,0 +1,130 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/singlesourcefile/SingleFileOptionsQueryImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/singlesourcefile/SingleFileOptionsQueryImpl.java
+index da4898786f11..2e0e5a3aa4e6 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/singlesourcefile/SingleFileOptionsQueryImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/singlesourcefile/SingleFileOptionsQueryImpl.java
+@@ -20,10 +20,11 @@
+ 
+ import java.io.File;
+ import java.net.URI;
++import java.util.ArrayList;
+ import java.util.HashMap;
++import java.util.List;
+ import java.util.Map;
+ import java.util.Objects;
+-import java.util.Set;
+ import java.util.WeakHashMap;
+ import javax.swing.event.ChangeEvent;
+ import javax.swing.event.ChangeListener;
+@@ -54,19 +55,37 @@ public Result optionsFor(FileObject file) {
+             if (workspaceFolder != null) {
+                 return getResult(workspace, workspaceFolder);
+             } else {
+-                Set<Workspace> workspaces;
++                List<Workspace> workspaces;
+ 
+                 synchronized (this) {
+-                    workspaces = workspace2Settings.keySet();
++                    workspaces = new ArrayList<>(workspace2Settings.keySet());
+                 }
+ 
++                int count = 0;
+                 for (Workspace w : workspaces) {
++                    if (w == null)
++                        continue;   // Since a WeakHashMap is in use, it is possible to receive a null value.
+                     FileObject folder = findWorkspaceFolder(w, file);
+                     if (folder != null) {
+                         return getResult(w, folder);
+                     }
++                    if (count++ == 0 && workspace == null)
++                        workspace = w;
+                 }
+ 
++                if (count == 1) {
++                    // Since this is a single source file, associate it with the single open workspace,
++                    // even when it is not a descendant of one of the root folders.
++                    FileObject folder;
++                    if (file.isFolder()) {
++                        folder = file;
++                    } else {
++                        folder = file.getParent();
++                        if (folder == null)
++                            folder = file;
++                    }
++                    return getResult(workspace, folder);
++                }
+                 return null;
+             }
+         }
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/singlesourcefile/SingleFileOptionsQueryImplTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/singlesourcefile/SingleFileOptionsQueryImplTest.java
+index 4c6d3c812f3a..a61ea98d7a24 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/singlesourcefile/SingleFileOptionsQueryImplTest.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/singlesourcefile/SingleFileOptionsQueryImplTest.java
+@@ -19,6 +19,7 @@
+ package org.netbeans.modules.java.lsp.server.singlesourcefile;
+ 
+ import java.util.Arrays;
++import java.util.Collections;
+ import java.util.List;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import org.netbeans.junit.NbTestCase;
+@@ -58,6 +59,17 @@ public void testFindWorkspaceFolder() throws Exception {
+         assertEquals(workspace2, SingleFileOptionsQueryImpl.findWorkspaceFolder(workspace, source2));
+         assertEquals(workspace2, SingleFileOptionsQueryImpl.findWorkspaceFolder(workspace, source2.getParent()));
+         assertEquals(workspace2, SingleFileOptionsQueryImpl.findWorkspaceFolder(workspace, source2.getParent().getParent()));
++
++        FileObject singleSourceDir = FileUtil.createFolder(wd, "standalone");
++        FileObject singleSourceFile = FileUtil.createData(singleSourceDir, "Test.java");
++
++        assertNull(SingleFileOptionsQueryImpl.findWorkspaceFolder(workspace, singleSourceFile));
++        assertNull(SingleFileOptionsQueryImpl.findWorkspaceFolder(workspace, singleSourceDir));
++
++        Workspace emptyWorkspace = new WorkspaceImpl(Collections.emptyList());
++
++        assertNull(SingleFileOptionsQueryImpl.findWorkspaceFolder(emptyWorkspace, singleSourceFile));
++        assertNull(SingleFileOptionsQueryImpl.findWorkspaceFolder(emptyWorkspace, singleSourceDir));
+     }
+ 
+     public void testWorkspaceOptions() throws Exception {
+@@ -84,6 +96,17 @@ public void testWorkspaceOptions() throws Exception {
+             assertEquals("-Dtest=test", query.optionsFor(source2.getParent()).getOptions());
+             assertEquals(workspace2.toURI(), query.optionsFor(source2.getParent()).getWorkDirectory());
+ 
++            assertNotNull(query.optionsFor(source3));
++            assertEquals("-Dtest=test", query.optionsFor(source3).getOptions());
++            assertEquals(source3.getParent().toURI(), query.optionsFor(source3).getWorkDirectory());
++
++            assertNotNull(query.optionsFor(source3.getParent()));
++            assertEquals("-Dtest=test", query.optionsFor(source3.getParent()).getOptions());
++            assertEquals(source3.getParent().toURI(), query.optionsFor(source3.getParent()).getWorkDirectory());
++
++            assertEquals(query.optionsFor(source3), query.optionsFor(source3.getParent()));
++            assertNull(query.optionsFor(wd));
++
+             AtomicInteger changeCount = new AtomicInteger();
+ 
+             query.optionsFor(source1).addChangeListener(evt -> changeCount.incrementAndGet());
+@@ -149,6 +172,24 @@ public void testWorkspaceOptions() throws Exception {
+         assertEquals("-Dtest=test2", query.optionsFor(source2.getParent()).getOptions());
+         assertEquals(workspace2.toURI(), query.optionsFor(source2.getParent()).getWorkDirectory());
+ 
++        assertNotNull(query.optionsFor(source3));
++        assertEquals("-Dtest=test2", query.optionsFor(source3).getOptions());
++        assertEquals(source3.getParent().toURI(), query.optionsFor(source3).getWorkDirectory());
++        assertNotNull(query.optionsFor(source3.getParent()));
++        assertEquals("-Dtest=test2", query.optionsFor(source3.getParent()).getOptions());
++        assertEquals(source3.getParent().toURI(), query.optionsFor(source3.getParent()).getWorkDirectory());
++        assertEquals(query.optionsFor(source3), query.optionsFor(source3.getParent()));
++
++        // with multiple open workspaces:
++        Workspace emptyWorkspace = new WorkspaceImpl(Collections.emptyList());
++        query.setConfiguration(emptyWorkspace, "-Dtest=empty", null);
++
++        assertEquals("-Dtest=test2", query.optionsFor(source1).getOptions());
++        assertEquals(workspace1.toURI(), query.optionsFor(source1).getWorkDirectory());
++
++        assertEquals("-Dtest=test2", query.optionsFor(source2).getOptions());
++        assertEquals(workspace2.toURI(), query.optionsFor(source2).getWorkDirectory());
++
+         assertNull(query.optionsFor(source3));
+         assertNull(query.optionsFor(source3.getParent()));
+     }
