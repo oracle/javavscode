@@ -781,7 +781,7 @@
 	"dependencies": {
 		"@vscode/debugadapter": "^1.65.0",
 		"@vscode/webview-ui-toolkit": "^1.2.2",
-		"axios": "^1.6.8",
+		"axios": "^1.7.3",
 		"jsonc-parser": "3.3.1",
 		"vscode-languageclient": "^8.1.0"
 	}
