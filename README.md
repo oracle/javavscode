@@ -79,7 +79,7 @@ If the system does not detect any JDK, the extension will offer a downloader and
 Alternatively, you can manually specify the path to JDK binaries by utilizing the JDK downloader.
 You can also access the JDK downloader through the "Download, install, and Use JDK" option in the command palette.  
 ![JDK Downloader](vscode/images/jdk_downloader.png) 
-### Enabling Java Preview Features 
+## Enabling Java Preview Features 
 When using preview features use the quick fix action option to easily enable them.
 
 ![Enable Preview](vscode/images/enable_preview.gif)
