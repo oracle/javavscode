@@ -1,0 +1,379 @@
+diff --git a/java/java.completion/src/org/netbeans/modules/java/completion/BaseTask.java b/java/java.completion/src/org/netbeans/modules/java/completion/BaseTask.java
+index 78fdd4caa3..f8869882aa 100644
+--- a/java/java.completion/src/org/netbeans/modules/java/completion/BaseTask.java
++++ b/java/java.completion/src/org/netbeans/modules/java/completion/BaseTask.java
+@@ -260,6 +260,8 @@ abstract class BaseTask extends UserTask {
+                         && (ts.token().id() == JavaTokenId.IDENTIFIER
+                         || ts.token().id().primaryCategory().startsWith("keyword") || //NOI18N
+                         ts.token().id().primaryCategory().startsWith("string") || //NOI18N
++                        ts.token().id().primaryCategory().equals("number") || //NOI18N
++                        ts.token().id().primaryCategory().equals("character") || //NOI18N
+                         ts.token().id().primaryCategory().equals("literal"))) { //NOI18N
+                     offset++;
+                 }
+@@ -279,6 +281,10 @@ abstract class BaseTask extends UserTask {
+                 treePath = treePath.getParentPath();
+             }
+         } else {
++            TreePath newClassPath = findNewClassForConstructorName(path);
++            if (newClassPath != null) {
++                path = newClassPath;
++            }
+             if (JavaSource.Phase.RESOLVED.compareTo(controller.getPhase()) > 0) {
+                 LinkedList<TreePath> reversePath = new LinkedList<>();
+                 TreePath treePath = path;
+@@ -299,6 +305,34 @@ abstract class BaseTask extends UserTask {
+         return new Env(offset, prefix, controller, path, controller.getTrees().getSourcePositions(), null);
+     }
+ 
++    private TreePath findNewClassForConstructorName(TreePath tp) {
++        if (tp == null) {
++            return null;
++        }
++
++        TreePath parentPath = tp.getParentPath();
++
++        while (parentPath != null) {
++            boolean goUp = false;
++            goUp = goUp || (parentPath.getLeaf().getKind() == Kind.PARAMETERIZED_TYPE &&
++                            ((ParameterizedTypeTree) parentPath.getLeaf()).getType() == tp.getLeaf());
++            goUp = goUp || (parentPath.getLeaf().getKind() == Kind.ANNOTATED_TYPE &&
++                            ((AnnotatedTypeTree) parentPath.getLeaf()).getUnderlyingType() == tp.getLeaf());
++            if (goUp) {
++                tp = parentPath;
++                parentPath = parentPath.getParentPath();
++            } else {
++                break;
++            }
++        }
++
++        if (parentPath != null && parentPath.getLeaf().getKind() == Kind.NEW_CLASS && ((NewClassTree) parentPath.getLeaf()).getIdentifier() == tp.getLeaf()) {
++            return parentPath;
++        }
++
++        return null;
++    }
++
+     private Env getEnvImpl(CompilationController controller, TreePath orig, TreePath path, TreePath pPath, TreePath gpPath, int offset, String prefix, boolean upToOffset) throws IOException {
+         Tree tree = path != null ? path.getLeaf() : null;
+         Tree parent = pPath != null ? pPath.getLeaf() : null;
+diff --git a/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaDocumentationTaskTest.java b/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaDocumentationTaskTest.java
+new file mode 100644
+index 0000000000..2d85997e34
+--- /dev/null
++++ b/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaDocumentationTaskTest.java
+@@ -0,0 +1,247 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++
++package org.netbeans.modules.java.completion;
++
++import java.io.File;
++import java.io.FileWriter;
++import java.io.IOException;
++import java.io.Writer;
++import java.util.*;
++import java.util.concurrent.Callable;
++
++import javax.lang.model.element.*;
++import javax.lang.model.type.ArrayType;
++import javax.lang.model.type.DeclaredType;
++import javax.lang.model.type.ExecutableType;
++import javax.lang.model.type.TypeKind;
++import javax.lang.model.type.TypeMirror;
++import javax.lang.model.util.Elements;
++import javax.swing.text.Document;
++
++import org.netbeans.api.java.lexer.JavaTokenId;
++import org.netbeans.api.java.source.*;
++import org.netbeans.api.java.source.support.ReferencesCount;
++import org.netbeans.api.lexer.Language;
++import org.netbeans.modules.parsing.api.ParserManager;
++import org.netbeans.modules.parsing.api.Source;
++import org.openide.LifecycleManager;
++import org.openide.cookies.EditorCookie;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
++import org.openide.loaders.DataObject;
++import org.openide.util.lookup.ServiceProvider;
++import org.openide.xml.EntityCatalog;
++import org.xml.sax.InputSource;
++import org.xml.sax.SAXException;
++
++/**
++ *
++ * @author Dusan Balek, Jan Lahoda
++ */
++public class JavaDocumentationTaskTest extends CompletionTestBaseBase {
++
++    public JavaDocumentationTaskTest(String testName) {
++        super(testName, "org/netbeans/modules/java/completion/JavaDocumentationTaskTest");
++    }
++
++    public void testConstructor() throws Exception {
++        performTest("import java.util.*;\n" +
++                    "public class Test {\n" +
++                    "    List<String> l = new Array|List();\n" +
++                    "}\n",
++                    "",
++                    "11",
++                    "[java.util.ArrayList, <init>, ()V]");
++    }
++
++    public void testConstructorDiamond() throws Exception {
++        performTest("import java.util.*;\n" +
++                    "public class Test {\n" +
++                    "    List<String> l = new Array|List<>();\n" +
++                    "}\n",
++                    "",
++                    "11",
++                    "[java.util.ArrayList, <init>, ()V]");
++    }
++
++    public void testConstructorTypeParams1() throws Exception {
++        performTest("import java.util.*;\n"+
++                    "public class Test {\n"+
++                    "   List<String> l = new Array|List<String>();\n"+
++                    "}\n",
++                    "",
++                    "11",
++                    "[java.util.ArrayList, <init>, ()V]");
++    }
++
++    public void testConstructorTypeParams2() throws Exception {
++        performTest("import java.util.*;\n"+
++                    "public class Test {\n"+
++                    "    List<String> l = new ArrayList<Str|ing>();\n"+
++                    "}\n",
++                    "",
++                    "11",
++                    "[java.lang.String]");
++    }
++
++    public void testConstructorAnnotation1() throws Exception {
++        performTest("import java.lang.annotation.ElementType;\n"+
++                    "import java.lang.annotation.Target;\n"+
++                    "import java.util.*;\n"+
++                    "public class Test {\n"+
++                    "    List<String> l = new @Ann Array|List();\n"+
++                    "}\n"+
++                    "@Target(ElementType.TYPE_USE)\n"+
++                    "@interface Ann {}\n",
++                    "",
++                    "11",
++                    "[java.util.ArrayList, <init>, ()V]");
++    }
++
++    public void testConstructorAnnotation2() throws Exception {
++        performTest("import java.lang.annotation.ElementType;\n"+
++                    "import java.lang.annotation.Target;\n"+
++                    "import java.util.*;\n"+
++                    "public class Test {\n"+
++                    "    List<String> l = new @An|n ArrayList();\n"+
++                    "}\n"+
++                    "@Target(ElementType.TYPE_USE)\n"+
++                    "@interface Ann {}\n",
++                    "",
++                    "11",
++                    "[Ann]");
++    }
++
++    public void testConstructorAnnotationTypeParams1() throws Exception {
++        performTest("import java.lang.annotation.ElementType;\n"+
++                    "import java.lang.annotation.Target;\n"+
++                    "import java.util.*;\n"+
++                    "public class Test {\n"+
++                    "    List<String> l = new @Ann Array|List<String>();\n"+
++                    "}\n"+
++                    "@Target(ElementType.TYPE_USE)\n"+
++                    "@interface Ann {}\n",
++                    "",
++                    "11",
++                    "[java.util.ArrayList, <init>, ()V]");
++    }
++
++    public void testConstructorAnnotationTypeParams2() throws Exception {
++        performTest("import java.lang.annotation.ElementType;\n"+
++                    "import java.lang.annotation.Target;\n"+
++                    "import java.util.*;\n"+
++                    "public class Test {\n"+
++                    "    List<String> l = new @An|n ArrayList<String>();\n"+
++                    "}\n"+
++                    "@Target(ElementType.TYPE_USE)\n"+
++                    "@interface Ann {}\n",
++                    "",
++                    "11",
++                    "[Ann]");
++    }
++
++    public void testConstructorAnnotationTypeParams3() throws Exception {
++        performTest("import java.lang.annotation.ElementType;\n"+
++                    "import java.lang.annotation.Target;\n"+
++                    "import java.util.*;\n"+
++                    "public class Test {\n"+
++                    "    List<String> l = new @Ann ArrayList<Str|ing>();\n"+
++                    "}\n"+
++                    "@Target(ElementType.TYPE_USE)\n"+
++                    "@interface Ann {}\n",
++                    "",
++                    "11",
++                    "[java.lang.String]");
++    }
++    
++    public void testConstructorIntegerArgument() throws Exception {
++        performTest("public class Test {\n" +
++                      "/**\n"+
++                      "This is constructor level Javadoc\n"+
++                      "**/\n"+
++                      "Test(int i){}\n"+ 
++                      "    public static void main(String[] args) {\n"+
++                      "        Test t = new Test(|10000);\n" +
++                      "    }\n" +
++                      "}\n",
++                    "",
++                    "11",
++                    null);
++    }
++    
++    public void testConstructorCharacterArgument() throws Exception {
++        performTest("public class Test {\n" +
++                      "/**\n"+
++                      "This is constructor level Javadoc\n"+
++                      "**/\n"+
++                      "Test(char c){}\n"+ 
++                      "    public static void main(String[] args) {\n"+
++                      "        Test t = new Test(|'x');\n" +
++                      "    }\n" +
++                      "}\n",
++                    "",
++                    "11",
++                    null);
++    }
++
++    protected void performTest(String source, String textToInsert, String sourceLevel, String expected) throws Exception {
++        this.sourceLevel.set(sourceLevel);
++        int caretPos = source.indexOf("|");
++        assertTrue(caretPos != (-1));
++        String code = source.substring(0, caretPos) + source.substring(caretPos + 1);
++        File testSource = new File(getWorkDir(), "test/Test.java");
++        testSource.getParentFile().mkdirs();
++        try (Writer w = new FileWriter(testSource)) {
++            w.write(code);
++        }
++        FileObject testSourceFO = FileUtil.toFileObject(testSource);
++        assertNotNull(testSourceFO);
++        DataObject testSourceDO = DataObject.find(testSourceFO);
++        assertNotNull(testSourceDO);
++        EditorCookie ec = (EditorCookie) testSourceDO.getCookie(EditorCookie.class);
++        assertNotNull(ec);
++        final Document doc = ec.openDocument();
++        assertNotNull(doc);
++        doc.putProperty(Language.class, JavaTokenId.language());
++        doc.putProperty("mimeType", "text/x-java");
++        int textToInsertLength = textToInsert != null ? textToInsert.length() : 0;
++        if (textToInsertLength > 0) {
++            doc.insertString(caretPos, textToInsert, null);
++        }
++        Source s = Source.create(doc);
++        JavaDocumentationTask<String> task = JavaDocumentationTask.create(caretPos + textToInsertLength, null, new StringFactory(), null);
++        ParserManager.parse(Collections.singletonList(s), task);
++        String documentation = task.getDocumentation();
++
++        assertEquals(expected, documentation);
++
++        LifecycleManager.getDefault().saveAll();
++    }
++
++    private static class StringFactory implements JavaDocumentationTask.DocumentationFactory<String> {
++
++        @Override
++        public String create(CompilationInfo compilationInfo, Element element, Callable<Boolean> cancel) {
++            return Arrays.toString(SourceUtils.getJVMSignature(ElementHandle.create(element)));
++        }
++
++    }
++
++}
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+index 4fce71a094..684f5db0a2 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+@@ -1362,11 +1362,15 @@ public class ServerTest extends NbTestCase {
+         File src = new File(getWorkDir(), "Test.java");
+         src.getParentFile().mkdirs();
+         String code = "/**\n" +
+-                      " * This is a test class with Javadoc.\n" +
++                      " * This is a class level Javadoc.\n" +
+                       " */\n" +
+                       "public class Test {\n" +
+-                      "    public static void main(String[] args) {\n" +
+-                      "        Test t = new Test();\n" +
++                      "/**\n"+
++                      "This is constructor level Javadoc\n"+
++                      "**/\n"+
++                      "Test(int i){}\n"+ 
++                      "    public static void main(String[] args) {\n"+
++                      "        Test t = new Test(10000);\n" +
+                       "    }\n" +
+                       "}\n";
+         try (Writer w = new FileWriter(src)) {
+@@ -1401,18 +1405,35 @@ public class ServerTest extends NbTestCase {
+         InitializeResult result = server.initialize(new InitializeParams()).get();
+         assertTrue(result.getCapabilities().getHoverProvider().isLeft() && result.getCapabilities().getHoverProvider().getLeft());
+         server.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(new TextDocumentItem(toURI(src), "java", 0, code)));
+-        Hover hover = server.getTextDocumentService().hover(new HoverParams(new TextDocumentIdentifier(toURI(src)), new Position(5, 10))).get();
+-        assertNotNull(hover);
+-        assertTrue(hover.getContents().isRight());
+-        MarkupContent content = hover.getContents().getRight();
+-        assertNotNull(content);
+-        assertEquals(content.getKind(), "markdown");
+-        assertEquals(content.getValue(), "```\n" +
++        Hover hoverClass = server.getTextDocumentService().hover(new HoverParams(new TextDocumentIdentifier(toURI(src)), new Position(9, 10))).get();
++        Hover hoverConstructor = server.getTextDocumentService().hover(new HoverParams(new TextDocumentIdentifier(toURI(src)), new Position(9, 23))).get();
++        Hover hoverIntegerArgument = server.getTextDocumentService().hover(new HoverParams(new TextDocumentIdentifier(toURI(src)), new Position(9, 26))).get();
++        assertNotNull(hoverClass);
++        assertNotNull(hoverConstructor);
++        assertNull(hoverIntegerArgument);
++        assertTrue(hoverConstructor.getContents().isRight());
++        assertTrue(hoverClass.getContents().isRight());
++        MarkupContent classContent = hoverClass.getContents().getRight();
++        MarkupContent constructorContent = hoverConstructor.getContents().getRight();
++        assertNotNull(classContent);
++        assertNotNull(constructorContent);
++        assertEquals(classContent.getKind(), "markdown");
++        assertEquals(constructorContent.getKind(), "markdown");
++        assertEquals(classContent.getValue(), "```\n" +
+                 "public class Test\n" +
+                 "extends Object\n" +
+                 "```\n" +
+                 "\n" +
+-                "This is a test class with Javadoc.\n" +
++                "This is a class level Javadoc.\n" +
++                "\n");
++        assertEquals(constructorContent.getValue(),
++                "**Test**\n"+
++                "\n"+
++                "```\n" +
++                "Test(int i)\n" +
++                "```\n" +
++                "\n" +
++                "This is constructor level Javadoc\n" +
+                 "\n");
+     }
+ 
