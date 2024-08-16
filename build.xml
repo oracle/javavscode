@@ -31,7 +31,39 @@
     <property name="nbplatform.default.harness.dir" location="${nbplatform.default.netbeans.dest.dir}/harness" />
     <property name="nbantext.jar" location="netbeans/nbbuild/build/nbantext.jar" />
     <property name="nb_all" location="netbeans" />
-    <property name="patches" value="patches/6330.diff patches/7001.diff patches/7271.diff patches/7353.diff patches/7368.diff patches/7370.diff patches/7382.diff patches/7491-preliminary.diff patches/mvn-sh.diff patches/generate-dependencies.diff patches/rename-debugger.diff patches/remove-db.diff patches/nbjavac-not-required.diff" />
+    <loadresource property="patch-files">
+        <string>
+            patches/6330.diff
+            patches/7001.diff
+            patches/7271.diff
+            patches/7353.diff
+            patches/7368.diff
+            patches/7370.diff
+            patches/7382.diff
+            patches/7491-preliminary.diff
+            patches/7548_source-1.8.diff
+            patches/7583_source-1.8.diff
+            patches/7610.diff
+            patches/7621.diff
+            patches/7641.diff
+            patches/7654.diff
+            patches/mvn-sh.diff
+            patches/generate-dependencies.diff
+            patches/rename-debugger.diff
+            patches/remove-db.diff
+            patches/nbjavac-not-required.diff
+        </string>
+        <filterchain>
+            <tokenfilter delimoutput=" ">
+                <replaceregex pattern="\s+" replace=""/>
+            </tokenfilter>
+        </filterchain>
+    </loadresource>
+    <property name="patches" value="${patch-files}"/>
+    <condition property="has-patches">
+        <length string="${patches}" trim="true" when="greater" length="0"/>
+    </condition>
+
     <condition property="cmd.suffix" value=".cmd" else="">
         <os family="windows"/>
     </condition>
@@ -175,7 +207,8 @@
         </exec>
     </target>
 
-    <target name="apply-patches">
+    <target name="apply-patches" if="has-patches">
+        <echo>${patches}</echo>
         <exec executable="git">
             <arg value="apply"/>
             <arg value="--directory=netbeans"/>
@@ -184,7 +217,7 @@
         </exec>
     </target>
 
-    <target name="unapply-patches">
+    <target name="unapply-patches" if="has-patches">
         <!--in the reverse order:-->
         <echo file="${build.dir}/Reverse.java">
             import java.util.Arrays;
@@ -216,6 +249,10 @@
 
     <target name="build-netbeans">
         <ant dir="netbeans" inheritAll="false" inheritRefs="false" useNativeBasedir="true"/>
+    </target>
+
+    <target name="clean-netbeans">
+        <ant dir="netbeans" target="clean" inheritAll="false" inheritRefs="false" useNativeBasedir="true"/>
     </target>
 
     <target name="generate-netbeans-license-summary" depends="-set-use-jdk-javac,proxy-setup" description="Generate license summary">

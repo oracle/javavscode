@@ -23,10 +23,18 @@ import * as vscode from 'vscode';
 import { homedir } from 'os';
 
 export async function initializeRunConfiguration(): Promise<boolean> {
-	const java = await vscode.workspace.findFiles('**/*.java', '**/node_modules/**', 1);
-	if (java?.length > 0) {
+    if (vscode.workspace.name || vscode.workspace.workspaceFile) {
+        const java = await vscode.workspace.findFiles('**/*.java', '**/node_modules/**', 1);
+        if (java?.length > 0) {
             return true;
-	}
+        }
+    } else {
+        for (let doc of vscode.workspace.textDocuments) {
+            if (doc.fileName?.endsWith(".java")) {
+                return true;
+            }
+        }
+    }
 	return false;
 }
 
@@ -152,7 +160,7 @@ class RunConfigurationNode extends vscode.TreeItem {
 
 	setValue(value: string | undefined) {
 		this.value = value;
-		this.getConfig().update(this.settingsKey, this.value, false);
+		this.getConfig().update(this.settingsKey, this.value, vscode.workspace.name || vscode.workspace.workspaceFile ? null : true);
 		this.updateNode();
 	}
 
@@ -192,7 +200,7 @@ const vmOptionsNode = new VMOptionsNode();
 class EnvironmentVariablesNode extends RunConfigurationNode {
 
 	constructor() {
-        super('Environment:', 'Customize evironment variables', 'Example: var1=one, varTwo=2', 'env');
+        super('Environment:', 'Customize environment variables', 'Example: var1=one, varTwo=2', 'env');
     }
 
 }
