@@ -31,7 +31,7 @@ import * as myExplorer from '../../explorer';
 
 import { CodeAction, commands, extensions, Selection, Uri, window, workspace, TreeItem } from 'vscode';
 import { assertWorkspace, dumpJava, getFilePaths, openFile, prepareProject, replaceCode} from './testutils';
-import {SAMPLE_CODE_FORMAT_DOCUMENT, SAMPLE_CODE_SORT_IMPORTS, SAMPLE_CODE_UNUSED_IMPORTS } from './constants';
+import {FORMATTED_POM_XML, SAMPLE_CODE_FORMAT_DOCUMENT, SAMPLE_CODE_SORT_IMPORTS, SAMPLE_CODE_UNUSED_IMPORTS } from './constants';
 
 suite('Extension Test Suite', function () {
     window.showInformationMessage('Start all tests.');
@@ -299,4 +299,12 @@ suite('Extension Test Suite', function () {
         assert.ok(!fs.existsSync(mainClass), "Class created by compilation: " + mainClass);
     }).timeout(10000);
 
+    // Check if xml document formatting is executed successfully
+    test("XML Format document", async () => {
+        const editor = await openFile(filePaths.pom);
+        await commands.executeCommand('editor.action.formatDocument');
+
+        const formattedContents = editor.document.getText().trim();
+        assert.ok(formattedContents == FORMATTED_POM_XML.trim(), "pom.xml is not formatted");
+    }).timeout(10000);
 });
