@@ -29,6 +29,22 @@ import { promisify } from 'util';
 let customView: vscode.WebviewPanel;
 let logger: vscode.OutputChannel;
 
+export const getSha256Checksum = async (url: string) => {
+  return new Promise((resolve, reject) => {
+      https.get(`${url}.sha256`, res => {
+          let data = '';
+          res.on('data', (chunk) => {
+              data += chunk;
+          });
+          res.on('end', () => {
+              resolve(data);
+          });
+      }).on("error", (err) => {
+          reject(`Error: ${err.message}`);
+      });
+  });
+}
+
 export const calculateChecksum = async (filePath: string): Promise<string> => {
   const ALGORITHM = 'sha256';
   const hash = crypto.createHash(ALGORITHM);
@@ -161,7 +177,7 @@ export function JDKDownloader(JDKType: string, osType: string, osArchitecture: s
 
     writeStream.on('finish', async () => {
       const checkSumObtained = await calculateChecksum(filePath);
-      const checkSumExpected = (await axios.get(`${downloadUrl}.sha256`)).data;
+      const checkSumExpected = await getSha256Checksum(downloadUrl);
       if (checkSumExpected === checkSumObtained) {
         vscode.window.showInformationMessage(`${JDKType} ${JDKVersion} for ${osType} download completed!`);
         await extractJDK(filePath, installationPath, JDKVersion, osType, JDKType);
