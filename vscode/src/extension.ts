@@ -78,6 +78,7 @@ let nbProcess : ChildProcess | null = null;
 let debugPort: number = -1;
 let debugHash: string | undefined;
 let consoleLog: boolean = !!process.env['ENABLE_CONSOLE_LOG'];
+export let extensionContext: ExtensionContext | undefined; 
 
 export class NbLanguageClient extends LanguageClient {
     private _treeViewService: TreeViewService;
@@ -328,7 +329,7 @@ class InitialPromise extends Promise<NbLanguageClient> {
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
     let log = vscode.window.createOutputChannel(SERVER_NAME);
-
+    extensionContext = context;
     var clientResolve : (x : NbLanguageClient) => void;
     var clientReject : (err : any) => void;
 
