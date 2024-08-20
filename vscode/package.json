@@ -761,8 +761,9 @@
 		"test:coverage": "c8 npm run test",
 		"nbcode": "node ./out/nbcode.js",
 		"nbjavac": "node ./out/nbcode.js -J-Dnetbeans.close=true --modules --install .*nbjavac.*",
-		"apisupport": "node ./out/nbcode.js -J-Dnetbeans.close=true --modules --install '(org.netbeans.libs.xerces|org.netbeans.modules.editor.structure|org.netbeans.modules.xml|org.netbeans.modules.xml.axi|org.netbeans.modules.xml.retriever|org.netbeans.modules.xml.schema.model|org.netbeans.modules.xml.tax|org.netbeans.modules.xml.text|org.netbeans.modules.ant.browsetask|.*apisupport.*|org.netbeans.modules.debugger.jpda.ant)' && node ./out/nbcode.js -J-Dnetbeans.close=true --modules --enable .*apisupport.ant"
-	},
+		"apisupport": "node ./out/nbcode.js -J-Dnetbeans.close=true --modules --install '(org.netbeans.libs.xerces|org.netbeans.modules.editor.structure|org.netbeans.modules.xml|org.netbeans.modules.xml.axi|org.netbeans.modules.xml.retriever|org.netbeans.modules.xml.schema.model|org.netbeans.modules.xml.tax|org.netbeans.modules.xml.text|org.netbeans.modules.ant.browsetask|.*apisupport.*|org.netbeans.modules.debugger.jpda.ant)' && node ./out/nbcode.js -J-Dnetbeans.close=true --modules --enable .*apisupport.ant",
+		"artifactory:check": "node ./esbuild.js --artifactory-check"
+		},
 	"devDependencies": {
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^9.0.0",
@@ -782,8 +783,8 @@
 	"dependencies": {
 		"@vscode/debugadapter": "^1.65.0",
 		"@vscode/webview-ui-toolkit": "^1.2.2",
-		"axios": "^1.6.8",
-		"jsonc-parser": "3.2.0",
+		"axios": "^1.7.4",
+		"jsonc-parser": "3.3.1",
 		"vscode-languageclient": "^8.1.0"
 	}
 }
