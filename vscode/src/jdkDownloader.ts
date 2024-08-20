@@ -17,7 +17,6 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import axios from 'axios';
 import * as https from 'https';
 import * as child_process from 'child_process';
 import * as vscode from 'vscode';
@@ -28,10 +27,14 @@ import { promisify } from 'util';
 
 let customView: vscode.WebviewPanel;
 let logger: vscode.OutputChannel;
+const ALGORITHM = 'sha256';
 
 export const getSha256Checksum = async (url: string) => {
   return new Promise((resolve, reject) => {
-      https.get(`${url}.sha256`, res => {
+      https.get(`${url}.${ALGORITHM}`, res => {
+          if (res.statusCode !== 200) {
+            return `HTTP Error ${res.statusCode} - ${res.statusMessage}`;
+          }
           let data = '';
           res.on('data', (chunk) => {
               data += chunk;
@@ -46,7 +49,6 @@ export const getSha256Checksum = async (url: string) => {
 }
 
 export const calculateChecksum = async (filePath: string): Promise<string> => {
-  const ALGORITHM = 'sha256';
   const hash = crypto.createHash(ALGORITHM);
   const pipeline = promisify(require('stream').pipeline);
   const readStream = fs.createReadStream(filePath);
