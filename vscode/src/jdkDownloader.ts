@@ -423,9 +423,7 @@ export const fetchJDKDownloadView = (machineArch: string, osType: string, versio
   </style>
   <body>
     <h1>${downloader_title}</h1>
-    <p>${l10n.translate("jdk.downloader.details.part1")}<a href="https://www.java.com/freeuselicense"> ${l10n.translate("jdk.downloader.links.label.termsAndConditions")}</a>  ${l10n.translate("jdk.downloader.label.oracleJdkOpens")} <a href="https://openjdk.org/legal/gplv2+ce.html">${l10n.translate("jdk.downloader.links.label.openJdkLicense")}</a>.
-    ${l10n.translate("jdk.downloader.details.part2")}</p>
-    <p>${l10n.translate("jdk.downloader.details.part3")}</p>
+    ${l10n.translate("jdk.downloader.html.details")}
     <br>
     <button id="oracleJDK" class="select-jdk">${l10n.translate("jdk.downloader.button.label.oracleJdk")}</button>
     ${l10n.translate("jdk.downloader.label.or")}

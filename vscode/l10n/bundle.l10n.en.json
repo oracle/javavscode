@@ -1,14 +1,11 @@
 {
     
   "jdk.downloader.heading": "JDK Downloader",
-  "jdk.downloader.details.part1": "This tool enables you to download either the latest Oracle Java SE JDK with",
-  "jdk.downloader.links.label.termsAndConditions": "Oracle No-Fee Terms and Conditions",
-  "jdk.downloader.label.oracleJdkOpens": "or the Oracle OpenJDK builds under the",
-  "jdk.downloader.links.label.openJdkLicense": "GNU Public License with ClassPath Exception",
-  "jdk.downloader.details.part2": "It will then handle the installation and configuration on your behalf.",
-  "jdk.downloader.details.part3": "This enables you to take full advantage of all the features offered by this extension.",
+
+  "jdk.downloader.html.details":"<p>This tool enables you to download either the latest Oracle Java SE JDK with <a href='https://www.java.com/freeuselicense'>Oracle No-Fee Terms and Conditions</a> or the Oracle OpenJDK builds under the <a href='https://openjdk.org/legal/gplv2+ce.html'>GNU Public License with ClassPath Exception</a></p> <p>It will then handle the installation and configuration on your behalf.</p> <p>This enables you to take full advantage of all the features offered by this extension.</p>",
+
   "jdk.downloader.button.label.oracleJdk": "Download Oracle Java SE JDK",
-  "jdk.downloader.label.or": "OR",
+  "jdk.downloader.label.or": "or",
   "jdk.downloader.button.label.openJdk": "Download Oracle OpenJDK",
   "jdk.downloader.button.label.selectJdkFromSystem": "Select installed JDK from my system",
   "jdk.downloader.label.selectOracleJdkVersion": "Select Oracle Java SE Version",
