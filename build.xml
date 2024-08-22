@@ -42,10 +42,12 @@
             patches/7382.diff
             patches/7491-preliminary.diff
             patches/7497.diff
-            patches/7543.diff
-            patches/7548.diff
+            patches/7548_source-1.8.diff
+            patches/7583_source-1.8.diff
+            patches/7610.diff
             patches/7621.diff
-            patches/7583.diff
+            patches/7641.diff
+            patches/7654.diff
             patches/mvn-sh.diff
             patches/generate-dependencies.diff
             patches/rename-debugger.diff
