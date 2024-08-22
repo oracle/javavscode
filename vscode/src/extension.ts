@@ -213,7 +213,7 @@ function findJDK(onChange: (path : string | null) => void): void {
             let newJdk = find();
             let newD = isDarkColorTheme();
             let newNbJavacDisabled = isNbJavacDisabled();
-            let newProjectJdk : string | undefined = getProjectJDKHome();
+            let newProjectJdk : string | undefined = workspace.getConfiguration('jdk')?.get('project.jdkhome') as string;
             if (newJdk !== currentJdk || newD != nowDark || newNbJavacDisabled != nowNbJavacDisabled || newProjectJdk != projectJdk) {
                 nowDark = newD;
                 currentJdk = newJdk;
@@ -863,7 +863,7 @@ function isNbJavacDisabled() : boolean {
 }
 
 function getProjectJDKHome() : string {
-    return workspace.getConfiguration('netbeans')?.get('project.jdkhome') as string;
+    return workspace.getConfiguration('jdk')?.get('project.jdkhome') as string;
 }
 
 function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContext, log : vscode.OutputChannel, notifyKill: boolean,
