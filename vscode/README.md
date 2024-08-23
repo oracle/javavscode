@@ -24,14 +24,21 @@
 
 # Java Platform Extension for Visual Studio Code
 
-Java Platform extension from Oracle brings full featured development support (edit-compile-debug & test cycle) to VS Code. It offers support for Maven and Gradle projects.
+Java Platform extension from Oracle brings full featured development support (edit-compile-debug & test cycle) to VS Code. It also offers support for Maven and Gradle projects. Applications using JDK 8 and above are supported.
 ## Getting Started
-1. Set the JDK in the `View | Command Palette | Preferences: Open User Settings | Jdk: Jdkhome` setting to point to the JDK that the Language Server will run on and also by default use for running and compiling projects. For more information, see the section [Selecting the JDK](#selecting-the-jdk). The extension requires JDK 17 or newer to run.
-2. Set the JDK in the `View | Command Palette | Preferences: Open User Settings | Jdk › Project: Jdkhome` setting to point to the JDK that will be used to compile and run projects. By default, it uses the __jdk.jdkhome__ setting. Projects can run on JDK 8 and above.
-3. If no JDK is present in your system then extension can setup things for you. More below in section [JDK Downloader](#jdk-downloader)  
-4. Use __Java: New Project...__ " command to start creating new project, or
-5. Open the folder with existing __pom.xml__ for Maven or ___Gradle___ project files (_build.gradle, gradle.properties_). Language Server opens the project, resolves dependencies if any and performs priming build, or
-6. Simply create a new Java class file with `public static void main(String[] args)` method in opened folder and start coding, compiling, debugging.
+1. Setting up the JDK
+    - If no JDK is present in your system then the extension can set things up for you. For more details refer to [JDK Downloader](#jdk-downloader) section.
+    - Set the JDK in the `View | Command Palette | Preferences: Open User Settings | Jdk: Jdkhome` setting to point to the JDK that the Language Server will run on and also by default use for running and compiling projects.
+        - The extension requires JDK 17 or newer to run.
+    - Optionally, set a different JDK to compile and run projects in the `View | Command Palette | Preferences: Open User Settings | Jdk › Project: Jdkhome` setting.
+        - By default, the __jdk.jdkhome__ setting is used. 
+        - Projects can run on JDK 8 and above.  
+    - For more information, see the section [Selecting the JDK](#selecting-the-jdk).
+4. Use any one of the following ways to start coding, compiling and debugging in Java.
+    - Simply create a new Java class with `public static void main(String[] args)` method.
+    - Use the __Java: New From Template...__ command to create a new Java file.
+    - Use the __Java: New Project...__ command to create a new project.
+    - Open the folder with existing __Maven__ or __Gradle__ project files (_pom.xml_ or _build.gradle, gradle.properties_).
 
 ## Supported Actions
 In the VS Code command palette :
