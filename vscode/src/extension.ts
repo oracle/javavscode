@@ -78,7 +78,7 @@ let nbProcess : ChildProcess | null = null;
 let debugPort: number = -1;
 let debugHash: string | undefined;
 let consoleLog: boolean = !!process.env['ENABLE_CONSOLE_LOG'];
-
+let deactivated = false;
 export class NbLanguageClient extends LanguageClient {
     private _treeViewService: TreeViewService;
 
@@ -328,7 +328,7 @@ class InitialPromise extends Promise<NbLanguageClient> {
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
     let log = vscode.window.createOutputChannel(SERVER_NAME);
-
+    deactivated = false;
     var clientResolve : (x : NbLanguageClient) => void;
     var clientReject : (err : any) => void;
 
@@ -514,16 +514,16 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             vscode.window.showErrorMessage('Cannot find workspace path');
             return;
         }
+        
         const userDir = path.join(storagePath, "userdir");
         if (userDir && fs.existsSync(userDir)) {
-            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace?',
+            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace and reload the window?',
                 'Yes', 'Cancel');
             if (confirmation === 'Yes') {
-                await fs.promises.rmdir(userDir, {recursive : true});
-                const res = await vscode.window.showInformationMessage('Cache cleared successfully for this workspace', 'Reload window');
-                if (res === 'Reload window') {
-                    await vscode.commands.executeCommand('workbench.action.reloadWindow');
-                }
+                stopClient(client).then(() => killNbProcess(false, log)).then(() => {
+                    fs.promises.rmdir(userDir, {recursive : true});
+                    vscode.commands.executeCommand('workbench.action.reloadWindow')
+                });
             }
         } else {
             vscode.window.showErrorMessage('Cannot find userdir path');
@@ -953,7 +953,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
             if (p == nbProcess && code != 0 && code) {
                 vscode.window.showWarningMessage(`${SERVER_NAME} exited with ` + code);
             }
-            if (stdErr?.match(/Cannot find java/) || os.type() === "Windows_NT" ) {
+            if (stdErr?.match(/Cannot find java/) || (os.type() === "Windows_NT" && !deactivated) ) {
                 vscode.window.showInformationMessage(
                     "No JDK found!",
                     "Download JDK and setup automatically"
@@ -1422,6 +1422,7 @@ function stopClient(clientPromise: Promise<LanguageClient>): Thenable<void> {
 }
 
 export function deactivate(): Thenable<void> {
+    deactivated=true;
     if (nbProcess != null) {
         nbProcess.kill();
     }
