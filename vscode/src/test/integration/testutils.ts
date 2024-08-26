@@ -24,7 +24,7 @@
 import * as assert from "assert";
 import * as fs from "fs";
 import * as glob from 'glob';
-import * as myExtension from "../extension";
+import * as myExtension from "../../extension";
 import * as Mocha from 'mocha';
 import * as path from "path";
 import { promisify } from "util";

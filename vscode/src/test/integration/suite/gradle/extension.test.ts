@@ -49,8 +49,12 @@ suite("Extension gradle tests", function () {
       const mainClass = path.join(
         folder,
         "build",
-        "classes/java",
-        "main/org/yourCompany/yourProject",
+        "classes",
+        "java",
+        "main",
+        "org",
+        "yourCompany",
+        "yourProject",
         "App.class"
       );
       assert.ok(
