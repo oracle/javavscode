@@ -41,6 +41,7 @@
             patches/7370.diff
             patches/7382.diff
             patches/7491-preliminary.diff
+            patches/7497.diff
             patches/7548_source-1.8.diff
             patches/7583_source-1.8.diff
             patches/7610.diff

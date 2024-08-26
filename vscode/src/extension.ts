@@ -190,6 +190,7 @@ function findJDK(onChange: (path : string | null) => void): void {
     }
 
     let currentJdk = find();
+    let projectJdk : string | undefined = getProjectJDKHome();
     let timeout: NodeJS.Timeout | undefined = undefined;
     workspace.onDidChangeConfiguration(params => {
         if (timeout) {
@@ -212,10 +213,12 @@ function findJDK(onChange: (path : string | null) => void): void {
             let newJdk = find();
             let newD = isDarkColorTheme();
             let newNbJavacDisabled = isNbJavacDisabled();
-            if (newJdk !== currentJdk || newD != nowDark || newNbJavacDisabled != nowNbJavacDisabled) {
+            let newProjectJdk : string | undefined = workspace.getConfiguration('jdk')?.get('project.jdkhome') as string;
+            if (newJdk !== currentJdk || newD != nowDark || newNbJavacDisabled != nowNbJavacDisabled || newProjectJdk != projectJdk) {
                 nowDark = newD;
                 currentJdk = newJdk;
                 nowNbJavacDisabled = newNbJavacDisabled;
+                projectJdk = newProjectJdk
                 onChange(currentJdk);
             }
         }, 0);
@@ -859,6 +862,10 @@ function isNbJavacDisabled() : boolean {
     return workspace.getConfiguration('jdk')?.get('advanced.disable.nbjavac') as boolean;
 }
 
+function getProjectJDKHome() : string {
+    return workspace.getConfiguration('jdk')?.get('project.jdkhome') as string;
+}
+
 function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContext, log : vscode.OutputChannel, notifyKill: boolean,
     setClient : [(c : NbLanguageClient) => void, (err : any) => void]
 ): void {
@@ -1044,6 +1051,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                     'jdk.hints',
                     'jdk.format',
                     'jdk.java.imports',
+                    'jdk.project.jdkhome',
                     'jdk.runConfig.vmOptions',
                     'jdk.runConfig.cwd'
                 ],
