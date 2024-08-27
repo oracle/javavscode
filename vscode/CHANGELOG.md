@@ -24,6 +24,30 @@
 -->
 
 <!-- This file has been modified for Oracle Java SE extension -->
+
+## Version 22.1.2
+### What's Changed
+
+### Bugs
+* [JAVAVSCODE-96] Honour SuppressWarnings annotations for `unused` entities https://github.com/oracle/javavscode/pull/227
+* [JAVAVSCODE-182] Show the constructor's JavaDoc on hovering over its usage; instead of the class' JavaDoc https://github.com/oracle/javavscode/pull/238
+* [JAVAVSCODE-185] Formatting of XML (pom.xml) files fixed https://github.com/oracle/javavscode/pull/226
+* [JAVAVSCODE-190] Upgrade Gradle tooling to support JDK-22 https://github.com/oracle/javavscode/pull/220
+* [JAVAVSCODE-194] Support uncommon inline tags in JavaDoc re-formatting, instead of producing incorrectly formatted block tags https://github.com/oracle/javavscode/pull/237
+* [JAVAVSCODE-196] Fixed run Configuration section is unavailable in the Explorer panel for non-workspace opened Java files https://github.com/oracle/javavscode/pull/210
+* [JAVAVSCODE-199] Fixed Quick Fix actions are unable to edit runConfig options in global settings for non-workspace opened Java files https://github.com/oracle/javavscode/pull/211
+* [JAVAVSCODE-214] Fixed Source Actions menu https://github.com/oracle/javavscode/pull/227
+
+### Other Changes
+* [JAVAVSCODE-223] Updated BUILD.md https://github.com/oracle/javavscode/pull/225
+* Updated README.md https://github.com/oracle/javavscode/pull/228
+* Ant build script reorganization for patches and clean-netbeans https://github.com/oracle/javavscode/pull/234
+* Pre-commit hook to check artifactory urls in package-lock.json https://github.com/oracle/javavscode/pull/192
+* Bump up axios to 1.7.4 https://github.com/oracle/javavscode/pull/241
+* Upgraded node-jsonc-parser library https://github.com/oracle/javavscode/pull/200
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v22.1.1...v22.1.2
+
 ## Version 22.1.1
 ### What's Changed
 
