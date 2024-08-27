@@ -40,6 +40,7 @@
             patches/7368.diff
             patches/7370.diff
             patches/7382.diff
+            patches/7390.diff
             patches/7491-preliminary.diff
             patches/7497.diff
             patches/7548_source-1.8.diff
