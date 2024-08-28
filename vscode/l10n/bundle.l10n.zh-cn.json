@@ -18,7 +18,7 @@
   "jdk.downloader.error_message.whileDownloading": "下载 {jdkType} 时出错 {error}",
   "jdk.downloader.message.downloadFailed": "适用于 {osType} 的 {jdkType} {jdkVersion} 下载失败，校验和错误。",
   "jdk.downloader.error_message.downloadFailedHttpError": "HTTP 错误 {statusCode} - {statusMessage}",
-  "jdk.downloader.error_message.jdkExtractionError": "错误：{error}",
+  "jdk.downloader.error_message.anyError": "错误：{error}",
   "jdk.downloader.error_message.jdkNewDirectoryIssueCannotInstall":"无法安装 {jdkType} {jdkVersion}。无法删除 {newDirName}",
   "jdk.downloader.message.confirmation.directoryExistsStillWantToDelete":"{name} 已存在。是否要将其删除并使用新内容创建？",
   "jdk.downloader.message.confirmation.yes":"是",

@@ -18,6 +18,11 @@
  */
 
 import * as vscode from 'vscode';
+import * as https from 'https';
+import * as fs from 'fs';
+import { promisify } from "util";
+import * as crypto from 'crypto';
+import { l10n } from './localiser';
 
 class InputFlowAction {
 	static back = new InputFlowAction();
@@ -196,4 +201,78 @@ export class MultiStepInput {
 			disposables.forEach(d => d.dispose());
 		}
 	}
+}
+
+export function httpsGet(url: string) {
+	return new Promise((resolve, reject) => {
+		https.get(url, (res) => {
+			if (res.statusCode !== 200) {
+				return reject(new Error(l10n.value("jdk.extension.utils.error_message.failedHttpsRequest", {
+					url,
+					statusCode: res.statusCode
+				})));
+			}
+			let data = '';
+
+			res.on('data', (chunk) => {
+				data += chunk;
+			});
+
+			res.on('end', () => {
+				resolve(data);
+			});
+		}).on('error', (e) => {
+			reject(e);
+		});
+	});
+}
+
+export function downloadFileWithProgressBar(downloadUrl: string, downloadLocation: string, message: string) {
+	return vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, cancellable: false }, p => {
+		return new Promise<void>((resolve, reject) => {
+			const file = fs.createWriteStream(downloadLocation);
+			https.get(downloadUrl, (response) => {
+				if (response.statusCode !== 200) {
+					return reject(new Error(l10n.value("jdk.extension.utils.error_message.failedHttpsRequest", {
+						url: downloadUrl,
+						statusCode: response.statusCode
+					})));
+				}
+
+				const totalSize = parseInt(response.headers['content-length'] || '0');
+				let downloadedSize = 0;
+				response.pipe(file);
+
+				response.on('data', (chunk) => {
+					downloadedSize += chunk.length;
+					if (totalSize) {
+						const increment = parseFloat(((chunk.length / totalSize) * 100).toFixed(2));
+						const progress = parseFloat(((downloadedSize / totalSize) * 100).toFixed(2));
+						p.report({ increment, message: `${message}: ${progress} %` });
+					}
+				});
+
+				file.on('finish', () => {
+					file.close();
+					resolve();
+				});
+			}).on('error', (err) => {
+				fs.unlink(downloadLocation, () => reject(err));
+			});
+		});
+	});
+}
+
+export const calculateChecksum = async (filePath: string, algorithm: string = 'sha256'): Promise<string> => {
+	const hash = crypto.createHash(algorithm);
+	const pipeline = promisify(require('stream').pipeline);
+	const readStream = fs.createReadStream(filePath);
+
+	await pipeline(
+		readStream,
+		hash
+	);
+
+	const checksum = hash.digest('hex');
+	return checksum;
 }
