@@ -1,8 +1,22 @@
 diff --git a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
-index 5349a20e091a..d24c6f5ec98a 100644
+index 5349a20e09..536df96b0e 100644
 --- a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
 +++ b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
-@@ -107,18 +107,16 @@ public static void main(String... args) throws IOException, InterruptedException
+@@ -69,7 +69,12 @@ public class PrepareBundles {
+ 
+         Path targetDir = Paths.get(args[0]);
+         Path packagesDir = targetDir.resolve("package");
+-        new ProcessBuilder("npm", "install").directory(packagesDir.toFile()).inheritIO().start().waitFor();
++        String os = System.getProperty("os.name").toLowerCase();
++        if (os.contains("windows")) {
++            new ProcessBuilder("npm.cmd", "install").directory(packagesDir.toFile()).inheritIO().start().waitFor();
++        } else{
++            new ProcessBuilder("npm", "install").directory(packagesDir.toFile()).inheritIO().start().waitFor();   
++        }
+         Path bundlesDir = targetDir.resolve("bundles");
+         Files.createDirectories(bundlesDir);
+         try (DirectoryStream<Path> ds = Files.newDirectoryStream(bundlesDir)) {
+@@ -107,18 +112,16 @@ public class PrepareBundles {
                  if ("@types".equals(module.getFileName().toString())) continue;
                  if ("@esbuild".equals(module.getFileName().toString())) continue;
                  if ("@microsoft".equals(module.getFileName().toString())) continue;
