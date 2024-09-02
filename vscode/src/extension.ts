@@ -68,7 +68,7 @@ import { InputStep, MultiStepInput } from './utils';
 import { PropertiesView } from './propertiesView/propertiesView';
 import { openJDKSelectionView } from './jdkDownloader';
 import { l10n } from './localiser';
-import { ORACLE_VSCODE_EXTENSION_ID,NODE_WINDOWS_LABEL } from './constants';
+import { ORACLE_VSCODE_EXTENSION_ID, NODE_WINDOWS_LABEL } from './constants';
 const API_VERSION : string = "1.0";
 const SERVER_NAME : string = "Oracle Java SE Language Server";
 export const COMMAND_PREFIX : string = "jdk";
@@ -918,11 +918,38 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
         enableModules.push('org.netbeans.libs.nbjavacapi');
     }
 
+    let projectSearchRoots:string = '';
+    const isProjectFolderSearchLimited : boolean = !netbeansConfig.get('advanced.disable.projectSearchLimit', false);
+    if (isProjectFolderSearchLimited) {
+        try {
+            projectSearchRoots = os.homedir() as string;
+        } catch (err:any) {
+            handleLog(log, `Failed to obtain the user home directory due to: ${err}`);
+        }
+        if (!projectSearchRoots) {
+            projectSearchRoots = os.type() === NODE_WINDOWS_LABEL ? '%USERPROFILE%' : '$HOME';   // The launcher script may perform the env variable substitution
+            handleLog(log, `Using userHomeDir = "${projectSearchRoots}" as the launcher script may perform env var substitution to get its value.`);
+        }
+        const workspaces = workspace.workspaceFolders;
+        if (workspaces) {
+            workspaces.forEach(workspace => {
+                if (workspace.uri) {
+                    try {
+                        projectSearchRoots = projectSearchRoots + path.delimiter + path.normalize(workspace.uri.fsPath);
+                    } catch (err:any) {
+                        handleLog(log, `Failed to get the workspace path: ${err}`);
+                    }
+                }
+            });
+        }
+    }
+
     let info = {
         clusters : findClusters(context.extensionPath),
         extensionPath: context.extensionPath,
         storagePath : userdir,
         jdkHome : specifiedJDK,
+        projectSearchRoots: projectSearchRoots,
         verbose: beVerbose,
         disableModules : disableModules,
         enableModules : enableModules,

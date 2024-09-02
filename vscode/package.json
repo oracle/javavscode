@@ -231,6 +231,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "%jdk.configuration.disableNbJavac.description%"
+				},
+				"jdk.advanced.disable.projectSearchLimit": {
+					"type": "boolean",
+					"default": false,
+					"description": "%jdk.configuration.disableProjectSearchLimit.description%"
 				}
 			}
 		},
