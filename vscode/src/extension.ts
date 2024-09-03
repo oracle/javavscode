@@ -67,7 +67,7 @@ import { initializeRunConfiguration, runConfigurationProvider, runConfigurationN
 import { InputStep, MultiStepInput } from './utils';
 import { PropertiesView } from './propertiesView/propertiesView';
 import { openJDKSelectionView } from './jdkDownloader';
-
+import { NODE_WINDOWS_LABEL } from './constants';
 const API_VERSION : string = "1.0";
 const SERVER_NAME : string = "Oracle Java SE Language Server";
 export const COMMAND_PREFIX : string = "jdk";
@@ -955,7 +955,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
             if (p == nbProcess && code != 0 && code) {
                 vscode.window.showWarningMessage(`${SERVER_NAME} exited with ` + code);
             }
-            if (stdErr?.match(/Cannot find java/) || (os.type() === "Windows_NT" && !deactivated) ) {
+            if (stdErr?.match(/Cannot find java/) || (os.type() === NODE_WINDOWS_LABEL && !deactivated) ) {
                 vscode.window.showInformationMessage(
                     "No JDK found!",
                     "Download JDK and setup automatically"

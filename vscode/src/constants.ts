@@ -24,3 +24,5 @@ export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
   "22": "https://download.java.net/java/GA/jdk22.0.1/c7ec1332f7bb44aeba2eb341ae18aca4/8/GPL/openjdk-22.0.1",
   "21": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2"
 };
+
+export const NODE_WINDOWS_LABEL = "Windows_NT";
