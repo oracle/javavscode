@@ -78,7 +78,7 @@ let nbProcess : ChildProcess | null = null;
 let debugPort: number = -1;
 let debugHash: string | undefined;
 let consoleLog: boolean = !!process.env['ENABLE_CONSOLE_LOG'];
-let deactivated = false;
+let deactivated:boolean = true;
 export class NbLanguageClient extends LanguageClient {
     private _treeViewService: TreeViewService;
 
@@ -327,8 +327,8 @@ class InitialPromise extends Promise<NbLanguageClient> {
 }
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
+    deactivated=false;
     let log = vscode.window.createOutputChannel(SERVER_NAME);
-    deactivated = false;
     var clientResolve : (x : NbLanguageClient) => void;
     var clientReject : (err : any) => void;
 
@@ -517,14 +517,16 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
         
         const userDir = path.join(storagePath, "userdir");
         if (userDir && fs.existsSync(userDir)) {
-            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace and reload the window?',
+            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace  and reload the window ?',
                 'Yes', 'Cancel');
             if (confirmation === 'Yes') {
-                stopClient(client).then(() => killNbProcess(false, log)).then(() => {
-                    fs.promises.rmdir(userDir, {recursive : true});
-                    vscode.commands.executeCommand('workbench.action.reloadWindow')
-                });
-            }
+                    stopClient(client).then(() => { deactivated=true;
+                                                    return killNbProcess(false, log);})
+                                      .then(() => fs.promises.rmdir(userDir, {recursive : true}))
+                                      .then(()=>vscode.window.showInformationMessage("Cache deleted successfully",'Reload window'),
+                                            (err)=> vscode.window.showErrorMessage('Error deleting the cache','Reload window'))
+                                      .then(()=> {vscode.commands.executeCommand("workbench.action.reloadWindow")});
+                }
         } else {
             vscode.window.showErrorMessage('Cannot find userdir path');
         }
@@ -1422,7 +1424,6 @@ function stopClient(clientPromise: Promise<LanguageClient>): Thenable<void> {
 }
 
 export function deactivate(): Thenable<void> {
-    deactivated=true;
     if (nbProcess != null) {
         nbProcess.kill();
     }
