@@ -520,12 +520,17 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace  and reload the window ?',
                 'Yes', 'Cancel');
             if (confirmation === 'Yes') {
-                    stopClient(client).then(() => { deactivated=true;
-                                                    return killNbProcess(false, log);})
-                                      .then(() => fs.promises.rmdir(userDir, {recursive : true}))
-                                      .then(()=>vscode.window.showInformationMessage("Cache deleted successfully",'Reload window'),
-                                            (err)=> vscode.window.showErrorMessage('Error deleting the cache','Reload window'))
-                                      .then(()=> {vscode.commands.executeCommand("workbench.action.reloadWindow")});
+                    try{
+                        await stopClient(client);
+                        deactivated=true;
+                        await killNbProcess(false,log);
+                        await fs.promises.rmdir(userDir, {recursive : true});
+                        await vscode.window.showInformationMessage("Cache deleted successfully",'Reload window');
+                    }catch(err){
+                       await  vscode.window.showErrorMessage('Error deleting the cache','Reload window');
+                    }finally{
+                        vscode.commands.executeCommand("workbench.action.reloadWindow");
+                    }
                 }
         } else {
             vscode.window.showErrorMessage('Cannot find userdir path');
