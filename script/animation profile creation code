@@ -1,0 +1,57 @@
+import pygame
+import sys
+
+# Inisialisasi Pygame
+pygame.init()
+
+# Set ukuran layar
+SCREEN_WIDTH = 640
+SCREEN_HEIGHT = 480
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# Set judul layar
+pygame.display.set_caption("Profil Animasi")
+
+# Set warna latar belakang
+background_color = (255, 255, 255)
+
+# Set warna teks
+text_color = (0, 0, 0)
+
+# Set font teks
+font = pygame.font.SysFont("Arial", 24)
+
+# Set teks profil
+profil_text = "Nama: "
+profil_text += "Umur: "
+profil_text += "Alamat: "
+
+# Set posisi teks
+text_x = 100
+text_y = 100
+
+# Set kecepatan animasi
+animation_speed = 2
+
+# Loop utama
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    # Menggambar latar belakang
+    screen.fill(background_color)
+
+    # Menggambar teks profil
+    text_surface = font.render(profil_text, True, text_color)
+    screen.blit(text_surface, (text_x, text_y))
+
+    # Mengupdate posisi teks
+    text_x += animation_speed
+    if text_x > SCREEN_WIDTH - text_surface.get_width():
+        text_x = 0
+
+    # Mengupdate layar
+    pygame.display.flip()
+    pygame.time.Clock().tick(60)
