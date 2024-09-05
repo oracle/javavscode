@@ -510,28 +510,28 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 
     context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".delete.cache", async () => {
         const storagePath = context.storageUri?.fsPath;
-        if(!storagePath){
+        if (!storagePath) {
             vscode.window.showErrorMessage('Cannot find workspace path');
             return;
         }
-        
+
         const userDir = path.join(storagePath, "userdir");
         if (userDir && fs.existsSync(userDir)) {
             const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace  and reload the window ?',
                 'Yes', 'Cancel');
             if (confirmation === 'Yes') {
-                    try{
-                        await stopClient(client);
-                        deactivated=true;
-                        await killNbProcess(false,log);
-                        await fs.promises.rmdir(userDir, {recursive : true});
-                        await vscode.window.showInformationMessage("Cache deleted successfully",'Reload window');
-                    }catch(err){
-                       await  vscode.window.showErrorMessage('Error deleting the cache','Reload window');
-                    }finally{
-                        vscode.commands.executeCommand("workbench.action.reloadWindow");
-                    }
+                try {
+                    await stopClient(client);
+                    deactivated = true;
+                    await killNbProcess(false, log);
+                    await fs.promises.rmdir(userDir, { recursive: true });
+                    await vscode.window.showInformationMessage("Cache deleted successfully", 'Reload window');
+                } catch (err) {
+                    await vscode.window.showErrorMessage('Error deleting the cache', 'Reload window');
+                } finally {
+                    vscode.commands.executeCommand("workbench.action.reloadWindow");
                 }
+            }
         } else {
             vscode.window.showErrorMessage('Cannot find userdir path');
         }
