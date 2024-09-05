@@ -74,7 +74,7 @@ suite('Extension Test Suite', function () {
     let found: string[] = [];
     function assertCluster(name: string) {
       for (let c of clusters) {
-        if (c.endsWith('/' + name) || c.endsWith('\\' + name)) {
+        if (c.endsWith('/' + name)) {
           found.push(c);
           return;
         }

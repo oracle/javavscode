@@ -32,16 +32,16 @@ async function main() {
         const vscodeExecutablePath: string = await downloadAndUnzipVSCode('stable');
 
         const outRoot = path.join(extensionDevelopmentPath, "out");
-        const extDir = path.join(__dirname, "exts");
-        const userDir = path.join(__dirname, "user");
+        const extDir = path.join(outRoot, "test", "vscode", "exts");
+        const userDir = path.join(outRoot, "test", "vscode", "user");
 
-        const testSuites = fs.readdirSync(path.join(__dirname, 'suite'));
+        const testSuites = fs.readdirSync(path.resolve(__dirname, './suite'));
 
         for (const suiteName of testSuites) {
             // The path to test runner
             // Passed to --extensionTestsPath
-            const extensionTestsPath = path.join(__dirname, 'suite', suiteName, 'index');
-            const workspaceDir = path.join(__dirname, 'suite', suiteName, 'ws');
+            const extensionTestsPath = path.resolve(__dirname, `./suite/${suiteName}/index`);
+            const workspaceDir = path.join(extensionDevelopmentPath, 'out', 'test', 'integration', 'suite', suiteName, 'ws');
             if (!fs.statSync(workspaceDir).isDirectory()) {
                 throw `Expecting ${workspaceDir} to be a directory!`;
             }
@@ -64,9 +64,8 @@ async function main() {
                 ]
             });
         }
-    } catch (err: any) {
+    } catch (err) {
         console.error('Failed to run tests');
-        console.error(err.message);
         process.exit(1);
     }
 }
