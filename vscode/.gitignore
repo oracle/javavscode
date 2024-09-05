@@ -3,3 +3,5 @@ node_modules
 out
 nbproject
 .vscode-test/
+.nyc_output
+coverage/

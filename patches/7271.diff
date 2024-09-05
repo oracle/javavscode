@@ -1,5 +1,5 @@
 diff --git a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
-index 5349a20e09..952709d10b 100644
+index 5349a20e09..fe2f2c7692 100644
 --- a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
 +++ b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
 @@ -58,7 +58,8 @@ public class PrepareBundles {
@@ -12,32 +12,38 @@ index 5349a20e09..952709d10b 100644
      );
      private static final String nl = "\n";
  
-@@ -107,18 +108,18 @@ public class PrepareBundles {
+@@ -107,18 +108,20 @@ public class PrepareBundles {
                  if ("@types".equals(module.getFileName().toString())) continue;
                  if ("@esbuild".equals(module.getFileName().toString())) continue;
                  if ("@microsoft".equals(module.getFileName().toString())) continue;
 -                if ("@vscode".equals(module.getFileName().toString())) {
 -                    try (DirectoryStream<Path> sds = Files.newDirectoryStream(module)) {
 -                        for (Path sModule : sds) {
--                            checkModule(sModule, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
+-                            checkModule(sModule, sb, tokens2Projects, project2License, bundlesDir, targetDir, exter
+nalDir, binariesList);
 -                        }
 -                    }
 -                    continue;
 +                if ("eastasianwidth".equals(module.getFileName().toString())) continue;
 +                if ("isarray".equals(module.getFileName().toString())) continue;
++                if ("imurmurhash".equals(module.getFileName().toString())) continue;
++                if ("assertion-error".equals(module.getFileName().toString())) continue;
 +                Path packageJson = module.resolve("package.json");
 +                if (Files.isReadable(packageJson)) {
-+                    checkModule(module, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
++                    checkModule(module, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, b
+inariesList);
 +                    continue;    
                  }
 -                if ("@ungap".equals(module.getFileName().toString())) {
 -                    module = module.resolve("promise-all-settled");
 +                try (DirectoryStream<Path> sds = Files.newDirectoryStream(module)) {
 +                    for (Path sModule : sds) {
-+                        checkModule(sModule, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
++                        checkModule(sModule, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalD
+ir, binariesList);
 +                    }
                  }
--                checkModule(module, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
+-                checkModule(module, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binar
+iesList);
              }
          }
          if (sb.length() > 0) {

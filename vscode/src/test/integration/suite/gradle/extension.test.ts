@@ -47,7 +47,7 @@ suite("Extension gradle tests", function () {
       let compile = await commands.executeCommand("jdk.workspace.compile");
       assert.ok(compile, " Compile workspace command not working");
       const mainClass = path.join(
-        folder,
+        folder,        
         "build",
         "classes/java",
         "main/org/yourCompany/yourProject",
