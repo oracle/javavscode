@@ -67,7 +67,7 @@ import { initializeRunConfiguration, runConfigurationProvider, runConfigurationN
 import { InputStep, MultiStepInput } from './utils';
 import { PropertiesView } from './propertiesView/propertiesView';
 import { openJDKSelectionView } from './jdkDownloader';
-
+import { NODE_WINDOWS_LABEL } from './constants';
 const API_VERSION : string = "1.0";
 const SERVER_NAME : string = "Oracle Java SE Language Server";
 export const COMMAND_PREFIX : string = "jdk";
@@ -78,7 +78,7 @@ let nbProcess : ChildProcess | null = null;
 let debugPort: number = -1;
 let debugHash: string | undefined;
 let consoleLog: boolean = !!process.env['ENABLE_CONSOLE_LOG'];
-
+let deactivated:boolean = true;
 export class NbLanguageClient extends LanguageClient {
     private _treeViewService: TreeViewService;
 
@@ -330,8 +330,8 @@ class InitialPromise extends Promise<NbLanguageClient> {
 }
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
+    deactivated=false;
     let log = vscode.window.createOutputChannel(SERVER_NAME);
-
     var clientResolve : (x : NbLanguageClient) => void;
     var clientReject : (err : any) => void;
 
@@ -513,19 +513,26 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 
     context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".delete.cache", async () => {
         const storagePath = context.storageUri?.fsPath;
-        if(!storagePath){
+        if (!storagePath) {
             vscode.window.showErrorMessage('Cannot find workspace path');
             return;
         }
+
         const userDir = path.join(storagePath, "userdir");
         if (userDir && fs.existsSync(userDir)) {
-            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace?',
+            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace  and reload the window ?',
                 'Yes', 'Cancel');
             if (confirmation === 'Yes') {
-                await fs.promises.rmdir(userDir, {recursive : true});
-                const res = await vscode.window.showInformationMessage('Cache cleared successfully for this workspace', 'Reload window');
-                if (res === 'Reload window') {
-                    await vscode.commands.executeCommand('workbench.action.reloadWindow');
+                try {
+                    await stopClient(client);
+                    deactivated = true;
+                    await killNbProcess(false, log);
+                    await fs.promises.rmdir(userDir, { recursive: true });
+                    await vscode.window.showInformationMessage("Cache deleted successfully", 'Reload window');
+                } catch (err) {
+                    await vscode.window.showErrorMessage('Error deleting the cache', 'Reload window');
+                } finally {
+                    vscode.commands.executeCommand("workbench.action.reloadWindow");
                 }
             }
         } else {
@@ -960,7 +967,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
             if (p == nbProcess && code != 0 && code) {
                 vscode.window.showWarningMessage(`${SERVER_NAME} exited with ` + code);
             }
-            if (stdErr?.match(/Cannot find java/) || os.type() === "Windows_NT" ) {
+            if (stdErr?.match(/Cannot find java/) || (os.type() === NODE_WINDOWS_LABEL && !deactivated) ) {
                 vscode.window.showInformationMessage(
                     "No JDK found!",
                     "Download JDK and setup automatically"
