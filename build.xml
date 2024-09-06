@@ -40,6 +40,7 @@
             patches/7654.diff
             patches/7670.diff
             patches/7690.diff
+            patches/7722.diff
             patches/7733.diff
             patches/mvn-sh.diff
             patches/generate-dependencies.diff
