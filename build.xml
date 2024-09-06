@@ -34,22 +34,13 @@
     <loadresource property="patch-files">
         <string>
             patches/6330.diff
-            patches/7001.diff
-            patches/7271.diff
-            patches/7353.diff
-            patches/7368.diff
-            patches/7370.diff
-            patches/7382.diff
-            patches/7390.diff
-            patches/7491-preliminary.diff
-            patches/7497.diff
-            patches/7548_source-1.8.diff
-            patches/7583_source-1.8.diff
+            patches/7491.diff
             patches/7610.diff
-            patches/7621.diff
             patches/7641.diff
             patches/7654.diff
+            patches/7670.diff
             patches/7690.diff
+            patches/7733.diff
             patches/mvn-sh.diff
             patches/generate-dependencies.diff
             patches/rename-debugger.diff

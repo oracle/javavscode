@@ -1,0 +1,116 @@
+diff --git a/java/java.file.launcher/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProvider.java b/java/java.file.launcher/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProvider.java
+index 0bfc6bfbc23d..a7c6ec974b20 100644
+--- a/java/java.file.launcher/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProvider.java
++++ b/java/java.file.launcher/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProvider.java
+@@ -94,16 +94,29 @@ public class MultiSourceRootProvider implements ClassPathProvider {
+     private Map<FileObject, ClassPath> file2ClassPath = new WeakHashMap<>();
+     private Map<FileObject, ClassPath> file2ModulePath = new WeakHashMap<>();
+ 
+-    static boolean isSupportedFile(FileObject file) {
+-        return SingleSourceFileUtil.isSingleSourceFile(file)
+-                // MultiSourceRootProvider assumes it can convert FileObject to
+-                // java.io.File, so filter here
+-                && Objects.equals("file", file.toURI().getScheme());
++    boolean isSupportedFile(FileObject file) {
++        // MultiSourceRootProvider assumes it can convert FileObject to
++        // java.io.File, so filter here
++        if (!Objects.equals("file", file.toURI().getScheme())) {
++            return false;
++        }
++
++        if (SingleSourceFileUtil.isSingleSourceFile(file)) {
++            return true;
++        }
++
++        for (FileObject existingRoot : root2SourceCP.keySet()) {
++            if (file.equals(existingRoot) || FileUtil.isParentOf(existingRoot, file)) {
++                return true;
++            }
++        }
++
++        return false;
+     }
+ 
+     @Override
+     public ClassPath findClassPath(FileObject file, String type) {
+-        if (! isSupportedFile(file)) {
++        if (!isSupportedFile(file)) {
+             return null;
+         }
+         switch (type) {
+@@ -355,7 +368,10 @@ private void doUpdateDelegates() {
+                         for (File expanded : expandedPaths) {
+                             URL u = FileUtil.urlForArchiveOrDir(expanded);
+                             if (u == null) {
+-                                throw new IllegalArgumentException("Path entry looks to be invalid: " + piece); // NOI18N
++                                LOG.log(Level.INFO,
++                                        "While parsing command line option '{0}' with parameter '{1}', path entry looks to be invalid: '{2}'",
++                                        new Object[] {currentOption, parsed.get(i + 1), piece});
++                                continue;
+                             }
+                             newURLs.add(u);
+                             newDelegates.add(ClassPathSupport.createResource(u));
+diff --git a/java/java.file.launcher/test/unit/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProviderTest.java b/java/java.file.launcher/test/unit/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProviderTest.java
+index ff7245d3af48..7d3ab2d57a4c 100644
+--- a/java/java.file.launcher/test/unit/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProviderTest.java
++++ b/java/java.file.launcher/test/unit/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProviderTest.java
+@@ -19,7 +19,9 @@
+ package org.netbeans.modules.java.file.launcher.queries;
+ 
+ import java.io.File;
++import java.io.FileOutputStream;
+ import java.io.IOException;
++import java.io.Writer;
+ import java.net.URI;
+ import java.nio.file.Files;
+ import java.util.Arrays;
+@@ -254,9 +256,10 @@ public void testMultiSourceRootProviderOnlySupportedForLocalFiles() throws IOExc
+             supportedFile = Files.createTempFile("dummy", ".java").toFile();
+             FileObject realFileSource = FileUtil.createData(supportedFile);
+             FileObject inMemorySource = FileUtil.createMemoryFileSystem().getRoot().createData("Ahoj.java");
++            MultiSourceRootProvider provider = new MultiSourceRootProvider();
+ 
+-            assertFalse(MultiSourceRootProvider.isSupportedFile(inMemorySource));
+-            assertTrue(MultiSourceRootProvider.isSupportedFile(realFileSource));
++            assertFalse(provider.isSupportedFile(inMemorySource));
++            assertTrue(provider.isSupportedFile(realFileSource));
+         } finally {
+             if(supportedFile != null && supportedFile.exists()) {
+                 supportedFile.delete();
+@@ -264,6 +267,36 @@ public void testMultiSourceRootProviderOnlySupportedForLocalFiles() throws IOExc
+         }
+     }
+ 
++    public void testMultiSourceRootProviderRespondsForKnownFolders() throws IOException {
++        File wd = getWorkDir();
++        File testDir = new File(wd, "test");
++        File packDir = new File(testDir, "pack");
++        File testFile = new File(packDir, "Test.java");
++
++        packDir.mkdirs();
++
++        try (Writer w = Files.newBufferedWriter(testFile.toPath())) {
++            w.write("package pack;");
++        }
++
++        MultiSourceRootProvider provider = new MultiSourceRootProvider();
++
++        //before recongizing testDir is a multi-source file root:
++        assertNull(provider.findClassPath(FileUtil.toFileObject(wd), ClassPath.SOURCE));
++        assertNull(provider.findClassPath(FileUtil.toFileObject(testDir), ClassPath.SOURCE));
++        assertNull(provider.findClassPath(FileUtil.toFileObject(packDir), ClassPath.SOURCE));
++
++        //recognize the source file as a multi-source file:
++        ClassPath cp = provider.findClassPath(FileUtil.toFileObject(testFile), ClassPath.SOURCE);
++
++        assertNotNull(cp);
++
++        //check properties:
++        assertNull(provider.findClassPath(FileUtil.toFileObject(wd), ClassPath.SOURCE));
++        assertSame(cp, provider.findClassPath(FileUtil.toFileObject(testDir), ClassPath.SOURCE));
++        assertSame(cp, provider.findClassPath(FileUtil.toFileObject(packDir), ClassPath.SOURCE));
++    }
++
+     @Override
+     protected void setUp() throws Exception {
+         super.setUp();
