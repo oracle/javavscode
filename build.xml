@@ -55,6 +55,7 @@
             patches/rename-debugger.diff
             patches/remove-db.diff
             patches/nbjavac-not-required.diff
+            patches/l10n-liscence.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">

@@ -25,4 +25,5 @@ export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
   "21": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2"
 };
 
+export const ORACLE_VSCODE_EXTENSION_ID = 'oracle.oracle-java';
 export const NODE_WINDOWS_LABEL = "Windows_NT";
