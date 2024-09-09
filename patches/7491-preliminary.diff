@@ -1,8 +1,8 @@
 diff --git a/java/java.completion/src/org/netbeans/modules/java/completion/BaseTask.java b/java/java.completion/src/org/netbeans/modules/java/completion/BaseTask.java
-index 78fdd4caa30d..95ae5235c67a 100644
+index 78fdd4caa3..95ae5235c6 100644
 --- a/java/java.completion/src/org/netbeans/modules/java/completion/BaseTask.java
 +++ b/java/java.completion/src/org/netbeans/modules/java/completion/BaseTask.java
-@@ -176,6 +176,7 @@ TokenSequence<JavaTokenId> nextNonWhitespaceToken(TokenSequence<JavaTokenId> ts)
+@@ -176,6 +176,7 @@ abstract class BaseTask extends UserTask {
                  case LINE_COMMENT:
                  case BLOCK_COMMENT:
                  case JAVADOC_COMMENT:
@@ -10,7 +10,7 @@ index 78fdd4caa30d..95ae5235c67a 100644
                      break;
                  default:
                      return ts;
-@@ -206,6 +207,7 @@ TokenSequence<JavaTokenId> previousNonWhitespaceToken(TokenSequence<JavaTokenId>
+@@ -206,6 +207,7 @@ abstract class BaseTask extends UserTask {
                  case LINE_COMMENT:
                  case BLOCK_COMMENT:
                  case JAVADOC_COMMENT:
@@ -18,7 +18,7 @@ index 78fdd4caa30d..95ae5235c67a 100644
                      break;
                  default:
                      return ts;
-@@ -427,6 +429,7 @@ private Env getEnvImpl(CompilationController controller, TreePath orig, TreePath
+@@ -427,6 +429,7 @@ abstract class BaseTask extends UserTask {
                                      case LINE_COMMENT:
                                      case BLOCK_COMMENT:
                                      case JAVADOC_COMMENT:
@@ -26,7 +26,7 @@ index 78fdd4caa30d..95ae5235c67a 100644
                                          break;
                                      case ARROW:
                                          scope = controller.getTrees().getScope(blockPath);
-@@ -456,6 +459,7 @@ private Env getEnvImpl(CompilationController controller, TreePath orig, TreePath
+@@ -456,6 +459,7 @@ abstract class BaseTask extends UserTask {
                              case LINE_COMMENT:
                              case BLOCK_COMMENT:
                              case JAVADOC_COMMENT:
@@ -35,10 +35,10 @@ index 78fdd4caa30d..95ae5235c67a 100644
                              case ARROW:
                                  return new Env(offset, prefix, controller, path, sourcePositions, scope);
 diff --git a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
-index 9ec7273f86f6..be001bce2358 100644
+index 9a2d8de483..2cf8691813 100644
 --- a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
 +++ b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
-@@ -1608,6 +1608,7 @@ private void insideMemberSelect(Env env) throws IOException {
+@@ -1611,6 +1611,7 @@ public final class JavaCompletionTask<T> extends BaseTask {
                  case LINE_COMMENT:
                  case BLOCK_COMMENT:
                  case JAVADOC_COMMENT:
@@ -46,24 +46,11 @@ index 9ec7273f86f6..be001bce2358 100644
                      break;
                  default:
                      lastNonWhitespaceTokenId = ts.token().id();
-diff --git a/java/java.editor.base/nbproject/project.properties b/java/java.editor.base/nbproject/project.properties
-index 1f620a92a638..808db111121e 100644
---- a/java/java.editor.base/nbproject/project.properties
-+++ b/java/java.editor.base/nbproject/project.properties
-@@ -16,7 +16,7 @@
- # under the License.
- spec.version.base=2.90.0
- is.autoload=true
--javac.source=1.8
-+javac.release=17
- javac.compilerargs=-Xlint -Xlint:-serial
- 
- test.config.semantic.includes=\
 diff --git a/java/java.editor.base/src/org/netbeans/modules/java/editor/base/javadoc/JavadocCompletionUtils.java b/java/java.editor.base/src/org/netbeans/modules/java/editor/base/javadoc/JavadocCompletionUtils.java
-index a0682653d7f6..0bf0f69914db 100644
+index a0682653d7..c6f54e77b8 100644
 --- a/java/java.editor.base/src/org/netbeans/modules/java/editor/base/javadoc/JavadocCompletionUtils.java
 +++ b/java/java.editor.base/src/org/netbeans/modules/java/editor/base/javadoc/JavadocCompletionUtils.java
-@@ -51,7 +51,7 @@
+@@ -51,7 +51,7 @@ import org.netbeans.api.lexer.TokenSequence;
   */
  public final class JavadocCompletionUtils {
      
@@ -81,7 +68,7 @@ index a0682653d7f6..0bf0f69914db 100644
      private static final Logger LOGGER = Logger.getLogger(JavadocCompletionUtils.class.getName());
      
      /**
-@@ -196,6 +196,7 @@ public static TokenSequence<JavadocTokenId> findJavadocTokenSequence(Compilation
+@@ -196,6 +196,7 @@ public final class JavadocCompletionUtils {
                          break;
                      }
                  case JAVADOC_COMMENT:
@@ -89,7 +76,7 @@ index a0682653d7f6..0bf0f69914db 100644
                      if (token.partType() == PartType.COMPLETE) {
                          return javac.getElements().getDocComment(e) == null
                                  ? null : s.embedded(JavadocTokenId.language());
-@@ -246,36 +247,39 @@ static boolean isInsideIndent(Token<JavadocTokenId> token, int offset) {
+@@ -246,36 +247,39 @@ public final class JavadocCompletionUtils {
      
      /**
       * Is javadoc line break?
@@ -127,7 +114,7 @@ index a0682653d7f6..0bf0f69914db 100644
                      && JAVADOC_LINE_BREAK.matcher(text).find()
 -                    && (pos == token.length() || !isInsideIndent(token, pos));
 +                    && (pos == token.length() || !isInsideIndent(token, pos))
-+                    );
++                    ) || ts.index() == 0;
              return result;
          } catch (IndexOutOfBoundsException e) {
              throw (IndexOutOfBoundsException) new IndexOutOfBoundsException("pos: " + pos + ", token.length: " + token.length() + ", token text: " + token.text()).initCause(e);
@@ -138,7 +125,7 @@ index a0682653d7f6..0bf0f69914db 100644
      public static boolean isWhiteSpace(CharSequence text) {
          return text != null && text.length() > 0 && !JAVADOC_WHITE_SPACE.matcher(text).find();
      }
-@@ -437,7 +441,8 @@ private static boolean movedToJavadocToken(TokenSequence<JavaTokenId> ts, int of
+@@ -437,7 +441,8 @@ public final class JavadocCompletionUtils {
              return false;
          }
          
@@ -148,7 +135,7 @@ index a0682653d7f6..0bf0f69914db 100644
              return false;
          }
          
-@@ -456,6 +461,11 @@ private static boolean isEmptyJavadoc(Token<JavaTokenId> token, int offset) {
+@@ -456,6 +461,11 @@ public final class JavadocCompletionUtils {
              // check special case /**|*/
              return offset == 3 && "/***/".contentEquals(text); //NOI18N
          }
@@ -161,10 +148,10 @@ index a0682653d7f6..0bf0f69914db 100644
      }
  
 diff --git a/java/java.editor.base/src/org/netbeans/modules/java/editor/base/javadoc/JavadocImports.java b/java/java.editor.base/src/org/netbeans/modules/java/editor/base/javadoc/JavadocImports.java
-index 07ccd639c0e0..2d91d7065f64 100644
+index 07ccd639c0..2d91d7065f 100644
 --- a/java/java.editor.base/src/org/netbeans/modules/java/editor/base/javadoc/JavadocImports.java
 +++ b/java/java.editor.base/src/org/netbeans/modules/java/editor/base/javadoc/JavadocImports.java
-@@ -641,7 +641,7 @@ public static boolean isInsideReference(TokenSequence<JavadocTokenId> jdts, int
+@@ -641,7 +641,7 @@ public final class JavadocImports {
                          }
                      case OTHER_TEXT:
                          isBeforeWS |= JavadocCompletionUtils.isWhiteSpace(jdt);
@@ -173,7 +160,7 @@ index 07ccd639c0e0..2d91d7065f64 100644
                          if (isBeforeWS) {
                              continue;
                          } else {
-@@ -690,7 +690,9 @@ private static TokenSequence<JavadocTokenId> getJavadocTS(CompilationInfo javac,
+@@ -690,7 +690,9 @@ public final class JavadocImports {
          TokenSequence<JavadocTokenId> javadoc = null;
          TokenSequence<JavaTokenId> ts = SourceUtils.getJavaTokenSequence(javac.getTokenHierarchy(), start);
  
@@ -184,7 +171,7 @@ index 07ccd639c0e0..2d91d7065f64 100644
              javadoc = ts.embedded(JavadocTokenId.language());
          }
          
-@@ -893,14 +895,14 @@ private static void insideTag(DocTreePath tag, JavadocContext jdctx, int caretOf
+@@ -893,14 +895,14 @@ public final class JavadocImports {
              cs = pos < cs.length() ? cs.subSequence(0, pos) : cs;
  
              if (JavadocCompletionUtils.isWhiteSpace(cs)
@@ -202,10 +189,10 @@ index 07ccd639c0e0..2d91d7065f64 100644
              return;
          } else if (jdts.moveNext()) {
 diff --git a/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocCompletionUtilsTest.java b/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocCompletionUtilsTest.java
-index add1ca7dc20d..33926dc0b405 100644
+index add1ca7dc2..33926dc0b4 100644
 --- a/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocCompletionUtilsTest.java
 +++ b/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocCompletionUtilsTest.java
-@@ -270,32 +270,32 @@ public void testIsLineBreak() throws Exception {
+@@ -270,32 +270,32 @@ public class JavadocCompletionUtilsTest extends JavadocTestSupport {
          TokenSequence<JavadocTokenId> jdts = JavadocCompletionUtils.findJavadocTokenSequence(info, offset);
          assertTrue(jdts.moveNext());
          assertTrue(insertPointer(code, offset),
@@ -244,7 +231,7 @@ index add1ca7dc20d..33926dc0b405 100644
      }
      
      public void testIsLineBreak2() throws Exception {
-@@ -319,10 +319,10 @@ public void testIsLineBreak2() throws Exception {
+@@ -319,10 +319,10 @@ public class JavadocCompletionUtilsTest extends JavadocTestSupport {
          assertTrue(jdts.moveNext());
          assertTrue(jdts.token().id() == JavadocTokenId.OTHER_TEXT);
          assertFalse(insertPointer(code, jdts.offset() + jdts.token().length()),
@@ -258,45 +245,43 @@ index add1ca7dc20d..33926dc0b405 100644
      
      public void testIsWhiteSpace() throws Exception {
 diff --git a/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocImportsTest.java b/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocImportsTest.java
-index e64ec4698b52..a880930c5850 100644
+index e64ec4698b..88443c53d7 100644
 --- a/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocImportsTest.java
 +++ b/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocImportsTest.java
-@@ -207,6 +207,124 @@ public void testComputeReferencedElements() throws Exception {
+@@ -207,6 +207,122 @@ public class JavadocImportsTest extends JavadocTestSupport {
          assertEquals(exp, sortedResult);
      }
      
 +    public void testComputeReferencedElementsMarkdown() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                import java.io.IOException;
-+                import java.util.Collections;
-+                import java.util.List;
-+                class C {
-+                   ///link1 {@link Runnable}
-+                   ///link3 {@linkplain Collections#binarySearch(java.util.List, Object) search}
-+                   ///{@link java. uncomplete reference}
-+                   ///unclosed link {@value Math#PI}
-+                   ///@see List
-+                   ///@throws IOException
-+                   void m() throws java.io.IOException {
-+                   }
-+                   ///
-+                   ///{@link Collections}
-+                   ///
-+                   int field;
-+                   /// {@link IOException
-+                   interface InnerInterface {}
-+                   /// {@link Collections}
-+                   @interface InnerAnnotationType {}
-+                }
-+                /// {@link Collections}
-+                enum TopLevelEnum {
-+                   /** {@link Collections} */   E1
-+                }
-+                """;
-+                //TODO: does not work:
-+                //unclosed link {@value Math#PI\n
++                "package p;\n" +
++                "import java.io.IOException;\n" +
++                "import java.util.Collections;\n" +
++                "import java.util.List;\n" +
++                "class C {\n" +
++                "   ///link1 {@link Runnable}\n" +
++                "   ///link3 {@linkplain Collections#binarySearch(java.util.List, Object) search}\n" +
++                "   ///{@link java. uncomplete reference}\n" +
++//                "   ///unclosed link {@value Math#PI\n" + //TODO: does not work
++                "   ///unclosed link {@value Math#PI}\n" +
++                "   ///@see List\n" +
++                "   ///@throws IOException\n" +
++                "   void m() throws java.io.IOException {\n" +
++                "   }\n" +
++                "   ///\n" +
++                "   ///{@link Collections}\n" +
++                "   ///\n" +
++                "   int field;\n" +
++                "   /// {@link IOException\n" +
++                "   interface InnerInterface {}\n" +
++                "   /// {@link Collections}\n" +
++                "   @interface InnerAnnotationType {}\n" +
++                "}\n" +
++                "/// {@link Collections}\n" +
++                "enum TopLevelEnum {\n" +
++                "   /** {@link Collections} */" +
++                "   E1\n" +
++                "}\n";
 +        prepareTest(code);
 +
 +        // C.m()
@@ -386,30 +371,28 @@ index e64ec4698b52..a880930c5850 100644
      public void testComputeTokensOfReferencedElements() throws Exception {
          String code = 
                  "package p;\n" +
-@@ -286,6 +404,87 @@ public void testComputeTokensOfReferencedElements() throws Exception {
+@@ -286,6 +402,85 @@ public class JavadocImportsTest extends JavadocTestSupport {
  //        assertEquals(toFind.toString(), exp, tokens);
      }
  
 +    public void testComputeTokensOfReferencedElementsMarkdown() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                import java.util.Collections;
-+                class C {
-+                   ///link1 {@link Runnable}
-+                   ///link2 {@link Collections#binarySearch(java.util.List, java.lang.Object) search}
-+                   ///{@link java. uncomplete reference}   ///unclosed link {@value Math#PI}
-+                   ///@see java.util.Collections
-+                   ///@throws ThrowsUnresolved
-+                   ///
-+                   void m() throws java.io.IOException {
-+                       Collections.<String>binarySearch(Collections.<String>emptyList(), "");
-+                       double pi = Math.PI;
-+                   }
-+                }
-+                """;
-+                //TODO: does not work:
-+                //unclosed link {@value Math#PI\n
++                "package p;\n" +
++                "import java.util.Collections;\n" +
++                "class C {\n" +
++                "   ///link1 {@link Runnable}\n" +
++                "   ///link2 {@link Collections#binarySearch(java.util.List, java.lang.Object) search}\n" +
++                "   ///{@link java. uncomplete reference}" +
++//                "   ///unclosed link {@value Math#PI\n" + //TODO: does not work
++                "   ///unclosed link {@value Math#PI}\n" +
++                "   ///@see java.util.Collections\n" +
++                "   ///@throws ThrowsUnresolved\n" +
++                "   ///\n" +
++                "   void m() throws java.io.IOException {\n" +
++                "       Collections.<String>binarySearch(Collections.<String>emptyList(), \"\");\n" +
++                "       double pi = Math.PI;\n" +
++                "   }\n" +
++                "}\n";
 +        prepareTest(code);
 +
 +        TreePath where = findPath(code, "m() throws");
@@ -474,66 +457,11 @@ index e64ec4698b52..a880930c5850 100644
      public void testComputeTokensOfReferencedElementsForParams() throws Exception {
          String code =
                  "package p;\n" +
-diff --git a/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocTestSupport.java b/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocTestSupport.java
-index 7c153124956a..8770a3906721 100644
---- a/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocTestSupport.java
-+++ b/java/java.editor.base/test/unit/src/org/netbeans/modules/java/editor/base/javadoc/JavadocTestSupport.java
-@@ -20,7 +20,9 @@
- package org.netbeans.modules.java.editor.base.javadoc;
- 
- import java.io.File;
-+import java.util.ArrayList;
- import java.util.Enumeration;
-+import java.util.List;
- import javax.swing.text.StyledDocument;
- import org.netbeans.api.editor.mimelookup.MimePath;
- import org.netbeans.api.editor.mimelookup.test.MockMimeLookup;
-@@ -62,10 +64,10 @@ protected void setUp() throws Exception {
-         super.setUp();
-         
-         MockMimeLookup.setInstances(MimePath.parse("text/x-java"), new JavaKit());
--        SourceUtilsTestUtil.prepareTest(new String[0], new Object[] {
--            new Pool(),
--            new MockMimeLookup(),
--        });
-+        List<Object> services = new ArrayList<>();
-+        services.add(new Pool());
-+        services.add(new MockMimeLookup());
-+        SourceUtilsTestUtil.prepareTest(new String[0], services.toArray());
-         FileUtil.setMIMEType("java", "text/x-java");
-         
-         if (cache == null) {
-@@ -115,7 +117,11 @@ protected void prepareTest(String code) throws Exception {
-         assertNotNull(info);
-         assertTrue(info.getDiagnostics().toString(), info.getDiagnostics().isEmpty());
-     }
--    
-+
-+    protected Object[] additionalServices() {
-+        return new Object[0];
-+    }
-+
-     /**
-      * Inserts a marker '|' to string {@code s} on position {@code pos}. Useful
-      * for assert's debug messages
-diff --git a/java/java.editor/nbproject/project.properties b/java/java.editor/nbproject/project.properties
-index 914e09646b80..9c667f21de38 100644
---- a/java/java.editor/nbproject/project.properties
-+++ b/java/java.editor/nbproject/project.properties
-@@ -19,7 +19,7 @@ javadoc.title=Java Editor
- 
- spec.version.base=2.93.0
- test.qa-functional.cp.extra=${editor.dir}/modules/org-netbeans-modules-editor-fold.jar
--javac.source=1.8
-+javac.release=17
- #test.unit.cp.extra=
- #test.unit.run.cp.extra=${o.n.core.dir}/core/core.jar:${o.n.core.dir}/lib/boot.jar:${libs.xerces.dir}/modules/ext/xerces-2.6.2.jar:${libs.xerces.dir}/modules/ext/xml-commons-dom-ranges-1.0.b2.jar:${retouche/javacimpl.dir}/modules/ext/javac-impl.jar
- 
 diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/GoToSupport.java b/java/java.editor/src/org/netbeans/modules/editor/java/GoToSupport.java
-index 8a60126a7266..3e8b08e4e7a2 100644
+index 8a60126a72..3e8b08e4e7 100644
 --- a/java/java.editor/src/org/netbeans/modules/editor/java/GoToSupport.java
 +++ b/java/java.editor/src/org/netbeans/modules/editor/java/GoToSupport.java
-@@ -408,7 +408,7 @@ public static Context resolveContext(CompilationInfo controller, Document doc, i
+@@ -408,7 +408,7 @@ public class GoToSupport {
          boolean insideImportStmt = false;
          TreePath path = controller.getTreeUtilities().pathFor(exactOffset);
  
@@ -542,7 +470,7 @@ index 8a60126a7266..3e8b08e4e7a2 100644
              el = JavadocImports.findReferencedElement(controller, offset);
          } else {
              path = adjustPathForModuleName(path);
-@@ -662,7 +662,7 @@ public void run() {
+@@ -662,7 +662,7 @@ public class GoToSupport {
  
                  Token<JavaTokenId> t = ts.token();
  
@@ -552,10 +480,10 @@ index 8a60126a7266..3e8b08e4e7a2 100644
                      TokenSequence<JavadocTokenId> jdts = ts.embedded(JavadocTokenId.language());
                      if (JavadocImports.isInsideReference(jdts, offset) || JavadocImports.isInsideParamName(jdts, offset)) {
 diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
-index cd61d9094104..a68dc91894fa 100644
+index 91c22e9338..6c86a21dd3 100644
 --- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
 +++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
-@@ -1319,6 +1319,7 @@ private static TokenSequence<JavaTokenId> findLastNonWhitespaceToken(TokenSequen
+@@ -1318,6 +1318,7 @@ public class JavaCompletionCollector implements CompletionCollector {
                      case LINE_COMMENT:
                      case BLOCK_COMMENT:
                      case JAVADOC_COMMENT:
@@ -564,10 +492,10 @@ index cd61d9094104..a68dc91894fa 100644
                      default:
                          return ts;
 diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java
-index 733ba9ad3226..47fbd2803f85 100644
+index 733ba9ad32..47fbd2803f 100644
 --- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java
 +++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java
-@@ -4617,6 +4617,7 @@ private static TokenSequence<JavaTokenId> findLastNonWhitespaceToken(TokenSequen
+@@ -4617,6 +4617,7 @@ public abstract class JavaCompletionItem implements CompletionItem {
                  case LINE_COMMENT:
                  case BLOCK_COMMENT:
                  case JAVADOC_COMMENT:
@@ -576,10 +504,10 @@ index 733ba9ad3226..47fbd2803f85 100644
                  default:
                      return ts;
 diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaKit.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaKit.java
-index 5ac389c224c5..adefaee33d02 100644
+index 5ac389c224..adefaee33d 100644
 --- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaKit.java
 +++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaKit.java
-@@ -458,6 +458,7 @@ public void insert(MutableContext context) throws BadLocationException {
+@@ -458,6 +458,7 @@ public class JavaKit extends NbEditorKit {
                  if (isJavadocTouched) {
                      blockCommentComplete(doc, dotPos, context);
                  }
@@ -588,10 +516,10 @@ index 5ac389c224c5..adefaee33d02 100644
          }
  
 diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/TypingCompletion.java b/java/java.editor/src/org/netbeans/modules/editor/java/TypingCompletion.java
-index 5f2172b49d88..0682f52f5f6f 100644
+index 5f2172b49d..0682f52f5f 100644
 --- a/java/java.editor/src/org/netbeans/modules/editor/java/TypingCompletion.java
 +++ b/java/java.editor/src/org/netbeans/modules/editor/java/TypingCompletion.java
-@@ -563,6 +563,21 @@ private static boolean isClosedBlockComment(CharSequence txt, int pos) {
+@@ -563,6 +563,21 @@ class TypingCompletion {
          return false;
      }
  
@@ -614,10 +542,10 @@ index 5f2172b49d88..0682f52f5f6f 100644
          int length = txt.length();
          for (int i = pos; i < length; i++) {
 diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/Utilities.java b/java/java.editor/src/org/netbeans/modules/editor/java/Utilities.java
-index da31e094c582..6ccb51a51e3a 100644
+index da31e094c5..6ccb51a51e 100644
 --- a/java/java.editor/src/org/netbeans/modules/editor/java/Utilities.java
 +++ b/java/java.editor/src/org/netbeans/modules/editor/java/Utilities.java
-@@ -288,6 +288,7 @@ public static boolean isJavaContext(final Document doc, final int offset, final
+@@ -288,6 +288,7 @@ public final class Utilities {
              case INVALID_COMMENT_END:
              case JAVADOC_COMMENT:
              case LINE_COMMENT:
@@ -626,10 +554,10 @@ index da31e094c582..6ccb51a51e3a 100644
                  return false;
              case STRING_LITERAL:
 diff --git a/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionTask.java b/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionTask.java
-index eac6a5607c25..c328d4ae418d 100644
+index eac6a5607c..c328d4ae41 100644
 --- a/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionTask.java
 +++ b/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionTask.java
-@@ -64,6 +64,7 @@
+@@ -64,6 +64,7 @@ import javax.lang.model.util.Types;
  import javax.swing.text.Document;
  import org.netbeans.api.annotations.common.NonNull;
  import org.netbeans.api.annotations.common.NullAllowed;
@@ -637,7 +565,7 @@ index eac6a5607c25..c328d4ae418d 100644
  import org.netbeans.api.java.lexer.JavadocTokenId;
  import org.netbeans.api.java.source.ClassIndex;
  import org.netbeans.api.java.source.ClasspathInfo;
-@@ -84,6 +85,7 @@
+@@ -84,6 +85,7 @@ import org.netbeans.modules.parsing.api.ResultIterator;
  import org.netbeans.modules.parsing.api.Source;
  import org.netbeans.modules.parsing.api.UserTask;
  import org.netbeans.modules.parsing.spi.Parser;
@@ -645,7 +573,7 @@ index eac6a5607c25..c328d4ae418d 100644
  
  public class JavadocCompletionTask<T> extends UserTask {
  
-@@ -188,16 +190,20 @@ private void analyzeContext(JavadocContext jdctx) {
+@@ -188,16 +190,20 @@ public class JavadocCompletionTask<T> extends UserTask {
              return;
          }
          jdts.move(this.caretOffset);
@@ -672,7 +600,7 @@ index eac6a5607c25..c328d4ae418d 100644
              case TAG:
                  resolveTagToken(jdctx);
                  break;
-@@ -265,7 +271,9 @@ void resolveInlineTag(DocTreePath tag, JavadocContext jdctx) {
+@@ -265,7 +271,9 @@ public class JavadocCompletionTask<T> extends UserTask {
  
      private int skipWhitespacesBackwards(final JavadocContext jdctx, final int offset) {
          if (jdctx.jdts.move(offset) == 0 || !jdctx.jdts.moveNext()) {
@@ -683,7 +611,7 @@ index eac6a5607c25..c328d4ae418d 100644
          }
          do {
              Token t = jdctx.jdts.token();
-@@ -415,13 +423,13 @@ private void insideSeeTag(DocTreePath tag, JavadocContext jdctx) {
+@@ -415,13 +423,13 @@ public class JavadocCompletionTask<T> extends UserTask {
              int pos = caretOffset - jdts.offset();
              CharSequence cs = jdts.token().text();
              cs = pos < cs.length() ? cs.subSequence(0, pos) : cs;
@@ -699,7 +627,7 @@ index eac6a5607c25..c328d4ae418d 100644
              // not java reference
              return;
          } else if (jdts.moveNext()) {
-@@ -519,7 +527,7 @@ private void insideParamTag(DocTreePath tag, JavadocContext jdctx) {
+@@ -519,7 +527,7 @@ public class JavadocCompletionTask<T> extends UserTask {
              int pos = caretOffset - jdts.offset();
              CharSequence cs = jdts.token().text();
              cs = pos < cs.length() ? cs.subSequence(0, pos) : cs;
@@ -708,7 +636,7 @@ index eac6a5607c25..c328d4ae418d 100644
                  // none prefix
                  anchorOffset = caretOffset;
                  completeParamName(tag, "", caretOffset, jdctx); // NOI18N
-@@ -1226,11 +1234,10 @@ private boolean startsWith(String theString, String prefix) {
+@@ -1226,11 +1234,10 @@ public class JavadocCompletionTask<T> extends UserTask {
  
      void resolveOtherText(JavadocContext jdctx, TokenSequence<JavadocTokenId> jdts) {
          Token<JavadocTokenId> token = jdts.token();
@@ -724,7 +652,7 @@ index eac6a5607c25..c328d4ae418d 100644
  
          if (pos > 0 && pos <= text.length() && text.charAt(pos - 1) == '{') {
              if (tag != null && !JavadocCompletionUtils.isBlockTag(tag)) {
-@@ -1244,10 +1251,10 @@ void resolveOtherText(JavadocContext jdctx, TokenSequence<JavadocTokenId> jdts)
+@@ -1244,10 +1251,10 @@ public class JavadocCompletionTask<T> extends UserTask {
          }
          if (tag != null) {
              insideTag(tag, jdctx);
@@ -737,7 +665,7 @@ index eac6a5607c25..c328d4ae418d 100644
              resolveBlockTag(null, jdctx);
          }
      }
-@@ -1336,6 +1343,7 @@ private static class JavadocContext {
+@@ -1336,6 +1343,7 @@ public class JavadocCompletionTask<T> extends UserTask {
          private DocCommentTree comment;
          private DocSourcePositions positions;
          private TokenSequence<JavadocTokenId> jdts;
@@ -746,23 +674,21 @@ index eac6a5607c25..c328d4ae418d 100644
          private ReferencesCount count;
          private TreePath javadocFor;
 diff --git a/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/GoToSupportTest.java b/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/GoToSupportTest.java
-index 8deac6817b8f..a506190feb74 100644
+index 8deac6817b..5e143d4358 100644
 --- a/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/GoToSupportTest.java
 +++ b/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/GoToSupportTest.java
-@@ -1145,6 +1145,71 @@ public void testBindingVarToolTip() throws Exception {
+@@ -1145,6 +1145,67 @@ public class GoToSupportTest extends NbTestCase {
          assertEquals("<html><body>java.lang.String <b>str</b>", tooltip);
      }
  
 +    public void testJavadoc() throws Exception {
 +        final boolean[] wasCalled = new boolean[1];
-+        final String code = """
-+                            package test;
-+                            /**
-+                             * @see Obj|ect
-+                             */
-+                            public class Test {
-+                            }
-+                            """;
++        final String code = "package test;\n" +
++                      "/**\n" +
++                      " * @see Obj|ect\n" +
++                      " */\n" +
++                      "public class Test {\n" +
++                      "}\n";
 +
 +        performTest(code, new UiUtilsCaller() {
 +            @Override public boolean open(FileObject fo, int pos) {
@@ -789,12 +715,10 @@ index 8deac6817b8f..a506190feb74 100644
 +    public void testMarkdownJavadoc() throws Exception {
 +        final boolean[] wasCalled = new boolean[1];
 +        this.sourceLevel = "23";
-+        final String code = """
-+                            package test;
-+                            ///@see Obj|ect
-+                            public class Test {
-+                            }
-+                            """;
++        final String code = "package test;\n" +
++                      "///@see Obj|ect\n" +
++                      "public class Test {\n" +
++                      "}\n";
 +
 +        performTest(code, new UiUtilsCaller() {
 +            @Override public boolean open(FileObject fo, int pos) {
@@ -822,37 +746,36 @@ index 8deac6817b8f..a506190feb74 100644
      private FileObject source;
  
 diff --git a/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/TypingCompletionUnitTest.java b/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/TypingCompletionUnitTest.java
-index a0713d608f6c..99efb7f02484 100644
+index a0713d608f..0525fc6a68 100644
 --- a/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/TypingCompletionUnitTest.java
 +++ b/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/TypingCompletionUnitTest.java
-@@ -1419,6 +1419,22 @@ public void testX() throws Exception {
+@@ -1419,6 +1419,21 @@ public void testPositionInTextBlock() throws Exception {
          ctx.assertDocumentTextEquals("{");
      }
  
 +    public void testJavadocLineRun() {
 +        Context ctx = new Context(new JavaKit(),
-+                                  """
-+                                  class Test {
-+                                      ///|
-+                                  }
-+                                  """);
++                "class Test {\n" +
++                "    ///|\n" +
++                "}\n"
++        );
 +        ctx.typeChar('\n');
-+        ctx.assertDocumentTextEquals("""
-+                                     class Test {
-+                                         ///
-+                                         ///|
-+                                     }
-+                                     """);
++        ctx.assertDocumentTextEquals(
++                "class Test {\n" +
++                "    ///\n" +
++                "    ///|\n" +
++                "}\n"
++        );
 +    }
 +
      private boolean isInsideString(String code) throws BadLocationException {
          int pos = code.indexOf('|');
  
 diff --git a/java/java.editor/test/unit/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionQueryTest.java b/java/java.editor/test/unit/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionQueryTest.java
-index 8bf90d619fab..48f00daca355 100644
+index 8bf90d619f..884aba40be 100644
 --- a/java/java.editor/test/unit/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionQueryTest.java
 +++ b/java/java.editor/test/unit/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionQueryTest.java
-@@ -23,10 +23,14 @@
+@@ -23,10 +23,14 @@ import java.util.ArrayList;
  import java.util.Arrays;
  import java.util.Collections;
  import java.util.List;
@@ -867,16 +790,7 @@ index 8bf90d619fab..48f00daca355 100644
  
  /**
   *
-@@ -492,7 +496,7 @@ public void testValue2() throws Exception {
-                 "package p;\n" +
-                 "class Clazz {\n" +
-                 "    /**\n" +
--                "     * {@value Mat|\n" +
-+                "     * {@value Math|\n" +
-                 "     */\n" +
-                 "    Clazz() {\n" +
-                 "    }\n" +
-@@ -601,8 +605,244 @@ public void testSummaryCompletionForMethod() throws Exception {
+@@ -601,8 +605,212 @@ public class JavadocCompletionQueryTest extends JavadocTestSupport {
                  "}\n";
          performCompletionTest(code, "@summary:");
      }    
@@ -885,290 +799,242 @@ index 8bf90d619fab..48f00daca355 100644
 +
 +    public void testBlockTagsCompletionInMarkdown() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///
-+                    /// |
-+                    ///
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///\n" +
++                "    /// |\n" +
++                "    ///\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "@deprecated:", "@exception:", "@hidden:", "@param:", "@return:", "@see:", "@serialData:", "@since:", "@throws:");
 +    }
 +
 +    public void testBlockTagsCompletionInMarkdown2() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///
-+                    ///|
-+                    ///
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///\n" +
++                "    ///|\n" +
++                "    ///\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "@deprecated:", "@exception:", "@hidden:", "@param:", "@return:", "@see:", "@serialData:", "@since:", "@throws:");
 +    }
 +
 +    public void testBlockTagsCompletionInMarkdown3() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///
-+                    ///|\s
-+                    ///
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///\n" +
++                "    ///| \n" +
++                "    ///\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "@deprecated:", "@exception:", "@hidden:", "@param:", "@return:", "@see:", "@serialData:", "@since:", "@throws:");
 +    }
 +
-+    public void testBlockTagsCompletionInMarkdownStart() throws Exception {
++    public void XXX_testBlockTagsCompletionInMarkdownStart() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///|
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///|\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "@deprecated:", "@exception:", "@hidden:", "@param:", "@return:", "@see:", "@serialData:", "@since:", "@throws:");
 +    }
 +
 +    public void testSeeMarkdown1() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///
-+                    /// @see CharSequence#le|
-+                    ///
-+                    Clazz() {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///\n" +
++                "    /// @see CharSequence#le|\n" +
++                "    ///\n" +
++                "    Clazz() {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "public abstract int length()");
 +    }
 +
 +    public void testSeeMarkdown2() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///
-+                    /// @see |
-+                    ///
-+                    Clazz() {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///\n" +
++                "    /// @see |\n" +
++                "    ///\n" +
++                "    Clazz() {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, null, "String", "Clazz");
 +    }
 +
 +    public void testSeeMarkdown3() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///@param i i
-+                    ///@see |
-+                    ///
-+                    Clazz(int i) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///@param i i\n" +
++                "    ///@see |\n" +
++                "    ///\n" +
++                "    Clazz(int i) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, null, "String", "Clazz");
 +    }
 +
 +    public void testParamMarkdown() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///
-+                    /// @param |
-+                    ///
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///\n" +
++                "    /// @param |\n" +
++                "    ///\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "p1:", "p2:");
 +    }
 +
 +    public void testJavadocOldStart1() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    /**| */
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    /**| */\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "@deprecated:", "@exception:", "@hidden:", "@param:", "@return:", "@see:", "@serialData:", "@since:", "@throws:");
 +    }
 +
 +    public void testJavadocOldStart2() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    /**@s| */
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    /**@s| */\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "@see:", "@serialData:", "@since:");
 +    }
 +
 +    public void testJavadocOldStart3() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    /**@param | */
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    /**@param | */\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "p1:", "p2:");
 +    }
 +
 +    public void testJavadocOldStart4() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    /**@see | */
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    /**@see | */\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, null, "String", "Clazz");
 +    }
 +
 +    public void testJavadocMarkdownStart1() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///|
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///|\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "@deprecated:", "@exception:", "@hidden:", "@param:", "@return:", "@see:", "@serialData:", "@since:", "@throws:");
 +    }
 +
 +    public void testJavadocMarkdownStart2() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///@s|
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///@s|\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "@see:", "@serialData:", "@since:");
 +    }
 +
 +    public void testJavadocMarkdownStart3() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///@param |
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///@param |\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, "p1:", "p2:");
 +    }
 +
 +    public void testJavadocMarkdownStart4() throws Exception {
 +        String code =
-+                """
-+                package p;
-+                class Clazz {
-+                    ///@see |
-+                    void method(int p1, int p2) {
-+                    }
-+                }
-+                """;
++                "package p;\n" +
++                "class Clazz {\n" +
++                "    ///@see |\n" +
++                "    void method(int p1, int p2) {\n" +
++                "    }\n" +
++                "}\n";
 +
 +        performCompletionTest(code, null, "String", "Clazz");
 +    }
  
      private static String stripHTML(String from) {
          StringBuilder result = new StringBuilder();
-@@ -647,4 +887,30 @@ private void performCompletionTest(String code, String... golden) throws Excepti
+@@ -647,4 +855,27 @@ public class JavadocCompletionQueryTest extends JavadocTestSupport {
              assertEquals(goldenList, resultStrings);
          }
      }
 +
-+    @Override
-+    protected Object[] additionalServices() {
-+        return new Object[] {
-+            new SourceLevelQueryImplementation2() {
++    @ServiceProvider(service=SourceLevelQueryImplementation2.class)
++    public static final class SourceLevelQueryImpl implements SourceLevelQueryImplementation2 {
++
++        @Override
++        public Result getSourceLevel(FileObject javaFile) {
++            return new Result() {
++                @Override
++                public String getSourceLevel() {
++                    return "23";
++                }
 +
 +                @Override
-+                public Result getSourceLevel(FileObject javaFile) {
-+                    return new Result() {
-+                        @Override
-+                        public String getSourceLevel() {
-+                            return "23";
-+                        }
-+
-+                        @Override
-+                        public void addChangeListener(ChangeListener listener) {
-+                        }
-+
-+                        @Override
-+                        public void removeChangeListener(ChangeListener listener) {
-+                        }
-+                    };
++                public void addChangeListener(ChangeListener listener) {
 +                }
-+            }
-+        };
++
++                @Override
++                public void removeChangeListener(ChangeListener listener) {
++                }
++            };
++        }
++
 +    }
  }
-diff --git a/java/java.lexer/nbproject/project.properties b/java/java.lexer/nbproject/project.properties
-index 4ea9ce2e2612..36e48fd27c57 100644
---- a/java/java.lexer/nbproject/project.properties
-+++ b/java/java.lexer/nbproject/project.properties
-@@ -17,7 +17,7 @@
- 
- is.autoload=true
- javac.compilerargs=-Xlint:unchecked
--javac.source=1.8
-+javac.release=17
- javadoc.title=Java Lexer API
- javadoc.apichanges=${basedir}/apichanges.xml
- 
 diff --git a/java/java.lexer/src/org/netbeans/api/java/lexer/JavaTokenId.java b/java/java.lexer/src/org/netbeans/api/java/lexer/JavaTokenId.java
-index 17602a5e400a..25738a8da1ae 100644
+index 17602a5e40..25738a8da1 100644
 --- a/java/java.lexer/src/org/netbeans/api/java/lexer/JavaTokenId.java
 +++ b/java/java.lexer/src/org/netbeans/api/java/lexer/JavaTokenId.java
 @@ -193,6 +193,7 @@ public enum JavaTokenId implements TokenId {
@@ -1179,7 +1045,7 @@ index 17602a5e400a..25738a8da1ae 100644
      
      // Errors
      INVALID_COMMENT_END("*/", "error"),
-@@ -262,6 +263,9 @@ protected LanguageEmbedding<?> embedding(
+@@ -262,6 +263,9 @@ public enum JavaTokenId implements TokenId {
                  case JAVADOC_COMMENT:
                      return LanguageEmbedding.create(JavadocTokenId.language(), 3,
                              (token.partType() == PartType.COMPLETE) ? 2 : 0);
@@ -1190,10 +1056,10 @@ index 17602a5e400a..25738a8da1ae 100644
                      return LanguageEmbedding.create(JavaStringTokenId.language(), 1,
                              (token.partType() == PartType.COMPLETE) ? 1 : 0);
 diff --git a/java/java.lexer/src/org/netbeans/lib/java/lexer/JavaLexer.java b/java/java.lexer/src/org/netbeans/lib/java/lexer/JavaLexer.java
-index 49c32619b467..438b8b84ffb3 100644
+index 49c32619b4..438b8b84ff 100644
 --- a/java/java.lexer/src/org/netbeans/lib/java/lexer/JavaLexer.java
 +++ b/java/java.lexer/src/org/netbeans/lib/java/lexer/JavaLexer.java
-@@ -321,6 +321,13 @@ public Token<JavaTokenId> nextToken() {
+@@ -321,6 +321,13 @@ public class JavaLexer implements Lexer<JavaTokenId> {
                  case '/':
                      switch (nextChar()) {
                          case '/': // in single-line comment
@@ -1207,7 +1073,7 @@ index 49c32619b467..438b8b84ffb3 100644
                              while (true)
                                  switch (nextChar()) {
                                      case '\r': consumeNewline();
-@@ -1428,6 +1435,34 @@ private Token<JavaTokenId> finishFloatExponent() {
+@@ -1428,6 +1435,34 @@ public class JavaLexer implements Lexer<JavaTokenId> {
                  return token(JavaTokenId.DOUBLE_LITERAL);
          }
      }
@@ -1243,10 +1109,10 @@ index 49c32619b467..438b8b84ffb3 100644
      private Token<JavaTokenId> token(JavaTokenId id) {
          return token(id, PartType.COMPLETE);
 diff --git a/java/java.lexer/src/org/netbeans/lib/java/lexer/JavadocLexer.java b/java/java.lexer/src/org/netbeans/lib/java/lexer/JavadocLexer.java
-index fa7189b48331..c6ab507fee3f 100644
+index fa7189b483..c6ab507fee 100644
 --- a/java/java.lexer/src/org/netbeans/lib/java/lexer/JavadocLexer.java
 +++ b/java/java.lexer/src/org/netbeans/lib/java/lexer/JavadocLexer.java
-@@ -194,6 +194,20 @@ private Token<JavadocTokenId> otherText(int ch) {
+@@ -194,6 +194,20 @@ public class JavadocLexer implements Lexer<JavadocTokenId> {
                      leftbr = false;
                      newline = false;
                      break;
@@ -1268,23 +1134,21 @@ index fa7189b48331..c6ab507fee3f 100644
                      if (newline) {
                          break;
 diff --git a/java/java.lexer/test/unit/src/org/netbeans/lib/java/lexer/JavaLexerBatchTest.java b/java/java.lexer/test/unit/src/org/netbeans/lib/java/lexer/JavaLexerBatchTest.java
-index 6402fc5c348f..bf4e0b71a8c2 100644
+index 6402fc5c34..6ea9909143 100644
 --- a/java/java.lexer/test/unit/src/org/netbeans/lib/java/lexer/JavaLexerBatchTest.java
 +++ b/java/java.lexer/test/unit/src/org/netbeans/lib/java/lexer/JavaLexerBatchTest.java
-@@ -812,4 +812,83 @@ public void testTemplates2() {
+@@ -812,4 +812,78 @@ public class JavaLexerBatchTest extends TestCase {
          assertFalse(ts.moveNext());
      }
  
 +    public void testMarkdown1() {
-+        String text = """
-+                      ///test
-+                      ///@see second line
-+                      ///third
-+
-+                      ///another run
-+                      ///another line
-+
-+                      """;
++        String text = "///test\n" +
++                      "///@see second line\n" +
++                      "///third\n" +
++                      "\n" +
++                      "///another run\n" +
++                      "///another line\n" +
++                      "\n";
 +        InputAttributes attr = new InputAttributes();
 +        TokenHierarchy<?> hi = TokenHierarchy.create(text, false, JavaTokenId.language(), EnumSet.noneOf(JavaTokenId.class), attr);
 +        TokenSequence<?> ts = hi.tokenSequence();
@@ -1304,14 +1168,12 @@ index 6402fc5c348f..bf4e0b71a8c2 100644
 +    }
 +
 +    public void testMarkdown2() {
-+        String text = """
-+                      ///test
-+                      ///@see second line
-+                      ///third
-+
-+                      ///another run
-+                      ///another line
-+                      """;
++        String text = "///test\n" +
++                      "///@see second line\n" +
++                      "///third\n" +
++                      "\n" +
++                      "///another run\n" +
++                      "///another line\n";
 +        InputAttributes attr = new InputAttributes();
 +        TokenHierarchy<?> hi = TokenHierarchy.create(text, false, JavaTokenId.language(), EnumSet.noneOf(JavaTokenId.class), attr);
 +        TokenSequence<?> ts = hi.tokenSequence();
@@ -1330,13 +1192,12 @@ index 6402fc5c348f..bf4e0b71a8c2 100644
 +    }
 +
 +    public void testMarkdown3() {
-+        String text = """
-+                      ///test
-+                      ///@see second line
-+                      ///third
-+
-+                      ///another run
-+                      ///another line""";
++        String text = "///test\n" +
++                      "///@see second line\n" +
++                      "///third\n" +
++                      "\n" +
++                      "///another run\n" +
++                      "///another line";
 +        InputAttributes attr = new InputAttributes();
 +        TokenHierarchy<?> hi = TokenHierarchy.create(text, false, JavaTokenId.language(), EnumSet.noneOf(JavaTokenId.class), attr);
 +        TokenSequence<?> ts = hi.tokenSequence();
@@ -1356,10 +1217,10 @@ index 6402fc5c348f..bf4e0b71a8c2 100644
 +
  }
 diff --git a/java/java.lexer/test/unit/src/org/netbeans/lib/java/lexer/JavadocLexerTest.java b/java/java.lexer/test/unit/src/org/netbeans/lib/java/lexer/JavadocLexerTest.java
-index 72668f24a651..c0859ba2f826 100644
+index 72668f24a6..c0859ba2f8 100644
 --- a/java/java.lexer/test/unit/src/org/netbeans/lib/java/lexer/JavadocLexerTest.java
 +++ b/java/java.lexer/test/unit/src/org/netbeans/lib/java/lexer/JavadocLexerTest.java
-@@ -143,6 +143,20 @@ public void test233097b() {
+@@ -143,6 +143,20 @@ public class JavadocLexerTest extends NbTestCase {
          LexerTestUtilities.assertNextTokenEquals(ts, JavadocTokenId.OTHER_TEXT, "}");
      }
  
@@ -1381,7 +1242,7 @@ index 72668f24a651..c0859ba2f826 100644
  //        PlainDocument doc = new PlainDocument();
  //        doc.putProperty(Language.class, JavadocTokenId.language());
 diff --git a/java/java.lsp.server/licenseinfo.xml b/java/java.lsp.server/licenseinfo.xml
-index fc390b64bbc9..001c83187ebd 100644
+index fc390b64bb..001c83187e 100644
 --- a/java/java.lsp.server/licenseinfo.xml
 +++ b/java/java.lsp.server/licenseinfo.xml
 @@ -50,4 +50,9 @@
@@ -1396,7 +1257,7 @@ index fc390b64bbc9..001c83187ebd 100644
  </licenseinfo>
 diff --git a/java/java.lsp.server/vscode/language-configuration.json b/java/java.lsp.server/vscode/language-configuration.json
 new file mode 100644
-index 000000000000..c6b69e53360e
+index 0000000000..c6b69e5336
 --- /dev/null
 +++ b/java/java.lsp.server/vscode/language-configuration.json
 @@ -0,0 +1,111 @@
@@ -1512,7 +1373,7 @@ index 000000000000..c6b69e53360e
 +	]
 +}
 diff --git a/java/java.lsp.server/vscode/package.json b/java/java.lsp.server/vscode/package.json
-index cad97381ef73..60795163b16a 100644
+index 07c3269640..a341dad480 100644
 --- a/java/java.lsp.server/vscode/package.json
 +++ b/java/java.lsp.server/vscode/package.json
 @@ -35,6 +35,18 @@
@@ -1535,7 +1396,7 @@ index cad97381ef73..60795163b16a 100644
  				"id": "javascript",
  				"mimetypes": [
 diff --git a/java/java.lsp.server/vscode/syntaxes/java.tmLanguage.json b/java/java.lsp.server/vscode/syntaxes/java.tmLanguage.json
-index 1357aff68d5f..d990bf88fd93 100644
+index 1357aff68d..d990bf88fd 100644
 --- a/java/java.lsp.server/vscode/syntaxes/java.tmLanguage.json
 +++ b/java/java.lsp.server/vscode/syntaxes/java.tmLanguage.json
 @@ -655,6 +655,63 @@
@@ -1603,10 +1464,10 @@ index 1357aff68d5f..d990bf88fd93 100644
  			]
  		},
 diff --git a/java/java.source.base/src/org/netbeans/api/java/source/TreeUtilities.java b/java/java.source.base/src/org/netbeans/api/java/source/TreeUtilities.java
-index a7453c44778e..bca4cbd46ae0 100644
+index a7453c4477..bca4cbd46a 100644
 --- a/java/java.source.base/src/org/netbeans/api/java/source/TreeUtilities.java
 +++ b/java/java.source.base/src/org/netbeans/api/java/source/TreeUtilities.java
-@@ -1302,7 +1302,11 @@ public int[] findNameSpan(DocCommentTree docTree, ReferenceTree ref) {
+@@ -1302,7 +1302,11 @@ public final class TreeUtilities {
          
          tokenSequence.move(pos);
          
@@ -1620,7 +1481,7 @@ index a7453c44778e..bca4cbd46ae0 100644
          TokenSequence<JavadocTokenId> jdocTS = tokenSequence.embedded(JavadocTokenId.language());
          
 diff --git a/java/java.sourceui/nbproject/project.xml b/java/java.sourceui/nbproject/project.xml
-index 9ac80a3c0929..f1bb6375971b 100644
+index 9ac80a3c09..1f7e220870 100644
 --- a/java/java.sourceui/nbproject/project.xml
 +++ b/java/java.sourceui/nbproject/project.xml
 @@ -86,6 +86,14 @@
@@ -1632,25 +1493,17 @@ index 9ac80a3c0929..f1bb6375971b 100644
 +                    <build-prerequisite/>
 +                    <compile-dependency/>
 +                    <run-dependency>
-+                        <specification-version>1.18</specification-version>
++                        <specification-version>1.17</specification-version>
 +                    </run-dependency>
 +                </dependency>
                  <dependency>
                      <code-name-base>org.netbeans.libs.javacapi</code-name-base>
                      <build-prerequisite/>
 diff --git a/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementJavadoc.java b/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementJavadoc.java
-index fdabe504448e..832e599852c2 100644
+index fdabe50444..0ce9410f9e 100644
 --- a/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementJavadoc.java
 +++ b/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementJavadoc.java
-@@ -32,6 +32,7 @@
- import com.sun.source.doctree.LinkTree;
- import com.sun.source.doctree.LiteralTree;
- import com.sun.source.doctree.ParamTree;
-+import com.sun.source.doctree.RawTextTree;
- import com.sun.source.doctree.ReferenceTree;
- import com.sun.source.doctree.ReturnTree;
- import com.sun.source.doctree.SeeTree;
-@@ -119,6 +120,11 @@
+@@ -119,6 +119,11 @@ import javax.tools.SimpleJavaFileObject;
  import com.sun.source.tree.ImportTree;
  import com.sun.source.tree.Tree;
  import com.sun.source.util.JavacTask;
@@ -1662,7 +1515,7 @@ index fdabe504448e..832e599852c2 100644
  import javax.lang.model.element.RecordComponentElement;
  import org.netbeans.api.java.queries.SourceLevelQuery;
  import org.netbeans.api.java.queries.SourceLevelQuery.Profile;
-@@ -1275,7 +1281,7 @@ private String noJavadocFound() {
+@@ -1275,7 +1280,7 @@ public class ElementJavadoc {
      private StringBuilder inlineTags(List<? extends DocTree> tags, TreePath docPath, DocCommentTree doc, DocTrees trees, CharSequence inherited) {
          StringBuilder sb = new StringBuilder();
          Integer snippetCount=0;
@@ -1671,23 +1524,13 @@ index fdabe504448e..832e599852c2 100644
              switch (tag.getKind()) {
                  case REFERENCE:
                      ReferenceTree refTag = (ReferenceTree)tag;
-@@ -1287,6 +1293,9 @@ private StringBuilder inlineTags(List<? extends DocTree> tags, TreePath docPath,
-                     break;
-                 case LINK:
-                     linkTag = (LinkTree)tag;
-+                    if (linkTag.getReference() == null) {
-+                        break;
-+                    }
-                     sb.append("<code>"); //NOI18N
-                     appendReference(sb, linkTag.getReference(), linkTag.getLabel(), docPath, doc, trees);
-                     sb.append("</code>"); //NOI18N
-@@ -1395,6 +1404,53 @@ private StringBuilder inlineTags(List<? extends DocTree> tags, TreePath docPath,
+@@ -1395,6 +1400,53 @@ public class ElementJavadoc {
          return sb;
      }
  
 +    private static final char REPLACEMENT = '\uFFFD';
 +    private List<? extends DocTree> resolveMarkdown(DocTrees trees, List<? extends DocTree> tags) {
-+        if (tags.stream().noneMatch(t -> t.getKind() == DocTree.Kind.MARKDOWN)) {
++        if (tags.stream().noneMatch(t -> "MARKDOWN".equals(t.getKind().name()))) {
 +            return tags;
 +        }
 +
@@ -1695,8 +1538,8 @@ index fdabe504448e..832e599852c2 100644
 +        List<DocTree> replacements = new ArrayList<>();
 +
 +        for (DocTree t : tags) {
-+            if (t.getKind() == DocTree.Kind.MARKDOWN) {
-+                markdownSource.append(((RawTextTree) t).getContent());
++            if ("MARKDOWN".equals(t.getKind().name())) {
++                markdownSource.append(t.toString()); //TODO: should avoid toString()
 +            } else {
 +                markdownSource.append(REPLACEMENT);
 +                replacements.add(t);
@@ -1737,10 +1580,10 @@ index fdabe504448e..832e599852c2 100644
          sb.append("<div align=right>" //NOI18N
 diff --git a/java/java.sourceui/test/unit/src/org/netbeans/api/java/source/ui/ElementJavadocTest.java b/java/java.sourceui/test/unit/src/org/netbeans/api/java/source/ui/ElementJavadocTest.java
 new file mode 100644
-index 000000000000..13bee62039d3
+index 0000000000..9aaa49ecb5
 --- /dev/null
 +++ b/java/java.sourceui/test/unit/src/org/netbeans/api/java/source/ui/ElementJavadocTest.java
-@@ -0,0 +1,164 @@
+@@ -0,0 +1,149 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -1884,21 +1727,6 @@ index 000000000000..13bee62039d3
 +                                 "<tr><td>cr21</td><td>cr22</td></tr>\n" +
 +                                 "</tbody>\n" +
 +                                 "</table>\n" +
-+                                 "<p>";
-+
-+        assertEquals(expectedJavadoc, actualJavadoc);
-+    }
-+
-+    public void testLinkNoRef() throws Exception {
-+        prepareTest("test/Test.java",
-+                    "///Hello!\n" +
-+                    "///{@link }\n" +
-+                    "public class T<caret>est {\n" +
-+                    "}\n");
-+
-+        String actualJavadoc = ElementJavadoc.create(info, selectedElement).getText();
-+        String expectedJavadoc = "<pre>public class <b>Test</b><br>extends <a href='*0'>Object</a></pre><p>Hello!\n" +
-+                                 "\n" +
 +                                 "<p>";
 +
 +        assertEquals(expectedJavadoc, actualJavadoc);

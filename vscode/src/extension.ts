@@ -392,7 +392,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 	});
 
     // register commands
-    context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.new', async (ctx, template) => {
+    context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.new', async (ctx) => {
         let c : LanguageClient = await client;
         const commands = await vscode.commands.getCommands();
         if (commands.includes(COMMAND_PREFIX + '.new.from.template')) {
@@ -416,14 +416,9 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                 return;
             }
 
-            // first give the template (if present), then the context, and then the open-file hint in the case the context is not specific enough
-            const params = [];
-            if (typeof template === 'string') {
-                params.push(template);
-            }
-            params.push(contextUri(ctx)?.toString(), vscode.window.activeTextEditor?.document?.uri?.toString());
-            const res = await vscode.commands.executeCommand(COMMAND_PREFIX + '.new.from.template', ...params);
-            
+            // first give the context, then the open-file hint in the case the context is not specific enough
+            const res = await vscode.commands.executeCommand(COMMAND_PREFIX + '.new.from.template', contextUri(ctx)?.toString(), vscode.window.activeTextEditor?.document?.uri?.toString());
+
             if (typeof res === 'string') {
                 let newFile = vscode.Uri.parse(res as string);
                 await vscode.window.showTextDocument(newFile, { preview: false });
@@ -650,7 +645,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                 name: "Java Single Debug",
                 request: "launch"
             };
-            if (methodName) {
+            if (!methodName) {
                 debugConfig['methodName'] = methodName;
             }
             if (launchConfiguration == '') {
