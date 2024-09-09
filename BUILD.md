@@ -39,7 +39,7 @@ $ git clone https://github.com/oracle/javavscode.git
 $ cd javavscode/
 $ git clone https://github.com/apache/netbeans.git
 $ cd netbeans/
-$ git checkout 23-rc2
+$ git checkout 22
 $ cd ..
 # the following target requires git executable to be on PATH:
 $ ant apply-patches

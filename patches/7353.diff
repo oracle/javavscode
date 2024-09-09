@@ -1,0 +1,16 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
+index b33ff46f4643..5e5d10079dae 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
+@@ -1022,6 +1022,11 @@ public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActio
+                         if (err.getEndPosition().getOffset() < lineStartOffset || err.getStartPosition().getOffset() > lineEndOffset) {
+                             continue;
+                         }
++			int lineStart = NbDocument.findLineNumber(doc, startOffset);
++                        int errStartLine = NbDocument.findLineNumber(doc, err.getStartPosition().getOffset());
++                        if(errStartLine != lineStart){
++                            continue;
++                        }
+                     }
+                     Optional<Diagnostic> diag = diagnostics.stream().filter(d -> entry.getKey().equals(d.getCode().getLeft())).findFirst();
+                     org.netbeans.api.lsp.Diagnostic.LazyCodeActions actions = err.getActions();

@@ -1,0 +1,31 @@
+diff --git a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
+index 5349a20e091a..d24c6f5ec98a 100644
+--- a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
++++ b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
+@@ -107,18 +107,16 @@ public static void main(String... args) throws IOException, InterruptedException
+                 if ("@types".equals(module.getFileName().toString())) continue;
+                 if ("@esbuild".equals(module.getFileName().toString())) continue;
+                 if ("@microsoft".equals(module.getFileName().toString())) continue;
+-                if ("@vscode".equals(module.getFileName().toString())) {
+-                    try (DirectoryStream<Path> sds = Files.newDirectoryStream(module)) {
+-                        for (Path sModule : sds) {
+-                            checkModule(sModule, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
+-                        }
+-                    }
+-                    continue;
++                Path packageJson = module.resolve("package.json");
++                if (Files.isReadable(packageJson)) {
++                    checkModule(module, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
++                    continue;    
+                 }
+-                if ("@ungap".equals(module.getFileName().toString())) {
+-                    module = module.resolve("promise-all-settled");
++                try (DirectoryStream<Path> sds = Files.newDirectoryStream(module)) {
++                    for (Path sModule : sds) {
++                        checkModule(sModule, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
++                    }
+                 }
+-                checkModule(module, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
+             }
+         }
+         if (sb.length() > 0) {
