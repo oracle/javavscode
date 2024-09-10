@@ -1,9 +1,7 @@
 {
     
   "jdk.downloader.heading": "JDK Downloader",
-
   "jdk.downloader.html.details":"<p>This tool enables you to download either the latest Oracle Java SE JDK with <a href='https://www.java.com/freeuselicense'>Oracle No-Fee Terms and Conditions</a> or the Oracle OpenJDK builds under the <a href='https://openjdk.org/legal/gplv2+ce.html'>GNU Public License with ClassPath Exception</a></p> <p>It will then handle the installation and configuration on your behalf.</p> <p>This enables you to take full advantage of all the features offered by this extension.</p>",
-
   "jdk.downloader.button.label.oracleJdk": "Download Oracle Java SE JDK",
   "jdk.downloader.label.or": "or",
   "jdk.downloader.button.label.openJdk": "Download Oracle OpenJDK",
@@ -85,15 +83,25 @@
   "jdk.extension.runConfig.wrkdir.prompt": "Customize working directory",
   "jdk.extenstion.notInstalled.label":"Extension not installed.",
   "jdk.extenstion.error_msg.clientNotAvailable":"Client not available",
-  "jdk.extenstion.progressBar.error_msg.cannotRun":"cannot run ${lsCommand}; client is ${client}",
-  "jdk.extenstion.error_msg.doesntSupportNewTeamplate":"Client ${client} doesn't support new from template",
-  "jdk.extenstion.error_msg.doesntSupportNewProject":"Client ${client} doesn't support new project",
-  "jdk.extenstion.error_msg.doesntSupportGoToTest":"Client ${client} doesn't support go to test",
+  "jdk.extenstion.progressBar.error_msg.cannotRun":"cannot run {lsCommand}; client is {client}",
+  "jdk.extenstion.error_msg.doesntSupportNewTeamplate":"Client {client} doesn't support new from template",
+  "jdk.extenstion.error_msg.doesntSupportNewProject":"Client {client} doesn't support new project",
+  "jdk.extenstion.error_msg.doesntSupportGoToTest":"Client {client} doesn't support go to test",
   "jdk.extenstion.error_msg.noSuperImpl":"No super implementation found",
   "jdk.extenstion.error_msg.cacheDeletionError":"Error deleting the cache",
   "jdk.extenstion.message.cacheDeleted":"Cache deleted successfully",
   "jdk.extenstion.cache.error_msg.cannotFindWrkSpacePath":"Cannot find workspace path",
   "jdk.extenstion.debugger.error_msg.debugAdapterNotInitialized":"Oracle Java SE Debug Server Adapter not yet initialized. Please wait for a while and try again.",
   "jdk.workspace.new.prompt": "Input the directory path where the new file will be generated",
-  "jdk.extension.utils.error_message.failedHttpsRequest": "Failed to get {url} ({statusCode})"
- }
+  "jdk.extension.utils.error_message.failedHttpsRequest": "Failed to get {url} ({statusCode})",
+  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} not enabled",
+  "LBL_Run": "Run {methodName}",
+  "LBL_Debug": "Debug {methodName}",
+  "LBL_RunWith": "Run {methodName} with {config}",
+  "LBL_DebugWith": "Debug {methodName} with {config}",
+  "LBL_TestMethod":"Test {methodName}",
+  "LBL_ProfileMethod":"Profile {methodName}",
+  "LBL_Clean":"Clean",
+  "LBL_Build":"Build",
+  "LBL_ContinuousMode":"Continuous Mode"
+}
