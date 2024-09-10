@@ -1,0 +1,36 @@
+diff --git a/java/java.source.base/src/org/netbeans/api/java/source/GeneratorUtilities.java b/java/java.source.base/src/org/netbeans/api/java/source/GeneratorUtilities.java
+index aed6e6110c..1c081994d8 100644
+--- a/java/java.source.base/src/org/netbeans/api/java/source/GeneratorUtilities.java
++++ b/java/java.source.base/src/org/netbeans/api/java/source/GeneratorUtilities.java
+@@ -1276,7 +1276,7 @@ public final class GeneratorUtilities {
+         // check for possible name clashes originating from adding the package imports
+         Set<Element> explicitNamedImports = new HashSet<Element>();
+         for (Element element : elementsToImport) {
+-            if (element.getKind().isClass() || element.getKind().isInterface()) {
++            if (element.getEnclosingElement() != pkg && (element.getKind().isClass() || element.getKind().isInterface())) {
+                 for (Symbol sym : importScope.getSymbolsByName((com.sun.tools.javac.util.Name)element.getSimpleName())) {
+                     if (sym.getKind().isClass() || sym.getKind().isInterface()) {
+                         if (sym != element) {
+diff --git a/java/java.source.base/test/unit/src/org/netbeans/api/java/source/GeneratorUtilitiesTest.java b/java/java.source.base/test/unit/src/org/netbeans/api/java/source/GeneratorUtilitiesTest.java
+index 90d0261c19..3f13dde797 100644
+--- a/java/java.source.base/test/unit/src/org/netbeans/api/java/source/GeneratorUtilitiesTest.java
++++ b/java/java.source.base/test/unit/src/org/netbeans/api/java/source/GeneratorUtilitiesTest.java
+@@ -583,6 +583,18 @@ public class GeneratorUtilitiesTest extends NbTestCase {
+         }, false);
+     }
+ 
++    public void testAddImports14() throws Exception {
++        performTest("test/Process.java", "package test;\nimport java.util.Collections;\npublic class Process {\npublic static void main(String... args) {\n" +
++        "Collections.singleton(Process.class).forEach(System.out::println);\n}\n}", "1.5", new AddImportsTask("test.Process"), new Validator() {
++            public void validate(CompilationInfo info) {
++                assertEquals(0, info.getDiagnostics().size());
++                List<? extends ImportTree> imports = info.getCompilationUnit().getImports();
++                assertEquals(1, imports.size());
++                assertEquals("java.util.Collections", imports.get(0).getQualifiedIdentifier().toString());
++            }
++        }, false);
++    }
++
+     public void testAddImportsIncrementallyWithStatic_JIRA3019() throws Exception {
+         JavacParser.DISABLE_SOURCE_LEVEL_DOWNGRADE = true;
+         performTest("package test;\npublic class Test { public static final String CONST = null; }\n", "11", new AddImportsTask(true, "test.Test.CONST", "java.util.List"), new Validator() {
