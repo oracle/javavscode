@@ -21,7 +21,7 @@
   "jdk.downloader.error_message.whileDownloading": "ダウンロード中にエラーが発生しました: {jdkType} {error}",
   "jdk.downloader.message.downloadFailed": "{osType}用の{jdkType} {jdkVersion}のダウンロードに失敗しました。間違ったチェックサム。",
   "jdk.downloader.error_message.downloadFailedHttpError": "HTTPエラー{statusCode} - {statusMessage}",
-  "jdk.downloader.error_message.jdkExtractionError": "エラー: {error}",
+  "jdk.downloader.error_message.anyError": "エラー: {error}",
   "jdk.downloader.error_message.jdkNewDirectoryIssueCannotInstall":"{jdkType} {jdkVersion}をインストールできません。{newDirName}を削除できません",
   "jdk.downloader.message.confirmation.directoryExistsStillWantToDelete":"{name}はすでに存在しています。削除して新しいコンテンツを作成しますか。",
   "jdk.downloader.message.confirmation.yes":"はい",

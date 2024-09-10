@@ -66,9 +66,10 @@ import { createTreeViewService, TreeViewService, Visualizer } from './explorer';
 import { initializeRunConfiguration, runConfigurationProvider, runConfigurationNodeProvider, configureRunSettings, runConfigurationUpdateAll } from './runConfiguration';
 import { InputStep, MultiStepInput } from './utils';
 import { PropertiesView } from './propertiesView/propertiesView';
-import { openJDKSelectionView } from './jdkDownloader';
 import { l10n } from './localiser';
-import { ORACLE_VSCODE_EXTENSION_ID, NODE_WINDOWS_LABEL } from './constants';
+import { ORACLE_VSCODE_EXTENSION_ID,NODE_WINDOWS_LABEL } from './constants';
+import { JdkDownloaderView } from './jdkDownloader/view';
+
 const API_VERSION : string = "1.0";
 const SERVER_NAME : string = "Oracle Java SE Language Server";
 export const COMMAND_PREFIX : string = "jdk";
@@ -544,7 +545,10 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
         }
     }));
 
-    context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".download.jdk", async () => { openJDKSelectionView(log); }));
+    context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".download.jdk", async () => { 
+        const jdkDownloaderView = new JdkDownloaderView(log);
+        jdkDownloaderView.createView();
+    }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.compile', () =>
         wrapCommandWithProgress(COMMAND_PREFIX + '.build.workspace', l10n.value('jdk.extension.command.progress.compilingWorkSpace'), log, true)
     ));
@@ -1008,9 +1012,9 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                 vscode.window.showInformationMessage(
                     l10n.value("jdk.extension.lspServer.message.noJdkFound"),
                     downloadAndSetupActionLabel
-                ).then( selection => {
+                ).then(selection => {
                     if (selection === downloadAndSetupActionLabel) {
-                        openJDKSelectionView(log);
+                        commands.executeCommand(`${COMMAND_PREFIX}.download.jdk`);
                     }
                 });
             }

@@ -16,13 +16,20 @@
   "jdk.downloader.label.detectedMachineArchitecture": "Detected Machine Architecture",
   "jdk.downloader.button.label.downloadAndInstall": "Install and start setup",
   "jdk.downloader.label.selectOpenJdkVersion": "Select Oracle OpenJDK Version",
+  "jdk.downloader.message.downloadProgressBar":"{jdkType} {jdkVersion} download in progress",
   "jdk.downloader.message.downloadingAndCompletingSetup": "Downloading and completing setup of {jdkType} {jdkVersion}...",
   "jdk.downloader.message.downloadCompleted":"{jdkType} {jdkVersion} for {osType} download completed!",
   "jdk.downloader.error_message.whileSavingFile": "Error while saving the file: {error}",
   "jdk.downloader.error_message.whileDownloading": "Error while downloading the : {jdkType} {error}",
   "jdk.downloader.message.downloadFailed": "{jdkType} {jdkVersion} for {osType} download failed, wrong checksum.",
   "jdk.downloader.error_message.downloadFailedHttpError": "HTTP Error {statusCode} - {statusMessage}",
-  "jdk.downloader.error_message.jdkExtractionError": "Error: {error}",
+  "jdk.downloader.error_message.anyError": "Error: {error}",
+  "jdk.downloader.error_message.installationCleanup": "Error while installation cleanup",
+  "jdk.downloader.error_message.extractionError": "Extracting {jdkType} {jdkVersion} failed",
+  "jdk.downloader.error_message.findDownloadedJDK": "No instance of {jdkVersion} found in the download directory",
+  "jdk.downloader.error_message.installingJDK": "Error while installing JDK {error}",
+  "jdk.downloader.error_message.generateDownloadUrl": "Failed to generate download URL or path.",
+  "jdk.downloader.error_message.errorLoadingPage": "Error loading JDK downloader page.",
   "jdk.downloader.error_message.jdkNewDirectoryIssueCannotInstall":"Cannot install {jdkType} {jdkVersion}. Cannot delete {newDirName}",
   "jdk.downloader.message.confirmation.directoryExistsStillWantToDelete":"{name} is already present. Do you want to delete it and create with new contents?",
   "jdk.downloader.message.confirmation.yes":"Yes",
@@ -87,6 +94,6 @@
   "jdk.extenstion.message.cacheDeleted":"Cache deleted successfully",
   "jdk.extenstion.cache.error_msg.cannotFindWrkSpacePath":"Cannot find workspace path",
   "jdk.extenstion.debugger.error_msg.debugAdapterNotInitialized":"Oracle Java SE Debug Server Adapter not yet initialized. Please wait for a while and try again.",
-  "jdk.workspace.new.prompt": "Input the directory path where the new file will be generated"
-  
+  "jdk.workspace.new.prompt": "Input the directory path where the new file will be generated",
+  "jdk.extension.utils.error_message.failedHttpsRequest": "Failed to get {url} ({statusCode})"
  }

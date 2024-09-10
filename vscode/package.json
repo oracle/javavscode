@@ -797,7 +797,6 @@
 		"@vscode/debugadapter": "^1.65.0",
 		"@vscode/l10n": "^0.0.18",
 		"@vscode/webview-ui-toolkit": "^1.2.2",
-		"axios": "^1.7.4",
 		"jsonc-parser": "3.3.1",
 		"vscode-languageclient": "^8.1.0"
 	}
