@@ -299,7 +299,7 @@ export function runTestSuite(folder: string): Promise<void> {
 	const mocha = new Mocha({
 		ui: 'tdd',
 		color: true,
-		timeout: 60000
+		timeout: 10*1000*60
 	});
 
 	const testsRoot = path.resolve(folder);

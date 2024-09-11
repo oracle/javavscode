@@ -1,5 +1,5 @@
 diff --git a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
-index 5349a20e09..952709d10b 100644
+index 5349a20e09..f2b040204e 100644
 --- a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
 +++ b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
 @@ -58,7 +58,8 @@ public class PrepareBundles {
@@ -12,7 +12,21 @@ index 5349a20e09..952709d10b 100644
      );
      private static final String nl = "\n";
  
-@@ -107,18 +108,18 @@ public class PrepareBundles {
+@@ -69,7 +70,12 @@ public class PrepareBundles {
+ 
+         Path targetDir = Paths.get(args[0]);
+         Path packagesDir = targetDir.resolve("package");
+-        new ProcessBuilder("npm", "install").directory(packagesDir.toFile()).inheritIO().start().waitFor();
++        String os = System.getProperty("os.name").toLowerCase();
++        if (os.contains("windows")) {
++            new ProcessBuilder("npm.cmd", "install").directory(packagesDir.toFile()).inheritIO().start().waitFor();
++        } else{
++            new ProcessBuilder("npm", "install").directory(packagesDir.toFile()).inheritIO().start().waitFor();   
++        }
+         Path bundlesDir = targetDir.resolve("bundles");
+         Files.createDirectories(bundlesDir);
+         try (DirectoryStream<Path> ds = Files.newDirectoryStream(bundlesDir)) {
+@@ -107,18 +113,18 @@ public class PrepareBundles {
                  if ("@types".equals(module.getFileName().toString())) continue;
                  if ("@esbuild".equals(module.getFileName().toString())) continue;
                  if ("@microsoft".equals(module.getFileName().toString())) continue;

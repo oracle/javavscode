@@ -21,22 +21,12 @@
  */
 
 import * as assert from 'assert';
-import * as fs from 'fs';
-import * as Mocha from 'mocha';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as myExtension from '../../../extension';
 import * as myExplorer from '../../../explorer';
-import { assertWorkspace } from '../../testutils';
-
-Mocha.before(async () => {
-    vscode.window.showInformationMessage('Cleaning up workspace.');
-    let folder: string = assertWorkspace();
-    await fs.promises.rmdir(folder, { recursive: true });
-    await fs.promises.mkdir(folder, { recursive: true });
-});
 
 suite('Explorer Test Suite', () => {
     vscode.window.showInformationMessage('Start explorer tests.');

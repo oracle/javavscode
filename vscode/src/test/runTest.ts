@@ -28,23 +28,27 @@ async function main() {
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
         const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+        const outRootPath = path.join(extensionDevelopmentPath, 'out');
 
         const vscodeExecutablePath: string = await downloadAndUnzipVSCode('stable');
 
-        const outRoot = path.join(extensionDevelopmentPath, "out");
-        const extDir = path.join(outRoot, "test", "vscode", "exts");
-        const userDir = path.join(outRoot, "test", "vscode", "user");
-
-        const testSuites = fs.readdirSync(path.resolve(__dirname, './suite'));
+        const vscodeTestDir = path.join(__dirname, "vscode");
+        const extDir = path.join(vscodeTestDir, "exts");
+        const userDir = path.join(vscodeTestDir, "user");
+        const suitesDir = path.join(__dirname, 'suite');
+        const testSuites = fs.readdirSync(suitesDir);
 
         for (const suiteName of testSuites) {
             // The path to test runner
             // Passed to --extensionTestsPath
-            const extensionTestsPath = path.resolve(__dirname, `./suite/${suiteName}/index`);
-            const workspaceDir = path.join(extensionDevelopmentPath, 'out', 'test', 'suite', suiteName, 'ws');
-            if (!fs.statSync(workspaceDir).isDirectory()) {
-                throw `Expecting ${workspaceDir} to be a directory!`;
+            const suiteDir = path.join(suitesDir, suiteName);
+            const extensionTestsPath = path.join(suiteDir, 'index');
+            const workspaceDir = path.join(suiteDir, 'ws');
+
+            if (fs.existsSync(workspaceDir)) {
+                fs.rmdirSync(workspaceDir, { recursive: true });
             }
+            fs.mkdirSync(workspaceDir, { recursive: true });
 
             // Download VS Code, unzip it and run the integration test
             await runTests({
@@ -53,7 +57,7 @@ async function main() {
                 extensionTestsPath,
                 extensionTestsEnv: {
                     'ENABLE_CONSOLE_LOG': 'true',
-                    "netbeans.extra.options": `-J-Dproject.limitScanRoot=${outRoot} -J-Dnetbeans.logger.console=true`
+                    "netbeans.extra.options": `-J-Dproject.limitScanRoot=${outRootPath} -J-Dnetbeans.logger.console=true`
                 },
                 launchArgs: [
                     '--disable-extensions',
@@ -66,6 +70,7 @@ async function main() {
         }
     } catch (err) {
         console.error('Failed to run tests');
+        console.error((err as Error).message);
         process.exit(1);
     }
 }
