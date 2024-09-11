@@ -52,6 +52,7 @@
             patches/7690.diff
             patches/7699.diff
             patches/7722.diff
+            patches/7724.diff
             patches/mvn-sh.diff
             patches/generate-dependencies.diff
             patches/rename-debugger.diff
