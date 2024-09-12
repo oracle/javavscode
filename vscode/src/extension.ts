@@ -1028,7 +1028,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                 handleLog(log, `Please refer to troubleshooting section for more info: https://github.com/oracle/javavscode/blob/main/README.md#troubleshooting`);
                 log.show(false);
                 killNbProcess(false, log, p);
-                reject(`${SERVER_NAME} not enabled!`);
+                reject(l10n.value("jdk.extension.error_msg.notEnabled",{SERVER_NAME}));
             } else {
                 handleLog(log, "LSP server " + p.pid + " terminated with " + code);
                 handleLog(log, "Exit code " + code);
