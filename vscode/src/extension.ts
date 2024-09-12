@@ -607,13 +607,13 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
     }));
 
     async function findRunConfiguration(uri : vscode.Uri) : Promise<vscode.DebugConfiguration|undefined> {
-        // do not invoke debug start with no (java+) configurations, as it would probably create an user prompt
+        // do not invoke debug start with no (jdk) configurations, as it would probably create an user prompt
         let cfg = vscode.workspace.getConfiguration("launch");
         let c = cfg.get('configurations');
         if (!Array.isArray(c)) {
             return undefined;
         }
-        let f = c.filter((v) => v['type'] === 'java+');
+        let f = c.filter((v) => v['type'] === 'jdk');
         if (!f.length) {
             return undefined;
         }
@@ -626,10 +626,10 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             }
         }
         let provider = new P();
-        let d = vscode.debug.registerDebugConfigurationProvider('java+', provider);
+        let d = vscode.debug.registerDebugConfigurationProvider('jdk', provider);
         // let vscode to select a debug config
         return await vscode.commands.executeCommand('workbench.action.debug.start', { config: {
-            type: 'java+',
+            type: 'jdk',
             mainClass: uri.toString()
         }, noDebug: true}).then((v) => {
             d.dispose();
