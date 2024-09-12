@@ -1,0 +1,508 @@
+diff --git a/ide/editor.lib2/src/org/netbeans/modules/editor/lib2/EditorPreferencesKeys.java b/ide/editor.lib2/src/org/netbeans/modules/editor/lib2/EditorPreferencesKeys.java
+index f02eb8641d1a..14a5a191b485 100644
+--- a/ide/editor.lib2/src/org/netbeans/modules/editor/lib2/EditorPreferencesKeys.java
++++ b/ide/editor.lib2/src/org/netbeans/modules/editor/lib2/EditorPreferencesKeys.java
+@@ -537,7 +537,13 @@ private EditorPreferencesKeys() {
+     public static final String JAVADOC_PREFERRED_SIZE = SimpleValueNames.JAVADOC_PREFERRED_SIZE;
+     public static final String POPUP_MENU_ENABLED = SimpleValueNames.POPUP_MENU_ENABLED;
+     public static final String SHOW_DEPRECATED_MEMBERS = SimpleValueNames.SHOW_DEPRECATED_MEMBERS;
+-    
++
++    /**
++     * Whether the code completion should insert text for the parameters of executable items.
++     * Values: java.lang.Boolean
++     */
++    public static final String COMPLETION_INSERT_TEXT_PARAMETERS = "completion-insert-text-parameters"; // NOI18N
++
+     /** List of the action names that should be shown in the popup menu.
+     * Null name means separator.
+     * Values: java.util.List containing java.lang.String instances
+diff --git a/ide/editor/src/org/netbeans/modules/editor/resources/NetBeans-preferences.xml b/ide/editor/src/org/netbeans/modules/editor/resources/NetBeans-preferences.xml
+index 1ebbd77682f3..1eea67cddc87 100644
+--- a/ide/editor/src/org/netbeans/modules/editor/resources/NetBeans-preferences.xml
++++ b/ide/editor/src/org/netbeans/modules/editor/resources/NetBeans-preferences.xml
+@@ -52,6 +52,9 @@
+     <entry category="private" javaType="java.lang.Boolean" name="completion-case-sensitive" xml:space="preserve">
+         <value><![CDATA[false]]></value>
+     </entry>
++    <entry category="private" javaType="java.lang.Boolean" name="completion-insert-text-parameters" xml:space="preserve">
++        <value><![CDATA[true]]></value>
++    </entry>
+     <entry category="private" javaType="java.lang.Boolean" name="completion-instant-substitution" xml:space="preserve">
+         <value><![CDATA[true]]></value>
+     </entry>
+diff --git a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
+index 9ec7273f86f6..baa4c8c1b43b 100644
+--- a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
++++ b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
+@@ -88,9 +88,9 @@ public static interface ItemFactory<T> {
+ 
+         T createVariableItem(CompilationInfo info, String varName, int substitutionOffset, boolean newVarName, boolean smartType);
+ 
+-        T createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef);
++        T createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean insertTextParams);
+ 
+-        T createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name);
++        T createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name, boolean insertTextParams);
+ 
+         T createOverrideMethodItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean implement);
+ 
+@@ -119,7 +119,7 @@ public static interface TypeCastableItemFactory<T> extends ItemFactory<T> {
+ 
+         T createTypeCastableVariableItem(CompilationInfo info, VariableElement elem, TypeMirror type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean smartType, int assignToVarOffset);
+ 
+-        T createTypeCastableExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef);        
++        T createTypeCastableExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean insertTextParams);
+     }
+     
+     public static interface LambdaItemFactory<T> extends ItemFactory<T> {
+@@ -3562,7 +3562,7 @@ public boolean accept(Element e, TypeMirror t) {
+                     if (e.getEnclosingElement() != enclClass && conflictsWithLocalMethods(e.getSimpleName(), enclClass, methodsIn)) {
+                         results.add(itemFactory.createStaticMemberItem(env.getController(), (DeclaredType)e.getEnclosingElement().asType(), e, et, false, anchorOffset, elements.isDeprecated(e), env.addSemicolon()));
+                     } else {
+-                        results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, null, env.getScope().getEnclosingClass() != e.getEnclosingElement(), elements.isDeprecated(e), false, env.addSemicolon(), isOfSmartType(env, getCorrectedReturnType(env, et, (ExecutableElement) e, enclClass != null ? enclClass.asType() : null), smartTypes), env.assignToVarPos(), false));
++                        results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, null, env.getScope().getEnclosingClass() != e.getEnclosingElement(), elements.isDeprecated(e), false, env.addSemicolon(), isOfSmartType(env, getCorrectedReturnType(env, et, (ExecutableElement) e, enclClass != null ? enclClass.asType() : null), smartTypes), env.assignToVarPos(), false, Utilities.isCompletionInsertTextParameters()));
+                     }
+                     break;
+             }
+@@ -3926,7 +3926,7 @@ public boolean accept(Element e, TypeMirror t) {
+             switch (e.getKind()) {
+                 case METHOD:
+                     ExecutableType et = (ExecutableType) asMemberOf(e, type, types);
+-                    results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), false, false, isOfSmartType(env, et, smartTypes), env.assignToVarPos(), true));
++                    results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), false, false, isOfSmartType(env, et, smartTypes), env.assignToVarPos(), true, false));  // insertTextParams is hard-coded to false because memberRef is true for method-references, thus, irrelevant.
+                     break;
+             }
+         }
+@@ -4076,16 +4076,16 @@ && isOfKindAndType(e.getEnclosingElement().asType(), e, kinds, baseType, scope,
+                     break;
+                 case CONSTRUCTOR:
+                     ExecutableType et = (ExecutableType) asMemberOf(e, actualType, types);
+-                    results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, autoImport ? env.getReferencesCount() : null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), inImport, false, isOfSmartType(env, actualType, smartTypes), env.assignToVarPos(), false));
++                    results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, autoImport ? env.getReferencesCount() : null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), inImport, false, isOfSmartType(env, actualType, smartTypes), env.assignToVarPos(), false, Utilities.isCompletionInsertTextParameters()));
+                     break;
+                 case METHOD:
+                     et = (ExecutableType) asMemberOf(e, actualType, types);
+                     if (addCast && itemFactory instanceof TypeCastableItemFactory
+                             && !types.isSubtype(type, e.getEnclosingElement().asType())
+                             && type.getKind() == TypeKind.DECLARED && !hasBaseMethod(elements, (DeclaredType) type, (ExecutableElement) e)) {
+-                        results.add(((TypeCastableItemFactory<T>)itemFactory).createTypeCastableExecutableItem(env.getController(), (ExecutableElement) e, et, actualType, anchorOffset, autoImport ? env.getReferencesCount() : null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), inImport, env.addSemicolon(), isOfSmartType(env, getCorrectedReturnType(env, et, (ExecutableElement) e, actualType), smartTypes), env.assignToVarPos(), false));
++                        results.add(((TypeCastableItemFactory<T>)itemFactory).createTypeCastableExecutableItem(env.getController(), (ExecutableElement) e, et, actualType, anchorOffset, autoImport ? env.getReferencesCount() : null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), inImport, env.addSemicolon(), isOfSmartType(env, getCorrectedReturnType(env, et, (ExecutableElement) e, actualType), smartTypes), env.assignToVarPos(), false, Utilities.isCompletionInsertTextParameters()));
+                     } else {
+-                        results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, autoImport ? env.getReferencesCount() : null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), inImport, env.addSemicolon(), isOfSmartType(env, getCorrectedReturnType(env, et, (ExecutableElement) e, actualType), smartTypes), env.assignToVarPos(), false));
++                        results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, autoImport ? env.getReferencesCount() : null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), inImport, env.addSemicolon(), isOfSmartType(env, getCorrectedReturnType(env, et, (ExecutableElement) e, actualType), smartTypes), env.assignToVarPos(), false, Utilities.isCompletionInsertTextParameters()));
+                     }
+                     break;
+                 case CLASS:
+@@ -4144,7 +4144,7 @@ public boolean accept(Element e, TypeMirror t) {
+         for (Element e : controller.getElementUtilities().getMembers(type, acceptor)) {
+             if (e.getKind() == CONSTRUCTOR) {
+                 ExecutableType et = (ExecutableType) asMemberOf(e, type, types);
+-                results.add(itemFactory.createThisOrSuperConstructorItem(env.getController(), (ExecutableElement) e, et, anchorOffset, elements.isDeprecated(e), name));
++                results.add(itemFactory.createThisOrSuperConstructorItem(env.getController(), (ExecutableElement) e, et, anchorOffset, elements.isDeprecated(e), name, Utilities.isCompletionInsertTextParameters()));
+             }
+         }
+     }
+diff --git a/java/java.completion/src/org/netbeans/modules/java/completion/Utilities.java b/java/java.completion/src/org/netbeans/modules/java/completion/Utilities.java
+index 7b92de86b851..5678e97435f4 100644
+--- a/java/java.completion/src/org/netbeans/modules/java/completion/Utilities.java
++++ b/java/java.completion/src/org/netbeans/modules/java/completion/Utilities.java
+@@ -51,6 +51,8 @@ public final class Utilities {
+     private static final String ERROR = "<error>"; //NOI18N
+     private static final String COMPLETION_CASE_SENSITIVE = "completion-case-sensitive"; // NOI18N
+     private static final boolean COMPLETION_CASE_SENSITIVE_DEFAULT = true;
++    private static final String COMPLETION_INSERT_TEXT_PARAMETERS = "completion-insert-text-parameters"; // NOI18N
++    private static final boolean COMPLETION_INSERT_TEXT_PARAMETERS_DEFAULT = true;
+     private static final String SHOW_DEPRECATED_MEMBERS = "show-deprecated-members"; // NOI18N
+     private static final boolean SHOW_DEPRECATED_MEMBERS_DEFAULT = true;
+     private static final String JAVA_COMPLETION_WHITELIST = "javaCompletionWhitelist"; //NOI18N
+@@ -62,6 +64,7 @@ public final class Utilities {
+     private static final boolean JAVA_COMPLETION_SUBWORDS_DEFAULT = false;
+ 
+     private static boolean caseSensitive = COMPLETION_CASE_SENSITIVE_DEFAULT;
++    private static boolean completionInsertTextParameters = COMPLETION_INSERT_TEXT_PARAMETERS_DEFAULT;
+     private static boolean showDeprecatedMembers = SHOW_DEPRECATED_MEMBERS_DEFAULT;
+     private static boolean javaCompletionExcluderMethods = JAVA_COMPLETION_EXCLUDER_METHODS_DEFAULT;
+     private static boolean javaCompletionSubwords = JAVA_COMPLETION_SUBWORDS_DEFAULT;
+@@ -92,6 +95,9 @@ public void preferenceChange(PreferenceChangeEvent evt) {
+             if (settingName == null || JAVA_COMPLETION_SUBWORDS.equals(settingName)) {
+                 javaCompletionSubwords = preferences.getBoolean(JAVA_COMPLETION_SUBWORDS, JAVA_COMPLETION_SUBWORDS_DEFAULT);
+             }
++            if (settingName == null || COMPLETION_INSERT_TEXT_PARAMETERS.equals(settingName)) {
++                completionInsertTextParameters = preferences.getBoolean(COMPLETION_INSERT_TEXT_PARAMETERS, COMPLETION_INSERT_TEXT_PARAMETERS_DEFAULT);
++            }
+         }
+     };
+ 
+@@ -208,6 +214,11 @@ public static boolean isShowDeprecatedMembers() {
+         return showDeprecatedMembers;
+     }
+ 
++    public static boolean isCompletionInsertTextParameters() {
++        lazyInit();
++        return completionInsertTextParameters;
++    }
++
+     private static final AtomicReference<Collection<String>> excludeRef = new AtomicReference<>();
+     private static final AtomicReference<Collection<String>> includeRef = new AtomicReference<>();
+ 
+diff --git a/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/CompletionTestBase.java b/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/CompletionTestBase.java
+index fdba908c907f..923a7d8684d3 100644
+--- a/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/CompletionTestBase.java
++++ b/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/CompletionTestBase.java
+@@ -243,7 +243,7 @@ public CI createVariableItem(CompilationInfo info, String varName, int substitut
+         }
+ 
+         @Override
+-        public CI createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
++        public CI createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean insertTextParams) {
+             String simpleName = elem.getKind() == ElementKind.CONSTRUCTOR ? elem.getEnclosingElement().getSimpleName().toString() : elem.getSimpleName().toString();
+             StringBuilder sb = new StringBuilder();
+             StringBuilder sortParams = new StringBuilder();
+@@ -294,7 +294,7 @@ public CI createExecutableItem(CompilationInfo info, ExecutableElement elem, Exe
+         }
+ 
+         @Override
+-        public CI createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name) {
++        public CI createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name, boolean insertTextParams) {
+             if (elem.getKind() == ElementKind.CONSTRUCTOR) {
+                 StringBuilder sb = new StringBuilder();
+                 StringBuilder sortParams = new StringBuilder();
+diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
+index cd61d9094104..d8fc3a24a830 100644
+--- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
++++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
+@@ -472,23 +472,23 @@ public Completion createVariableItem(CompilationInfo info, String varName, int s
+         }
+ 
+         @Override
+-        public Completion createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
+-            return createExecutableItem(info, elem, type, null, null, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef);
++        public Completion createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean insertTextParams) {
++            return createExecutableItem(info, elem, type, null, null, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, insertTextParams);
+         }
+ 
+         @Override
+-        public Completion createTypeCastableExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
+-            return createExecutableItem(info, elem, type, null, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef);
++        public Completion createTypeCastableExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean insertTextParams) {
++            return createExecutableItem(info, elem, type, null, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, insertTextParams);
+         }
+ 
+         @Override
+-        public Completion createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name) {
+-            return createExecutableItem(info, elem, type, name, null, substitutionOffset, null, false, isDeprecated, false, false, false, -1, false);
++        public Completion createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name, boolean insertTextParams) {
++            return createExecutableItem(info, elem, type, name, null, substitutionOffset, null, false, isDeprecated, false, false, false, -1, false, insertTextParams);
+         }
+ 
+         @Override
+         public Completion createOverrideMethodItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean implement) {
+-            Completion item = createExecutableItem(info, elem, type, substitutionOffset, null, false, false, false, false, false, -1, false);
++            Completion item = createExecutableItem(info, elem, type, substitutionOffset, null, false, false, false, false, false, -1, false, true);
+             CompletionCollector.Builder builder = CompletionCollector.newBuilder(item.getLabel())
+                     .kind(elementKind2CompletionItemKind(elem.getKind()))
+                     .labelDetail(String.format("%s - %s", item.getLabelDetail(), implement ? "implement" : "override"))
+@@ -579,7 +579,7 @@ public Completion createDefaultConstructorItem(TypeElement elem, int substitutio
+                     } else {
+                         insertText.append("\n{\n$0}");
+                     }
+-                    builder.command(new Command("Complete Abstract Methods", "java.complete.abstract.methods"));
++                    builder.command(new Command("Complete Abstract Methods", "nbls.java.complete.abstract.methods"));
+                 } catch (IOException ioe) {
+                 }
+                 builder.insertTextFormat(Completion.TextFormat.Snippet);
+@@ -1050,7 +1050,7 @@ private Completion createTypeItem(CompilationInfo info, String prefix, ElementHa
+             return builder.build();
+         }
+ 
+-        private Completion createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, String name, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
++        private Completion createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, String name, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean insertTextParams) {
+             String simpleName = name != null ? name : (elem.getKind() == ElementKind.METHOD ? elem : elem.getEnclosingElement()).getSimpleName().toString();
+             Iterator<? extends VariableElement> it = elem.getParameters().iterator();
+             Iterator<? extends TypeMirror> tIt = type.getParameterTypes().iterator();
+@@ -1072,7 +1072,7 @@ private Completion createExecutableItem(CompilationInfo info, ExecutableElement
+                 if (tm == null) {
+                     break;
+                 }
+-                if (!inImport && !memberRef && cnt == 0 && cs.spaceWithinMethodCallParens()) {
++                if (!inImport && !memberRef && insertTextParams && cnt == 0 && cs.spaceWithinMethodCallParens()) {
+                     insertText.append(' ');
+                 }
+                 cnt++;
+@@ -1081,14 +1081,19 @@ private Completion createExecutableItem(CompilationInfo info, ExecutableElement
+                 labelDetail.append(paramTypeName).append(' ').append(paramName);
+                 sortParams.append(paramTypeName);
+                 if (!inImport && !memberRef) {
+-                    VariableElement inst = instanceOf(tm, paramName);
+-                    insertText.append("${").append(cnt).append(":").append(inst != null ? inst.getSimpleName() : paramName).append("}");
+                     asTemplate = true;
++                    if (insertTextParams) {
++                        VariableElement inst = instanceOf(tm, paramName);
++                        insertText.append("${").append(cnt).append(":").append(inst != null ? inst.getSimpleName() : paramName).append("}");
++                    } else if (cnt == 1) {
++                        // Ensure that the cursor is placed in-between the inserted parentheses i.e. "(|)"
++                        insertText.append("$1");
++                    }
+                 }
+                 if (tIt.hasNext()) {
+                     labelDetail.append(", ");
+                     sortParams.append(',');
+-                    if (!inImport && !memberRef) {
++                    if (!inImport && !memberRef && insertTextParams) {
+                         if (cs.spaceBeforeComma()) {
+                             insertText.append(' ');
+                         }
+@@ -1097,7 +1102,7 @@ private Completion createExecutableItem(CompilationInfo info, ExecutableElement
+                             insertText.append(' ');
+                         }
+                     }
+-                } else if (!inImport && !memberRef && cs.spaceWithinMethodCallParens()) {
++                } else if (!inImport && !memberRef && insertTextParams && cs.spaceWithinMethodCallParens()) {
+                     insertText.append(' ');
+                 }
+             }
+@@ -1120,7 +1125,7 @@ private Completion createExecutableItem(CompilationInfo info, ExecutableElement
+                     } else {
+                         insertText.append("\n{\n$0}");
+                     }
+-                    command = new Command("Complete Abstract Methods", "java.complete.abstract.methods");
++                    command = new Command("Complete Abstract Methods", "nbls.java.complete.abstract.methods");
+                     asTemplate = true;
+                 } else if (asTemplate) {
+                     insertText.append("$0");
+@@ -1169,6 +1174,12 @@ private Completion createExecutableItem(CompilationInfo info, ExecutableElement
+             if (isDeprecated) {
+                 builder.addTag(Completion.Tag.Deprecated);
+             }
++            if (command == null && !insertTextParams && cnt > 0) {
++                command = new Command("Show Signature Help", "editor.action.triggerParameterHints");
++            }
++            if (command != null) {
++                builder.command(command);
++            }
+             return builder.build();
+         }
+ 
+diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java
+index d8a91390a419..df3bb02d248e 100644
+--- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java
++++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java
+@@ -191,20 +191,20 @@ public static JavaCompletionItem createVariableItem(CompilationInfo info, String
+         return new VariableItem(info, null, varName, substitutionOffset, newVarName, smartType, -1);
+     }
+ 
+-    public static JavaCompletionItem createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, WhiteListQuery.WhiteList whiteList) {
++    public static JavaCompletionItem createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean substituteTextParams, WhiteListQuery.WhiteList whiteList) {
+         switch (elem.getKind()) {
+             case METHOD:
+-                return new MethodItem(info, elem, type, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, whiteList);
++                return new MethodItem(info, elem, type, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, substituteTextParams, whiteList);
+             case CONSTRUCTOR:
+-                return new ConstructorItem(info, elem, type, substitutionOffset, isDeprecated, smartType, null, whiteList);
++                return new ConstructorItem(info, elem, type, substitutionOffset, isDeprecated, smartType, null, substituteTextParams, whiteList);
+             default:
+                 throw new IllegalArgumentException("kind=" + elem.getKind());
+         }
+     }
+ 
+-    public static JavaCompletionItem createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name, WhiteListQuery.WhiteList whiteList) {
++    public static JavaCompletionItem createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name, boolean substituteTextParams, WhiteListQuery.WhiteList whiteList) {
+         if (elem.getKind() == ElementKind.CONSTRUCTOR) {
+-            return new ConstructorItem(info, elem, type, substitutionOffset, isDeprecated, false, name, whiteList);
++            return new ConstructorItem(info, elem, type, substitutionOffset, isDeprecated, false, name, substituteTextParams, whiteList);
+         }
+         throw new IllegalArgumentException("kind=" + elem.getKind());
+     }
+@@ -1840,8 +1840,9 @@ static class MethodItem extends WhiteListJavaCompletionItem<ExecutableElement> {
+         private CharSequence castText;
+         private int startOffset;
+         private CharSequence assignToVarText;
++        private final boolean substituteTextParams;
+ 
+-        private MethodItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, WhiteListQuery.WhiteList whiteList) {
++        private MethodItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean substituteTextParams, WhiteListQuery.WhiteList whiteList) {
+             super(substitutionOffset, ElementHandle.create(elem), whiteList);
+             Color c = LFCustoms.getTextFgColor();
+             this.isInherited = isInherited;
+@@ -1887,6 +1888,7 @@ private MethodItem(CompilationInfo info, ExecutableElement elem, ExecutableType
+             } else {
+                 this.castEndOffset = -1;
+             }
++            this.substituteTextParams = !memberRef && substituteTextParams;
+         }
+ 
+         @Override
+@@ -2069,7 +2071,8 @@ protected CharSequence substituteText(final JTextComponent c, final int offset,
+                             sb.append(' '); //NOI18N
+                         }
+                         sb.append('('); //NOI18N
+-                        if (params.isEmpty()) {
++                        if (params.isEmpty() || !substituteTextParams) {
++                            // Ensure that the cursor is placed in-between the inserted parentheses i.e. "(|)"
+                             sb.append("${cursor}"); //NOI18N
+                         } else {
+                             boolean guessArgs = Utilities.guessMethodArguments();
+@@ -2181,7 +2184,7 @@ static class OverrideMethodItem extends MethodItem {
+         private String leftText;
+ 
+         private OverrideMethodItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean implement, WhiteListQuery.WhiteList whiteList) {
+-            super(info, elem, type, null, substitutionOffset, null, false, false, false, false, false, -1, false, whiteList);
++            super(info, elem, type, null, substitutionOffset, null, false, false, false, false, false, -1, false, true, whiteList);
+             CodeStyle cs = null;
+             try {
+                 cs = CodeStyle.getDefault(info.getDocument());
+@@ -2496,8 +2499,9 @@ static class ConstructorItem extends WhiteListJavaCompletionItem<ExecutableEleme
+         private boolean insertName;
+         private String sortText;
+         private String leftText;
++        private final boolean substituteTextParams;
+ 
+-        private ConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, boolean smartType, String name, WhiteListQuery.WhiteList whiteList) {
++        private ConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, boolean smartType, String name, boolean substituteTextParams, WhiteListQuery.WhiteList whiteList) {
+             super(substitutionOffset, ElementHandle.create(elem), whiteList);
+             this.isDeprecated = isDeprecated;
+             this.smartType = smartType;
+@@ -2517,6 +2521,7 @@ private ConstructorItem(CompilationInfo info, ExecutableElement elem, Executable
+             this.isAbstract = !insertName && elem.getEnclosingElement().getModifiers().contains(Modifier.ABSTRACT);
+             Scope s = info.getTreeUtilities().scopeFor(substitutionOffset);
+             this.isProtected = elem.getModifiers().contains(Modifier.PROTECTED) && !info.getTrees().isAccessible(s, elem, (DeclaredType)elem.getEnclosingElement().asType());
++            this.substituteTextParams = substituteTextParams;
+         }
+ 
+         @Override
+@@ -2685,20 +2690,25 @@ public void run(ResultIterator resultIterator) throws Exception {
+                             }
+                         }
+                         if (!params.isEmpty()) {
+-                            boolean guessArgs = Utilities.guessMethodArguments();
+-                            for (Iterator<ParamDesc> it = params.iterator(); it.hasNext();) {
+-                                ParamDesc paramDesc = it.next();
+-                                sb.append("${"); //NOI18N
+-                                sb.append(paramDesc.name);
+-                                if (guessArgs) {
+-                                    sb.append(" named instanceof=\""); //NOI18N
+-                                    sb.append(paramDesc.fullTypeName);
+-                                    sb.append("\""); //NOI18N
+-                                }
+-                                sb.append("}"); //NOI18N
+-                                if (it.hasNext()) {
+-                                    sb.append(", "); //NOI18N
++                            if (substituteTextParams) {
++                                boolean guessArgs = Utilities.guessMethodArguments();
++                                for (Iterator<ParamDesc> it = params.iterator(); it.hasNext(); ) {
++                                    ParamDesc paramDesc = it.next();
++                                    sb.append("${"); //NOI18N
++                                    sb.append(paramDesc.name);
++                                    if (guessArgs) {
++                                        sb.append(" named instanceof=\""); //NOI18N
++                                        sb.append(paramDesc.fullTypeName);
++                                        sb.append("\""); //NOI18N
++                                    }
++                                    sb.append("}"); //NOI18N
++                                    if (it.hasNext()) {
++                                        sb.append(", "); //NOI18N
++                                    }
+                                 }
++                            } else {
++                                // Ensure that the cursor is placed in-between the inserted parentheses i.e. "(|)"
++                                sb.append("${cursor}"); //NOI18N
+                             }
+                             c.select(startPos.getOffset() + (insertName ? text.length() : 0) + toAddText.indexOf('(') + 1, endPos.getOffset());
+                             sb.append(c.getSelectedText());
+diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItemFactory.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItemFactory.java
+index 41836d865f4e..1c98028f4c79 100644
+--- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItemFactory.java
++++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItemFactory.java
+@@ -108,18 +108,18 @@ public JavaCompletionItem createVariableItem(CompilationInfo info, String varNam
+     }
+ 
+     @Override
+-    public JavaCompletionItem createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
+-        return JavaCompletionItem.createExecutableItem(info, elem, type, null, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, whiteList);
++    public JavaCompletionItem createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean insertTextParams) {
++        return JavaCompletionItem.createExecutableItem(info, elem, type, null, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, insertTextParams, whiteList);
+     }
+ 
+     @Override
+-    public JavaCompletionItem createTypeCastableExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
+-        return JavaCompletionItem.createExecutableItem(info, elem, type, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, whiteList);
++    public JavaCompletionItem createTypeCastableExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, boolean insertTextParams) {
++        return JavaCompletionItem.createExecutableItem(info, elem, type, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, insertTextParams, whiteList);
+     }
+ 
+     @Override
+-    public JavaCompletionItem createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name) {
+-        return JavaCompletionItem.createThisOrSuperConstructorItem(info, elem, type, substitutionOffset, isDeprecated, name, whiteList);
++    public JavaCompletionItem createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name, boolean insertTextParams) {
++        return JavaCompletionItem.createThisOrSuperConstructorItem(info, elem, type, substitutionOffset, isDeprecated, name, insertTextParams, whiteList);
+     }
+ 
+     @Override
+diff --git a/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionItem.java b/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionItem.java
+index 22151927877c..621f52c7ccaa 100644
+--- a/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionItem.java
++++ b/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionItem.java
+@@ -212,7 +212,7 @@ public CompletionItem createNameItem(String name, int startOffset) {
+         @Override
+         public CompletionItem createJavadocExecutableItem(CompilationInfo info, ExecutableElement e, ExecutableType et, int startOffset, boolean isInherited, boolean isDeprecated) {
+             CompletionItem delegate = JavaCompletionItem.createExecutableItem(
+-                    info, e, et, null, startOffset, null, isInherited, isDeprecated, false, false, false, -1, false, null);
++                    info, e, et, null, startOffset, null, isInherited, isDeprecated, false, false, false, -1, false, true, null);
+             return new JavadocExecutableItem(delegate, e, startOffset);
+         }
+ 
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
+index 66b4e4287732..62ffef16ea95 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
+@@ -271,6 +271,8 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+     private static final String COMMAND_DEBUG_SINGLE = "nbls.debug.single";     // NOI18N
+     private static final String NETBEANS_JAVADOC_LOAD_TIMEOUT = "javadoc.load.timeout";// NOI18N
+     private static final String NETBEANS_JAVA_ON_SAVE_ORGANIZE_IMPORTS = "java.onSave.organizeImports";// NOI18N
++    private static final String CLIENT_JAVA_COMPLETION_DISABLE_INSERT_METHOD_PARAMS = "java.completion.disable.insertMethodParameters";// NOI18N
++    private static final String NETBEANS_JAVA_COMPLETION_INSERT_TEXT_PARAMS = "completion-insert-text-parameters";// NOI18N
+     private static final String URL = "url";// NOI18N
+     private static final String INDEX = "index";// NOI18N
+     
+@@ -352,12 +354,26 @@ public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completio
+                 return CompletableFuture.completedFuture(Either.forRight(completionList));
+             }
+             StyledDocument doc = (StyledDocument)rawDoc;
+-            ConfigurationItem conf = new ConfigurationItem();
+-            conf.setScopeUri(uri);
+-            conf.setSection(client.getNbCodeCapabilities().getConfigurationPrefix() + NETBEANS_JAVADOC_LOAD_TIMEOUT);
+-            return client.configuration(new ConfigurationParams(Collections.singletonList(conf))).thenApply(c -> {
++            String prefix = client.getNbCodeCapabilities().getConfigurationPrefix();
++            ConfigurationItem confTimeout = new ConfigurationItem();
++            confTimeout.setScopeUri(uri);
++            confTimeout.setSection(prefix + NETBEANS_JAVADOC_LOAD_TIMEOUT);
++            ConfigurationItem confDisableInsert = new ConfigurationItem();
++            confDisableInsert.setScopeUri(uri);
++            confDisableInsert.setSection(prefix + CLIENT_JAVA_COMPLETION_DISABLE_INSERT_METHOD_PARAMS);
++            return client.configuration(new ConfigurationParams(List.of(confTimeout, confDisableInsert))).thenApply(c -> {
+                 if (c != null && !c.isEmpty()) {
+-                    javadocTimeout.set(((JsonPrimitive)c.get(0)).getAsInt());
++                    if (c.get(0) instanceof JsonPrimitive) {
++                        javadocTimeout.set(((JsonPrimitive) c.get(0)).getAsInt());
++                    }
++                    if (c.size() >= 2 && c.get(1) instanceof JsonPrimitive) {
++                        boolean extDisabledSetting = ((JsonPrimitive) c.get(1)).getAsBoolean();
++                        Preferences langPreferences = MimeLookup.getLookup(JavaTokenId.language().mimeType()).lookup(Preferences.class);
++                        boolean insertTextParams = langPreferences == null || langPreferences.getBoolean(NETBEANS_JAVA_COMPLETION_INSERT_TEXT_PARAMS, true);
++                        if (langPreferences != null && extDisabledSetting == insertTextParams) {
++                            langPreferences.putBoolean(NETBEANS_JAVA_COMPLETION_INSERT_TEXT_PARAMS, !extDisabledSetting);
++                        }
++                    }
+                 }
+                 final int caret = Utils.getOffset(doc, params.getPosition());
+                 List<CompletionItem> items = new ArrayList<>();
+@@ -365,7 +381,7 @@ public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completio
+                         ? new Completion.Context(Completion.TriggerKind.valueOf(params.getContext().getTriggerKind().name()),
+                                 params.getContext().getTriggerCharacter() == null || params.getContext().getTriggerCharacter().isEmpty() ? null : params.getContext().getTriggerCharacter().charAt(0))
+                         : null;
+-                Preferences prefs = CodeStylePreferences.get(doc, "text/x-java").getPreferences();
++                Preferences prefs = CodeStylePreferences.get(doc, JavaTokenId.language().mimeType()).getPreferences();
+                 String point = prefs.get("classMemberInsertionPoint", null);
+                 try {
+                     prefs.put("classMemberInsertionPoint", CodeStyle.InsertionPoint.CARET_LOCATION.name());

@@ -201,6 +201,11 @@
 					"default": 999,
 					"minimum": 1
 				},
+				"jdk.java.completion.disable.insertMethodParameters": {
+					"type": "boolean",
+					"default": false,
+					"description": "%jdk.configuration.disableMethodParametersCompletion.description%"
+				},
 				"jdk.runConfig.arguments": {
 					"type": "string",
 					"default": "",

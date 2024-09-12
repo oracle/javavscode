@@ -40,6 +40,7 @@
     "jdk.configuration.organiseImports.sortingOrder.description": "Groups of import statements (specified by their package prefixes) and their sorting order. Import statements within a group are ordered alphabetically",
     "jdk.configuration.countForUsingStarImport.description": "Class count to use a star-import",
     "jdk.configuration.countForUsingStaticStarImport.description": "Members count to use a static star-import",
+    "jdk.configuration.disableMethodParametersCompletion.description": "Disable addition of method arguments on method name completion.",
     "jdk.configuration.arguments.description": "Arguments",
     "jdk.configuration.vmOptions.description": "VM options",
     "jdk.configuration.serverVmOptions.description": "Specifies extra VM arguments used to launch the Java Language Server",
