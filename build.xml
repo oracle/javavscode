@@ -206,7 +206,7 @@
 
     <target name="apply-patches" if="has-patches">
         <echo>${patches}</echo>
-        <exec executable="git">
+        <exec executable="git" failonerror="true">
             <arg value="apply"/>
             <arg value="--directory=netbeans"/>
             <arg value="--whitespace=nowarn"/>
@@ -235,7 +235,7 @@
              <arg value="${patches}" />
         </java>
         <echo>${reverse.patches}</echo>
-        <exec executable="git">
+        <exec executable="git" failonerror="true">
             <arg value="apply"/>
             <arg value="--directory=netbeans"/>
             <arg value="--whitespace=nowarn"/>
