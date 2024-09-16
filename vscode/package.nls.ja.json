@@ -1,6 +1,7 @@
 {
     "jdk.node.properties.edit": "プロパティ",
     "jdk.views.run.config": "実行構成",
+    "jdk.views.explorer.projects": "プロジェクト",
     "jdk.workspace.compile": "ワークスペースのコンパイル",
     "jdk.workspace.clean": "ワークスペースの消去",
     "jdk.workspace.new": "テンプレートから新規作成...",
@@ -24,6 +25,7 @@
     "jdk.open.test": "テスト/テスト済のクラスへ移動...",
     "jdk.delete.cache": "このワークスペースのOracle Java拡張キャッシュの削除",
     "jdk.configuration.specifyJdk.description": "Oracle Visual Studio Code拡張機能のJDKを指定します",
+    "jdk.configuration.specifyProjectJdk.description": "ユーザーのプロジェクトが実行されるJDKを指定します。値はデフォルトでjdk.jdkhomeに設定されます",
     "jdk.configuration.verbose.description": "Oracle Visual Studio Code拡張機能からの詳細メッセージを有効化します",
     "jdk.configuration.userdir.description": "設定およびキャッシュをワークスペースごとにグローバルまたはローカルとして保持しますか。",
     "jdk.configuration.userdir.description.shareData": "すべてのワークスペース間でデータを共有します(より効果的)",
@@ -44,6 +46,7 @@
     "jdk.configuration.runConfig.env.description": "環境変数",
     "jdk.configuration.runConfig.cwd.description": "作業ディレクトリ",
     "jdk.configuration.disableNbJavac.description": "拡張オプション: nb-javacライブラリを無効化すると、選択したJDKからのjavacが使用されます。選択したJDKは少なくともJDK 22である必要があります。",
+    "jdk.configuration.disableProjectSearchLimit.description": "拡張オプション: プロジェクト情報が含まれているフォルダの検索に対する制限を無効化します。",
     "jdk.debugger.configuration.mainClass.description": "プログラムのメイン・クラスへの絶対パス。",
     "jdk.debugger.configuration.classPaths.description": "JVMの起動のためのクラスパス。",
     "jdk.debugger.configuration.console.description": "プログラムを起動する指定されたコンソール。",

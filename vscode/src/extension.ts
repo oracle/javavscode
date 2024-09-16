@@ -330,6 +330,7 @@ class InitialPromise extends Promise<NbLanguageClient> {
 }
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
+
     deactivated=false;
     let log = vscode.window.createOutputChannel(SERVER_NAME);
     var clientResolve : (x : NbLanguageClient) => void;
@@ -546,6 +547,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             vscode.window.showErrorMessage(l10n.value("jdk.extension.cache.message.noUserDir"));
         }
     }));
+    
 
     context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".download.jdk", async () => { 
         const jdkDownloaderView = new JdkDownloaderView(log);
@@ -986,7 +988,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                 stdOut = null;
             }
         }
-        let extras : string[] = ["--modules", "--list", "-J-XX:PerfMaxStringConstLength=10240"];
+        let extras : string[] = ["--modules", "--list", "-J-XX:PerfMaxStringConstLength=10240","--locale",l10n.nbLocaleCode()];
         if (isDarkColorTheme()) {
             extras.push('--laf', 'com.formdev.flatlaf.FlatDarkLaf');
         }

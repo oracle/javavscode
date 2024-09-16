@@ -1,9 +1,7 @@
 {
     
   "jdk.downloader.heading": "JDKダウンローダ",
-
   "jdk.downloader.html.details":"<p>このツールは、<a href='https://www.java.com/freeuselicense'>Oracle No-Fee Terms and Conditions</a>の最新のOracle Java SE JDKまたは、<a href='https://openjdk.org/legal/gplv2+ce.html'>クラスパス例外付きGNU Public License</a>に基づいたOracle OpenJDKビルドのいずれかをダウンロードできます</p> <p>次に、インストールおよび構成をかわりに処理します。</p> <p>これにより、この拡張によって提供されたすべての機能を最大限活用できます。</p>",
-
   "jdk.downloader.button.label.oracleJdk": "Oracle Java SE JDKのダウンロード",
   "jdk.downloader.label.or": "または",
   "jdk.downloader.button.label.openJdk": "Oracle OpenJDKのダウンロード",
@@ -16,12 +14,20 @@
   "jdk.downloader.label.detectedMachineArchitecture": "検出済マシン・アーキテクチャ",
   "jdk.downloader.button.label.downloadAndInstall": "インストールおよび設定の開始",
   "jdk.downloader.label.selectOpenJdkVersion": "Oracle OpenJDKバージョンの選択",
+  "jdk.downloader.message.downloadProgressBar":"{jdkType} {jdkVersion}のダウンロード中",
   "jdk.downloader.message.downloadingAndCompletingSetup": "{jdkType} {jdkVersion}の設定をダウンロードおよび完了しています...",
-  "jdk.downloader.error_message.whileSavingFile": "ファイルの保存中にエラーが発生しました:{error}",
+  "jdk.downloader.message.downloadCompleted":"{osType}用の{jdkType} {jdkVersion}のダウンロードが完了しました。",
+  "jdk.downloader.error_message.whileSavingFile": "ファイルの保存中にエラーが発生しました: {error}",
   "jdk.downloader.error_message.whileDownloading": "ダウンロード中にエラーが発生しました: {jdkType} {error}",
   "jdk.downloader.message.downloadFailed": "{osType}用の{jdkType} {jdkVersion}のダウンロードに失敗しました。間違ったチェックサム。",
   "jdk.downloader.error_message.downloadFailedHttpError": "HTTPエラー{statusCode} - {statusMessage}",
   "jdk.downloader.error_message.anyError": "エラー: {error}",
+  "jdk.downloader.error_message.installationCleanup": "インストールのクリーンアップ中にエラーが発生しました",
+  "jdk.downloader.error_message.extractionError": "{jdkType} {jdkVersion}の抽出に失敗しました",
+  "jdk.downloader.error_message.findDownloadedJDK": "ダウンロード・ディレクトリに{jdkVersion}のインスタンスがありません",
+  "jdk.downloader.error_message.installingJDK": "JDKのインストール中にエラーが発生しました: {error}",
+  "jdk.downloader.error_message.generateDownloadUrl": "ダウンロードURLまたはパスの生成に失敗しました。",
+  "jdk.downloader.error_message.errorLoadingPage": "JDKダウンローダ・ページのロード中にエラーが発生しました。",
   "jdk.downloader.error_message.jdkNewDirectoryIssueCannotInstall":"{jdkType} {jdkVersion}をインストールできません。{newDirName}を削除できません",
   "jdk.downloader.message.confirmation.directoryExistsStillWantToDelete":"{name}はすでに存在しています。削除して新しいコンテンツを作成しますか。",
   "jdk.downloader.message.confirmation.yes":"はい",
@@ -65,6 +71,8 @@
   "jdk.extension.javaSupport.message.needAdditionalSupport": "追加のJavaサポートが必要です",
   "jdk.extension.runConfig.label.updateExistingLaunchJson": "既存のlaunch.jsonファイルの更新",
   "jdk.extension.runConfig.warning_message.renamedDebugConfig": "Java 8+デバッグ構成はJava+に名前変更されています",
+  "jdk.extension.runConfig.default.label":"<default>",
+  "jdk.extension.runConfig.example.label":"例: {data}",
   "jdk.extension.runConfig.arguments.label": "引数:",
   "jdk.extension.runConfig.arguments.prompt": "引数のカスタマイズ",
   "jdk.extension.runConfig.vmoptions.label": "VMオプション:",
@@ -72,5 +80,19 @@
   "jdk.extension.runConfig.env.label": "環境:",
   "jdk.extension.runConfig.env.prompt": "環境変数のカスタマイズ",
   "jdk.extension.runConfig.wrkdir.label": "作業ディレクトリ:",
-  "jdk.extension.runConfig.wrkdir.prompt": "作業ディレクトリのカスタマイズ"
- }
+  "jdk.extension.runConfig.wrkdir.prompt": "作業ディレクトリのカスタマイズ",
+  "jdk.extenstion.notInstalled.label":"拡張機能がインストールされませんでした。",
+  "jdk.extenstion.error_msg.clientNotAvailable":"クライアントを使用できません",
+  "jdk.extenstion.progressBar.error_msg.cannotRun":"{lsCommand}を実行できません。クライアントは{client}です",
+  "jdk.extenstion.error_msg.doesntSupportNewTeamplate":"クライアント{client}では、「テンプレートから新規作成」はサポートされていません",
+  "jdk.extenstion.error_msg.doesntSupportNewProject":"クライアント{client}では、新規プロジェクトはサポートされていません",
+  "jdk.extenstion.error_msg.doesntSupportGoToTest":"クライアント{client}では、「テストへ移動」はサポートされていません",
+  "jdk.extenstion.error_msg.noSuperImpl":"スーパークラスの実装が見つかりません",
+  "jdk.extenstion.error_msg.cacheDeletionError":"キャッシュの削除中にエラーが発生しました",
+  "jdk.extenstion.message.cacheDeleted":"キャッシュが正常に削除されました",
+  "jdk.extenstion.cache.error_msg.cannotFindWrkSpacePath":"ワークスペース・パスが見つかりません",
+  "jdk.extenstion.debugger.error_msg.debugAdapterNotInitialized":"Oracle Java SEのデバッグ・サーバー・アダプタが、まだ初期化されていません。しばらく待ってから再試行してください。",
+  "jdk.workspace.new.prompt": "新しいファイルを生成するディレクトリのパスを入力してください",
+  "jdk.extension.utils.error_message.failedHttpsRequest": "{url}の取得に失敗しました({statusCode})",
+  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME}が有効化されていません"
+}
