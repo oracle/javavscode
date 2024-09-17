@@ -189,8 +189,10 @@ If your extension is not starting and throwing some error like no JDK found even
 ## Workspace
 The extension will analyze the content of the opened workspace, and relevant other files. If the workspace contains a lot of data, this may take a long time. It is therefore recommended to avoid adding unnecessarily big folders in a workspace. Specifically, it is not recommended to open user's home directory as a part of the workspace.
 
-## Known Issues
-If an action has been applied to the Maven `pom.xml` file via the extension, such as enabling a preview feature or adding a test runner framework, and the Maven compile subsequently fails, check the `pom.xml` for any duplicate entries. If found, remove the duplicates manually to resolve this issue.
+## Known Issue
+If an action has been applied to the Maven `pom.xml` file through the extension, such as enabling a preview feature or adding a test runner framework, subsequent compile or run operations may fail. To resolve this issue, please follow the steps below:
+1. Check the `pom.xml` file for any duplicated tags.
+2. If duplicated tags are found, remove the extra tags and attempt to compile again
 
 ## Contributing
 
