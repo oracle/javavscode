@@ -10528,3 +10528,28 @@ brace-expansion
 
 -------- License used by Dependencies
 MIT License as above
+
+------------------ END OF DEPENDENCY LICENSE --------------------
+
+Dependency: Apache Netbeans-l10n
+================================
+
+------------------ START OF DEPENDENCY LICENSE --------------------
+Apache 2.0 License as above
+
+-------- Copyrights
+Apache NetBeans-l10n
+Copyright 2017-2024 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+The code is based on NetBeans, that has been kindly donated to the Apache
+Software Foundation by Oracle.
+
+The code was Copyright 1997-2016 Oracle and/or its affiliates.  The Initial
+Developer of the Original Software was Sun Microsystems, Inc. Portions
+Copyright 1997-2006 Sun Microsystems, Inc.
+
+
+------------------ END OF DEPENDENCY LICENSE --------------------

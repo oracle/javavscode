@@ -1,6 +1,7 @@
 {
     "jdk.node.properties.edit": "属性",
     "jdk.views.run.config": "运行配置",
+    "jdk.views.explorer.projects": "项目",
     "jdk.workspace.compile": "编译工作区",
     "jdk.workspace.clean": "清除工作区",
     "jdk.workspace.new": "从模板新建...",
@@ -24,6 +25,7 @@
     "jdk.open.test": "转至测试/测试的类...",
     "jdk.delete.cache": "删除此工作区的 Oracle Java 扩展高速缓存",
     "jdk.configuration.specifyJdk.description": "指定适用于 Oracle Visual Studio Code 扩展的 JDK",
+    "jdk.configuration.specifyProjectJdk.description": "指定将在其上运行用户项目的 JDK。默认值为 jdk.jdkhome",
     "jdk.configuration.verbose.description": "启用来自 Oracle Visual Studio Code 扩展的详细消息",
     "jdk.configuration.userdir.description": "将设置和高速缓存保留为“全局”还是按工作区保留为“本地”？",
     "jdk.configuration.userdir.description.shareData": "在所有工作区之间共享数据（更有效）",
@@ -44,6 +46,7 @@
     "jdk.configuration.runConfig.env.description": "环境变量",
     "jdk.configuration.runConfig.cwd.description": "工作目录",
     "jdk.configuration.disableNbJavac.description": "高级选项：禁用 nb-javac 库，将使用来自所选 JDK 的 javac。所选 JDK 必须至少为 JDK 22。",
+    "jdk.configuration.disableProjectSearchLimit.description": "高级选项：禁用在包含项目信息的文件夹中搜索的限制。",
     "jdk.debugger.configuration.mainClass.description": "程序主类的绝对路径。",
     "jdk.debugger.configuration.classPaths.description": "用于启动 JVM 的类路径。",
     "jdk.debugger.configuration.console.description": "用于启动程序的指定控制台。",
