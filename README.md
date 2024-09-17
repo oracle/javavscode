@@ -28,14 +28,21 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/oracle/javavscode/main.yml?branch=main&style=for-the-badge&logo=github)](https://github.com/oracle/javavscode/actions?query=workflow:Java%20Platform%20Support%20for%20Visual%20Studio%20Code)
 [![License](https://img.shields.io/github/license/oracle/javavscode?style=for-the-badge&logo=apache)](https://github.com/oracle/javavscode/blob/main/LICENSE.txt)
 
-Java Platform extension from Oracle brings full featured development support (edit-compile-debug & test cycle) to VS Code. It offers support for Maven and Gradle projects.
-
+Java Platform extension from Oracle brings full featured development support (edit-compile-debug & test cycle) to VS Code. It also offers support for Maven and Gradle projects. Applications using JDK 8 and above are supported.
 ## Getting Started
-1. Set JDK in `View | Command Palette | Preferences:Open User Settings (JSON) ...` __jdk: Jdkhome__ setting to point to JDK which Language Server will run on and projects will be compiled with. More below in section [Selecting the JDK](#selecting-the-jdk)
-2. If no JDK is present in your system then extension can setup things for you. More below in section [JDK Downloader](#jdk-downloader)  
-3. Use __Java: New Project...__ " command to start creating new project, or
-4. Open the folder with existing __pom.xml__ for Maven or ___Gradle___ project files (_build.gradle, gradle.properties_). Language Server opens the project, resolves dependencies if any and performs priming build, or
-5. Simply create a new Java class file with `public static void main(String[] args)` method in opened folder and start coding, compiling, debugging. Works on JDK 11 and newer.
+1. Setting up the JDK
+    - If no JDK is present in your system then the extension can set things up for you. For more details refer to [JDK Downloader](#jdk-downloader) section.
+    - Set the JDK in the `View | Command Palette | Preferences: Open User Settings | Jdk: Jdkhome` setting to point to the JDK that the Language Server will run on and also by default use for running and compiling projects.
+        - The extension requires JDK 17 or newer to run.
+    - Optionally, set a different JDK to compile and run projects in the `View | Command Palette | Preferences: Open User Settings | Jdk › Project: Jdkhome` setting.
+        - By default, the __jdk.jdkhome__ setting is used. 
+        - Projects can run on JDK 8 and above.  
+    - For more information, see the section [Selecting the JDK](#selecting-the-jdk).
+4. Use any one of the following ways to start coding, compiling and debugging in Java.
+    - Simply create a new Java class with `public static void main(String[] args)` method.
+    - Use the __Java: New From Template...__ command to create a new Java file.
+    - Use the __Java: New Project...__ command to create a new project.
+    - Open the folder with existing __Maven__ or __Gradle__ project files (_pom.xml_ or _build.gradle, gradle.properties_).
 
 ## Supported Actions
 In the VS Code command palette :
@@ -159,19 +166,11 @@ When adding JavaDoc to code Oracle Java Platform extension assists by suggesting
 Oracle Java Platform extension provides Test Explorer view which allows to run all tests in a project, examine the results, go to source code and  run particular test.  
 ![Test Explorer](vscode/images/Test_explorer.png)
 
-## Supported Options
-
-* __jdk.jdkhome__ - path to the JDK, see dedicated section below
-* __jdk.verbose__ - enables verbose extension logging
-
 ## Selecting the JDK
+The JDK to build, run and debug projects is being searched in the following locations:
 
-The user projects are built, run and debugged using the same JDK which runs the
-Oracle Java Platform extension. The JDK is being searched in
-following locations:
-
+- `jdk.project.jdkhome` setting (workspace then user settings)
 - `jdk.jdkhome` setting (workspace then user settings)
-- `java.home` setting (workspace then user settings)
 - `JDK_HOME` environment variable
 - `JAVA_HOME` environment variable
 - current system path

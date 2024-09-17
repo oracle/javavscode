@@ -1,0 +1,560 @@
+diff --git a/.gitignore b/.gitignore
+index 6f0f29522..f19cedae2 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -9,3 +9,4 @@
+ /l10nantext/dist/
+ /l10nantext/nbproject/private/
+ /l10nantext/nbproject/genfiles.properties
++.idea
+diff --git a/locale_ja/build.xml b/locale_ja/build.xml
+new file mode 100644
+index 000000000..9fb26158d
+--- /dev/null
++++ b/locale_ja/build.xml
+@@ -0,0 +1,57 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++<project name="org.apache.netbeans.l10n.ja" default="netbeans" basedir=".">
++    <description>Builds, tests, and runs the project org.apache.netbeans.l10n.ja.</description>
++    <import file="nbproject/build-impl.xml"/>
++    
++    <target name="build" depends="build-language-jars,projectized-common.build"/>
++    
++    <target name="build-language-jars">
++        <property name="locale" value="ja"/>
++        <property name="dist.dir" location="../netbeans-l10n-zip/src/${locale}"/>
++        <property name="nbms.dist.dir" location="nbms"/>
++        <property name="nbms.dir" location="../nbbuild/nbms"/>
++        <property name="keystore" location=""/>
++        <property name="storepass" value=""/>
++        <property name="nbm_alias" value="nb_ide"/>
++     
++        <taskdef name="package-build" classname="org.netbeans.l10n.Package">
++            <classpath>
++                <pathelement path="../l10nantext/dist/l10nantext.jar"/>
++            </classpath>
++        </taskdef>
++        <package-build src="${dist.dir}" locales="${locale}" dist="release/modules/locale" nbms="${nbms.dir}" nbmsDist="${nbms.dist.dir}"
++                       keystore="${keystore}" storepass="${storepass}" alias="${nbm_alias}">
++            <classpath>
++                <pathelement location="nbantext.jar"/>
++                <fileset dir="${main.dir}">
++                    <include name="apisupport.harness/external/jsearch*.jar"/>
++                </fileset>
++                <fileset dir="${netbeans.dest.dir}">
++                    <include name="harness/jsearch*.jar"/>
++                </fileset>
++            </classpath>
++        </package-build>
++        <!--<repeat target="copy-docs-for-locale" name="one.locale" values="${locales}"/>-->
++    </target>
++    
++</project>
+diff --git a/locale_ja/manifest.mf b/locale_ja/manifest.mf
+new file mode 100644
+index 000000000..3eaceaebe
+--- /dev/null
++++ b/locale_ja/manifest.mf
+@@ -0,0 +1,6 @@
++Manifest-Version: 1.0
++AutoUpdate-Show-In-Client: true
++OpenIDE-Module: org.apache.netbeans.l10n.ja
++OpenIDE-Module-Localizing-Bundle: org/apache/netbeans/l10n/ja/Bundle.properties
++OpenIDE-Module-Specification-Version: 0.0.1
++
+diff --git a/locale_ja/nbproject/build-impl.xml b/locale_ja/nbproject/build-impl.xml
+new file mode 100644
+index 000000000..8e084c16d
+--- /dev/null
++++ b/locale_ja/nbproject/build-impl.xml
+@@ -0,0 +1,41 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++*** GENERATED FROM project.xml - DO NOT EDIT  ***
++***         EDIT ../build.xml INSTEAD         ***
++-->
++<project name="org.apache.netbeans.l10n.ja-impl" basedir="..">
++    <fail message="Please build using Ant 1.7.1 or higher.">
++        <condition>
++            <not>
++                <antversion atleast="1.7.1"/>
++            </not>
++        </condition>
++    </fail>
++    <property file="nbproject/platform.properties"/>
++    <macrodef name="property" uri="http://www.netbeans.org/ns/nb-module-project/2">
++        <attribute name="name"/>
++        <attribute name="value"/>
++        <sequential>
++            <property name="@{name}" value="${@{value}}"/>
++        </sequential>
++    </macrodef>
++    <macrodef name="evalprops" uri="http://www.netbeans.org/ns/nb-module-project/2">
++        <attribute name="property"/>
++        <attribute name="value"/>
++        <sequential>
++            <property name="@{property}" value="@{value}"/>
++        </sequential>
++    </macrodef>
++    <property file="${user.properties.file}"/>
++    <nbmproject2:property name="harness.dir" value="nbplatform.${nbplatform.active}.harness.dir" xmlns:nbmproject2="http://www.netbeans.org/ns/nb-module-project/2"/>
++    <nbmproject2:property name="nbplatform.active.dir" value="nbplatform.${nbplatform.active}.netbeans.dest.dir" xmlns:nbmproject2="http://www.netbeans.org/ns/nb-module-project/2"/>
++    <nbmproject2:evalprops property="cluster.path.evaluated" value="${cluster.path}" xmlns:nbmproject2="http://www.netbeans.org/ns/nb-module-project/2"/>
++    <fail message="Path to 'platform' cluster missing in $${cluster.path} property or using corrupt Netbeans Platform (missing harness).">
++        <condition>
++            <not>
++                <contains string="${cluster.path.evaluated}" substring="platform"/>
++            </not>
++        </condition>
++    </fail>
++    <import file="${harness.dir}/build.xml"/>
++</project>
+diff --git a/locale_ja/nbproject/platform.properties b/locale_ja/nbproject/platform.properties
+new file mode 100644
+index 000000000..eb5ae3bf6
+--- /dev/null
++++ b/locale_ja/nbproject/platform.properties
+@@ -0,0 +1,25 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++cluster.path=\
++    ${nbplatform.active.dir}/extide:\
++    ${nbplatform.active.dir}/ide:\
++    ${nbplatform.active.dir}/java:\
++    ${nbplatform.active.dir}/nb:\
++    ${nbplatform.active.dir}/platform:\
++    ${nbplatform.active.dir}/harness:\
++    ${nbplatform.active.dir}/webcommon
++nbplatform.active=default
+\ No newline at end of file
+diff --git a/locale_ja/nbproject/project.properties b/locale_ja/nbproject/project.properties
+new file mode 100644
+index 000000000..4cdfb33e0
+--- /dev/null
++++ b/locale_ja/nbproject/project.properties
+@@ -0,0 +1,18 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++javac.source=1.8
++javac.compilerargs=-Xlint -Xlint:-serial
+\ No newline at end of file
+diff --git a/locale_ja/nbproject/project.xml b/locale_ja/nbproject/project.xml
+new file mode 100644
+index 000000000..4e1eb911f
+--- /dev/null
++++ b/locale_ja/nbproject/project.xml
+@@ -0,0 +1,32 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++<project xmlns="http://www.netbeans.org/ns/project/1">
++    <type>org.netbeans.modules.apisupport.project</type>
++    <configuration>
++        <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
++            <code-name-base>org.apache.netbeans.l10n.ja</code-name-base>
++            <standalone/>
++            <module-dependencies/>
++            <public-packages/>
++        </data>
++    </configuration>
++</project>
+diff --git a/locale_ja/src/org/apache/netbeans/l10n/ja/Bundle.properties b/locale_ja/src/org/apache/netbeans/l10n/ja/Bundle.properties
+new file mode 100644
+index 000000000..b18b59a1c
+--- /dev/null
++++ b/locale_ja/src/org/apache/netbeans/l10n/ja/Bundle.properties
+@@ -0,0 +1,17 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++OpenIDE-Module-Name=Japanese
+diff --git a/locale_zh_CN/build.xml b/locale_zh_CN/build.xml
+new file mode 100644
+index 000000000..3b5bec0e7
+--- /dev/null
++++ b/locale_zh_CN/build.xml
+@@ -0,0 +1,57 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++<project name="org.apache.netbeans.l10n.zh_CN" default="netbeans" basedir=".">
++    <description>Builds, tests, and runs the project org.apache.netbeans.l10n.zh_CN.</description>
++    <import file="nbproject/build-impl.xml"/>
++    
++    <target name="build" depends="build-language-jars,projectized-common.build"/>
++    
++    <target name="build-language-jars">
++        <property name="locale" value="zh_CN"/>
++        <property name="dist.dir" location="../netbeans-l10n-zip/src/${locale}"/>
++        <property name="nbms.dist.dir" location="nbms"/>
++        <property name="nbms.dir" location="../nbbuild/nbms"/>
++        <property name="keystore" location=""/>
++        <property name="storepass" value=""/>
++        <property name="nbm_alias" value="nb_ide"/>
++     
++        <taskdef name="package-build" classname="org.netbeans.l10n.Package">
++            <classpath>
++                <pathelement path="../l10nantext/dist/l10nantext.jar"/>
++            </classpath>
++        </taskdef>
++        <package-build src="${dist.dir}" locales="${locale}" dist="release/modules/locale" nbms="${nbms.dir}" nbmsDist="${nbms.dist.dir}"
++                       keystore="${keystore}" storepass="${storepass}" alias="${nbm_alias}">
++            <classpath>
++                <pathelement location="nbantext.jar"/>
++                <fileset dir="${main.dir}">
++                    <include name="apisupport.harness/external/jsearch*.jar"/>
++                </fileset>
++                <fileset dir="${netbeans.dest.dir}">
++                    <include name="harness/jsearch*.jar"/>
++                </fileset>
++            </classpath>
++        </package-build>
++        <!--<repeat target="copy-docs-for-locale" name="one.locale" values="${locales}"/>-->
++    </target>
++    
++</project>
+diff --git a/locale_zh_CN/manifest.mf b/locale_zh_CN/manifest.mf
+new file mode 100644
+index 000000000..e705996ba
+--- /dev/null
++++ b/locale_zh_CN/manifest.mf
+@@ -0,0 +1,6 @@
++Manifest-Version: 1.0
++AutoUpdate-Show-In-Client: true
++OpenIDE-Module: org.apache.netbeans.l10n.zh_CN
++OpenIDE-Module-Localizing-Bundle: org/apache/netbeans/l10n/zh_CN/Bundle.properties
++OpenIDE-Module-Specification-Version: 0.0.1
++
+diff --git a/locale_zh_CN/nbproject/build-impl.xml b/locale_zh_CN/nbproject/build-impl.xml
+new file mode 100644
+index 000000000..dc542d5bf
+--- /dev/null
++++ b/locale_zh_CN/nbproject/build-impl.xml
+@@ -0,0 +1,41 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++*** GENERATED FROM project.xml - DO NOT EDIT  ***
++***         EDIT ../build.xml INSTEAD         ***
++-->
++<project name="org.apache.netbeans.l10n.zh_CN-impl" basedir="..">
++    <fail message="Please build using Ant 1.7.1 or higher.">
++        <condition>
++            <not>
++                <antversion atleast="1.7.1"/>
++            </not>
++        </condition>
++    </fail>
++    <property file="nbproject/platform.properties"/>
++    <macrodef name="property" uri="http://www.netbeans.org/ns/nb-module-project/2">
++        <attribute name="name"/>
++        <attribute name="value"/>
++        <sequential>
++            <property name="@{name}" value="${@{value}}"/>
++        </sequential>
++    </macrodef>
++    <macrodef name="evalprops" uri="http://www.netbeans.org/ns/nb-module-project/2">
++        <attribute name="property"/>
++        <attribute name="value"/>
++        <sequential>
++            <property name="@{property}" value="@{value}"/>
++        </sequential>
++    </macrodef>
++    <property file="${user.properties.file}"/>
++    <nbmproject2:property name="harness.dir" value="nbplatform.${nbplatform.active}.harness.dir" xmlns:nbmproject2="http://www.netbeans.org/ns/nb-module-project/2"/>
++    <nbmproject2:property name="nbplatform.active.dir" value="nbplatform.${nbplatform.active}.netbeans.dest.dir" xmlns:nbmproject2="http://www.netbeans.org/ns/nb-module-project/2"/>
++    <nbmproject2:evalprops property="cluster.path.evaluated" value="${cluster.path}" xmlns:nbmproject2="http://www.netbeans.org/ns/nb-module-project/2"/>
++    <fail message="Path to 'platform' cluster missing in $${cluster.path} property or using corrupt Netbeans Platform (missing harness).">
++        <condition>
++            <not>
++                <contains string="${cluster.path.evaluated}" substring="platform"/>
++            </not>
++        </condition>
++    </fail>
++    <import file="${harness.dir}/build.xml"/>
++</project>
+diff --git a/locale_zh_CN/nbproject/platform.properties b/locale_zh_CN/nbproject/platform.properties
+new file mode 100644
+index 000000000..eb5ae3bf6
+--- /dev/null
++++ b/locale_zh_CN/nbproject/platform.properties
+@@ -0,0 +1,25 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++cluster.path=\
++    ${nbplatform.active.dir}/extide:\
++    ${nbplatform.active.dir}/ide:\
++    ${nbplatform.active.dir}/java:\
++    ${nbplatform.active.dir}/nb:\
++    ${nbplatform.active.dir}/platform:\
++    ${nbplatform.active.dir}/harness:\
++    ${nbplatform.active.dir}/webcommon
++nbplatform.active=default
+\ No newline at end of file
+diff --git a/locale_zh_CN/nbproject/project.properties b/locale_zh_CN/nbproject/project.properties
+new file mode 100644
+index 000000000..4cdfb33e0
+--- /dev/null
++++ b/locale_zh_CN/nbproject/project.properties
+@@ -0,0 +1,18 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++javac.source=1.8
++javac.compilerargs=-Xlint -Xlint:-serial
+\ No newline at end of file
+diff --git a/locale_zh_CN/nbproject/project.xml b/locale_zh_CN/nbproject/project.xml
+new file mode 100644
+index 000000000..eec7b3954
+--- /dev/null
++++ b/locale_zh_CN/nbproject/project.xml
+@@ -0,0 +1,32 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++<project xmlns="http://www.netbeans.org/ns/project/1">
++    <type>org.netbeans.modules.apisupport.project</type>
++    <configuration>
++        <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
++            <code-name-base>org.apache.netbeans.l10n.zh_CN</code-name-base>
++            <standalone/>
++            <module-dependencies/>
++            <public-packages/>
++        </data>
++    </configuration>
++</project>
+diff --git a/locale_zh_CN/src/org/apache/netbeans/l10n/zh_CN/Bundle.properties b/locale_zh_CN/src/org/apache/netbeans/l10n/zh_CN/Bundle.properties
+new file mode 100644
+index 000000000..744e7e91e
+--- /dev/null
++++ b/locale_zh_CN/src/org/apache/netbeans/l10n/zh_CN/Bundle.properties
+@@ -0,0 +1,17 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++OpenIDE-Module-Name=Simplified Chinese
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+new file mode 100755
+index 000000000..88b6b4608
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+@@ -0,0 +1,29 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++OpenIDE-Module-Name=Java LSP Server
++OpenIDE-Module-Display-Category=Java
++OpenIDE-Module-Short-Description=Java LSP Server
++
++LBL_Run={0} \u3092\u5B9F\u884C
++LBL_Debug={0} \u3092\u30C7\u30D0\u30C3\u30B0
++LBL_RunWith={0} \u3092\u6307\u5B9A\u3057\u3066 {1} \u3092\u5B9F\u884C
++LBL_DebugWith={0} \u3092\u6307\u5B9A\u3057\u3066 {1} \u3092\u30C7\u30D0\u30C3\u30B0
++LBL_TestMethod={0} \u3092\u30C6\u30B9\u30C8
++LBL_ProfileMethod={0} \u3092\u30D7\u30ED\u30D5\u30A1\u30A4\u30EA\u30F3\u30B0
++LBL_Clean=\u6D88\u53BB
++LBL_Build=\u4F5C\u6210
++LBL_ContinuousMode=\u9023\u7D9A\u30E2\u30FC\u30C9
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..97a321575
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+@@ -0,0 +1,29 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++OpenIDE-Module-Name=Java LSP Server
++OpenIDE-Module-Display-Category=Java
++OpenIDE-Module-Short-Description=Java LSP Server
++
++LBL_Run=\u8FD0\u884C {0}
++LBL_Debug=\u8C03\u8BD5 {0},
++LBL_RunWith=\u4F7F\u7528 {0} \u8FD0\u884C {1}
++LBL_DebugWith=\u4F7F\u7528 {0} \u8C03\u8BD5 {1}
++LBL_TestMethod=\u6D4B\u8BD5 {0}
++LBL_ProfileMethod=\u6982\u8981\u5206\u6790 {0}
++LBL_Clean=\u6E05\u9664
++LBL_Build=\u6784\u5EFA
++LBL_ContinuousMode=\u8FDE\u7EED\u6A21\u5F0F
+\ No newline at end of file

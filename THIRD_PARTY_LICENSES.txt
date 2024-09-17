@@ -298,7 +298,7 @@ ide/modules/com-googlecode-javaewah-JavaEWAH.jar                      Apache-2.0
 ide/modules/ext/antlr-runtime-3.5.3.jar                               BSD-antlr-runtime3
 ide/modules/ext/antlr4-runtime-4.13.1.jar                             BSD-antlr-runtime4-3
 ide/modules/ext/collections-24.0.0.jar                                UPL
-ide/modules/ext/commons-compress-1.26.1.jar                           Apache-2.0
+ide/modules/ext/commons-compress-1.26.2.jar                           Apache-2.0
 ide/modules/ext/flexmark-0.64.8.jar                                   BSD-flexmark
 ide/modules/ext/flexmark-ext-anchorlink-0.64.8.jar                    BSD-flexmark
 ide/modules/ext/flexmark-ext-emoji-0.64.8.jar                         BSD-flexmark
@@ -315,7 +315,7 @@ ide/modules/ext/flexmark-util-html-0.64.8.jar                         BSD-flexma
 ide/modules/ext/flexmark-util-misc-0.64.8.jar                         BSD-flexmark
 ide/modules/ext/flexmark-util-sequence-0.64.8.jar                     BSD-flexmark
 ide/modules/ext/flexmark-util-visitor-0.64.8.jar                      BSD-flexmark
-ide/modules/ext/freemarker-2.3.32.jar                                 Apache-2.0-freemarker
+ide/modules/ext/freemarker-2.3.33.jar                                 Apache-2.0-freemarker
 ide/modules/ext/jaxb/activation.jar                                   EDL-1.0
 ide/modules/ext/jaxb/api/jaxb-api.jar                                 EDL-1.0
 ide/modules/ext/jaxb/jaxb-impl.jar                                    CDDL-1.1
@@ -374,25 +374,23 @@ java/maven/bin/mvn.cmd                                                Apache-2.0
 java/maven/bin/mvnDebug                                               Apache-2.0
 java/maven/bin/mvnDebug.cmd                                           Apache-2.0
 java/maven/bin/mvnyjp                                                 Apache-2.0
-java/maven/boot/plexus-classworlds-2.7.0.jar                          Apache-2.0
+java/maven/boot/plexus-classworlds-2.8.0.jar                          Apache-2.0
 java/maven/boot/plexus-classworlds.license                            Apache-2.0
 java/maven/conf/logging/simplelogger.properties                       Apache-2.0
 java/maven/conf/settings.xml                                          Apache-2.0
 java/maven/conf/toolchains.xml                                        Apache-2.0
 java/maven/lib/aopalliance-1.0.jar                                    Apache-2.0
 java/maven/lib/aopalliance.license                                    Apache-2.0
-java/maven/lib/commons-cli-1.5.0.jar                                  Apache-2.0
+java/maven/lib/commons-cli-1.8.0.jar                                  Apache-2.0
 java/maven/lib/commons-cli.license                                    Apache-2.0
-java/maven/lib/commons-codec-1.16.0.jar                               Apache-2.0
+java/maven/lib/commons-codec-1.17.1.jar                               Apache-2.0
 java/maven/lib/commons-codec.license                                  Apache-2.0
-java/maven/lib/commons-lang3-3.12.0.jar                               Apache-2.0
-java/maven/lib/commons-lang3.license                                  Apache-2.0
 java/maven/lib/ext/README.txt                                         Apache-2.0
 java/maven/lib/ext/hazelcast/README.txt                               Apache-2.0
 java/maven/lib/ext/redisson/README.txt                                Apache-2.0
 java/maven/lib/failureaccess-1.0.2.jar                                Apache-2.0
 java/maven/lib/failureaccess.license                                  Apache-2.0
-java/maven/lib/guava-32.0.1-jre.jar                                   Apache-2.0
+java/maven/lib/guava-33.2.1-jre.jar                                   Apache-2.0
 java/maven/lib/guava.license                                          Apache-2.0
 java/maven/lib/guice-5.1.0.jar                                        Apache-2.0
 java/maven/lib/guice.license                                          Apache-2.0
@@ -400,8 +398,9 @@ java/maven/lib/httpclient-4.5.14.jar                                  Apache-2.0
 java/maven/lib/httpclient.license                                     Apache-2.0
 java/maven/lib/httpcore-4.4.16.jar                                    Apache-2.0
 java/maven/lib/httpcore.license                                       Apache-2.0
-java/maven/lib/jansi-2.4.0.jar                                        Apache-2.0
+java/maven/lib/jansi-2.4.1.jar                                        Apache-2.0
 java/maven/lib/jansi-native/README.txt                                Apache-2.0
+java/maven/lib/jansi-native/Windows/arm64/libjansi.so                 Apache-2.0
 java/maven/lib/jansi-native/Windows/x86/jansi.dll                     Apache-2.0
 java/maven/lib/jansi-native/Windows/x86_64/jansi.dll                  Apache-2.0
 java/maven/lib/jansi.license                                          Apache-2.0
@@ -411,43 +410,45 @@ java/maven/lib/javax.inject-1.jar                                     Apache-2.0
 java/maven/lib/javax.inject.license                                   Apache-2.0
 java/maven/lib/jcl-over-slf4j-1.7.36.jar                              Apache-2.0
 java/maven/lib/jcl-over-slf4j.license                                 Apache-2.0
-java/maven/lib/maven-artifact-3.9.6.jar                               Apache-2.0
-java/maven/lib/maven-builder-support-3.9.6.jar                        Apache-2.0
-java/maven/lib/maven-compat-3.9.6.jar                                 Apache-2.0
-java/maven/lib/maven-core-3.9.6.jar                                   Apache-2.0
-java/maven/lib/maven-embedder-3.9.6.jar                               Apache-2.0
-java/maven/lib/maven-model-3.9.6.jar                                  Apache-2.0
-java/maven/lib/maven-model-builder-3.9.6.jar                          Apache-2.0
-java/maven/lib/maven-plugin-api-3.9.6.jar                             Apache-2.0
-java/maven/lib/maven-repository-metadata-3.9.6.jar                    Apache-2.0
-java/maven/lib/maven-resolver-api-1.9.18.jar                          Apache-2.0
-java/maven/lib/maven-resolver-connector-basic-1.9.18.jar              Apache-2.0
-java/maven/lib/maven-resolver-impl-1.9.18.jar                         Apache-2.0
-java/maven/lib/maven-resolver-named-locks-1.9.18.jar                  Apache-2.0
-java/maven/lib/maven-resolver-provider-3.9.6.jar                      Apache-2.0
-java/maven/lib/maven-resolver-spi-1.9.18.jar                          Apache-2.0
-java/maven/lib/maven-resolver-transport-file-1.9.18.jar               Apache-2.0
-java/maven/lib/maven-resolver-transport-http-1.9.18.jar               Apache-2.0
-java/maven/lib/maven-resolver-transport-wagon-1.9.18.jar              Apache-2.0
-java/maven/lib/maven-resolver-util-1.9.18.jar                         Apache-2.0
-java/maven/lib/maven-settings-3.9.6.jar                               Apache-2.0
-java/maven/lib/maven-settings-builder-3.9.6.jar                       Apache-2.0
-java/maven/lib/maven-shared-utils-3.3.4.jar                           Apache-2.0
-java/maven/lib/maven-slf4j-provider-3.9.6.jar                         Apache-2.0
-java/maven/lib/org.eclipse.sisu.inject-0.9.0.M2.jar                   Maven-EPL-v10
+java/maven/lib/maven-artifact-3.9.9.jar                               Apache-2.0
+java/maven/lib/maven-builder-support-3.9.9.jar                        Apache-2.0
+java/maven/lib/maven-compat-3.9.9.jar                                 Apache-2.0
+java/maven/lib/maven-core-3.9.9.jar                                   Apache-2.0
+java/maven/lib/maven-embedder-3.9.9.jar                               Apache-2.0
+java/maven/lib/maven-model-3.9.9.jar                                  Apache-2.0
+java/maven/lib/maven-model-builder-3.9.9.jar                          Apache-2.0
+java/maven/lib/maven-plugin-api-3.9.9.jar                             Apache-2.0
+java/maven/lib/maven-repository-metadata-3.9.9.jar                    Apache-2.0
+java/maven/lib/maven-resolver-api-1.9.22.jar                          Apache-2.0
+java/maven/lib/maven-resolver-connector-basic-1.9.22.jar              Apache-2.0
+java/maven/lib/maven-resolver-impl-1.9.22.jar                         Apache-2.0
+java/maven/lib/maven-resolver-named-locks-1.9.22.jar                  Apache-2.0
+java/maven/lib/maven-resolver-provider-3.9.9.jar                      Apache-2.0
+java/maven/lib/maven-resolver-spi-1.9.22.jar                          Apache-2.0
+java/maven/lib/maven-resolver-transport-file-1.9.22.jar               Apache-2.0
+java/maven/lib/maven-resolver-transport-http-1.9.22.jar               Apache-2.0
+java/maven/lib/maven-resolver-transport-wagon-1.9.22.jar              Apache-2.0
+java/maven/lib/maven-resolver-util-1.9.22.jar                         Apache-2.0
+java/maven/lib/maven-settings-3.9.9.jar                               Apache-2.0
+java/maven/lib/maven-settings-builder-3.9.9.jar                       Apache-2.0
+java/maven/lib/maven-shared-utils-3.4.2.jar                           Apache-2.0
+java/maven/lib/maven-slf4j-provider-3.9.9.jar                         Apache-2.0
+java/maven/lib/org.eclipse.sisu.inject-0.9.0.M3.jar                   Maven-EPL-v10
 java/maven/lib/org.eclipse.sisu.inject.license                        Apache-2.0
-java/maven/lib/org.eclipse.sisu.plexus-0.9.0.M2.jar                   Maven-EPL-v10
+java/maven/lib/org.eclipse.sisu.plexus-0.9.0.M3.jar                   Maven-EPL-v10
 java/maven/lib/org.eclipse.sisu.plexus.license                        Apache-2.0
 java/maven/lib/plexus-cipher-2.0.jar                                  Apache-2.0
 java/maven/lib/plexus-cipher.license                                  Apache-2.0
 java/maven/lib/plexus-component-annotations-2.1.0.jar                 Apache-2.0
 java/maven/lib/plexus-component-annotations.license                   Apache-2.0
-java/maven/lib/plexus-interpolation-1.26.jar                          Apache-2.0
+java/maven/lib/plexus-interpolation-1.27.jar                          Apache-2.0
 java/maven/lib/plexus-interpolation.license                           Apache-2.0
 java/maven/lib/plexus-sec-dispatcher-2.0.jar                          Apache-2.0
 java/maven/lib/plexus-sec-dispatcher.license                          Apache-2.0
 java/maven/lib/plexus-utils-3.5.1.jar                                 Apache-2.0
 java/maven/lib/plexus-utils.license                                   Apache-2.0
+java/maven/lib/plexus-xml-3.0.1.jar                                   Apache-2.0
+java/maven/lib/plexus-xml.license                                     Apache-2.0
 java/maven/lib/slf4j-api-1.7.36.jar                                   MIT-slf4j-22
 java/maven/lib/slf4j-api.license                                      Apache-2.0
 java/maven/lib/wagon-file-3.5.3.jar                                   Apache-2.0
@@ -466,20 +467,19 @@ java/modules/ext/eclipselink/org.eclipse.persistence.jpa.jpql-2.7.12.jar EPL-v20
 java/modules/ext/eclipselink/org.eclipse.persistence.jpa.modelgen.processor-2.7.12.jar EPL-v20
 java/modules/ext/eclipselink/org.eclipse.persistence.moxy-2.7.12.jar  EPL-v20
 java/modules/ext/jdktools-11.0.11.jar                                 Apache-2.0
-java/modules/ext/maven/gson-2.10.1.jar                                Apache-2.0
-java/modules/ext/maven/indexer-core-7.1.2.jar                         Apache-2.0
+java/modules/ext/maven/indexer-core-7.1.4.jar                         Apache-2.0
 java/modules/ext/maven/javax.annotation-api-1.3.2.jar                 CDDL-1.1
 java/modules/ext/maven/jdom2-2.0.6.1.jar                              BSD-JDOM
-java/modules/ext/maven/lucene-analysis-common-9.10.0.jar              Apache-2.0-lucene2
-java/modules/ext/maven/lucene-backward-codecs-9.10.0.jar              Apache-2.0-lucene2
-java/modules/ext/maven/lucene-core-9.10.0.jar                         Apache-2.0-lucene2
-java/modules/ext/maven/lucene-highlighter-9.10.0.jar                  Apache-2.0-lucene2
-java/modules/ext/maven/lucene-queryparser-9.10.0.jar                  Apache-2.0-lucene2
+java/modules/ext/maven/lucene-analysis-common-9.11.1.jar              Apache-2.0-lucene2
+java/modules/ext/maven/lucene-backward-codecs-9.11.1.jar              Apache-2.0-lucene2
+java/modules/ext/maven/lucene-core-9.11.1.jar                         Apache-2.0-lucene2
+java/modules/ext/maven/lucene-highlighter-9.11.1.jar                  Apache-2.0-lucene2
+java/modules/ext/maven/lucene-queryparser-9.11.1.jar                  Apache-2.0-lucene2
 java/modules/ext/maven/maven-dependency-tree-2.2.jar                  Apache-2.0
-java/modules/ext/maven/search-api-7.1.2.jar                           Apache-2.0
-java/modules/ext/maven/search-backend-smo-7.1.2.jar                   Apache-2.0
-java/modules/ext/nb-javac-jdk-22u1-8-api.jar                          GPL-2-CP
-java/modules/ext/nb-javac-jdk-22u1-8.jar                              GPL-2-CP
+java/modules/ext/maven/search-api-7.1.4.jar                           Apache-2.0
+java/modules/ext/maven/search-backend-smo-7.1.4.jar                   Apache-2.0
+java/modules/ext/nb-javac-jdk-23-30-api.jar                           GPL-2-CP
+java/modules/ext/nb-javac-jdk-23-30.jar                               GPL-2-CP
 java/modules/ext/org.eclipse.lsp4j-0.13.0.jar                         EPL-v20
 java/modules/ext/org.eclipse.lsp4j.debug-0.13.0.jar                   EPL-v20
 java/modules/ext/org.eclipse.lsp4j.generator-0.13.0.jar               EPL-v20
@@ -495,27 +495,27 @@ platform/core/asm-commons-9.7.jar                                     BSD-INRIA
 platform/core/asm-tree-9.7.jar                                        BSD-INRIA
 platform/docs/junit-4.13.2-javadoc.jar                                EPL-v10
 platform/docs/junit-4.13.2-sources.jar                                EPL-v10
-platform/docs/junit-jupiter-api-5.10.2-javadoc.jar                    EPL-v20
-platform/docs/junit-jupiter-api-5.10.2-sources.jar                    EPL-v20
-platform/docs/junit-jupiter-engine-5.10.2-javadoc.jar                 EPL-v20
-platform/docs/junit-jupiter-engine-5.10.2-sources.jar                 EPL-v20
-platform/docs/junit-jupiter-params-5.10.2-javadoc.jar                 EPL-v20
-platform/docs/junit-jupiter-params-5.10.2-sources.jar                 EPL-v20
+platform/docs/junit-jupiter-api-5.10.3-javadoc.jar                    EPL-v20
+platform/docs/junit-jupiter-api-5.10.3-sources.jar                    EPL-v20
+platform/docs/junit-jupiter-engine-5.10.3-javadoc.jar                 EPL-v20
+platform/docs/junit-jupiter-engine-5.10.3-sources.jar                 EPL-v20
+platform/docs/junit-jupiter-params-5.10.3-javadoc.jar                 EPL-v20
+platform/docs/junit-jupiter-params-5.10.3-sources.jar                 EPL-v20
 platform/docs/testng-6.13.1-javadoc.jar                               Apache-2.0+MIT+testng
 platform/lib/nbexec.dll                                               Apache-2.0
 platform/lib/nbexec.exe                                               Apache-2.0
 platform/lib/nbexec64.dll                                             Apache-2.0
 platform/lib/nbexec64.exe                                             Apache-2.0
-platform/modules/ext/commons-io-2.16.0.jar                            Apache-2.0
-platform/modules/ext/flatlaf-3.3.jar                                  Apache-2.0
+platform/modules/ext/commons-io-2.16.1.jar                            Apache-2.0
+platform/modules/ext/flatlaf-3.5.1.jar                                Apache-2.0
 platform/modules/ext/hamcrest-core-1.3.jar                            BSD-hamcrest
 platform/modules/ext/jcommander-1.78.jar                              Apache-2.0
 platform/modules/ext/jna-5.14.0.jar                                   Apache-2.0
 platform/modules/ext/jna-platform-5.14.0.jar                          Apache-2.0
 platform/modules/ext/junit-4.13.2.jar                                 EPL-v10
-platform/modules/ext/junit-jupiter-api-5.10.2.jar                     EPL-v20
-platform/modules/ext/junit-jupiter-engine-5.10.2.jar                  EPL-v20
-platform/modules/ext/junit-jupiter-params-5.10.2.jar                  EPL-v20
+platform/modules/ext/junit-jupiter-api-5.10.3.jar                     EPL-v20
+platform/modules/ext/junit-jupiter-engine-5.10.3.jar                  EPL-v20
+platform/modules/ext/junit-jupiter-params-5.10.3.jar                  EPL-v20
 platform/modules/ext/org.eclipse.osgi_3.9.1.nb9.jar                   OSGi
 platform/modules/ext/osgi.cmpn-7.0.0.jar                              Apache-2.0
 platform/modules/ext/osgi.core-8.0.0.jar                              Apache-2.0
@@ -767,6 +767,10 @@ enterprise/web.core/src/org/netbeans/modules/web/taglib/resources/web-jsptaglibr
 enterprise/web.core/src/org/netbeans/modules/web/taglib/resources/web-jsptaglibrary_2_1.mdd                                         CDDL-1.1          
 enterprise/web.core/src/org/netbeans/modules/web/taglib/resources/web-jsptaglibrary_3_0.xsd                                          EPL-v20         1
 enterprise/web.core/src/org/netbeans/modules/web/taglib/resources/web-jsptaglibrary_3_0.mdd                                          EPL-v20         1
+enterprise/web.core/src/org/netbeans/modules/web/taglib/resources/web-jsptaglibrary_3_1.xsd                                          EPL-v20         1
+enterprise/web.core/src/org/netbeans/modules/web/taglib/resources/web-jsptaglibrary_3_1.mdd                                          EPL-v20         1
+enterprise/web.core/src/org/netbeans/modules/web/taglib/resources/web-jsptaglibrary_4_0.xsd                                          EPL-v20         1
+enterprise/web.core/src/org/netbeans/modules/web/taglib/resources/web-jsptaglibrary_4_0.mdd                                          EPL-v20         1
 enterprise/web.jsf/src/org/netbeans/modules/web/jsf/resources/xml.xsd                                                                   W3C2          
 enterprise/web.jsf/src/org/netbeans/modules/web/jsf/resources/facelet-taglib_1_0.dtd                                                CDDL-1.1          
 enterprise/web.jsf/src/org/netbeans/modules/web/jsf/resources/javaee_5.xsd                                                          CDDL-1.1          
@@ -801,6 +805,8 @@ extide/gradle/src/org/netbeans/modules/gradle/resources/gradle.png              
 extide/gradle/src/org/netbeans/modules/gradle/resources/gradle_dark.png                                                          Gradle-icon          
 extide/options.java/src/org/netbeans/modules/options/java/resources/java_logo.png                                                    CC0-v10          
 extide/options.java/src/org/netbeans/modules/options/java/resources/java_logo.svg                                                    CC0-v10          
+groovy/gradle.groovy/src/org/netbeans/modules/gradle/groovy/resources/groovyProjectIcon.png                                      Gradle-icon          
+groovy/gradle.groovy/src/org/netbeans/modules/gradle/groovy/resources/groovyProjectIcon_dark.png                                 Gradle-icon          
 ide/css.editor/src/org/netbeans/modules/css/resources/icons/chrome20-disabled.png                                                   CDDL-1.0          
 ide/css.editor/src/org/netbeans/modules/css/resources/icons/chrome20.png                                                            CDDL-1.0          
 ide/css.editor/src/org/netbeans/modules/css/resources/icons/firefox20-disabled.png                                                  CDDL-1.0          
@@ -877,6 +883,7 @@ java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/orm
 java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/persistence_3_0.xsd                                     EDL-1.0         6
 java/j2ee.persistence/src/org/netbeans/modules/j2ee/persistence/dd/resources/persistence_3_2.xsd                                     EDL-1.0         6
 java/java.lsp.server/vscode/syntaxes/java.tmLanguage.json                                                                   MIT-java-grammar          
+java/java.lsp.server/vscode/language-configuration.json                                                                           MIT-vscode          
 java/junit.ui/src/org/netbeans/modules/junit/ui/resources/junit5-logo.png                                                            EPL-v20          
 java/languages.antlr/src/org/antlr/parser/antlr3/g4/ANTLRv3Lexer.g4                                                       BSD-antlr4-grammar          
 java/languages.antlr/src/org/antlr/parser/antlr3/g4/ANTLRv3Parser.g4                                                      BSD-antlr4-grammar          
@@ -1126,7 +1133,7 @@ webcommon/javascript2.editor/test/unit/data/testfiles/ecmascript6/parser/ES6/ide
 webcommon/javascript2.editor/test/unit/data/testfiles/ecmascript6/parser/ES6/identifier/estimated.js                        BSD-jsfoundation          
 webcommon/javascript2.editor/test/unit/data/testfiles/ecmascript6/parser/ES6/identifier/ethiopic_digits.js                  BSD-jsfoundation          
 webcommon/javascript2.editor/test/unit/data/testfiles/ecmascript6/parser/ES6/identifier/invalid_escaped_surrogate_pairs.js    BSD-jsfoundation          
-webcommon/javascript2.editor/test/unit/data/testfiles/ecmascript6/parser/ES6/identifier/invalid_expression_await.js         BSD-jsfoundation          
+webcommon/javascript2.editor/test/unit/data/testfiles/ecmascript6/parser/ES6/identifier/export_await.js                     BSD-jsfoundation          
 webcommon/javascript2.editor/test/unit/data/testfiles/ecmascript6/parser/ES6/identifier/invalid_function_wait.js            BSD-jsfoundation          
 webcommon/javascript2.editor/test/unit/data/testfiles/ecmascript6/parser/ES6/identifier/invalid_id_smp.js                   BSD-jsfoundation          
 webcommon/javascript2.editor/test/unit/data/testfiles/ecmascript6/parser/ES6/identifier/invalid_lone_surrogate.source.js    BSD-jsfoundation          
@@ -1853,24 +1860,6 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Julian Seward, jseward@acm.org
-
-
-Apache Batik
-Copyright 1999-2020 The Apache Software Foundation
-
-This software contains code from the World Wide Web Consortium (W3C) for the 
-Document Object Model API (DOM API) and SVG Document Type Definition (DTD).
-
-This software contains code from the International Organisation for
-Standardization for the definition of character entities used in the software's
-documentation.
-
-This product includes images from the Tango Desktop Project
-(http://tango.freedesktop.org/).
-
-This product includes images from the Pasodoble Icon Theme
-(http://www.jesusda.com/projects/pasodoble).
-
 
 Apache Commons Lang
 Copyright 2001-2021 The Apache Software Foundation
@@ -3916,11 +3905,11 @@ Nori Korean Morphological Analyzer - Apache Lucene Integration
 
 This software includes a binary and/or source version of data from
 
-  mecab-ko-dic-2.0.3-20170922
+  mecab-ko-dic-2.1.1-20180720
 
 which can be obtained from
 
-  https://bitbucket.org/eunjeon/mecab-ko-dic/downloads/mecab-ko-dic-2.0.3-20170922.tar.gz
+  https://bitbucket.org/eunjeon/mecab-ko-dic/downloads/mecab-ko-dic-2.1.1-20180720.tar.gz
 
 
 ====== license text follows
@@ -8499,7 +8488,12 @@ recognized.
 ===
 ======
 ========================= UPL =========================
+====== The following are the NOTICEs pertaining to components using this license. For the full license text, please see the license text below the NOTICEs
 
+Graal SDK and Truffle API
+Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
+
+====== license text follows
 Copyright (c) __YEARS__, __NAMES__
 
 The Universal Permissive License (UPL), Version 1.0
@@ -8655,217 +8649,6 @@ The name and trademarks of copyright holders may NOT be used in advertising or
 publicity pertaining to the work without specific, written prior permission. 
 Title to copyright in this work will at all times remain with copyright 
 holders.
-
-Dependency: axios
-=================
-
-axios
-
-# Copyright (c) 2014-present Matt Zabriskie & Collaborators
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
------------------------------------
-=====================4'th party dependencies===================
-
-follow-redirects
-
-https://github.com/follow-redirects/follow-redirects
-
-Copyright 2014–present Olivier Lalonde <olalonde@gmail.com>, James Talmage <james@talmage.io>, Ruben Verborgh
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
-IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
--------------
-asynckit
-
-The MIT License (MIT)
-
-Copyright (c) 2016 Alex Indigo
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-------
-combined-stream (node-combined-stream)
-
-Copyright (c) 2011 Debuggable Limited <felix@debuggable.com>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
---------------
-delayed-stream (node-delayed-stream)
-
-Copyright (c) 2011 Debuggable Limited <felix@debuggable.com>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
--------------
-mime-types
-
-(The MIT License)
-
-Copyright (c) 2014 Jonathan Ong <me@jongleberry.com>
-Copyright (c) 2015 Douglas Christopher Wilson <doug@somethingdoug.com>
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-----------------
-mime-db
-
-(The MIT License)
-
-Copyright (c) 2014 Jonathan Ong <me@jongleberry.com>
-Copyright (c) 2015-2022 Douglas Christopher Wilson <doug@somethingdoug.com>
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
------------------------------------
-form-data
-
-Copyright (c) 2012 Felix Geisendörfer (felix@debuggable.com) and contributors
-
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
-
------------------------------------
-proxy-from-env
-
-The MIT License
-
-Copyright (C) 2016-2018 Rob Wu <rob@robwu.nl>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 Dependency: jsonc-parser
@@ -10396,6 +10179,36 @@ SOFTWARE.
 ------------------ END OF DEPENDENCY LICENSE --------------------
 
 
+Dependency: VS Code tooling for localizing Visual Studio Code extensions
+========================================================================
+
+------------------ START OF DEPENDENCY LICENCE --------------------
+- @vscode/l10n
+
+    MIT License
+
+    Copyright (c) Microsoft Corporation.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
+
+------------------ END OF DEPENDENCY LICENCE --------------------
+
 
 Dependency: VS Code Debug Protocol and Debug Adapter
 ====================================================
@@ -10715,3 +10528,28 @@ brace-expansion
 
 -------- License used by Dependencies
 MIT License as above
+
+------------------ END OF DEPENDENCY LICENSE --------------------
+
+Dependency: Apache Netbeans-l10n
+================================
+
+------------------ START OF DEPENDENCY LICENSE --------------------
+Apache 2.0 License as above
+
+-------- Copyrights
+Apache NetBeans-l10n
+Copyright 2017-2024 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+The code is based on NetBeans, that has been kindly donated to the Apache
+Software Foundation by Oracle.
+
+The code was Copyright 1997-2016 Oracle and/or its affiliates.  The Initial
+Developer of the Original Software was Sun Microsystems, Inc. Portions
+Copyright 1997-2006 Sun Microsystems, Inc.
+
+
+------------------ END OF DEPENDENCY LICENSE --------------------

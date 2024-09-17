@@ -66,10 +66,15 @@ import { createTreeViewService, TreeViewService, Visualizer } from './explorer';
 import { initializeRunConfiguration, runConfigurationProvider, runConfigurationNodeProvider, configureRunSettings, runConfigurationUpdateAll } from './runConfiguration';
 import { InputStep, MultiStepInput } from './utils';
 import { PropertiesView } from './propertiesView/propertiesView';
-import { openJDKSelectionView } from './jdkDownloader';
+import { l10n } from './localiser';
+import { ORACLE_VSCODE_EXTENSION_ID,NODE_WINDOWS_LABEL } from './constants';
+import { JdkDownloaderView } from './jdkDownloader/view';
 
 const API_VERSION : string = "1.0";
 const SERVER_NAME : string = "Oracle Java SE Language Server";
+const NB_LANGUAGE_CLIENT_ID: string = "java";
+const LANGUAGE_ID: string = "java";
+
 export const COMMAND_PREFIX : string = "jdk";
 const listeners = new Map<string, string[]>();
 let client: Promise<NbLanguageClient>;
@@ -78,7 +83,7 @@ let nbProcess : ChildProcess | null = null;
 let debugPort: number = -1;
 let debugHash: string | undefined;
 let consoleLog: boolean = !!process.env['ENABLE_CONSOLE_LOG'];
-
+let deactivated:boolean = true;
 export class NbLanguageClient extends LanguageClient {
     private _treeViewService: TreeViewService;
 
@@ -151,13 +156,13 @@ export function awaitClient() : Promise<NbLanguageClient> {
     if (c && !(c instanceof InitialPromise)) {
         return c;
     }
-    let nbcode = vscode.extensions.getExtension('oracle.oracle-java');
+    let nbcode = vscode.extensions.getExtension(ORACLE_VSCODE_EXTENSION_ID);
     if (!nbcode) {
-        return Promise.reject(new Error("Extension not installed."));
+        return Promise.reject(new Error(l10n.value("jdk.extenstion.notInstalled.label")));
     }
     const t : Thenable<NbLanguageClient> = nbcode.activate().then(nc => {
         if (client === undefined || client instanceof InitialPromise) {
-            throw new Error("Client not available");
+            throw new Error(l10n.value("jdk.extenstion.error_msg.clientNotAvailable"));
         } else {
             return client;
         }
@@ -169,15 +174,10 @@ function findJDK(onChange: (path : string | null) => void): void {
     let nowDark : boolean = isDarkColorTheme();
     let nowNbJavacDisabled : boolean = isNbJavacDisabled();
     function find(): string | null {
-        let nbJdk = workspace.getConfiguration('jdk').get('jdkhome');
+        let nbJdk = workspace.getConfiguration(COMMAND_PREFIX).get('jdkhome');
         if (nbJdk) {
             return nbJdk as string;
         }
-        let javahome = workspace.getConfiguration('java').get('home');
-        if (javahome) {
-            return javahome as string;
-        }
-
         let jdkHome: any = process.env.JDK_HOME;
         if (jdkHome) {
             return jdkHome as string;
@@ -190,13 +190,14 @@ function findJDK(onChange: (path : string | null) => void): void {
     }
 
     let currentJdk = find();
+    let projectJdk : string | undefined = getProjectJDKHome();
     let timeout: NodeJS.Timeout | undefined = undefined;
     workspace.onDidChangeConfiguration(params => {
         if (timeout) {
             return;
         }
         let interested : boolean = false;
-        if (params.affectsConfiguration('jdk') || params.affectsConfiguration('java')) {
+        if (params.affectsConfiguration(COMMAND_PREFIX)) {
             interested = true;
         } else if (params.affectsConfiguration('workbench.colorTheme')) {
             let d = isDarkColorTheme();
@@ -212,10 +213,12 @@ function findJDK(onChange: (path : string | null) => void): void {
             let newJdk = find();
             let newD = isDarkColorTheme();
             let newNbJavacDisabled = isNbJavacDisabled();
-            if (newJdk !== currentJdk || newD != nowDark || newNbJavacDisabled != nowNbJavacDisabled) {
+            let newProjectJdk : string | undefined = workspace.getConfiguration(COMMAND_PREFIX)?.get('project.jdkhome') as string;
+            if (newJdk !== currentJdk || newD != nowDark || newNbJavacDisabled != nowNbJavacDisabled || newProjectJdk != projectJdk) {
                 nowDark = newD;
                 currentJdk = newJdk;
                 nowNbJavacDisabled = newNbJavacDisabled;
+                projectJdk = newProjectJdk
                 onChange(currentJdk);
             }
         }, 0);
@@ -309,7 +312,7 @@ function wrapCommandWithProgress(lsCommand : string, title : string, log? : vsco
                     }
                 }
             } else {
-                reject(`cannot run ${lsCommand}; client is ${c}`);
+                reject(l10n.value("jdk.extenstion.progressBar.error_msg.cannotRun",{lsCommand:lsCommand,client:c}));
             }
         });
     });
@@ -327,8 +330,9 @@ class InitialPromise extends Promise<NbLanguageClient> {
 }
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
-    let log = vscode.window.createOutputChannel(SERVER_NAME);
 
+    deactivated=false;
+    let log = vscode.window.createOutputChannel(SERVER_NAME);
     var clientResolve : (x : NbLanguageClient) => void;
     var clientReject : (err : any) => void;
 
@@ -362,23 +366,22 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 
     //register debugger:
     let debugTrackerFactory =new NetBeansDebugAdapterTrackerFactory();
-    context.subscriptions.push(vscode.debug.registerDebugAdapterTrackerFactory('jdk', debugTrackerFactory));
+    context.subscriptions.push(vscode.debug.registerDebugAdapterTrackerFactory(COMMAND_PREFIX, debugTrackerFactory));
     let configInitialProvider = new NetBeansConfigurationInitialProvider();
-    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('jdk', configInitialProvider, vscode.DebugConfigurationProviderTriggerKind.Initial));
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(COMMAND_PREFIX, configInitialProvider, vscode.DebugConfigurationProviderTriggerKind.Initial));
     let configDynamicProvider = new NetBeansConfigurationDynamicProvider(context);
-    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('jdk', configDynamicProvider, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(COMMAND_PREFIX, configDynamicProvider, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
     let configResolver = new NetBeansConfigurationResolver();
-    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('jdk', configResolver));
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(COMMAND_PREFIX, configResolver));
     context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(((session) => onDidTerminateSession(session))));
 
     let debugDescriptionFactory = new NetBeansDebugAdapterDescriptionFactory();
-    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('jdk', debugDescriptionFactory));
+    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(COMMAND_PREFIX, debugDescriptionFactory));
 
     // initialize Run Configuration
     initializeRunConfiguration().then(initialized => {
 		if (initialized) {
-			context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('jdk', runConfigurationProvider));
-			context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('java', runConfigurationProvider));
+			context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(COMMAND_PREFIX, runConfigurationProvider));
 			context.subscriptions.push(vscode.window.registerTreeDataProvider('run-config', runConfigurationNodeProvider));
 			context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + '.workspace.configureRunSettings', (...params: any[]) => {
 				configureRunSettings(context, params);
@@ -388,7 +391,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 	});
 
     // register commands
-    context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.new', async (ctx) => {
+    context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.new', async (ctx, template) => {
         let c : LanguageClient = await client;
         const commands = await vscode.commands.getCommands();
         if (commands.includes(COMMAND_PREFIX + '.new.from.template')) {
@@ -397,7 +400,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             if(!workspaces) {
                 const userHomeDir = os.homedir();
                 const folderPath = await vscode.window.showInputBox({
-                    prompt: "Input the directory path where the new file will be generated",
+                    prompt: l10n.value('jdk.workspace.new.prompt'),
                     value: `${userHomeDir}`
                 });
                 if(!folderPath?.trim()) return;
@@ -412,9 +415,14 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                 return;
             }
 
-            // first give the context, then the open-file hint in the case the context is not specific enough
-            const res = await vscode.commands.executeCommand(COMMAND_PREFIX + '.new.from.template', contextUri(ctx)?.toString(), vscode.window.activeTextEditor?.document?.uri?.toString());
-
+            // first give the template (if present), then the context, and then the open-file hint in the case the context is not specific enough
+            const params = [];
+            if (typeof template === 'string') {
+                params.push(template);
+            }
+            params.push(contextUri(ctx)?.toString(), vscode.window.activeTextEditor?.document?.uri?.toString());
+            const res = await vscode.commands.executeCommand(COMMAND_PREFIX + '.new.from.template', ...params);
+            
             if (typeof res === 'string') {
                 let newFile = vscode.Uri.parse(res as string);
                 await vscode.window.showTextDocument(newFile, { preview: false });
@@ -427,7 +435,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                 }
             }
         } else {
-            throw `Client ${c} doesn't support new from template`;
+            throw l10n.value("jdk.extenstion.error_msg.doesntSupportNewTeamplate",{client:c});
         }
     }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.newproject', async (ctx) => {
@@ -438,10 +446,10 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             if (typeof res === 'string') {
                 let newProject = vscode.Uri.parse(res as string);
 
-                const OPEN_IN_NEW_WINDOW = 'Open in new window';
-                const ADD_TO_CURRENT_WORKSPACE = 'Add to current workspace';
+                const OPEN_IN_NEW_WINDOW = l10n.value("jdk.extension.label.openInNewWindow");
+                const ADD_TO_CURRENT_WORKSPACE = l10n.value("jdk.extension.label.addToWorkSpace");
 
-                const value = await vscode.window.showInformationMessage('New project created', OPEN_IN_NEW_WINDOW, ADD_TO_CURRENT_WORKSPACE);
+                const value = await vscode.window.showInformationMessage(l10n.value("jdk.extension.message.newProjectCreated"), OPEN_IN_NEW_WINDOW, ADD_TO_CURRENT_WORKSPACE);
                 if (value === OPEN_IN_NEW_WINDOW) {
                     await vscode.commands.executeCommand('vscode.openFolder', newProject, true);
                 } else if (value === ADD_TO_CURRENT_WORKSPACE) {
@@ -449,7 +457,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                 }
             }
         } else {
-            throw `Client ${c} doesn't support new project`;
+            throw l10n.value("jdk.extenstion.error_msg.doesntSupportNewProject",{client,c});
         }
     }));
 
@@ -486,8 +494,8 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                             namePathMapping[fileName] = fp.file
                         });
                         const selected = await window.showQuickPick(Object.keys(namePathMapping), {
-                            title: 'Select files to open',
-                            placeHolder: 'Test files or source files associated to each other',
+                            title: l10n.value("jdk.extension.fileSelector.label.selectFiles"),
+                            placeHolder: l10n.value("jdk.extension.fileSelector.label.testFilesOrSourceFiles"),
                             canPickMany: true
                         });
                         if (selected) {
@@ -496,60 +504,74 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                                 await vscode.window.showTextDocument(file, { preview: false });
                             }
                         } else {
-                            vscode.window.showInformationMessage("No file selected");
+                            vscode.window.showInformationMessage(l10n.value("jdk.extension.fileSelector.label.noFileSelected"));
                         }
                     }
                 }
             } catch (err:any) {
-                vscode.window.showInformationMessage(err?.message || "No Test or Tested class found");
+                vscode.window.showInformationMessage(err?.message || l10n.value("jdk.extension.fileSelector.label.noTestFound"));
             }
         } else {
-            throw `Client ${c} doesn't support go to test`;
+            throw l10n.value("jdk.extenstion.error_msg.doesntSupportGoToTest",{client:c});
         }
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".delete.cache", async () => {
         const storagePath = context.storageUri?.fsPath;
-        if(!storagePath){
-            vscode.window.showErrorMessage('Cannot find workspace path');
+        if (!storagePath) {
+            vscode.window.showErrorMessage(l10n.value("jdk.extenstion.cache.error_msg.cannotFindWrkSpacePath"));
             return;
         }
+
         const userDir = path.join(storagePath, "userdir");
         if (userDir && fs.existsSync(userDir)) {
-            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace?',
-                'Yes', 'Cancel');
-            if (confirmation === 'Yes') {
-                await fs.promises.rmdir(userDir, {recursive : true});
-                const res = await vscode.window.showInformationMessage('Cache cleared successfully for this workspace', 'Reload window');
-                if (res === 'Reload window') {
-                    await vscode.commands.executeCommand('workbench.action.reloadWindow');
+            const yes =  l10n.value("jdk.extension.cache.label.confirmation.yes")
+            const cancel = l10n.value("jdk.extension.cache.label.confirmation.cancel")
+            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace  and reload the window ?',
+                yes, cancel);
+            if (confirmation === yes) {
+                const reloadWindowActionLabel = l10n.value("jdk.extension.cache.label.reloadWindow");
+                try {
+                    await stopClient(client);
+                    deactivated = true;
+                    await killNbProcess(false, log);
+                    await fs.promises.rmdir(userDir, { recursive: true });
+                    await vscode.window.showInformationMessage(l10n.value("jdk.extenstion.message.cacheDeleted"), reloadWindowActionLabel);
+                } catch (err) {
+                    await vscode.window.showErrorMessage(l10n.value("jdk.extenstion.error_msg.cacheDeletionError"), reloadWindowActionLabel);
+                } finally {
+                    vscode.commands.executeCommand("workbench.action.reloadWindow");
                 }
             }
         } else {
-            vscode.window.showErrorMessage('Cannot find userdir path');
+            vscode.window.showErrorMessage(l10n.value("jdk.extension.cache.message.noUserDir"));
         }
     }));
+    
 
-    context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".download.jdk", async () => { openJDKSelectionView(log); }));
+    context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".download.jdk", async () => { 
+        const jdkDownloaderView = new JdkDownloaderView(log);
+        jdkDownloaderView.createView();
+    }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.compile', () =>
-        wrapCommandWithProgress(COMMAND_PREFIX + '.build.workspace', 'Compiling workspace...', log, true)
+        wrapCommandWithProgress(COMMAND_PREFIX + '.build.workspace', l10n.value('jdk.extension.command.progress.compilingWorkSpace'), log, true)
     ));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.clean', () =>
-        wrapCommandWithProgress(COMMAND_PREFIX + '.clean.workspace', 'Cleaning workspace...', log, true)
+        wrapCommandWithProgress(COMMAND_PREFIX + '.clean.workspace',l10n.value('jdk.extension.command.progress.cleaningWorkSpace'), log, true)
     ));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.project.compile', (args) => {
-        wrapProjectActionWithProgress('build', undefined, 'Compiling...', log, true, args);
+        wrapProjectActionWithProgress('build', undefined, l10n.value('jdk.extension.command.progress.compilingProject'), log, true, args);
     }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.project.clean', (args) => {
-        wrapProjectActionWithProgress('clean', undefined, 'Cleaning...', log, true, args);
+        wrapProjectActionWithProgress('clean', undefined, l10n.value('jdk.extension.command.progress.cleaningProject'), log, true, args);
     }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.open.type', () => {
-        wrapCommandWithProgress(COMMAND_PREFIX + '.quick.open', 'Opening type...', log, true).then(() => {
+        wrapCommandWithProgress(COMMAND_PREFIX + '.quick.open', l10n.value('jdk.extension.command.progress.quickOpen'), log, true).then(() => {
             commands.executeCommand('workbench.action.focusActiveEditorGroup');
         });
     }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.java.goto.super.implementation', async () => {
-        if (window.activeTextEditor?.document.languageId !== "java") {
+        if (window.activeTextEditor?.document.languageId !== LANGUAGE_ID) {
             return;
         }
         const uri = window.activeTextEditor.document.uri;
@@ -557,7 +579,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
         const locations: any[] = await vscode.commands.executeCommand(COMMAND_PREFIX + '.java.super.implementation', uri.toString(), position) || [];
         return vscode.commands.executeCommand('editor.action.goToLocations', window.activeTextEditor.document.uri, position,
             locations.map(location => new vscode.Location(vscode.Uri.parse(location.uri), new vscode.Range(location.range.start.line, location.range.start.character, location.range.end.line, location.range.end.character))),
-            'peek', 'No super implementation found');
+            'peek', l10n.value('jdk.extenstion.error_msg.noSuperImpl'));
     }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.rename.element.at', async (offset) => {
         const editor = window.activeTextEditor;
@@ -569,7 +591,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
         }
     }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.surround.with', async (items) => {
-        const selected: any = await window.showQuickPick(items, { placeHolder: 'Surround with ...' });
+        const selected: any = await window.showQuickPick(items, { placeHolder: l10n.value('jdk.extension.command.quickPick.placeholder.surroundWith') });
         if (selected) {
             if (selected.userData.edit) {
                 const edit = await (await client).protocol2CodeConverter.asWorkspaceEdit(selected.userData.edit as ls.WorkspaceEdit);
@@ -589,13 +611,13 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
     }));
 
     async function findRunConfiguration(uri : vscode.Uri) : Promise<vscode.DebugConfiguration|undefined> {
-        // do not invoke debug start with no (java+) configurations, as it would probably create an user prompt
+        // do not invoke debug start with no (jdk) configurations, as it would probably create an user prompt
         let cfg = vscode.workspace.getConfiguration("launch");
         let c = cfg.get('configurations');
         if (!Array.isArray(c)) {
             return undefined;
         }
-        let f = c.filter((v) => v['type'] === 'java+');
+        let f = c.filter((v) => v['type'] === COMMAND_PREFIX);
         if (!f.length) {
             return undefined;
         }
@@ -608,10 +630,10 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
             }
         }
         let provider = new P();
-        let d = vscode.debug.registerDebugConfigurationProvider('java+', provider);
+        let d = vscode.debug.registerDebugConfigurationProvider(COMMAND_PREFIX, provider);
         // let vscode to select a debug config
         return await vscode.commands.executeCommand('workbench.action.debug.start', { config: {
-            type: 'java+',
+            type: COMMAND_PREFIX,
             mainClass: uri.toString()
         }, noDebug: true}).then((v) => {
             d.dispose();
@@ -627,11 +649,11 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
         if (docUri) {
             // attempt to find the active configuration in the vsode launch settings; undefined if no config is there.
             let debugConfig : vscode.DebugConfiguration = await findRunConfiguration(docUri) || {
-                type: "jdk",
+                type: COMMAND_PREFIX,
                 name: "Java Single Debug",
                 request: "launch"
             };
-            if (!methodName) {
+            if (methodName) {
                 debugConfig['methodName'] = methodName;
             }
             if (launchConfiguration == '') {
@@ -802,7 +824,7 @@ function killNbProcess(notifyKill : boolean, log : vscode.OutputChannel, specPro
     handleLog(log, "Request to kill LSP server.");
     if (p && (!specProcess || specProcess == p)) {
         if (notifyKill) {
-            vscode.window.setStatusBarMessage(`Restarting ${SERVER_NAME}.`, 2000);
+            vscode.window.setStatusBarMessage(l10n.value("jdk.extension.command.statusBar.message.restartingServer",{SERVER_NAME:SERVER_NAME}), 2000);
         }
         return new Promise((resolve, reject) => {
             nbProcess = null;
@@ -856,7 +878,11 @@ function isDarkColorTheme() : boolean {
 }
 
 function isNbJavacDisabled() : boolean {
-    return workspace.getConfiguration('jdk')?.get('advanced.disable.nbjavac') as boolean;
+    return workspace.getConfiguration(COMMAND_PREFIX)?.get('advanced.disable.nbjavac') as boolean;
+}
+
+function getProjectJDKHome() : string {
+    return workspace.getConfiguration(COMMAND_PREFIX)?.get('project.jdkhome') as string;
 }
 
 function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContext, log : vscode.OutputChannel, notifyKill: boolean,
@@ -870,7 +896,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
         }, time);
     };
 
-    const netbeansConfig = workspace.getConfiguration('jdk');
+    const netbeansConfig = workspace.getConfiguration(COMMAND_PREFIX);
     const beVerbose : boolean = netbeansConfig.get('verbose', false);
     let userdir = process.env['nbcode_userdir'] || netbeansConfig.get('userdir', 'local');
     switch (userdir) {
@@ -895,17 +921,49 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
         enableModules.push('org.netbeans.libs.nbjavacapi');
     }
 
+    let projectSearchRoots:string = '';
+    const isProjectFolderSearchLimited : boolean = !netbeansConfig.get('advanced.disable.projectSearchLimit', false);
+    if (isProjectFolderSearchLimited) {
+        try {
+            projectSearchRoots = os.homedir() as string;
+        } catch (err:any) {
+            handleLog(log, `Failed to obtain the user home directory due to: ${err}`);
+        }
+        if (!projectSearchRoots) {
+            projectSearchRoots = os.type() === NODE_WINDOWS_LABEL ? '%USERPROFILE%' : '$HOME';   // The launcher script may perform the env variable substitution
+            handleLog(log, `Using userHomeDir = "${projectSearchRoots}" as the launcher script may perform env var substitution to get its value.`);
+        }
+        const workspaces = workspace.workspaceFolders;
+        if (workspaces) {
+            workspaces.forEach(workspace => {
+                if (workspace.uri) {
+                    try {
+                        projectSearchRoots = projectSearchRoots + path.delimiter + path.normalize(workspace.uri.fsPath);
+                    } catch (err:any) {
+                        handleLog(log, `Failed to get the workspace path: ${err}`);
+                    }
+                }
+            });
+        }
+    }
+
     let info = {
         clusters : findClusters(context.extensionPath),
         extensionPath: context.extensionPath,
         storagePath : userdir,
         jdkHome : specifiedJDK,
+        projectSearchRoots: projectSearchRoots,
         verbose: beVerbose,
         disableModules : disableModules,
         enableModules : enableModules,
     };
 
-    let launchMsg = `Launching ${SERVER_NAME} with ${specifiedJDK ? specifiedJDK : 'default system JDK'} and userdir ${userdir}`;
+    const requiredJdk = specifiedJDK ? specifiedJDK : 'default system JDK';
+    let launchMsg = l10n.value("jdk.extension.lspServer.statusBar.message.launching",{
+        SERVER_NAME:SERVER_NAME,
+        requiredJdk:requiredJdk,
+        userdir:userdir
+        });
     handleLog(log, launchMsg);
     vscode.window.setStatusBarMessage(launchMsg, 2000);
 
@@ -930,11 +988,11 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                 stdOut = null;
             }
         }
-        let extras : string[] = ["--modules", "--list", "-J-XX:PerfMaxStringConstLength=10240"];
+        let extras : string[] = ["--modules", "--list", "-J-XX:PerfMaxStringConstLength=10240","--locale",l10n.nbLocaleCode()];
         if (isDarkColorTheme()) {
             extras.push('--laf', 'com.formdev.flatlaf.FlatDarkLaf');
         }
-        let serverVmOptions: string[] = workspace.getConfiguration('jdk').get("serverVmOptions",[]);
+        let serverVmOptions: string[] = workspace.getConfiguration(COMMAND_PREFIX).get("serverVmOptions",[]);
         extras.push(...serverVmOptions.map(el => `-J${el}`));
         let p = launcher.launch(info, ...extras);
         handleLog(log, "LSP server launching: " + p.pid);
@@ -951,15 +1009,16 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                 nbProcess = null;
             }
             if (p == nbProcess && code != 0 && code) {
-                vscode.window.showWarningMessage(`${SERVER_NAME} exited with ` + code);
+                vscode.window.showWarningMessage(l10n.value("jdk.extension.lspServer.warning_message.serverExited",{SERVER_NAME:SERVER_NAME,code:code}));
             }
-            if (stdErr?.match(/Cannot find java/) || os.type() === "Windows_NT" ) {
+            if (stdErr?.match(/Cannot find java/) || (os.type() === NODE_WINDOWS_LABEL && !deactivated) ) {
+                const downloadAndSetupActionLabel = l10n.value("jdk.extension.lspServer.label.downloadAndSetup")
                 vscode.window.showInformationMessage(
-                    "No JDK found!",
-                    "Download JDK and setup automatically"
-                ).then( selection => {
-                    if (selection === 'Download JDK and setup automatically') {
-                        openJDKSelectionView(log);
+                    l10n.value("jdk.extension.lspServer.message.noJdkFound"),
+                    downloadAndSetupActionLabel
+                ).then(selection => {
+                    if (selection === downloadAndSetupActionLabel) {
+                        commands.executeCommand(`${COMMAND_PREFIX}.download.jdk`);
                     }
                 });
             }
@@ -973,7 +1032,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
                 handleLog(log, `Please refer to troubleshooting section for more info: https://github.com/oracle/javavscode/blob/main/README.md#troubleshooting`);
                 log.show(false);
                 killNbProcess(false, log, p);
-                reject(`${SERVER_NAME} not enabled!`);
+                reject(l10n.value("jdk.extension.error_msg.notEnabled",{SERVER_NAME}));
             } else {
                 handleLog(log, "LSP server " + p.pid + " terminated with " + code);
                 handleLog(log, "Exit code " + code);
@@ -1027,7 +1086,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
         });
         const conf = workspace.getConfiguration();
         let documentSelectors : DocumentSelector = [
-                { language: 'java' },
+                { language: LANGUAGE_ID },
                 { language: 'yaml', pattern: '**/{application,bootstrap}*.yml' },
                 { language: 'properties', pattern: '**/{application,bootstrap}*.properties' },
                 { language: 'jackpot-hint' },
@@ -1041,11 +1100,12 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
             documentSelector: documentSelectors,
             synchronize: {
                 configurationSection: [
-                    'jdk.hints',
-                    'jdk.format',
-                    'jdk.java.imports',
-                    'jdk.runConfig.vmOptions',
-                    'jdk.runConfig.cwd'
+                    COMMAND_PREFIX + '.hints',
+                    COMMAND_PREFIX + '.format',
+                    COMMAND_PREFIX + '.java.imports',
+                    COMMAND_PREFIX + '.project.jdkhome',
+                    COMMAND_PREFIX + '.runConfig.vmOptions',
+                    COMMAND_PREFIX + '.runConfig.cwd'
                 ],
                 fileEvents: [
                     workspace.createFileSystemWatcher('**/*.java')
@@ -1082,7 +1142,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
 
 
         let c = new NbLanguageClient(
-                'java',
+                NB_LANGUAGE_CLIENT_ID,
                 'Oracle Java SE',
                 connection,
                 log,
@@ -1240,7 +1300,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
     }).catch((reason) => {
         activationPending = false;
         handleLog(log, reason);
-        window.showErrorMessage('Error initializing ' + reason);
+        window.showErrorMessage(l10n.value("jdk.extension.lspServer.error_message",{reason:reason}));
     });
 
     async function createProjectView(ctx : ExtensionContext, client : NbLanguageClient) {
@@ -1263,7 +1323,7 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
         }
 
         ctx.subscriptions.push(window.onDidChangeActiveTextEditor(ed => {
-            const netbeansConfig = workspace.getConfiguration('jdk');
+            const netbeansConfig = workspace.getConfiguration(COMMAND_PREFIX);
             if (netbeansConfig.get("revealActiveInProjects")) {
                 revealActiveEditor(ed);
             }
@@ -1365,19 +1425,19 @@ function doActivateWithJDK(specifiedJDK: string | null, context: ExtensionContex
         const NO_JAVA_SUPPORT = "Cannot initialize Java support";
         if (msg.startsWith(NO_JAVA_SUPPORT)) {
             if (isNbJavacDisabled()) {
-                const message = "Supported version of javac needed. Please either enable the nb-javac library, or use JDK 22+";
-                const enable = "Enable the nb-javac library";
-                const settings = "Open settings";
+                const message = l10n.value("jdk.extension.nbjavac.message.supportedVersionRequired");
+                const enable = l10n.value("jdk.extension.nbjavac.label.enableNbjavac");
+                const settings = l10n.value("jdk.extension.nbjavac.label.openSettings");
                 window.showErrorMessage(message, enable, settings).then(reply => {
                     if (enable === reply) {
-                        workspace.getConfiguration().update('jdk.advanced.disable.nbjavac', false);
+                        workspace.getConfiguration().update(COMMAND_PREFIX + '.advanced.disable.nbjavac', false);
                     } else if (settings === reply) {
-                        vscode.commands.executeCommand('workbench.action.openSettings', 'jdk.jdkhome');
+                        vscode.commands.executeCommand('workbench.action.openSettings', COMMAND_PREFIX + '.jdkhome');
                     }
                 });
             } else {
-                const yes = "Install GPLv2+CPEx code";
-                window.showErrorMessage("Additional Java Support is needed", yes).then(reply => {
+                const yes = l10n.value("jdk.extension.javaSupport.label.installGpl");
+                window.showErrorMessage(l10n.value("jdk.extension.javaSupport.message.needAdditionalSupport"), yes).then(reply => {
                     if (yes === reply) {
                         vscode.window.setStatusBarMessage(`Preparing ${SERVER_NAME} for additional installation`, 2000);
                         restartWithJDKLater = function() {
@@ -1465,7 +1525,7 @@ class NetBeansDebugAdapterDescriptionFactory implements vscode.DebugAdapterDescr
                     if (cnt-- > 0) {
                         setTimeout(fnc, 1000);
                     } else {
-                        reject(new Error('Oracle Java SE Debug Server Adapter not yet initialized. Please wait for a while and try again.'));
+                        reject(new Error(l10n.value('jdk.extenstion.debugger.error_msg.debugAdapterNotInitialized')));
                     }
                 } else {
                     // resolve(new vscode.DebugAdapterServer(debugPort));
@@ -1517,7 +1577,7 @@ class NetBeansConfigurationInitialProvider implements vscode.DebugConfigurationP
                 }
                 const debugConfig : vscode.DebugConfiguration = {
                     name: cname,
-                    type: "jdk",
+                    type: COMMAND_PREFIX,
                     request: "launch",
                     launchConfiguration: cn,
                 };
@@ -1591,7 +1651,7 @@ class NetBeansConfigurationResolver implements vscode.DebugConfigurationProvider
 
     resolveDebugConfiguration(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
         if (!config.type) {
-            config.type = 'jdk';
+            config.type = COMMAND_PREFIX;
         }
         if (!config.request) {
             config.request = 'launch';

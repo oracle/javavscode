@@ -62,7 +62,14 @@ jobs:
         with:
           repository: apache/netbeans
           path: netbeans
-          ref: 22
+          ref: 23-rc3
+
+      - name: Checkout NetBeans l10n
+        uses: actions/checkout@v4
+        with:
+          repository: apache/netbeans-l10n
+          path: netbeans-l10n
+          ref: ece00239dc7a208fba60703c2256ffd818da1646
 
       - name: Apply NetBeans patches
         run: ant apply-patches

@@ -39,12 +39,21 @@ $ git clone https://github.com/oracle/javavscode.git
 $ cd javavscode/
 $ git clone https://github.com/apache/netbeans.git
 $ cd netbeans/
-$ git checkout 22
+$ git checkout 23-rc3
+$ cd ..
+$ git clone https://github.com/apache/netbeans-l10n.git
+$ cd netbeans-l10n
+$ git checkout ece00239dc7a208fba60703c2256ffd818da1646 # head commit in master
 $ cd ..
 # the following target requires git executable to be on PATH:
 $ ant apply-patches
 $ ant build-netbeans
+
+#Note if you do not wish to have l10n in scope then add no-l10n before any ant invocation target at beginning as below, by default l10n is enabled
+$ ant no-l10n apply-patches
+$ ant no-l10n build-netbeans
 ```
+
 
 ## Building VS Code extension
 

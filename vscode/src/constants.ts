@@ -14,13 +14,16 @@
   limitations under the License.
 */
 
+
 export const JDK_RELEASES_TRACK_URL = `https://www.java.com/releases/releases.json`;
 
-export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java/`;
+export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
 
-export const ORACLE_JDK_DOWNLOAD_VERSIONS = ['22','21','17'];
+export const ORACLE_JDK_DOWNLOAD_VERSIONS = ['23','21'];
 
 export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-  "22": "https://download.java.net/java/GA/jdk22.0.1/c7ec1332f7bb44aeba2eb341ae18aca4/8/GPL/openjdk-22.0.1",
-  "21": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2"
+  "23": "https://download.java.net/java/GA/jdk23/3c5b90190c68498b986a97f276efd28a/37/GPL/openjdk-23"
 };
+
+export const ORACLE_VSCODE_EXTENSION_ID = 'oracle.oracle-java';
+export const NODE_WINDOWS_LABEL = "Windows_NT";

@@ -31,27 +31,34 @@
     <property name="nbplatform.default.harness.dir" location="${nbplatform.default.netbeans.dest.dir}/harness" />
     <property name="nbantext.jar" location="netbeans/nbbuild/build/nbantext.jar" />
     <property name="nb_all" location="netbeans" />
+    <loadresource property="patch-files-l10n">
+        <string>
+            patches/l10n/adding-ja-and-zh_CN.diff
+        </string>
+        <filterchain>
+            <tokenfilter delimoutput=" ">
+                <replaceregex pattern="\s+" replace=""/>
+            </tokenfilter>
+        </filterchain>
+    </loadresource>
     <loadresource property="patch-files">
         <string>
             patches/6330.diff
-            patches/7001.diff
-            patches/7271.diff
-            patches/7353.diff
-            patches/7368.diff
-            patches/7370.diff
-            patches/7382.diff
-            patches/7491-preliminary.diff
-            patches/7548_source-1.8.diff
-            patches/7583_source-1.8.diff
+            patches/7491.diff
             patches/7610.diff
-            patches/7621.diff
             patches/7641.diff
             patches/7654.diff
+            patches/7670.diff
+            patches/7699.diff
+            patches/7722.diff
+            patches/7724.diff
+            patches/7733.diff
             patches/mvn-sh.diff
             patches/generate-dependencies.diff
             patches/rename-debugger.diff
             patches/remove-db.diff
             patches/nbjavac-not-required.diff
+            patches/l10n-liscence.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
@@ -62,6 +69,10 @@
     <property name="patches" value="${patch-files}"/>
     <condition property="has-patches">
         <length string="${patches}" trim="true" when="greater" length="0"/>
+    </condition>
+    <property name="patches-l10n" value="${patch-files-l10n}"/>
+    <condition property="has-l10n-patches">
+        <length string="${patches-l10n}" trim="true" when="greater" length="0"/>
     </condition>
 
     <condition property="cmd.suffix" value=".cmd" else="">
@@ -96,7 +107,7 @@
         <chmod file="${lsp.build.dir}/platform/lib/nbexec.sh" perm="u+x"/>
         <chmod file="${lsp.build.dir}/java/maven/bin/mvn.sh" perm="u+x" />
     </target>
-    <target name="add-extra-modules" depends="build-lsp-server" if="extra.modules">
+    <target name="add-extra-modules" depends="build-lsp-server,build-l10n-bundles" if="extra.modules">
         <ant dir="../../nbbuild" target="build-nbms" inheritall="false" inheritrefs="false">
             <property name="cluster.config" value="basic"/>
         </ant>
@@ -116,6 +127,57 @@
         <delete dir="vscode/out" />
         <ant dir="nbcode" target="clean" inheritall="false" inheritrefs="false"/>
     </target>
+
+    <property name="netbeans.l10n.dir" location="netbeans-l10n"/>
+    <property name="javavscode.nbuild.nb.dir" location="netbeans/nbbuild/netbeans"/>
+    <property name="javavscode.nbcode.extra.dir" location="vscode/nbcode/extra"/>
+
+    <target name="build-l10n-ant-text-jar">
+        <ant dir="${netbeans.l10n.dir}/l10nantext" inheritall="false" inheritrefs="false">
+            <property name="file.reference.ant.jar" value="${ant.home}/lib/ant.jar"/>
+        </ant>
+    </target>
+
+    <target name="build-l10n">
+        <ant dir="${netbeans.l10n.dir}/locale_${locale}" target="build" inheritall="false" inheritrefs="false">
+            <property name="nbplatform.default.harness.dir" location="${javavscode.nbuild.nb.dir}/harness"/>
+            <property name="nbplatform.default.netbeans.dest.dir" location="${javavscode.nbuild.nb.dir}"/>
+        </ant>
+        <copy todir="${javavscode.nbcode.extra.dir}">
+            <fileset dir="${netbeans.l10n.dir}/locale_${locale}/build/cluster"/>
+        </copy>
+    </target>
+    <target name="clean-l10n">
+        <delete dir="${netbeans.l10n.dir}/locale_${locale}/build"/>
+        <delete dir="${netbeans.l10n.dir}/locale_${locale}/release"/>
+    </target>
+    <target name="clean-l10n-bundles">
+        <delete dir="${netbeans.l10n.dir}/l10nantext/build"/>
+        <delete dir="${netbeans.l10n.dir}/l10nantext/dist"/>
+        <ant target="clean-l10n">
+            <property name="locale" value="ja"/>
+        </ant>
+        <ant target="clean-l10n">
+            <property name="locale" value="zh_CN"/>
+        </ant>
+    </target>
+    <target name="no-l10n">
+        <property name="javavscode.disablel0n" value="true"/>
+    </target>
+    <target name="build-l10n-bundles" depends="clean-l10n-bundles,build-l10n-ant-text-jar" description="builds l10n language bundles for vs code extension"
+    unless="${javavscode.disablel0n}"
+    >
+        <ant target="build-l10n">
+            <property name="locale" value="ja" description="japanese"/>
+        </ant>
+        <ant target="build-l10n">
+            <property name="locale" value="zh_CN" description="simplified chinese"/>
+        </ant>
+    </target>
+
+
+
+
     <target name="build-vscode-ext" depends="add-extra-modules" description="Build the Visual Studio Code extension.">
         <taskdef name="gitbranchhash" classname="org.netbeans.nbbuild.GitBranchHash" classpath="${nbantext.jar}" />
         <gitbranchhash file="." branchproperty="metabuild.branch" hashproperty="metabuild.hash" />
@@ -207,17 +269,38 @@
         </exec>
     </target>
 
-    <target name="apply-patches" if="has-patches">
-        <echo>${patches}</echo>
-        <exec executable="git">
+
+    <target name = "git-patch" if="${has-git-patches}" >
+        <echo>${git-patches-list}</echo>
+        <exec executable="git" failonerror="true">
             <arg value="apply"/>
-            <arg value="--directory=netbeans"/>
+            <arg value="--directory=${git-dir}"/>
             <arg value="--whitespace=nowarn"/>
-            <arg line="${patches}"/>
+            <arg line="${git-patches-list}"/>
         </exec>
     </target>
 
-    <target name="unapply-patches" if="has-patches">
+    <target name="apply-patches">
+        <ant target="git-patch">
+            <property name="git-patches-list" value="${patches}"/>
+            <property name="has-git-patches" value="${has-patches}"/>
+            <property name="git-dir" value="netbeans"/>
+        </ant>
+
+        <condition value="true" property="should-apply">
+            <and>
+                <istrue value="${has-l10n-patches}"/>
+                <isfalse value="${javavscode.disablel0n}"/>
+            </and>
+        </condition>
+        <ant target="git-patch">
+            <property name="git-patches-list" value="${patches-l10n}"/>
+            <property name="has-git-patches" value="${should-apply}"/>
+            <property name="git-dir" value="netbeans-l10n"/>
+        </ant>
+    </target>
+
+    <target name = "git-un-patch" if="${has-git-patches}" >
         <!--in the reverse order:-->
         <echo file="${build.dir}/Reverse.java">
             import java.util.Arrays;
@@ -225,26 +308,45 @@
             import java.util.List;
             import java.util.stream.Collectors;
             public class Reverse {
-                 public static void main(String[] args) {
-                    List&lt;String> patches = Arrays.asList(args[0].split(" "));
-                    Collections.reverse(patches);
-                    System.out.print(patches.stream().collect(Collectors.joining(" ")));
-                 }
+            public static void main(String[] args) {
+            List&lt;String> patches = Arrays.asList(args[0].split(" "));
+            Collections.reverse(patches);
+            System.out.print(patches.stream().collect(Collectors.joining(" ")));
+            }
             }
         </echo>
         <java sourcefile="${build.dir}/Reverse.java"
               outputproperty="reverse.patches"
               fork="true">
-             <arg value="${patches}" />
+            <arg value="${git-patches-list}" />
         </java>
         <echo>${reverse.patches}</echo>
-        <exec executable="git">
+        <exec executable="git" failonerror="true">
             <arg value="apply"/>
-            <arg value="--directory=netbeans"/>
+            <arg value="--directory=${git-dir}"/>
             <arg value="--whitespace=nowarn"/>
             <arg value="--reverse"/>
             <arg line="${reverse.patches}"/>
         </exec>
+    </target>
+
+    <target name="unapply-patches">
+        <ant target="git-un-patch">
+            <property name="git-patches-list" value="${patches}"/>
+            <property name="has-git-patches" value="${has-patches}"/>
+            <property name="git-dir" value="netbeans"/>
+        </ant>
+        <condition value="true" property="should-apply">
+            <and>
+                <istrue value="${has-l10n-patches}"/>
+                <isfalse value="${javavscode.disablel0n}"/>
+            </and>
+        </condition>
+        <ant target="git-un-patch">
+            <property name="git-patches-list" value="${patches-l10n}"/>
+            <property name="has-git-patches" value="${should-apply}"/>
+            <property name="git-dir" value="netbeans-l10n"/>
+        </ant>
     </target>
 
     <target name="build-netbeans">

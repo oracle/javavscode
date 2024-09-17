@@ -32,6 +32,7 @@ export interface LaunchInfo {
     extensionPath: string;
     storagePath: string;
     jdkHome: string | unknown;
+    projectSearchRoots? : string;
     verbose? : boolean;
     enableModules? : string[];
     disableModules? : string[];
@@ -102,6 +103,11 @@ export function launch(
     if (info.jdkHome) {
         ideArgs.push('--jdkhome', info.jdkHome as string);
     }
+
+    if (info.projectSearchRoots) {
+        ideArgs.push(`-J-Dproject.limitScanRoot="${info.projectSearchRoots}"`);
+    }
+
     if (info.verbose) {
         ideArgs.push('-J-Dnetbeans.logger.console=true');
     }
