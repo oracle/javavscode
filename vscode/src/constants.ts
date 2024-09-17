@@ -19,10 +19,10 @@ export const JDK_RELEASES_TRACK_URL = `https://www.java.com/releases/releases.js
 
 export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
 
-export const ORACLE_JDK_DOWNLOAD_VERSIONS = ['22','21'];
+export const ORACLE_JDK_DOWNLOAD_VERSIONS = ['23','21'];
 
 export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-  "22": "https://download.java.net/java/GA/jdk22.0.2/c9ecb94cd31b495da20a27d4581645e8/9/GPL/openjdk-22.0.2"
+  "23": "https://download.java.net/java/GA/jdk23/3c5b90190c68498b986a97f276efd28a/37/GPL/openjdk-23"
 };
 
 export const ORACLE_VSCODE_EXTENSION_ID = 'oracle.oracle-java';
