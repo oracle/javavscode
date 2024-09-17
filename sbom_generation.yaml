@@ -14,7 +14,7 @@ steps:
     name: "Installing syft"
     command: |
       curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b ./
-  - type: Command 
+  - type: Command
     name: "Create SBOM for the nbcode (java project)  using syft "
     command: |
       export SYFT_FORMAT_PRETTY=true
@@ -32,16 +32,16 @@ steps:
       npx @cyclonedx/cyclonedx-npm --omit dev --output-format JSON --output-file vscodeSBOM.json --spec-version 1.4
       cd ..
   - type: Command
-      name: "Download CycloneDx-cli executable and install dependencies"
-      command: |
-        wget https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.24.2/cyclonedx-linux-x64
-        yum install -y libicu
-    - type: Command
-      name: "Merge multiple SBOMs using CycloneDX-cli"
-      command: |
-        # For more details, visit https://github.com/CycloneDX/cyclonedx-cli/blob/main/README.md
-        chmod +x cyclonedx-linux-x64
-        ./cyclonedx-linux-x64 merge --input-files ./vscode/vscodeSBOM.json  ./nbcode/nbcodeSBOM.json   --output-file artifactSBOM.json
+    name: "Download CycloneDx-cli executable and install dependencies"
+    command: |
+      wget https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.24.2/cyclonedx-linux-x64
+      yum install -y libicu
+  - type: Command
+    name: "Merge multiple SBOMs using CycloneDX-cli"
+    command: |
+      # For more details, visit https://github.com/CycloneDX/cyclonedx-cli/blob/main/README.md
+      chmod +x cyclonedx-linux-x64
+      ./cyclonedx-linux-x64 merge --input-files ./vscode/vscodeSBOM.json  ./nbcode/nbcodeSBOM.json   --output-file artifactSBOM.json
 outputArtifacts:
   - name: artifactSBOM
     type: BINARY
