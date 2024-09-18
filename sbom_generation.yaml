@@ -28,9 +28,9 @@ steps:
   - type: Command
     name: "Run cyclonedx-node-npm package"
     command: |
+      cd vscode
       # For more details, visit https://github.com/CycloneDX/cyclonedx-node-npm/blob/main/README.md
       npx @cyclonedx/cyclonedx-npm --omit dev --output-format JSON --output-file vscodeSBOM.json --spec-version 1.4
-      cd ..
   - type: Command
     name: "Download CycloneDx-cli executable and install dependencies"
     command: |
