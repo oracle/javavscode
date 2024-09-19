@@ -33,7 +33,8 @@
     <property name="nb_all" location="netbeans" />
     <loadresource property="patch-files-l10n">
         <string>
-            patches/l10n/adding-ja-and-zh_CN.diff
+            patches/l10n/filter-enabled-clusters-disabled-modules-code-cleanup.diff
+            patches/l10n/adding-java.lsp.server-ja-and-zh_CN.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
@@ -58,7 +59,7 @@
             patches/rename-debugger.diff
             patches/remove-db.diff
             patches/nbjavac-not-required.diff
-            patches/l10n-liscence.diff
+            patches/l10n-licence.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
@@ -129,27 +130,35 @@
     </target>
 
     <property name="netbeans.l10n.dir" location="netbeans-l10n"/>
-    <property name="javavscode.nbuild.nb.dir" location="netbeans/nbbuild/netbeans"/>
-    <property name="javavscode.nbcode.extra.dir" location="vscode/nbcode/extra"/>
+    <property name="nbcode.l10n.dir" location="nbcode/l10n"/>
+    <property name="vscode.nbcode.extra.dir" location="vscode/nbcode/extra"/>
 
-    <target name="build-l10n-ant-text-jar">
+    <target name="build-l10n-ant-ext-jar">
         <ant dir="${netbeans.l10n.dir}/l10nantext" inheritall="false" inheritrefs="false">
             <property name="file.reference.ant.jar" value="${ant.home}/lib/ant.jar"/>
         </ant>
     </target>
 
     <target name="build-l10n">
-        <ant dir="${netbeans.l10n.dir}/locale_${locale}" target="build" inheritall="false" inheritrefs="false">
-            <property name="nbplatform.default.harness.dir" location="${javavscode.nbuild.nb.dir}/harness"/>
-            <property name="nbplatform.default.netbeans.dest.dir" location="${javavscode.nbuild.nb.dir}"/>
+        <ant dir="${nbcode.l10n.dir}/locale_${locale}" target="build" inheritall="false" inheritrefs="false">
+            <property name="nbplatform.default.harness.dir" location="${nbplatform.default.harness.dir}"/>
+            <property name="nbplatform.default.netbeans.dest.dir" location="${nbplatform.default.netbeans.dest.dir}"/>
+            <property name="netbeans.l10n.dir" location="${netbeans.l10n.dir}"/>
         </ant>
-        <copy todir="${javavscode.nbcode.extra.dir}">
-            <fileset dir="${netbeans.l10n.dir}/locale_${locale}/build/cluster"/>
+        <copy todir="${vscode.nbcode.extra.dir}">
+            <fileset dir="${nbcode.l10n.dir}/locale_${locale}/build/cluster"/>
         </copy>
     </target>
     <target name="clean-l10n">
-        <delete dir="${netbeans.l10n.dir}/locale_${locale}/build"/>
-        <delete dir="${netbeans.l10n.dir}/locale_${locale}/release"/>
+        <delete dir="${nbcode.l10n.dir}/locale_${locale}/build" includeemptydirs="true" quiet="true"/>
+        <delete dir="${nbcode.l10n.dir}/locale_${locale}/release" includeemptydirs="true" quiet="true"/>
+        <delete includeemptydirs="true" quiet="true">
+            <fileset dir="${vscode.nbcode.extra.dir}">
+                <include name="**/*${locale}.jar"/>
+                <include name="**/*${locale}.xml"/>
+                <include name="**/*${locale}.html"/>
+            </fileset>
+        </delete>
     </target>
     <target name="clean-l10n-bundles">
         <delete dir="${netbeans.l10n.dir}/l10nantext/build"/>
@@ -162,11 +171,10 @@
         </ant>
     </target>
     <target name="no-l10n">
-        <property name="javavscode.disablel0n" value="true"/>
+        <property name="disable.netbeans.l10n" value="true"/>
     </target>
-    <target name="build-l10n-bundles" depends="clean-l10n-bundles,build-l10n-ant-text-jar" description="builds l10n language bundles for vs code extension"
-    unless="${javavscode.disablel0n}"
-    >
+    <target name="build-l10n-bundles" depends="clean-l10n-bundles,build-l10n-ant-ext-jar" description="builds l10n language bundles for vs code extension"
+            unless="${disable.netbeans.l10n}">
         <ant target="build-l10n">
             <property name="locale" value="ja" description="japanese"/>
         </ant>
@@ -221,10 +229,10 @@
             <arg value="--save" />
             <arg value="@vscode/vsce@2.19.0" />
         </exec>
-	
-	<copy file="${basedir}/LICENSE.txt" todir="${basedir}/vscode" />
-	<copy file="${basedir}/THIRD_PARTY_LICENSES.txt" todir="${basedir}/vscode" />
-	
+        
+        <copy file="${basedir}/LICENSE.txt" todir="${basedir}/vscode" />
+        <copy file="${basedir}/THIRD_PARTY_LICENSES.txt" todir="${basedir}/vscode" />
+        
         <exec executable="${build.dir}/vsce/node_modules/.bin/vsce${cmd.suffix}" failonerror="true" dir="${basedir}/vscode">
             <arg value="package" />
             <arg line="${vsce.extra.args}" />
@@ -234,9 +242,9 @@
             <arg value="https://github.com/oracle/javavscode/raw/${metabuild.hash}/vscode" />
             <arg value="--out" />
             <arg value="${build.dir}/oracle-java-${vsix.version}.vsix" />
-    </exec>
-	<delete file="${basedir}/vscode/LICENSE.txt"/>
-	<delete file="${basedir}/vscode/THIRD_PARTY_LICENSES.txt"/>
+        </exec>
+        <delete file="${basedir}/vscode/LICENSE.txt"/>
+        <delete file="${basedir}/vscode/THIRD_PARTY_LICENSES.txt"/>
     </target>
     <target name="test-lsp-server" description="Tests the LSP server behavior">
         <ant dir="nbcode" target="test" inheritall="false" inheritrefs="false">
@@ -290,7 +298,7 @@
         <condition value="true" property="should-apply">
             <and>
                 <istrue value="${has-l10n-patches}"/>
-                <isfalse value="${javavscode.disablel0n}"/>
+                <isfalse value="${disable.netbeans.l10n}"/>
             </and>
         </condition>
         <ant target="git-patch">
@@ -308,11 +316,11 @@
             import java.util.List;
             import java.util.stream.Collectors;
             public class Reverse {
-            public static void main(String[] args) {
-            List&lt;String> patches = Arrays.asList(args[0].split(" "));
-            Collections.reverse(patches);
-            System.out.print(patches.stream().collect(Collectors.joining(" ")));
-            }
+                public static void main(String[] args) {
+                    List&lt;String> patches = Arrays.asList(args[0].split(" "));
+                    Collections.reverse(patches);
+                    System.out.print(patches.stream().collect(Collectors.joining(" ")));
+                }
             }
         </echo>
         <java sourcefile="${build.dir}/Reverse.java"
@@ -339,7 +347,7 @@
         <condition value="true" property="should-apply">
             <and>
                 <istrue value="${has-l10n-patches}"/>
-                <isfalse value="${javavscode.disablel0n}"/>
+                <isfalse value="${disable.netbeans.l10n}"/>
             </and>
         </condition>
         <ant target="git-un-patch">
