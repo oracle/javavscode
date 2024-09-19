@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+
+-->
+<project name="org.apache.netbeans.l10n.ja" default="netbeans" basedir=".">
+    <description>Builds, tests, and runs the project org.apache.netbeans.l10n.ja.</description>
+    <property name="nbplatform.active" value="default"/>
+    <property name="netbeans.l10n.dir" location="${nbplatform.default.netbeans.dest.dir}/../../../netbeans-l10n"/>
+    <property file="../../nbproject/platform.properties"/>
+    <property name="src.dir" location="src"/>
+    <import file="nbproject/build-impl.xml"/>
+    
+    <target name="build" depends="build-language-jars,projectized-common.build"/>
+    
+    <target name="build-language-jars">
+        <property name="locale" value="ja"/>
+        <property name="dist.dir" location="${netbeans.l10n.dir}/netbeans-l10n-zip/src/${locale}"/>
+        <property name="nbms.dist.dir" location="nbms"/>
+        <property name="nbms.dir" location="${netbeans.l10n.dir}/nbbuild/${nbms.dist.dir}"/>
+        <property name="keystore" location=""/>
+        <property name="storepass" value=""/>
+        <property name="nbm_alias" value="nb_ide"/>
+     
+        <taskdef name="packageBuild" classname="org.netbeans.l10n.Package">
+            <classpath>
+                <pathelement path="${netbeans.l10n.dir}/l10nantext/dist/l10nantext.jar"/>
+            </classpath>
+        </taskdef>
+        <packageBuild src="${dist.dir}" locales="${locale}" dist="release/modules/locale" nbms="${nbms.dir}" nbmsDist="${nbms.dist.dir}"
+                      enabledClusterPath="${cluster.path}" disabledModules="${disabled.modules}"
+                      keystore="${keystore}" storepass="${storepass}" alias="${nbm_alias}">
+            <classpath>
+                <pathelement location="${nbantext.jar}"/>
+                <fileset dir="${main.dir}">
+                    <include name="apisupport.harness/external/jsearch*.jar"/>
+                </fileset>
+                <fileset dir="${nbplatform.default.netbeans.dest.dir}">
+                    <include name="harness/jsearch*.jar"/>
+                </fileset>
+            </classpath>
+        </packageBuild>
+        <!--<repeat target="copy-docs-for-locale" name="one.locale" values="${locales}"/>-->
+    </target>
+    
+</project>

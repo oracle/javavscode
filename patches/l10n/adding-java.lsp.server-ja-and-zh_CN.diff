@@ -1,0 +1,71 @@
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+new file mode 100755
+index 000000000..88b6b4608
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+@@ -0,0 +1,29 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++OpenIDE-Module-Name=Java LSP Server
++OpenIDE-Module-Display-Category=Java
++OpenIDE-Module-Short-Description=Java LSP Server
++
++LBL_Run={0} \u3092\u5B9F\u884C
++LBL_Debug={0} \u3092\u30C7\u30D0\u30C3\u30B0
++LBL_RunWith={0} \u3092\u6307\u5B9A\u3057\u3066 {1} \u3092\u5B9F\u884C
++LBL_DebugWith={0} \u3092\u6307\u5B9A\u3057\u3066 {1} \u3092\u30C7\u30D0\u30C3\u30B0
++LBL_TestMethod={0} \u3092\u30C6\u30B9\u30C8
++LBL_ProfileMethod={0} \u3092\u30D7\u30ED\u30D5\u30A1\u30A4\u30EA\u30F3\u30B0
++LBL_Clean=\u6D88\u53BB
++LBL_Build=\u4F5C\u6210
++LBL_ContinuousMode=\u9023\u7D9A\u30E2\u30FC\u30C9
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..97a321575
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+@@ -0,0 +1,29 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++OpenIDE-Module-Name=Java LSP Server
++OpenIDE-Module-Display-Category=Java
++OpenIDE-Module-Short-Description=Java LSP Server
++
++LBL_Run=\u8FD0\u884C {0}
++LBL_Debug=\u8C03\u8BD5 {0},
++LBL_RunWith=\u4F7F\u7528 {0} \u8FD0\u884C {1}
++LBL_DebugWith=\u4F7F\u7528 {0} \u8C03\u8BD5 {1}
++LBL_TestMethod=\u6D4B\u8BD5 {0}
++LBL_ProfileMethod=\u6982\u8981\u5206\u6790 {0}
++LBL_Clean=\u6E05\u9664
++LBL_Build=\u6784\u5EFA
++LBL_ContinuousMode=\u8FDE\u7EED\u6A21\u5F0F
+\ No newline at end of file

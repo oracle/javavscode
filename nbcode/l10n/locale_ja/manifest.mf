@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+AutoUpdate-Show-In-Client: true
+OpenIDE-Module: org.apache.netbeans.l10n.ja
+OpenIDE-Module-Localizing-Bundle: org/apache/netbeans/l10n/ja/Bundle.properties
+OpenIDE-Module-Specification-Version: 0.0.1
+

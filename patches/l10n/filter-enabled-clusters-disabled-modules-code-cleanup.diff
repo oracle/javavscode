@@ -1,0 +1,462 @@
+diff --git a/l10nantext/src/org/netbeans/l10n/Package.java b/l10nantext/src/org/netbeans/l10n/Package.java
+index 9886cf0e6..ad695a914 100755
+--- a/l10nantext/src/org/netbeans/l10n/Package.java
++++ b/l10nantext/src/org/netbeans/l10n/Package.java
+@@ -18,38 +18,22 @@
+  */
+ package org.netbeans.l10n;
+ 
+-import java.io.BufferedOutputStream;
+ import java.io.File;
+-import java.io.FileInputStream;
+-import java.io.FileOutputStream;
+-import java.io.IOException;
+-import java.io.InputStream;
+-import java.io.OutputStream;
++import java.util.Collections;
+ import java.util.HashMap;
+-import java.util.Properties;
++import java.util.HashSet;
++import java.util.Set;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+-import java.util.jar.JarFile;
+-import java.util.zip.ZipEntry;
+-//import org.netbeans.nbbuild.XMLUtil;
+-//import org.netbeans.nbbuild.AutoUpdate;
++import java.util.regex.Pattern;
++
+ import org.apache.tools.ant.BuildException;
+ import org.apache.tools.ant.DirectoryScanner;
+-import org.apache.tools.ant.Project;
+ import org.apache.tools.ant.Task;
+ import org.apache.tools.ant.taskdefs.Copy;
+-import org.apache.tools.ant.taskdefs.Delete;
+ import org.apache.tools.ant.taskdefs.Jar;
+ import org.apache.tools.ant.taskdefs.Mkdir;
+-import org.apache.tools.ant.taskdefs.SignJar;
+ import org.apache.tools.ant.types.Path;
+-import org.apache.tools.ant.types.ZipFileSet;
+-import org.w3c.dom.Document;
+-import org.w3c.dom.Element;
+-import org.xml.sax.ErrorHandler;
+-import org.xml.sax.InputSource;
+-import org.xml.sax.SAXException;
+-import org.xml.sax.SAXParseException;
+ 
+ public class Package extends Task {
+ 
+@@ -58,6 +42,8 @@ public class Package extends Task {
+     HashMap<String, Vector<String>> nbms = new HashMap<String, Vector<String>>();
+     File srcDir = null;
+     private String jarSignerMaxMemory = "96m";
++    private Set<String> enabledClusterPath = null;
++    private Set<String> disabledModules = null;
+ 
+     /** Set the location of <samp>jhall.jar</samp> or <samp>jsearch.jar</samp> (JavaHelp tools library). */
+     public Path createClasspath() {
+@@ -114,203 +100,46 @@ public class Package extends Task {
+         alias = s;
+     }
+ 
++    /**
++     * Set a colon-separated list of netbeans module clusters which are enabled,
++     * and which need to be skipped from the build. If nothing is specified then
++     * the default behaviour is the inclusion of all clusters in the build.
++     * @param enabledClusterPath colon-separated netbeans module clusters which are enabled
++     */
++    public void setEnabledClusterPath(String enabledClusterPath) {
++        this.enabledClusterPath = split(enabledClusterPath, ":", Pattern.compile(".+" + (isWindows() ? "[\\\\/]" : "/")), "");
++        log("enabledClusterPath: " + enabledClusterPath, 4);
++    }
++
++    /**
++     * Set a comma-separated list of netbeans module names which are disabled,
++     * and which need to be skipped from the build.
++     * @param disabledModules comma-separated names of netbeans modules which are disabled
++     */
++    public void setDisabledModules(String disabledModules) {
++        this.disabledModules = split(disabledModules, ",", Pattern.compile(".", Pattern.LITERAL), "-");
++        log("disabledModules: " + disabledModules, 4);
++    }
++
+     public void execute() throws BuildException {
+ 
+         // Create all localized jars
+-        StringTokenizer tokenizer = new StringTokenizer(locales.trim(), ", ");
++        StringTokenizer tokenizer = new StringTokenizer(locales.trim(), ",");
+         while (tokenizer.hasMoreTokens()) {
+             String loc = tokenizer.nextToken();
+-            processLocale(loc);
++            processLocale(loc.trim());
+         }
+-
+-//        // Deal with NBMs creation
+-//        DirectoryScanner ds = new DirectoryScanner();
+-//        ds.setBasedir(nbmsLocation);
+-//        ds.setIncludes(new String[]{"**/*.nbm"});
+-//        ds.scan();
+-//        Mkdir mkdir = (Mkdir) getProject().createTask("mkdir");
+-//        Copy copy = (Copy) getProject().createTask("copy");
+-//        File tmpDir = new File("tmp");
+-//        tmpDir.mkdir();
+-//        for (String nbm : ds.getIncludedFiles()) {
+-//            String nbmName = nbm.substring(nbm.lastIndexOf(File.separator) + 1, nbm.lastIndexOf("."));
+-//            Vector<String> nbmFiles = nbms.get(nbmName);
+-//            if (nbmFiles == null) {
+-//                log("There is no localization content for NBM: " + nbmName);
+-//                continue;
+-//            }
+-//            String cluster = nbm.substring(0, nbm.indexOf(File.separator));
+-//            File destNbmDir = new File(nbmsDistDir, cluster);
+-//            File destNbmFile = new File(destNbmDir, nbmName + ".nbm");
+-//            if (!destNbmDir.isDirectory()) {
+-//                mkdir.setDir(destNbmDir);
+-//                mkdir.execute();
+-//            }
+-//            copy.setFile(new File(nbmsLocation, nbm));
+-//            copy.setTodir(destNbmDir);
+-//            copy.execute();
+-//
+-//            Jar jar = (Jar) getProject().createTask("jar");
+-//            jar.setUpdate(true);
+-//            jar.setDestFile(destNbmFile);
+-//            ZipFileSet zfs = new ZipFileSet();
+-//            zfs.setDir(new File(distDir, cluster));
+-//            zfs.setPrefix("netbeans");
+-//            zfs.appendIncludes(nbmFiles.toArray(new String[]{""}));
+-//            jar.addFileset(zfs);
+-//
+-//            //Process InfoXMLs
+-//            tokenizer = new StringTokenizer(locales.trim(), ", ");
+-//            while (tokenizer.hasMoreTokens()) {
+-//                String loc = tokenizer.nextToken();
+-//                try {
+-//                    File jarF = new File(distDir, cluster + File.separator + "modules" + File.separator + "locale" + File.separator + nbmName + "_" + loc + ".jar");
+-//                    if (!jarF.isFile()) {
+-//                        log("No " + loc + " localization for " + nbmName);
+-//                        continue;
+-//                    }
+-//                    //Find localized bundle
+-//                    JarFile jarFile = new JarFile(new File(distDir, cluster + File.separator + "modules" + File.separator + "locale" + File.separator + nbmName + "_" + loc + ".jar"));
+-//                    Properties p = new Properties();
+-//                    ZipEntry bundleentry = jarFile.getEntry(nbmName.replace('-', '/') + File.separator + "Bundle_" + loc + ".properties");
+-//                    if (bundleentry == null) {
+-//                        //Read it from the NBM and module's jar manifest
+-//                        JarFile nbmFile = new JarFile(destNbmFile);
+-//                        String jarEntryName = "netbeans/modules/" + nbmName + ".jar";
+-//                        ZipEntry ze = nbmFile.getEntry(jarEntryName);
+-//                        InputStream is;
+-//                        if(ze == null) {
+-//                            //NBM is packed with pack200
+-//                            ze = nbmFile.getEntry(jarEntryName + ".pack.gz");
+-//                            if(ze!=null) {
+-//                                File packedJar = File.createTempFile(nbmName, ".jar.pack.gz", tmpDir);
+-//                                File unpackedJar = File.createTempFile(nbmName, ".jar", tmpDir);
+-//                                unpackedJar.deleteOnExit();
+-//                                packedJar.deleteOnExit();
+-//                                InputStream fis = nbmFile.getInputStream(ze);
+-//                                BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(packedJar));
+-//                                byte [] buffer = new byte [4096];
+-//                                int read = 0;
+-//                                while ((read = fis.read(buffer)) != -1) {
+-//                                    bof.write(buffer, 0, read);
+-//                                }
+-//                                bof.close();
+-//                                fis.close();
+-//                                AutoUpdate.unpack200(packedJar, unpackedJar);
+-//                                is = new FileInputStream(unpackedJar);
+-//                            } else {
+-//                                throw new BuildException("Cannot find neither " +
+-//                                        jarEntryName + ".pack.gz nor " +
+-//                                        jarEntryName + " entry in " + nbmFile.getName());
+-//                            }
+-//                        } else {
+-//                            is = nbmFile.getInputStream(ze);
+-//                        }
+-//                        
+-//                        File tmpJar = File.createTempFile("module", ".jar", tmpDir);
+-//                        BufferedOutputStream bof = new BufferedOutputStream(new FileOutputStream(tmpJar));
+-//                        int ch = 0;
+-//                        while ((ch = is.read()) != -1) {
+-//                            bof.write(ch);
+-//                        }
+-//                        bof.close();
+-//                        is.close();
+-//                        JarFile moduleJar = new JarFile(tmpJar);
+-//                        String bundlename = moduleJar.getManifest().getMainAttributes().getValue("OpenIDE-Module-Localizing-Bundle");
+-//                        String bfname = bundlename.substring(0, bundlename.lastIndexOf('.'));
+-//                        String bfext = bundlename.substring(bundlename.lastIndexOf('.'));
+-//                        bundlename = bfname + "_" + loc + bfext;
+-//                        bundleentry = jarFile.getEntry(bundlename);
+-//                        moduleJar.close();
+-//                        tmpJar.delete();
+-//                    }
+-//                    if (bundleentry != null) {
+-//                        InputStream is = jarFile.getInputStream(bundleentry);
+-//                        try {
+-//                            p.load(is);
+-//                        } finally {
+-//                            is.close();
+-//                        }
+-//                        // Open the original info XML
+-//                        JarFile nbmFile = new JarFile(destNbmFile);
+-//                        Document doc = XMLUtil.parse(new InputSource(nbmFile.getInputStream(nbmFile.getEntry("Info/info.xml"))), false, false, new ErrorCatcher(), null);
+-//                        Element manifest = (Element) doc.getElementsByTagName("manifest").item(0);
+-//
+-//                        // Now pick up attributes from the bundle and put them to the info.xml
+-//                        for (String attr : new String[]{"OpenIDE-Module-Name", "OpenIDE-Module-Display-Category", "OpenIDE-Module-Short-Description", "OpenIDE-Module-Long-Description"}) {
+-//                            String value = p.getProperty(attr);
+-//                            if (value != null) {
+-//                                manifest.setAttribute(attr, value);
+-//                            }
+-//                        }
+-//                        File infofile = new File(tmpDir, "info_" + loc + ".xml");
+-//                        OutputStream infoStream = new FileOutputStream(infofile);
+-//                        XMLUtil.write(doc, infoStream);
+-//                        infoStream.close();
+-//                        zfs = new ZipFileSet();
+-//                        zfs.setDir(tmpDir);
+-//                        zfs.setPrefix("Info/locale");
+-//                        zfs.appendIncludes(new String[]{"info_" + loc + ".xml"});
+-//                        jar.addFileset(zfs);
+-//                    } else {
+-//                        log("Can't find localizing bundle for " + nbmName);
+-//                    }
+-//                } catch (IOException ex) {
+-//                    log("Problems with reading localization bundles for " + loc + ", NBM: " + nbmName, ex, Project.MSG_WARN);
+-//
+-//                } catch (SAXException saxe) {
+-//                    log("Problem with creating localized info.xml for " + loc + ", NBM: " + nbmName, saxe, Project.MSG_WARN);
+-//                }
+-//
+-//            }
+-//            jar.execute();
+-//
+-//            if (keystore != null && storepass != null && alias != null) {
+-//                if (!keystore.isFile()) {
+-//                    continue;
+-//                }
+-//                SignJar signjar = (SignJar) getProject().createTask("signjar");
+-//                try { // Signatures changed in various Ant versions.
+-//
+-//                    try {
+-//                        SignJar.class.getMethod("setKeystore", File.class).invoke(signjar, keystore);
+-//                    } catch (NoSuchMethodException x) {
+-//                        SignJar.class.getMethod("setKeystore", String.class).invoke(signjar, keystore.getAbsolutePath());
+-//                    }
+-//                    try {
+-//                        SignJar.class.getMethod("setJar", File.class).invoke(signjar, destNbmFile);
+-//                    } catch (NoSuchMethodException x) {
+-//                        SignJar.class.getMethod("setJar", String.class).invoke(signjar, destNbmFile.getAbsolutePath());
+-//                    }
+-//                } catch (BuildException x) {
+-//                    throw x;
+-//                } catch (Exception x) {
+-//                    throw new BuildException(x);
+-//                }
+-//                signjar.setStorepass(storepass);
+-//                signjar.setAlias(alias);
+-//                signjar.setLocation(getLocation());
+-//                signjar.setMaxmemory(this.jarSignerMaxMemory);
+-//                signjar.init();
+-//                signjar.execute();
+-//            }
+-//        }
+-//        Delete delete = (Delete) getProject().createTask("delete");
+-//        delete.setDir(tmpDir);
+-//        delete.execute();
+     }
+ 
+     void processLocale(String locale) throws BuildException {
+-        DirectoryScanner ds = new DirectoryScanner();
+-//        File baseSrcDir = new File(srcDir, locale);
+         File baseSrcDir = srcDir;
+-//        if (!baseSrcDir.exists()) {
+-//            log("No files for locale: " + locale);
+-//            return;
+-//        }
+-        ds.setBasedir(baseSrcDir);
++
++        final Set<String> enabledClusters = this.enabledClusterPath;
++        final Set<String> disabledModules = this.disabledModules;
+         String[] includes = new String[]{"*/*/*", "*/*/ext/*", "*/*/ext/locale/*", "*/*/netbeans/*/*", "*/*/netbeans/*/locale/*", "*/*/netbeans/*/nblib/*", "*/*/netbeans/*/extra/*", "*/*/docs/*", "*/*/locale/*", "*/*/netbeans/config/*/*"};
+         String[] excludes = new String[]{"other/**", "*/*/netbeans", "*/*/netbeans/*", "*/*/netbeans/*/locale", "*/*/netbeans/*/nblib", "*/*/netbeans/*/extra", "*/*/docs", "*/*/ext", "*/*/ext/locale", "*/*/locale", "*/*/netbeans/config/*"};
++        DirectoryScanner ds = new DirectoryScanner();
++        ds.setBasedir(baseSrcDir);
+         ds.setIncludes(includes);
+         ds.setExcludes(excludes);
+         ds.scan();
+@@ -318,13 +147,34 @@ public class Package extends Task {
+         Mkdir mkdir = (Mkdir) getProject().createTask("mkdir");
+         Task locJH = getProject().createTask("locjhindexer");
+         for (String dir : ds.getIncludedDirectories()) {
+-            String name = dir.substring(dir.lastIndexOf(File.separator) + 1);
++            int clusterEnd = dir.indexOf(File.separator);
++            int pathLeafStart = dir.lastIndexOf(File.separator);
++            int nbmEnd = dir.indexOf(File.separator, clusterEnd + 1);
++            String cluster = clusterEnd <= 0 ? "" : dir.substring(0, clusterEnd);
++            String nbm = dir.substring(clusterEnd + 1, nbmEnd < 0 ? dir.length() : nbmEnd);
++            String subPath = pathLeafStart <= nbmEnd ? File.separator : dir.substring(Math.max(nbmEnd, 0), pathLeafStart);
++            String name = dir.substring(pathLeafStart + 1);
++
++            cluster = cluster.replaceAll("^vw", "visualweb");
+             name = name.replaceAll("^vw-rh", "visualweb-ravehelp-rave_nbpack");
+             name = name.replaceAll("^vw-", "visualweb-");
+-            String nbm = dir.substring(dir.indexOf(File.separator) + 1);
+-            nbm = nbm.substring(0, nbm.indexOf(File.separator));
+-            String cluster = dir.substring(0, dir.indexOf(File.separator));
+-            String subPath = dir.substring((cluster + File.separator + nbm + File.separator).length() - 1, dir.lastIndexOf(File.separator));
++            nbm = nbm.replaceAll("^vw-rh", "visualweb-ravehelp-rave_nbpack");
++            nbm = nbm.replaceAll("^vw-", "visualweb-");
++            if (!nbm.startsWith("org-") && !nbm.startsWith("com-") && !nbm.startsWith("net-")) {
++                nbm = "org-netbeans-modules-" + nbm;
++            }
++
++            log("cluster: " + cluster + "; module: " + nbm + "; subPath: " + subPath + "; name: " + name, 4);
++
++            if (enabledClusters != null && !enabledClusters.contains(cluster)) {
++                log("Skipping excluded cluster " + cluster + " for: " + dir, 3);
++                continue;
++            }
++            if (disabledModules != null && disabledModules.contains(nbm)) {
++                log("Skipping disabled module " + nbm + " for: " + dir, 3);
++                continue;
++            }
++
+             if (!subPath.startsWith(File.separator + "netbeans")) {
+                 subPath = File.separator + "modules" + subPath;
+                 if (!name.startsWith("org-") && !(subPath.endsWith(File.separator + "ext") || subPath.endsWith(File.separator + "ext" + File.separator + "locale"))) {
+@@ -342,12 +192,6 @@ public class Package extends Task {
+                     name = "org-netbeans-modules-" + name;
+                 }
+             }
+-            nbm = nbm.replaceAll("^vw-rh", "visualweb-ravehelp-rave_nbpack");
+-            nbm = nbm.replaceAll("^vw-", "visualweb-");
+-            if (!nbm.startsWith("org-") && !nbm.startsWith("com-")) {
+-                nbm = "org-netbeans-modules-" + nbm;
+-            }
+-            cluster = cluster.replaceAll("^vw", "visualweb");
+             if (subPath.matches(".*/docs$")) {
+                 ds.setBasedir(new File(baseSrcDir, dir));
+                 ds.setIncludes(new String[]{"**/*.hs"});
+@@ -375,72 +219,83 @@ public class Package extends Task {
+                 subPath += File.separator + "locale";
+             }
+             String jarFileName = name + "_" + locale + ".jar";
+-//            File distJarDir = new File(distDir.getAbsolutePath(), cluster + subPath);
+             File distJarDir = distDir;
+             mkdir.setDir(distJarDir);
+             mkdir.execute();
+             jar.setBasedir(new File(baseSrcDir, dir));
+             jar.setDestFile(new File(distJarDir, jarFileName));
+             jar.execute();
+-            Vector<String> nbmFiles = nbms.get(nbm);
+-            if (nbmFiles == null) {
+-                nbmFiles = new Vector<String>();
+-                nbms.put(nbm, nbmFiles);
+-            }
+-            nbmFiles.add(subPath.substring(1) + File.separator + jarFileName);
++            nbms.computeIfAbsent(nbm, k -> new Vector<>())
++                    .add(subPath.substring(1) + File.separator + jarFileName);
+         }
++
+         ds.setBasedir(baseSrcDir);
+         ds.setIncludes(includes);
+         ds.setExcludes(excludes);
+         ds.scan();
+         Copy copy = (Copy) getProject().createTask("copy");
+         for (String file : ds.getIncludedFiles()) {
+-            String name = file.substring(file.lastIndexOf(File.separator) + 1);
++            int clusterEnd = file.indexOf(File.separator);
++            int pathLeafStart = file.lastIndexOf(File.separator);
++            int nbmEnd = file.indexOf(File.separator, clusterEnd + 1);
++            String cluster = clusterEnd <= 0 ? "" : file.substring(0, clusterEnd);
++            String nbm = file.substring(clusterEnd + 1, nbmEnd < 0 ? file.length() : nbmEnd);
++            String subPath = pathLeafStart <= nbmEnd ? File.separator : file.substring(Math.max(nbmEnd, 0), pathLeafStart);
++            String name = file.substring(pathLeafStart + 1);
++
++            cluster = cluster.replaceAll("^vw", "visualweb");
+             name = name.replaceAll("^vw-rh", "visualweb-ravehelp-rave_nbpack");
+             name = name.replaceAll("^vw-", "visualweb-");
+-            String nbm = file.substring(file.indexOf(File.separator) + 1);
+-            nbm = nbm.substring(0, nbm.indexOf(File.separator));
+-            String cluster = file.substring(0, file.indexOf(File.separator));
+-            String subPath = file.substring((cluster + File.separator + nbm + File.separator).length() - 1, file.lastIndexOf(File.separator));
++            nbm = nbm.replaceAll("^vw-rh", "visualweb-ravehelp-rave_nbpack");
++            nbm = nbm.replaceAll("^vw-", "visualweb-");
++            if (!nbm.startsWith("org-") && !nbm.startsWith("com-") && !nbm.startsWith("net-")) {
++                nbm = "org-netbeans-modules-" + nbm;
++            }
++
++            log("cluster: " + cluster + "; module: " + nbm + "; subPath: " + subPath + "; name: " + name, 4);
++
++            if (enabledClusters != null && !enabledClusters.contains(cluster)) {
++                log("Skipping excluded cluster " + cluster + " for: " + file, 3);
++                continue;
++            }
++            if (disabledModules != null && disabledModules.contains(nbm)) {
++                log("Skipping disabled module " + nbm + " for: " + file, 3);
++                continue;
++            }
++
+             if (!subPath.startsWith(File.separator + "netbeans")) {
+                 subPath = File.separator + "modules" + subPath;
+             } else {
+                 subPath = subPath.substring((File.separator + "netbeans").length());
+             }
+-            nbm = nbm.replaceAll("^vw-rh", "visualweb-ravehelp-rave_nbpack");
+-            nbm = nbm.replaceAll("^vw-", "visualweb-");
+-            if (!nbm.startsWith("org") || !nbm.startsWith("com")) {
+-                nbm = "org-netbeans-modules-" + nbm;
+-            }
+-            cluster = cluster.replaceAll("^vw", "visualweb");
+             File distFileDir = new File(distDir.getAbsolutePath(), cluster + subPath);
+             mkdir.setDir(distFileDir);
+             mkdir.execute();
+             copy.setFile(new File(baseSrcDir, file));
+             copy.setTodir(distFileDir);
+             copy.execute();
+-            Vector<String> nbmFiles = nbms.get(nbm);
+-            if (nbmFiles == null) {
+-                nbmFiles = new Vector<String>();
+-                nbms.put(nbm, nbmFiles);
+-            }
+-            nbmFiles.add(subPath.substring(1) + File.separator + file);
++            nbms.computeIfAbsent(nbm, k -> new Vector<>())
++                    .add(subPath.substring(1) + File.separator + name);
+         }
+     }
+ 
+-    class ErrorCatcher implements ErrorHandler {
+-
+-        public void error(SAXParseException e) {
+-            // normally a validity error
+-            pError = true;
+-        }
+-
+-        public void warning(SAXParseException e) {
+-            //parseFailed = true;
++    private static Set<String> split(String str, String delimiter, Pattern replaceAllRegex, String replacement) {
++        HashSet<String> strings = new HashSet<>();
++        if (str != null) {
++            for (String s : str.split(delimiter)) {
++                s = s.trim();
++                if (replaceAllRegex != null && replacement != null)
++                    s = replaceAllRegex.matcher(s).replaceAll(replacement);
++                if (!s.isEmpty())
++                    strings.add(s);
++            }
+         }
++        return strings.isEmpty() ? null :
++                strings.size() == 1 ? Collections.singleton(strings.iterator().next()) :
++                        strings;
++    }
+ 
+-        public void fatalError(SAXParseException e) {
+-            pError = true;
+-        }
++    private static boolean isWindows() {
++        return System.getProperty("os.name", "").toLowerCase().startsWith("win");
+     }
+ }
