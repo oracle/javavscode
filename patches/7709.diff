@@ -1,0 +1,37 @@
+diff --git a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
+index d24c6f5ec9..f2b040204e 100644
+--- a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
++++ b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
+@@ -58,7 +58,8 @@ public class PrepareBundles {
+         Pattern.compile("license", Pattern.CASE_INSENSITIVE),
+         Pattern.compile("LICENSE.txt", Pattern.CASE_INSENSITIVE),
+         Pattern.compile("LICENSE-MIT.txt", Pattern.CASE_INSENSITIVE),
+-        Pattern.compile("LICENSE.md", Pattern.CASE_INSENSITIVE)
++        Pattern.compile("LICENSE.md", Pattern.CASE_INSENSITIVE),
++        Pattern.compile("LICENSE.markdown", Pattern.CASE_INSENSITIVE)
+     );
+     private static final String nl = "\n";
+ 
+@@ -69,7 +70,12 @@ public class PrepareBundles {
+ 
+         Path targetDir = Paths.get(args[0]);
+         Path packagesDir = targetDir.resolve("package");
+-        new ProcessBuilder("npm", "install").directory(packagesDir.toFile()).inheritIO().start().waitFor();
++        String os = System.getProperty("os.name").toLowerCase();
++        if (os.contains("windows")) {
++            new ProcessBuilder("npm.cmd", "install").directory(packagesDir.toFile()).inheritIO().start().waitFor();
++        } else{
++            new ProcessBuilder("npm", "install").directory(packagesDir.toFile()).inheritIO().start().waitFor();   
++        }
+         Path bundlesDir = targetDir.resolve("bundles");
+         Files.createDirectories(bundlesDir);
+         try (DirectoryStream<Path> ds = Files.newDirectoryStream(bundlesDir)) {
+@@ -107,6 +113,8 @@ public class PrepareBundles {
+                 if ("@types".equals(module.getFileName().toString())) continue;
+                 if ("@esbuild".equals(module.getFileName().toString())) continue;
+                 if ("@microsoft".equals(module.getFileName().toString())) continue;
++                if ("eastasianwidth".equals(module.getFileName().toString())) continue;
++                if ("isarray".equals(module.getFileName().toString())) continue;
+                 Path packageJson = module.resolve("package.json");
+                 if (Files.isReadable(packageJson)) {
+                     checkModule(module, sb, tokens2Projects, project2License, bundlesDir, targetDir, externalDir, binariesList);
