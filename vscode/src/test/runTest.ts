@@ -19,7 +19,7 @@
  */
 import * as path from 'path';
 
-import { downloadAndUnzipVSCode, runTests } from 'vscode-test';
+import { downloadAndUnzipVSCode, runTests } from '@vscode/test-electron';
 
 import * as fs from 'fs';
 
@@ -28,42 +28,49 @@ async function main() {
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
         const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+        const outRootPath = path.join(extensionDevelopmentPath, 'out');
 
         const vscodeExecutablePath: string = await downloadAndUnzipVSCode('stable');
 
-        // The path to test runner
-        // Passed to --extensionTestsPath
-        const extensionTestsPath = path.resolve(__dirname, './suite/index');
+        const vscodeTestDir = path.join(__dirname, "vscode");
+        const extDir = path.join(vscodeTestDir, "exts");
+        const userDir = path.join(vscodeTestDir, "user");
+        const suitesDir = path.join(__dirname, 'suite');
+        const testSuites = fs.readdirSync(suitesDir);
 
-        const workspaceDir = path.join(extensionDevelopmentPath, 'out', 'test', 'ws');
+        for (const suiteName of testSuites) {
+            // The path to test runner
+            // Passed to --extensionTestsPath
+            const suiteDir = path.join(suitesDir, suiteName);
+            const extensionTestsPath = path.join(suiteDir, 'index');
+            const workspaceDir = path.join(suiteDir, 'ws');
 
-        const outRoot = path.join(extensionDevelopmentPath, "out");
-        const extDir = path.join(outRoot, "test", "vscode", "exts");
-        const userDir = path.join(outRoot, "test", "vscode", "user");
+            if (fs.existsSync(workspaceDir)) {
+                fs.rmdirSync(workspaceDir, { recursive: true });
+            }
+            fs.mkdirSync(workspaceDir, { recursive: true });
 
-        if (!fs.statSync(workspaceDir).isDirectory()) {
-            throw `Expecting ${workspaceDir} to be a directory!`;
+            // Download VS Code, unzip it and run the integration test
+            await runTests({
+                vscodeExecutablePath,
+                extensionDevelopmentPath,
+                extensionTestsPath,
+                extensionTestsEnv: {
+                    'ENABLE_CONSOLE_LOG': 'true',
+                    "netbeans.extra.options": `-J-Dproject.limitScanRoot=${outRootPath} -J-Dnetbeans.logger.console=true`
+                },
+                launchArgs: [
+                    '--disable-extensions',
+                    '--disable-workspace-trust',
+                    '--extensions-dir', `${extDir}`,
+                    '--user-data-dir', `${userDir}`,
+                    workspaceDir
+                ]
+            });
         }
-
-        // Download VS Code, unzip it and run the integration test
-        await runTests({
-            vscodeExecutablePath,
-            extensionDevelopmentPath,
-            extensionTestsPath,
-            extensionTestsEnv: {
-                'ENABLE_CONSOLE_LOG' : 'true',
-                "netbeans.extra.options" : `-J-Dproject.limitScanRoot=${outRoot} -J-Dnetbeans.logger.console=true`
-            },
-            launchArgs: [
-                '--disable-extensions',
-                '--disable-workspace-trust',
-                '--extensions-dir', `${extDir}`,
-                '--user-data-dir', `${userDir}`,
-                workspaceDir
-            ]
-        });
     } catch (err) {
         console.error('Failed to run tests');
+        console.error((err as Error).message);
         process.exit(1);
     }
 }

@@ -20,41 +20,21 @@
  * under the License.
  */
 
-import * as path from 'path';
-import * as Mocha from 'mocha';
-import * as glob from 'glob';
+import * as assert from 'assert';
 
-export function run(): Promise<void> {
-	// Create the mocha test
-	const mocha = new Mocha({
-		ui: 'tdd',
-		color: true,
-		timeout: 60000
-	});
- 
-	const testsRoot = path.resolve(__dirname, '..');
+// You can import and use all API from the 'vscode' module
+// as well as import your extension to test it
+import * as vscode from 'vscode';
+import * as myExtension from '../../../extension';
+import * as myExplorer from '../../../explorer';
 
-	return new Promise((c, e) => {
-		glob('**/**.test.js', { cwd: testsRoot }, (err, files) => {
-			if (err) {
-				return e(err);
-			}
-			// Add files to the test suite
-			files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
+suite('Explorer Test Suite', () => {
+    vscode.window.showInformationMessage('Start explorer tests.');
+    myExtension.enableConsoleLog();
 
-			try {
-				// Run the mocha test
-				mocha.run(failures => {
-					if (failures > 0) {
-						e(new Error(`${failures} tests failed.`));
-					} else {
-						c();
-					}
-				});
-			} catch (err) {
-				console.error(err);
-				e(err);
-			}
-		});
-	});
-}
+    test('Explorer can be created', async () => {
+        const lvp = await myExplorer.createViewProvider(await myExtension.awaitClient(), 'foundProjects');
+        const firstLevelChildren = await (lvp.getChildren() as Thenable<any[]>);
+        assert.strictEqual(firstLevelChildren.length, 0, "No child under the root");
+    }).timeout(10000);
+});
