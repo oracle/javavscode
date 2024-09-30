@@ -65,5 +65,4 @@
     "jdk.configurationSnippets.name": "Launch Java App",
     "jdk.configurationSnippets.label": "Java+: Launch Java Application",
     "jdk.configurationSnippets.description": "Launch a Java Application in debug mode"
-    
 }

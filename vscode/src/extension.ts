@@ -158,11 +158,11 @@ export function awaitClient() : Promise<NbLanguageClient> {
     }
     let nbcode = vscode.extensions.getExtension(ORACLE_VSCODE_EXTENSION_ID);
     if (!nbcode) {
-        return Promise.reject(new Error(l10n.value("jdk.extenstion.notInstalled.label")));
+        return Promise.reject(new Error(l10n.value("jdk.extension.notInstalled.label")));
     }
     const t : Thenable<NbLanguageClient> = nbcode.activate().then(nc => {
         if (client === undefined || client instanceof InitialPromise) {
-            throw new Error(l10n.value("jdk.extenstion.error_msg.clientNotAvailable"));
+            throw new Error(l10n.value("jdk.extension.error_msg.clientNotAvailable"));
         } else {
             return client;
         }
@@ -312,7 +312,7 @@ function wrapCommandWithProgress(lsCommand : string, title : string, log? : vsco
                     }
                 }
             } else {
-                reject(l10n.value("jdk.extenstion.progressBar.error_msg.cannotRun",{lsCommand:lsCommand,client:c}));
+                reject(l10n.value("jdk.extension.progressBar.error_msg.cannotRun",{lsCommand:lsCommand,client:c}));
             }
         });
     });
@@ -435,7 +435,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                 }
             }
         } else {
-            throw l10n.value("jdk.extenstion.error_msg.doesntSupportNewTeamplate",{client:c});
+            throw l10n.value("jdk.extension.error_msg.doesntSupportNewTeamplate",{client:c});
         }
     }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.workspace.newproject', async (ctx) => {
@@ -457,7 +457,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                 }
             }
         } else {
-            throw l10n.value("jdk.extenstion.error_msg.doesntSupportNewProject",{client,c});
+            throw l10n.value("jdk.extension.error_msg.doesntSupportNewProject",{client:c});
         }
     }));
 
@@ -512,14 +512,14 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                 vscode.window.showInformationMessage(err?.message || l10n.value("jdk.extension.fileSelector.label.noTestFound"));
             }
         } else {
-            throw l10n.value("jdk.extenstion.error_msg.doesntSupportGoToTest",{client:c});
+            throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest",{client:c});
         }
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand(COMMAND_PREFIX + ".delete.cache", async () => {
         const storagePath = context.storageUri?.fsPath;
         if (!storagePath) {
-            vscode.window.showErrorMessage(l10n.value("jdk.extenstion.cache.error_msg.cannotFindWrkSpacePath"));
+            vscode.window.showErrorMessage(l10n.value("jdk.extension.cache.error_msg.cannotFindWrkSpacePath"));
             return;
         }
 
@@ -536,9 +536,9 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
                     deactivated = true;
                     await killNbProcess(false, log);
                     await fs.promises.rmdir(userDir, { recursive: true });
-                    await vscode.window.showInformationMessage(l10n.value("jdk.extenstion.message.cacheDeleted"), reloadWindowActionLabel);
+                    await vscode.window.showInformationMessage(l10n.value("jdk.extension.message.cacheDeleted"), reloadWindowActionLabel);
                 } catch (err) {
-                    await vscode.window.showErrorMessage(l10n.value("jdk.extenstion.error_msg.cacheDeletionError"), reloadWindowActionLabel);
+                    await vscode.window.showErrorMessage(l10n.value("jdk.extension.error_msg.cacheDeletionError"), reloadWindowActionLabel);
                 } finally {
                     vscode.commands.executeCommand("workbench.action.reloadWindow");
                 }
@@ -579,7 +579,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
         const locations: any[] = await vscode.commands.executeCommand(COMMAND_PREFIX + '.java.super.implementation', uri.toString(), position) || [];
         return vscode.commands.executeCommand('editor.action.goToLocations', window.activeTextEditor.document.uri, position,
             locations.map(location => new vscode.Location(vscode.Uri.parse(location.uri), new vscode.Range(location.range.start.line, location.range.start.character, location.range.end.line, location.range.end.character))),
-            'peek', l10n.value('jdk.extenstion.error_msg.noSuperImpl'));
+            'peek', l10n.value('jdk.extension.error_msg.noSuperImpl'));
     }));
     context.subscriptions.push(commands.registerCommand(COMMAND_PREFIX + '.rename.element.at', async (offset) => {
         const editor = window.activeTextEditor;
@@ -1525,7 +1525,7 @@ class NetBeansDebugAdapterDescriptionFactory implements vscode.DebugAdapterDescr
                     if (cnt-- > 0) {
                         setTimeout(fnc, 1000);
                     } else {
-                        reject(new Error(l10n.value('jdk.extenstion.debugger.error_msg.debugAdapterNotInitialized')));
+                        reject(new Error(l10n.value('jdk.extension.debugger.error_msg.debugAdapterNotInitialized')));
                     }
                 } else {
                     // resolve(new vscode.DebugAdapterServer(debugPort));
