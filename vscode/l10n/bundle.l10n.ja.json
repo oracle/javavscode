@@ -71,7 +71,7 @@
   "jdk.extension.javaSupport.message.needAdditionalSupport": "追加のJavaサポートが必要です",
   "jdk.extension.runConfig.label.updateExistingLaunchJson": "既存のlaunch.jsonファイルの更新",
   "jdk.extension.runConfig.warning_message.renamedDebugConfig": "Java 8+デバッグ構成はJava+に名前変更されています",
-  "jdk.extension.runConfig.default.label":"<default>",
+  "jdk.extension.runConfig.default.label":"<デフォルト値>",
   "jdk.extension.runConfig.example.label":"例: {data}",
   "jdk.extension.runConfig.arguments.label": "引数:",
   "jdk.extension.runConfig.arguments.prompt": "引数のカスタマイズ",
