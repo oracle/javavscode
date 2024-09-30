@@ -25,10 +25,40 @@
 
 <!-- This file has been modified for Oracle Java SE extension -->
 
+## Version 23.0.0
+### What's Changed
+
+#### Enhancements
+* [JAVAVSCODE-253] Localization to support Japanese and Simplified Chinese https://github.com/oracle/javavscode/pull/254
+* [JAVAVSCODE-224] Option to configure different JDK versions for JVSC extension runtime and project https://github.com/oracle/javavscode/pull/244
+* [JAVAVSCODE-229] Introduced Quick Fix action for suppressing warnings https://github.com/oracle/javavscode/pull/259
+* Upgrade to NB-23 https://github.com/oracle/javavscode/pull/259
+    * Full JDK 23 support
+    * Upgraded Gradle Tooling to 8.10
+    * Fixed Exception templates
+    * And more ...
+* Progress bar added to track JDK download progress https://github.com/oracle/javavscode/pull/248
+* JDK 23 now available in the JDK Downloader https://github.com/oracle/javavscode/pull/274
+* Restrict parent directory traversal when locating the associated project https://github.com/oracle/javavscode/pull/251
+#### Bugs
+* [JAVAVSCODE-57] Rename refactoring should not replace in comments by default https://github.com/oracle/javavscode/pull/261
+* [JAVAVSCODE-148] Corrected configuration selection from launch settings during run and debug sessions https://github.com/oracle/javavscode/pull/266
+* [JAVAVSCODE-203] Fixed rename refactoring for record components https://github.com/apache/netbeans/pull/7670
+* [JAVAVSCODE-212] Fixed implicit imports precedence issue https://github.com/oracle/javavscode/pull/262
+* [JAVAVSCODE-221] Reliable implementation of the "delete extension cache" command https://github.com/oracle/javavscode/pull/245
+
+
+#### Other Changes
+* Refactored JDK Downloader implementation https://github.com/oracle/javavscode/pull/248
+* Removed redundant elements from the extension https://github.com/oracle/javavscode/pull/263
+* README updated where necessary 
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v22.1.2...v23.0.0
+
 ## Version 22.1.2
 ### What's Changed
 
-### Bugs
+#### Bugs
 * [JAVAVSCODE-96] Honour SuppressWarnings annotations for `unused` entities https://github.com/oracle/javavscode/pull/227
 * [JAVAVSCODE-182] Show the constructor's JavaDoc on hovering over its usage; instead of the class' JavaDoc https://github.com/oracle/javavscode/pull/238
 * [JAVAVSCODE-185] Formatting of XML (pom.xml) files fixed https://github.com/oracle/javavscode/pull/226
@@ -38,7 +68,7 @@
 * [JAVAVSCODE-199] Fixed Quick Fix actions are unable to edit runConfig options in global settings for non-workspace opened Java files https://github.com/oracle/javavscode/pull/211
 * [JAVAVSCODE-214] Fixed Source Actions menu https://github.com/oracle/javavscode/pull/227
 
-### Other Changes
+#### Other Changes
 * [JAVAVSCODE-223] Updated BUILD.md https://github.com/oracle/javavscode/pull/225
 * Updated README.md https://github.com/oracle/javavscode/pull/228
 * Ant build script reorganization for patches and clean-netbeans https://github.com/oracle/javavscode/pull/234
@@ -51,13 +81,13 @@
 ## Version 22.1.1
 ### What's Changed
 
-### Enhancements
+#### Enhancements
 * [JAVAVSCODE-172] Support for using JDK 23 EA builds with the extension including features like ClassFile API, Implicitly Declared Classes and Instance Main Methods, etc. https://github.com/oracle/javavscode/pull/174
 * [JAVAVSCODE-175] Support for JEP 467 (Markdown format for Javadoc) added https://github.com/oracle/javavscode/pull/176
 * [JAVAVSCODE-74] Support for running a project with dependencies not managed by Maven or Gradle https://github.com/oracle/javavscode/pull/173 
 * Upgrading to NB-22 https://github.com/oracle/javavscode/pull/169
 
-### Other Changes
+#### Other Changes
 * Bump braces from 3.0.2 to 3.0.3 https://github.com/oracle/javavscode/pull/171
 * [JAVAVSCODE-110] Updated README for troubleshoot guide https://github.com/oracle/javavscode/pull/169
 
@@ -66,11 +96,11 @@
 ## Version 22.0.1 (May 30th, 2024)
 ### What's Changed
 
-### Bugs
+#### Bugs
 * [JAVAVSCODE-59] In VSCode provide quickfix relevant to the position of the cursor https://github.com/apache/netbeans/pull/7353
 * [JAVAVSCODE-101] Command jdk.java.project.resolveProjectProblems' not found https://github.com/apache/netbeans/pull/7370
 
-### Other Changes
+#### Other Changes
 * Disable unused modules https://github.com/oracle/javavscode/pull/159
 * Copyright modification in README https://github.com/oracle/javavscode/pull/155
 * Minor README updates https://github.com/oracle/javavscode/pull/157
@@ -81,7 +111,7 @@
 ## Version 22.0.0 (April 25th, 2024)
 ### What's Changed
 
-### Enhancements
+#### Enhancements
 * [JAVAVSCODE-9] Disable hints according to user preference https://github.com/apache/netbeans/pull/6760
 * [JAVAVSCODE-110] Added option to delete workspace cache with respect to oracle java extension https://github.com/oracle/javavscode/pull/124
 * [JAVAVSCODE-123] Update to NetBeans 21 and JDK 22 features support https://github.com/oracle/javavscode/pull/128
@@ -91,12 +121,12 @@
 * Bump up axios 1.6.0 to 1.6.8 https://github.com/oracle/javavscode/pull/127
 * Bump up @vscode/debugadapter from 1.55.1 to 1.65.0 https://github.com/oracle/javavscode/pull/135
 
-### Bugs
+#### Bugs
 * [JAVAVSCODE-29] vscode reports a need to upgrade Gradle to an earlier version for JDK-21 https://github.com/apache/netbeans/pull/6807
 * [JAVAVSCODE-30] Fixed refactoring of pom.xml as well on renaming class name https://github.com/oracle/javavscode/pull/120
 * [JAVAVSCODE-95] Fixed false error thrown if parent pom version uses variable https://github.com/oracle/javavscode/pull/125
 
-### Other Changes
+#### Other Changes
 * [JAVAVSCODE-137] Updated Third party licenses related to Node JS third party dependencies https://github.com/oracle/javavscode/pull/138
 * Removing (unused) DB support from extension https://github.com/oracle/javavscode/pull/112
 
@@ -105,7 +135,7 @@
 ## Version 1.0.1 (February 22nd, 2024)
 ### What’s Changed
 
-### Enhancements
+#### Enhancements
 * Implementing support for features in JDK 22 by utilizing OpenJDK 22 Early Access binaries https://github.com/apache/netbeans/pull/6742
 * [JAVAVSCODE-16] Added option for running any Java project using context menu https://github.com/oracle/javavscode/pull/75
 * [JAVAVSCODE-22] Added support for using different jdk in each workspace and deprecated jdk.userdir configuration https://github.com/oracle/javavscode/pull/67
@@ -118,7 +148,7 @@
 * [JAVAVSCODE-80] Renamed downloaded jdk binaries so that it is not replaced by the already present binaries https://github.com/oracle/javavscode/pull/82
 * Update to NetBeans 20 https://github.com/oracle/javavscode/pull/92
 
-### Bugs
+#### Bugs
 * [JAVAVSCODE-23] Class outline/structure missing in some cases fixed https://github.com/apache/netbeans/pull/6642
 * [JAVAVSCODE-24] Error on formatting pom.xml fixed https://github.com/apache/netbeans/pull/6631
 * [JAVAVSCODE-26] Don’t create “lock files” in the user’s project folders https://github.com/apache/netbeans/pull/6690
@@ -131,7 +161,7 @@
 * [JAVAVSCODE-73] Symbols defined in a different file but the same packages are now defined https://github.com/apache/netbeans/pull/6329
 * [JAVAVSCODE-86] “Surround with...” option fixed under refactor options https://github.com/oracle/javavscode/pull/89
 
-### Other Changes
+#### Other Changes
 * adding the extension markeplace in README https://github.com/oracle/javavscode/pull/12
 * Added more style in readme file https://github.com/oracle/javavscode/pull/98
 * README urls fix https://github.com/oracle/javavscode/pull/20
