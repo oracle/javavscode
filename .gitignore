@@ -4,3 +4,5 @@ netbeans-l10n/
 .DS_STORE
 .idea/
 *.iml
+/nbcode/l10n/locale_ja/release/
+/nbcode/l10n/locale_zh_CN/release/

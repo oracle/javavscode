@@ -39,7 +39,7 @@ $ git clone https://github.com/oracle/javavscode.git
 $ cd javavscode/
 $ git clone https://github.com/apache/netbeans.git
 $ cd netbeans/
-$ git checkout 23-rc3
+$ git checkout 23
 $ cd ..
 $ git clone https://github.com/apache/netbeans-l10n.git
 $ cd netbeans-l10n

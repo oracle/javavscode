@@ -62,7 +62,7 @@ jobs:
         with:
           repository: apache/netbeans
           path: netbeans
-          ref: 23-rc3
+          ref: 23
 
       - name: Checkout NetBeans l10n
         uses: actions/checkout@v4
