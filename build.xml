@@ -126,14 +126,18 @@
         <delete dir="${lsp.build.dir}" />
         <delete dir="vscode/node_modules" />
         <delete dir="vscode/out" />
-        <ant dir="nbcode" target="clean" inheritall="false" inheritrefs="false"/>
+        <ant dir="nbcode" target="clean" inheritall="false" inheritrefs="false">
+            <property name="nbplatform.default.netbeans.dest.dir" location="${nbplatform.default.netbeans.dest.dir}" />
+            <property name="nbplatform.default.harness.dir" location="${nbplatform.default.harness.dir}" />
+            <property name="nbantext.jar" location="${nbantext.jar}" />
+        </ant>
     </target>
 
     <property name="netbeans.l10n.dir" location="netbeans-l10n"/>
     <property name="nbcode.l10n.dir" location="nbcode/l10n"/>
     <property name="vscode.nbcode.extra.dir" location="vscode/nbcode/extra"/>
 
-    <target name="build-l10n-ant-ext-jar">
+    <target name="build-l10n-ant-ext-jar" unless="disable.netbeans.l10n">
         <ant dir="${netbeans.l10n.dir}/l10nantext" inheritall="false" inheritrefs="false">
             <property name="file.reference.ant.jar" value="${ant.home}/lib/ant.jar"/>
         </ant>
@@ -160,7 +164,7 @@
             </fileset>
         </delete>
     </target>
-    <target name="clean-l10n-bundles">
+    <target name="clean-l10n-bundles" unless="disable.netbeans.l10n">
         <delete dir="${netbeans.l10n.dir}/l10nantext/build"/>
         <delete dir="${netbeans.l10n.dir}/l10nantext/dist"/>
         <ant target="clean-l10n">
@@ -174,7 +178,7 @@
         <property name="disable.netbeans.l10n" value="true"/>
     </target>
     <target name="build-l10n-bundles" depends="clean-l10n-bundles,build-l10n-ant-ext-jar" description="builds l10n language bundles for vs code extension"
-            unless="${disable.netbeans.l10n}">
+            unless="disable.netbeans.l10n">
         <ant target="build-l10n">
             <property name="locale" value="ja" description="japanese"/>
         </ant>
@@ -298,7 +302,9 @@
         <condition value="true" property="should-apply">
             <and>
                 <istrue value="${has-l10n-patches}"/>
-                <isfalse value="${disable.netbeans.l10n}"/>
+                <not>
+                    <istrue value="${disable.netbeans.l10n}"/>
+                </not>
             </and>
         </condition>
         <ant target="git-patch">
@@ -347,7 +353,9 @@
         <condition value="true" property="should-apply">
             <and>
                 <istrue value="${has-l10n-patches}"/>
-                <isfalse value="${disable.netbeans.l10n}"/>
+                <not>
+                    <istrue value="${disable.netbeans.l10n}"/>
+                </not>
             </and>
         </condition>
         <ant target="git-un-patch">
