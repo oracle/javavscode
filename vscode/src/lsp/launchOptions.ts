@@ -32,7 +32,7 @@ export const getUserConfigLaunchOptionsDefaults = (): userDefinedLaunchOptionsTy
             value: projectSearchRootsValueHandler(),
             optionToPass: '-J-Dproject.limitScanRoot=',
             encloseInvertedComma: true
-        },[configKeys.verbose]: {
+        }, [configKeys.verbose]: {
             value: isNbJavacDisabledHandler(),
             optionToPass: '-J-Dnetbeans.logger.console='
         },
@@ -53,7 +53,7 @@ const extraLaunchOptions = [
     "--locale", l10n.nbLocaleCode(),
     "--start-java-language-server=listen-hash:0",
     "--start-java-debug-adapter-server=listen-hash:0"
-    ];
+];
 
 const prepareUserConfigLaunchOptions = (): string[] => {
     const launchOptions: string[] = [];
@@ -65,9 +65,9 @@ const prepareUserConfigLaunchOptions = (): string[] => {
                 launchOptions.push(...value);
             }
             else if (typeof (optionToPass) === "string") {
-                if(encloseInvertedComma){
+                if (encloseInvertedComma) {
                     launchOptions.push(`${optionToPass}"${value}"`);
-                } else{
+                } else {
                     launchOptions.push(`${optionToPass}${value}`);
                 }
             } else if (Array.isArray(optionToPass)) {

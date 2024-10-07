@@ -64,6 +64,6 @@ export const findNbcode = (extensionPath: string): string => {
 export const restartWithJDKLater = (time: number, notifyKill: boolean): void => {
     LOGGER.log(`Restart of ${extConstants.SERVER_NAME} requested in ${time / 1000} s.`);
     const nbProcessManager = globalVars.nbProcessManager;
-    
-    setTimeout(() =>  globalVars.clientPromise.restartExtension(nbProcessManager, notifyKill), time);
+
+    setTimeout(() => globalVars.clientPromise.restartExtension(nbProcessManager, notifyKill), time);
 };

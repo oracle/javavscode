@@ -25,7 +25,7 @@ export class ClientPromise {
     client!: Promise<NbLanguageClient>;
     activationPending!: boolean;
     initialPromiseResolved: boolean = false;
-    
+
     public clientPromiseInitialization = (): void => {
         this.client = new Promise<NbLanguageClient>((clientOK, clientErr) => {
             this.setClient = [
@@ -44,7 +44,7 @@ export class ClientPromise {
     }
 
     public stopClient = async (): Promise<void> => {
-        if(globalVars.testAdapter){
+        if (globalVars.testAdapter) {
             globalVars.testAdapter.dispose();
             globalVars.testAdapter = undefined;
         }
@@ -60,7 +60,7 @@ export class ClientPromise {
             LOGGER.log("Server activation requested repeatedly, ignoring...", LogLevel.WARN);
             return;
         }
-        if(!nbProcessManager){
+        if (!nbProcessManager) {
             LOGGER.log("Nbcode Process is null", LogLevel.ERROR);
             return;
         }

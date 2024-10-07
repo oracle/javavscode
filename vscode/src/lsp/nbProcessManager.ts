@@ -77,7 +77,7 @@ export class NbProcessManager {
     disconnect = () => {
         return this.process?.disconnect();
     }
-    
+
     getProcess = () => {
         return this.process;
     }
@@ -85,9 +85,9 @@ export class NbProcessManager {
     getProcessId = () => {
         return this.process?.pid;
     }
-    
+
     appendStdOut = (text: string) => {
-        if(this.stdOutText != null) {
+        if (this.stdOutText != null) {
             this.stdOutText += text;
         }
     }
@@ -95,7 +95,7 @@ export class NbProcessManager {
     appendStdErr = (text: string) => {
         this.stdErrText += text;
     }
-    
+
     getStdOut = () => {
         return this.stdOutText
     }
