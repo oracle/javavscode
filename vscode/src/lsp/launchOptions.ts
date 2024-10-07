@@ -52,7 +52,7 @@ const extraLaunchOptions = [
     "--locale", l10n.nbLocaleCode(),
     "--start-java-language-server=listen-hash:0",
     "--start-java-debug-adapter-server=listen-hash:0"
-    ];
+];
 
 const prepareUserConfigLaunchOptions = (): string[] => {
     const launchOptions: string[] = [];
