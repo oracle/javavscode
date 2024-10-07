@@ -23,7 +23,7 @@
 
 import { commands, debug, tests, workspace, CancellationToken, TestController, TestItem, TestRunProfileKind, TestRunRequest, Uri, TestRun, TestMessage, Location, Position, MarkdownString } from "vscode";
 import * as path from 'path';
-import { asRange, TestCase, TestSuite } from "./protocol";
+import { asRange, TestCase, TestSuite } from "./lsp/protocol";
 import { extConstants } from "./constants";
 
 export class NbTestAdapter {

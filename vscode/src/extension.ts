@@ -48,7 +48,7 @@ import { NbTestAdapter } from './testAdapter';
 import { asRanges, StatusMessageRequest, ShowStatusMessageParams, QuickPickRequest, InputBoxRequest, MutliStepInputRequest, TestProgressNotification, DebugConnector,
          TextEditorDecorationCreateRequest, TextEditorDecorationSetNotification, TextEditorDecorationDisposeNotification, HtmlPageRequest, HtmlPageParams,
          ExecInHtmlPageRequest, SetTextEditorDecorationParams, ProjectActionParams, UpdateConfigurationRequest, QuickPickStep, InputBoxStep, SaveDocumentsRequest, SaveDocumentRequestParams
-} from './protocol';
+} from './lsp/protocol';
 import * as launchConfigurations from './launchConfigurations';
 import { TreeViewService, Visualizer } from './explorer';
 import { initializeRunConfiguration, runConfigurationProvider, runConfigurationNodeProvider, configureRunSettings, runConfigurationUpdateAll } from './runConfiguration';
@@ -65,6 +65,7 @@ import { initializeServer } from './lsp/initializer';
 import { NbLanguageClient } from './lsp/nbLanguageClient';
 import { configChangeListener } from './configurations/listener';
 import { isNbJavacDisabledHandler } from './configurations/handlers';
+import { subscribeCommands } from './commands/register';
 
 const listeners = new Map<string, string[]>();
 export let LOGGER: ExtensionLogger;
@@ -144,78 +145,6 @@ function contextUri(ctx : any) : vscode.Uri | undefined {
     return vscode.window.activeTextEditor?.document?.uri;
 }
 
-/**
- * Executes a project action. It is possible to provide an explicit configuration to use (or undefined), display output from the action etc.
- * Arguments are attempted to parse as file or editor references or Nodes; otherwise they are attempted to be passed to the action as objects.
- *
- * @param action ID of the project action to run
- * @param configuration configuration to use or undefined - use default/active one.
- * @param title Title for the progress displayed in vscode
- * @param log output channel that should be revealed
- * @param showOutput if true, reveals the passed output channel
- * @param args additional arguments
- * @returns Promise for the command's result
- */
-function wrapProjectActionWithProgress(action : string, configuration : string | undefined, title : string, log? : vscode.OutputChannel, showOutput? : boolean, ...args : any[]) : Thenable<unknown> {
-    let items = [];
-    let actionParams = {
-        action : action,
-        configuration : configuration,
-    } as ProjectActionParams;
-    for (let item of args) {
-        let u : vscode.Uri | undefined;
-        if (item?.fsPath) {
-            items.push((item.fsPath as vscode.Uri).toString());
-        } else if (item?.resourceUri) {
-            items.push((item.resourceUri as vscode.Uri).toString());
-        } else {
-            items.push(item);
-        }
-    }
-    return wrapCommandWithProgress(extConstants.COMMAND_PREFIX + '.project.run.action', title, log, showOutput, actionParams, ...items);
-}
-
-function wrapCommandWithProgress(lsCommand : string, title : string, log? : vscode.OutputChannel, showOutput? : boolean, ...args : any[]) : Thenable<unknown> {
-    return window.withProgress({ location: ProgressLocation.Window }, p => {
-        return new Promise(async (resolve, reject) => {
-            let c : LanguageClient = await globalVars.clientPromise.client;
-            const commands = await vscode.commands.getCommands();
-            if (commands.includes(lsCommand)) {
-                p.report({ message: title });
-                c.outputChannel.show(true);
-                const start = new Date().getTime();
-                try {
-                    if (log) {
-                        LOGGER.log(`starting ${lsCommand}`);
-                    }
-                    const res = await vscode.commands.executeCommand(lsCommand, ...args)
-                    const elapsed = new Date().getTime() - start;
-                    if (log) {
-                        LOGGER.log(`finished ${lsCommand} in ${elapsed} ms with result ${res}`);
-                    }
-                    const humanVisibleDelay = elapsed < 1000 ? 1000 : 0;
-                    setTimeout(() => { // set a timeout so user would still see the message when build time is short
-                        if (res) {
-                            resolve(res);
-                        } else {
-                            if (log) {
-                                LOGGER.log(`Command ${lsCommand} takes too long to start`, LogLevel.ERROR);
-                            }
-                            reject(res);
-                        }
-                    }, humanVisibleDelay);
-                } catch (err: any) {
-                    if (log) {
-                        LOGGER.log(`command ${lsCommand} executed with error: ${JSON.stringify(err)}`, LogLevel.ERROR);
-                    }
-                }
-            } else {
-                reject(l10n.value("jdk.extension.progressBar.error_msg.cannotRun",{lsCommand:lsCommand,client:c}));
-            }
-        });
-    });
-}
-
 export function activate(context: ExtensionContext): VSNetBeansAPI {
     globalVars.deactivated = false;
     globalVars.clientPromise = new ClientPromise();
@@ -276,224 +205,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 	});
 
     // register commands
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.workspace.new', async (ctx, template) => {
-        let c : LanguageClient = await globalVars.clientPromise.client;
-        const commands = await vscode.commands.getCommands();
-        if (commands.includes(extConstants.COMMAND_PREFIX + '.new.from.template')) {
-            const workspaces=workspace.workspaceFolders;
-
-            if(!workspaces) {
-                const userHomeDir = os.homedir();
-                const folderPath = await vscode.window.showInputBox({
-                    prompt: l10n.value('jdk.workspace.new.prompt'),
-                    value: `${userHomeDir}`
-                });
-                if(!folderPath?.trim()) return;
-
-                if(!fs.existsSync(folderPath)) {
-                    await fs.promises.mkdir(folderPath);
-                }
-                const folderPathUri = vscode.Uri.file(folderPath);
-                await vscode.commands.executeCommand(extConstants.COMMAND_PREFIX + '.new.from.template', folderPathUri.toString());
-                await vscode.commands.executeCommand(`vscode.openFolder`, folderPathUri);
-
-                return;
-            }
-
-            // first give the template (if present), then the context, and then the open-file hint in the case the context is not specific enough
-            const params = [];
-            if (typeof template === 'string') {
-                params.push(template);
-            }
-            params.push(contextUri(ctx)?.toString(), vscode.window.activeTextEditor?.document?.uri?.toString());
-            const res = await vscode.commands.executeCommand(extConstants.COMMAND_PREFIX + '.new.from.template', ...params);
-            
-            if (typeof res === 'string') {
-                let newFile = vscode.Uri.parse(res as string);
-                await vscode.window.showTextDocument(newFile, { preview: false });
-            } else if (Array.isArray(res)) {
-                for(let r of res) {
-                    if (typeof r === 'string') {
-                        let newFile = vscode.Uri.parse(r as string);
-                        await vscode.window.showTextDocument(newFile, { preview: false });
-                    }
-                }
-            }
-        } else {
-            throw l10n.value("jdk.extension.error_msg.doesntSupportNewTeamplate",{client:c});
-        }
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.workspace.newproject', async (ctx) => {
-        let c : LanguageClient = await globalVars.clientPromise.client;
-        const commands = await vscode.commands.getCommands();
-        if (commands.includes(extConstants.COMMAND_PREFIX + '.new.project')) {
-            const res = await vscode.commands.executeCommand(extConstants.COMMAND_PREFIX + '.new.project', contextUri(ctx)?.toString());
-            if (typeof res === 'string') {
-                let newProject = vscode.Uri.parse(res as string);
-
-                const OPEN_IN_NEW_WINDOW = l10n.value("jdk.extension.label.openInNewWindow");
-                const ADD_TO_CURRENT_WORKSPACE = l10n.value("jdk.extension.label.addToWorkSpace");
-
-                const value = await vscode.window.showInformationMessage(l10n.value("jdk.extension.message.newProjectCreated"), OPEN_IN_NEW_WINDOW, ADD_TO_CURRENT_WORKSPACE);
-                if (value === OPEN_IN_NEW_WINDOW) {
-                    await vscode.commands.executeCommand('vscode.openFolder', newProject, true);
-                } else if (value === ADD_TO_CURRENT_WORKSPACE) {
-                    vscode.workspace.updateWorkspaceFolders(vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0, undefined, { uri: newProject });
-                }
-            }
-        } else {
-            throw l10n.value("jdk.extenstion.error_msg.doesntSupportNewProject",{client: globalVars.clientPromise.client,c});
-        }
-    }));
-
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.open.test', async (ctx) => {
-        let c: LanguageClient = await globalVars.clientPromise.client;
-        const commands = await vscode.commands.getCommands();
-        if (commands.includes(extConstants.COMMAND_PREFIX + '.go.to.test')) {
-            try {
-                const res: any = await vscode.commands.executeCommand(extConstants.COMMAND_PREFIX + '.go.to.test', contextUri(ctx)?.toString());
-                if("errorMessage" in res){
-                    throw new Error(res.errorMessage);
-                }
-                res?.providerErrors?.map((error: any) => {
-                    if(error?.message){
-                        vscode.window.showErrorMessage(error.message);
-                    }
-                });
-                if (res?.locations?.length) {
-                    if (res.locations.length === 1) {
-                        const { file, offset } = res.locations[0];
-                        const filePath = vscode.Uri.parse(file);
-                        const editor = await vscode.window.showTextDocument(filePath, { preview: false });
-                        if (offset != -1) {
-                            const pos: vscode.Position = editor.document.positionAt(offset);
-                            editor.selections = [new vscode.Selection(pos, pos)];
-                            const range = new vscode.Range(pos, pos);
-                            editor.revealRange(range);
-                        }
-
-                    } else {
-                        const namePathMapping: { [key: string]: string } = {}
-                        res.locations.forEach((fp:any) => {
-                            const fileName = path.basename(fp.file);
-                            namePathMapping[fileName] = fp.file
-                        });
-                        const selected = await window.showQuickPick(Object.keys(namePathMapping), {
-                            title: l10n.value("jdk.extension.fileSelector.label.selectFiles"),
-                            placeHolder: l10n.value("jdk.extension.fileSelector.label.testFilesOrSourceFiles"),
-                            canPickMany: true
-                        });
-                        if (selected) {
-                            for await (const filePath of selected) {
-                                let file = vscode.Uri.parse(filePath);
-                                await vscode.window.showTextDocument(file, { preview: false });
-                            }
-                        } else {
-                            vscode.window.showInformationMessage(l10n.value("jdk.extension.fileSelector.label.noFileSelected"));
-                        }
-                    }
-                }
-            } catch (err:any) {
-                vscode.window.showInformationMessage(err?.message || l10n.value("jdk.extension.fileSelector.label.noTestFound"));
-            }
-        } else {
-            throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest",{client:c});
-        }
-    }));
-
-    context.subscriptions.push(vscode.commands.registerCommand(extConstants.COMMAND_PREFIX + ".delete.cache", async () => {
-        const storagePath = context.storageUri?.fsPath;
-        if (!storagePath) {
-            vscode.window.showErrorMessage(l10n.value("jdk.extension.cache.error_msg.cannotFindWrkSpacePath"));
-            return;
-        }
-
-        const userDir = path.join(storagePath, "userdir");
-        if (userDir && fs.existsSync(userDir)) {
-            const yes =  l10n.value("jdk.extension.cache.label.confirmation.yes")
-            const cancel = l10n.value("jdk.extension.cache.label.confirmation.cancel")
-            const confirmation = await vscode.window.showInformationMessage('Are you sure you want to delete cache for this workspace  and reload the window ?',
-                yes, cancel);
-            if (confirmation === yes) {
-                const reloadWindowActionLabel = l10n.value("jdk.extension.cache.label.reloadWindow");
-                try {
-                    await globalVars.clientPromise.stopClient();
-                    globalVars.deactivated = true;
-                    await globalVars.nbProcessManager?.killProcess(false);
-                    await fs.promises.rmdir(userDir, { recursive: true });
-                    await vscode.window.showInformationMessage(l10n.value("jdk.extension.message.cacheDeleted"), reloadWindowActionLabel);
-                } catch (err) {
-                    await vscode.window.showErrorMessage(l10n.value("jdk.extension.error_msg.cacheDeletionError"), reloadWindowActionLabel);
-                } finally {
-                    vscode.commands.executeCommand("workbench.action.reloadWindow");
-                }
-            }
-        } else {
-            vscode.window.showErrorMessage(l10n.value("jdk.extension.cache.message.noUserDir"));
-        }
-    }));
-    
-
-    context.subscriptions.push(vscode.commands.registerCommand(extConstants.COMMAND_PREFIX + ".download.jdk", async () => { 
-        const jdkDownloaderView = new JdkDownloaderView();
-        jdkDownloaderView.createView();
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.workspace.compile', () =>
-        wrapCommandWithProgress(extConstants.COMMAND_PREFIX + '.build.workspace', l10n.value('jdk.extension.command.progress.compilingWorkSpace'), LOGGER.getOutputChannel(), true)
-    ));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.workspace.clean', () =>
-        wrapCommandWithProgress(extConstants.COMMAND_PREFIX + '.clean.workspace',l10n.value('jdk.extension.command.progress.cleaningWorkSpace'), LOGGER.getOutputChannel(), true)
-    ));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.project.compile', (args) => {
-        wrapProjectActionWithProgress('build', undefined, l10n.value('jdk.extension.command.progress.compilingProject'), LOGGER.getOutputChannel(), true, args);
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.project.clean', (args) => {
-        wrapProjectActionWithProgress('clean', undefined, l10n.value('jdk.extension.command.progress.cleaningProject'), LOGGER.getOutputChannel(), true, args);
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.open.type', () => {
-        wrapCommandWithProgress(extConstants.COMMAND_PREFIX + '.quick.open', l10n.value('jdk.extension.command.progress.quickOpen'), LOGGER.getOutputChannel(), true).then(() => {
-            commands.executeCommand('workbench.action.focusActiveEditorGroup');
-        });
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.java.goto.super.implementation', async () => {
-        if (window.activeTextEditor?.document.languageId !== extConstants.LANGUAGE_ID) {
-            return;
-        }
-        const uri = window.activeTextEditor.document.uri;
-        const position = window.activeTextEditor.selection.active;
-        const locations: any[] = await vscode.commands.executeCommand(extConstants.COMMAND_PREFIX + '.java.super.implementation', uri.toString(), position) || [];
-        return vscode.commands.executeCommand('editor.action.goToLocations', window.activeTextEditor.document.uri, position,
-            locations.map(location => new vscode.Location(vscode.Uri.parse(location.uri), new vscode.Range(location.range.start.line, location.range.start.character, location.range.end.line, location.range.end.character))),
-            'peek', l10n.value('jdk.extension.error_msg.noSuperImpl'));
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.rename.element.at', async (offset) => {
-        const editor = window.activeTextEditor;
-        if (editor) {
-            await commands.executeCommand('editor.action.rename', [
-                editor.document.uri,
-                editor.document.positionAt(offset),
-            ]);
-        }
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.surround.with', async (items) => {
-        const selected: any = await window.showQuickPick(items, { placeHolder: l10n.value('jdk.extension.command.quickPick.placeholder.surroundWith') });
-        if (selected) {
-            if (selected.userData.edit) {
-                const edit = await (await globalVars.clientPromise.client).protocol2CodeConverter.asWorkspaceEdit(selected.userData.edit as ls.WorkspaceEdit);
-                await workspace.applyEdit(edit);
-                await commands.executeCommand('workbench.action.focusActiveEditorGroup');
-            }
-            await commands.executeCommand(selected.userData.command.command, ...(selected.userData.command.arguments || []));
-        }
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.generate.code', async (command, data) => {
-        const edit: any = await commands.executeCommand(command, data);
-        if (edit) {
-            const wsEdit = await (await globalVars.clientPromise.client).protocol2CodeConverter.asWorkspaceEdit(edit as ls.WorkspaceEdit);
-            await workspace.applyEdit(wsEdit);
-            await commands.executeCommand('workbench.action.focusActiveEditorGroup');
-        }
-    }));
+    subscribeCommands(context);
 
     async function findRunConfiguration(uri : vscode.Uri) : Promise<vscode.DebugConfiguration|undefined> {
         // do not invoke debug start with no (jdk) configurations, as it would probably create an user prompt
@@ -595,28 +307,9 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
     context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.package.test', async (uri, launchConfiguration?) => {
         await runDebug(true, true, uri, undefined, launchConfiguration);
     }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.open.stacktrace', async (uri, methodName, fileName, line) => {
-        const location: string | undefined = uri ? await commands.executeCommand(extConstants.COMMAND_PREFIX + '.resolve.stacktrace.location', uri, methodName, fileName) : undefined;
-        if (location) {
-            const lNum = line - 1;
-            window.showTextDocument(vscode.Uri.parse(location), { selection: new vscode.Range(new vscode.Position(lNum, 0), new vscode.Position(lNum, 0)) });
-        } else {
-            if (methodName) {
-                const fqn: string = methodName.substring(0, methodName.lastIndexOf('.'));
-                commands.executeCommand('workbench.action.quickOpen', '#' + fqn.substring(fqn.lastIndexOf('.') + 1));
-            }
-        }
-    }));
     context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.workspace.symbols', async (query) => {
         const c = await globalVars.clientPromise.client;
         return (await c.sendRequest<SymbolInformation[]>("workspace/symbol", { "query": query })) ?? [];
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.java.complete.abstract.methods', async () => {
-        const active = vscode.window.activeTextEditor;
-        if (active) {
-            const position = new vscode.Position(active.selection.start.line, active.selection.start.character);
-            await commands.executeCommand(extConstants.COMMAND_PREFIX + '.java.implement.all.abstract.methods', active.document.uri.toString(), position);
-        }
     }));
     context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.startup.condition', async () => {
         return globalVars.clientPromise.client;

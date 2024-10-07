@@ -20,7 +20,7 @@ import * as vscode from 'vscode';
 import { ThemeIcon } from 'vscode';
 import {  LanguageClient } from 'vscode-languageclient/node';
 import { NbLanguageClient } from './lsp/nbLanguageClient';
-import { NodeChangedParams, NodeInfoNotification, NodeInfoRequest, GetResourceParams, NodeChangeType, NodeChangesParams } from './protocol';
+import { NodeChangedParams, NodeInfoNotification, NodeInfoRequest, GetResourceParams, NodeChangeType, NodeChangesParams } from './lsp/protocol';
 import { l10n } from './localiser';
 const doLog : boolean = false;
 const EmptyIcon = "EMPTY_ICON";
