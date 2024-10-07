@@ -22,7 +22,7 @@ import { CommandKey, ID, Message, PropertyMessage, Properties, Property, Propert
 import { assertNever, isObject, isRecord, isString, IsType } from '../typesUtil';
 import { makeHtmlForProperties } from './propertiesHtmlBuilder';
 import { TreeViewService, TreeNodeListener, Visualizer } from '../explorer';
-import { NodeChangeType } from '../protocol';
+import { NodeChangeType } from '../lsp/protocol';
 
 function isVisualizer(node : any) : node is Visualizer {
 	return node?.id && node?.rootId;
