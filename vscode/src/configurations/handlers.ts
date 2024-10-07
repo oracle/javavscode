@@ -14,7 +14,7 @@
   limitations under the License.
 */
 import { extensions, workspace } from "vscode";
-import { configKeys } from "./configuration";
+import { builtInConfigKeys, configKeys } from "./configuration";
 import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
 import * as os from 'os';
 import { globalVars, LOGGER } from "../extension";
@@ -25,6 +25,14 @@ import * as fs from 'fs';
 export const getConfigurationValue = <T>(key: string, defaultValue: T | undefined = undefined): T => {
     const conf = workspace.getConfiguration(extConstants.COMMAND_PREFIX);
     return defaultValue != undefined ? conf.get(key, defaultValue) : conf.get(key) as T;
+}
+
+export const getBuiltinConfigurationValue = <T>(key: string, defaultValue: T | undefined = undefined): T => {
+    const splitKey = key.split('.');
+    const selector = splitKey?.[0];
+    const conf = workspace.getConfiguration(selector);
+    const confKey = splitKey?.slice(1)?.join('.');
+    return defaultValue != undefined ? conf?.get(confKey, defaultValue) : conf?.get(confKey) as T;
 }
 
 export const jdkHomeValueHandler = (): string | null => {
@@ -71,8 +79,7 @@ export const lspServerVmOptionsHandler = (): string[] => {
 }
 
 export const isDarkColorThemeHandler = (): boolean => {
-    // const themeName = getConfigurationValue(configKeys.vscodeTheme);
-    const themeName = workspace.getConfiguration('workbench')?.get('colorTheme');
+    const themeName: string = getBuiltinConfigurationValue(builtInConfigKeys.vscodeTheme);    
     if (!themeName) {
         return false;
     }
@@ -110,12 +117,12 @@ export const userdirHandler = (): string => {
     const userdir = path.join(userdirParentDir, "userdir");
 
     try {
-        if(!fs.existsSync(userdir)){
+        if (!fs.existsSync(userdir)) {
             fs.mkdirSync(userdir, { recursive: true });
             const stats = fs.statSync(userdir);
             if (!stats.isDirectory()) {
                 throw new Error(`${userdir} is not a directory`);
-            }    
+            }
         }
 
         return userdir;
@@ -125,5 +132,5 @@ export const userdirHandler = (): string => {
 }
 
 export const isNbJavacDisabledHandler = (): boolean => {
-   return getConfigurationValue(configKeys.verbose, false);
+    return getConfigurationValue(configKeys.verbose, false);
 }

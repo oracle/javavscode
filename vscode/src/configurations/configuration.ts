@@ -28,16 +28,19 @@ export const configKeys = {
     runConfigCwd: 'runConfig.cwd',
     verbose: 'verbose',
     userdir: 'userdir',
-    vscodeTheme: 'workbench.colorTheme'
 };
 
-export const userConfigsListened = [
+export const builtInConfigKeys = {
+    vscodeTheme: 'workbench.colorTheme'
+}
+
+export const userConfigsListened: string[] = [
     appendPrefixToCommand(configKeys.jdkHome),
     appendPrefixToCommand(configKeys.userdir),
     appendPrefixToCommand(configKeys.lspVmOptions),
     appendPrefixToCommand(configKeys.disableNbJavac),
     appendPrefixToCommand(configKeys.disableProjSearchLimit),
-    configKeys.vscodeTheme,
+    builtInConfigKeys.vscodeTheme,
 ];
 
 
