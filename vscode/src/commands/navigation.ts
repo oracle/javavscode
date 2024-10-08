@@ -77,7 +77,7 @@ const goToTest = async (ctx: any) => {
 }
 
 const openTypeHandler = () => {
-    wrapCommandWithProgress(nbCommands.quickOpen, l10n.value('jdk.extension.command.progress.quickOpen'), LOGGER.getOutputChannel(), true).then(() => {
+    wrapCommandWithProgress(nbCommands.quickOpen, l10n.value('jdk.extension.command.progress.quickOpen'), LOGGER.getOutputChannel()).then(() => {
         commands.executeCommand(builtInCommands.focusActiveEditorGroup);
     });
 }
@@ -90,7 +90,7 @@ const openStackHandler = async (uri: any, methodName: any, fileName: any, line: 
     } else {
         if (methodName) {
             const fqn: string = methodName.substring(0, methodName.lastIndexOf('.'));
-            commands.executeCommand(builtInCommands.quickAccess, '#' + fqn.substring(fqn.lastIndexOf('.') + 1));
+            await commands.executeCommand(builtInCommands.quickAccess, '#' + fqn.substring(fqn.lastIndexOf('.') + 1));
         }
     }
 }

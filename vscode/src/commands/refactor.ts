@@ -20,6 +20,7 @@ import { builtInCommands, extCommands, nbCommands } from "./commands";
 import { l10n } from "../localiser";
 import { globalVars } from "../extension";
 import { WorkspaceEdit } from 'vscode-languageserver-protocol';
+import { SymbolInformation } from 'vscode-languageclient';
 
 const goToSuperImplementationHandler = async () => {
     if (window.activeTextEditor?.document.languageId !== extConstants.LANGUAGE_ID) {
@@ -74,6 +75,12 @@ const completeAbstractMethodsHandler = async () => {
     }
 }
 
+const workspaceSymbolsHandler = async (query: any) => {
+    const client = await globalVars.clientPromise.client;
+    return (await client.sendRequest<SymbolInformation[]>("workspace/symbol", { "query": query })) ?? [];
+}
+
+
 export const registerRefactorCommands: ICommand[] = [
     {
         command: extCommands.goToSuperImpl,
@@ -90,5 +97,8 @@ export const registerRefactorCommands: ICommand[] = [
     }, {
         command: extCommands.abstractMethodsComplete,
         handler: completeAbstractMethodsHandler
+    }, {
+        command: extCommands.workspaceSymbols,
+        handler: workspaceSymbolsHandler
     }
 ];
