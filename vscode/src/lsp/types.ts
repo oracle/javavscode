@@ -20,3 +20,8 @@ export type userDefinedLaunchOptionsType = {
         encloseInvertedComma?: boolean
     }
 };
+
+export interface VSNetBeansAPI {
+    version : string;
+    apiVersion: string;
+}

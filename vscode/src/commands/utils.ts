@@ -56,7 +56,7 @@ export const isNbCommandRegistered = async (command: string) => {
  * @param args additional arguments
  * @returns Promise for the command's result
  */
-export const wrapProjectActionWithProgress = (action: string, configuration: string | undefined, title: string, log?: OutputChannel, showOutput?: boolean, ...args: any[]): Thenable<unknown> => {
+export const wrapProjectActionWithProgress = (action: string, configuration: string | undefined, title: string, log?: OutputChannel, ...args: any[]): Thenable<unknown> => {
     let items = [];
     let actionParams = {
         action: action,
@@ -72,10 +72,10 @@ export const wrapProjectActionWithProgress = (action: string, configuration: str
             items.push(item);
         }
     }
-    return wrapCommandWithProgress(nbCommands.runProjectAction, title, log, showOutput, actionParams, ...items);
+    return wrapCommandWithProgress(nbCommands.runProjectAction, title, log, actionParams, ...items);
 }
 
-export const wrapCommandWithProgress = (lsCommand: string, title: string, log?: OutputChannel, showOutput?: boolean, ...args: any[]): Thenable<unknown> => {
+export const wrapCommandWithProgress = (lsCommand: string, title: string, log?: OutputChannel, ...args: any[]): Thenable<unknown> => {
     return window.withProgress({ location: ProgressLocation.Window }, p => {
         return new Promise(async (resolve, reject) => {
             let c: LanguageClient = await globalVars.clientPromise.client;

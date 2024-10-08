@@ -23,7 +23,7 @@
 
 'use strict';
 
-import { commands, window, workspace, ExtensionContext, ProgressLocation, TextEditorDecorationType } from 'vscode';
+import { commands, window, workspace, ExtensionContext, TextEditorDecorationType } from 'vscode';
 
 import {
 	LanguageClient,
@@ -33,21 +33,18 @@ import {
 import {
     MessageType,
     LogMessageNotification,
-    SymbolInformation,
     TelemetryEventNotification
 } from 'vscode-languageclient';
 
 import * as net from 'net';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as ls from 'vscode-languageserver-protocol';
 import { StreamDebugAdapter} from './streamDebugAdapter';
 import { NbTestAdapter } from './testAdapter';
 import { asRanges, StatusMessageRequest, ShowStatusMessageParams, QuickPickRequest, InputBoxRequest, MutliStepInputRequest, TestProgressNotification, DebugConnector,
          TextEditorDecorationCreateRequest, TextEditorDecorationSetNotification, TextEditorDecorationDisposeNotification, HtmlPageRequest, HtmlPageParams,
-         ExecInHtmlPageRequest, SetTextEditorDecorationParams, ProjectActionParams, UpdateConfigurationRequest, QuickPickStep, InputBoxStep, SaveDocumentsRequest, SaveDocumentRequestParams
+         ExecInHtmlPageRequest, SetTextEditorDecorationParams, UpdateConfigurationRequest, QuickPickStep, InputBoxStep, SaveDocumentsRequest, SaveDocumentRequestParams
 } from './lsp/protocol';
 import * as launchConfigurations from './launchConfigurations';
 import { TreeViewService, Visualizer } from './explorer';
@@ -56,7 +53,6 @@ import { InputStep, MultiStepInput } from './utils';
 import { PropertiesView } from './propertiesView/propertiesView';
 import { l10n } from './localiser';
 import { extConstants } from './constants';
-import { JdkDownloaderView } from './jdkDownloader/view';
 import { ExtensionInfo } from './extensionInfo';
 import { ClientPromise } from './lsp/clientPromise';
 import { ExtensionLogger, LogLevel } from './logger';
@@ -66,10 +62,11 @@ import { NbLanguageClient } from './lsp/nbLanguageClient';
 import { configChangeListener } from './configurations/listener';
 import { isNbJavacDisabledHandler } from './configurations/handlers';
 import { subscribeCommands } from './commands/register';
+import { VSNetBeansAPI } from './lsp/types';
 
-const listeners = new Map<string, string[]>();
 export let LOGGER: ExtensionLogger;
 export namespace globalVars {
+    export const listeners = new Map<string, string[]>();    
     export let extensionInfo: ExtensionInfo;
     export let clientPromise: ClientPromise;
     export let debugPort: number = -1;
@@ -103,31 +100,6 @@ export function findClusters(myPath : string): string[] {
         }
     }
     return clusters;
-}
-
-// for tests only !
-export function awaitClient() : Promise<NbLanguageClient> {
-    const clientPromise = globalVars.clientPromise;
-    if (clientPromise.client && clientPromise.initialPromiseResolved) {
-        return clientPromise.client;
-    }
-    let nbcode = vscode.extensions.getExtension(extConstants.ORACLE_VSCODE_EXTENSION_ID);
-    if (!nbcode) {
-        return Promise.reject(new Error(l10n.value("jdk.extension.notInstalled.label")));
-    }
-    const t : Thenable<NbLanguageClient> = nbcode.activate().then(nc => {
-        if (globalVars.clientPromise.client === undefined || !globalVars.clientPromise.initialPromiseResolved) {
-            throw new Error(l10n.value("jdk.extenstion.error_msg.clientNotAvailable"));
-        } else {
-            return globalVars.clientPromise.client;
-        }
-    });
-    return Promise.resolve(t);
-}
-
-interface VSNetBeansAPI {
-    version : string;
-    apiVersion: string;
 }
 
 function contextUri(ctx : any) : vscode.Uri | undefined {
@@ -307,21 +279,6 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
     context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.package.test', async (uri, launchConfiguration?) => {
         await runDebug(true, true, uri, undefined, launchConfiguration);
     }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.workspace.symbols', async (query) => {
-        const c = await globalVars.clientPromise.client;
-        return (await c.sendRequest<SymbolInformation[]>("workspace/symbol", { "query": query })) ?? [];
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.startup.condition', async () => {
-        return globalVars.clientPromise.client;
-    }));
-    context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.addEventListener', (eventName, listener) => {
-        let ls = listeners.get(eventName);
-        if (!ls) {
-            ls = [];
-            listeners.set(eventName, ls);
-        }
-        ls.push(listener);
-    }));
     context.subscriptions.push(commands.registerCommand(extConstants.COMMAND_PREFIX + '.node.properties.edit',
         async (node) => await PropertiesView.createOrShow(context, node, (await globalVars.clientPromise.client).findTreeViewService())));
 
@@ -481,7 +438,7 @@ function doActivateWithJDK(): void {
                 }
             });
             c.onNotification(TelemetryEventNotification.type, (param) => {
-                const ls = listeners.get(param);
+                const ls = globalVars.listeners.get(param);
                 if (ls) {
                     for (const listener of ls) {
                         commands.executeCommand(listener);
