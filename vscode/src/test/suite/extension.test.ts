@@ -30,8 +30,8 @@ import * as myExtension from '../../extension';
 import * as myExplorer from '../../explorer';
 
 import { CodeAction, commands, extensions, Selection, Uri, window, workspace, TreeItem } from 'vscode';
-import { assertWorkspace, dumpJava, getFilePaths, openFile, prepareProject, replaceCode} from './testutils';
 import {SAMPLE_CODE_FORMAT_DOCUMENT, SAMPLE_CODE_SORT_IMPORTS, SAMPLE_CODE_UNUSED_IMPORTS } from './constants';
+import { assertWorkspace, checkCommandsLocalisation, checkConfigurationLocalisation, checkDebuggersLocalisation, checkl10nUsageInFiles, checkViewsLocalisation, dumpJava, getFilePaths, getKeysFromJSON, matchKeys, matchValuesTemplate, openFile, prepareProject, replaceCode } from './testutils';
 
 suite('Extension Test Suite', function () {
     window.showInformationMessage('Start all tests.');
@@ -297,6 +297,63 @@ suite('Extension Test Suite', function () {
 
         const mainClass = path.join(folder, 'target');
         assert.ok(!fs.existsSync(mainClass), "Class created by compilation: " + mainClass);
+    }).timeout(10000);
+
+     // Check the consistency of the keys and value templates across the bundle files for the supported languages 
+    test("Consistency of keys across bundle.l10n.lang.json files for supported languages", async () => {
+        const extension = extensions.getExtension("oracle.oracle-java");
+        assert(extension);
+        const enBundlePath = path.join(extension.extensionPath, "l10n", "bundle.l10n.en.json");
+        assert.ok(fs.existsSync(enBundlePath), "bundle.l10n.en.json doesn't exists");
+        const supportedLanguages = new Set(["ja", "zh-cn"]);
+        for (const lang of supportedLanguages) {
+            const langBundlePath = path.join(extension.extensionPath, "l10n", `bundle.l10n.${lang}.json`);
+            assert.ok(fs.existsSync(langBundlePath), `bundle.l10n.${lang}.json doesn't exists`);
+            assert.ok(matchKeys(enBundlePath, langBundlePath), `Keys of bundle.l10n.en.json and  bundle.l10n.${lang}.json don't match`);
+            assert.ok(matchValuesTemplate(enBundlePath, langBundlePath), "Value templates don't match for of the keys of bundle.l10n.en.json and  bundle.l10n.ja.json ");
+        }
+    }).timeout(10000);
+
+    test("Consistency of keys across package.nls.lang.json files for supported languages", async () => {
+        const extension = extensions.getExtension("oracle.oracle-java");
+        assert(extension);
+        const enPackagePath = path.join(extension.extensionPath, "package.nls.json");
+        assert.ok(fs.existsSync(enPackagePath), "package.nls.json doesn't exists");
+        const supportedLanguages = new Set(["ja", "zh-cn"]);
+        for (const lang of supportedLanguages) {
+            const langPackagePath = path.join(extension.extensionPath, `package.nls.${lang}.json`);
+            assert.ok(fs.existsSync(langPackagePath), `package.nls.${lang}.json doesn't exists`);
+            assert.ok(matchKeys(enPackagePath, langPackagePath), `Keys of package.nls.json and  package.nls.${lang}.json don't match`);
+        }
+    }).timeout(10000);
+
+    // Check localisable fields being appropriately localised for the contributes defined in package.json
+    test("Localisable fields in package.json localised properly ", async () => {
+        const extension = extensions.getExtension("oracle.oracle-java");
+        assert(extension);
+        const packagePath = path.join(extension.extensionPath, "package.json");
+        assert.ok(fs.existsSync(packagePath), "package.json doesn't exists");
+        const enPackagePath = path.join(extension.extensionPath, "package.nls.json");
+        assert.ok(fs.existsSync(enPackagePath), "package.nls.json doesn't exists");
+        const validKeys: Set<string> = getKeysFromJSON(enPackagePath);
+        const packageObj = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+        const contributes = packageObj.contributes
+        assert.ok(checkCommandsLocalisation(contributes.commands, validKeys), "Error some commands not localized");
+        assert.ok(checkViewsLocalisation(contributes.views, validKeys), "Error some views is not localized");
+        assert.ok(checkDebuggersLocalisation(contributes.debuggers, validKeys), "Error some debugger labels not localized");
+        assert.ok(checkConfigurationLocalisation(contributes.configuration, validKeys), "Error some configuration labels not localized");
+    }).timeout(10000);
+
+
+    // Check if l10n.value is called with a valid key and the placeholder map has all the keys as required in the string template 
+    test("Proper usage of l10n.value for localisation in the ts/js code files", async () => {
+        const ignoredDirEntriesNames = new Set(["test"]); // Names of folders,files( .js only),subfolders within the out directory which are not to be checked 
+        const extension = vscode.extensions.getExtension("oracle.oracle-java");
+        assert(extension, "extension not found");
+        const enBundlePath = path.join(extension.extensionPath, "l10n", "bundle.l10n.en.json");
+        assert(enBundlePath, "bundle.l10n.en.json not found");
+        const validKeyValues = JSON.parse(fs.readFileSync(enBundlePath, 'utf8'));
+        assert(checkl10nUsageInFiles(path.join(extension.extensionPath, "out"), ignoredDirEntriesNames, validKeyValues) === 0, "Some files have invalid localisation keys used. Check the logs or error messages");
     }).timeout(10000);
 
 });
