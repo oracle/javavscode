@@ -27,6 +27,10 @@ export const getConfigurationValue = <T>(key: string, defaultValue: T | undefine
     return defaultValue != undefined ? conf.get(key, defaultValue) : conf.get(key) as T;
 }
 
+export const updateConfigurationValue = <T>(key: string, newValue: T): void => {
+    workspace.getConfiguration(extConstants.COMMAND_PREFIX).update(key, newValue);
+}
+
 export const getBuiltinConfigurationValue = <T>(key: string, defaultValue: T | undefined = undefined): T => {
     const splitKey = key.split('.');
     const selector = splitKey?.[0];

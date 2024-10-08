@@ -14,14 +14,14 @@
   limitations under the License.
 */
 
-import { jdkDownloaderConstants } from '../constants';
+import { jdkDownloaderConstants } from '../../constants';
 import { ViewColumn, WebviewPanel, window } from 'vscode';
 import * as os from 'os';
 import { JdkDownloaderAction } from './action';
 import { downloaderCss } from './styles';
-import { l10n } from '../localiser';
-import { LOGGER } from '../extension';
-import { LogLevel } from '../logger';
+import { l10n } from '../../localiser';
+import { LOGGER } from '../../extension';
+import { LogLevel } from '../../logger';
 
 export class JdkDownloaderView {
     public static readonly OPEN_JDK_LABEL = "OpenJDK";
