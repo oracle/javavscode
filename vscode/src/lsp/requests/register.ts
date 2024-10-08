@@ -13,17 +13,13 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { JdkDownloaderView } from "../webviews/jdkDownloader/view";
-import { extCommands } from "./commands";
-import { ICommand } from "./types";
+import { NbLanguageClient } from "../nbLanguageClient"
+import { notificationOrRequestListenerType } from "../types"
+import { requestListeners } from "./handlers"
 
-const invokeDownloadJdkWebview = async () => {
-    const jdkDownloaderView = new JdkDownloaderView();
-    jdkDownloaderView.createView();
-}
-
-
-export const registerWebviewCommands: ICommand[] = [{
-    command: extCommands.downloadJdk,
-    handler: invokeDownloadJdkWebview
-}];
+export const registerRequestListeners = (client: NbLanguageClient) => {
+    requestListeners.forEach((listener: notificationOrRequestListenerType) => {
+        const { type, handler } = listener;
+        client.onRequest(type, handler);
+    })
+} 

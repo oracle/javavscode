@@ -16,15 +16,15 @@
 
 import { commands, OpenDialogOptions, OutputChannel, window, workspace } from "vscode";
 import { JdkDownloaderView } from "./view";
-import { jdkDownloaderConstants } from "../constants";
+import { jdkDownloaderConstants } from "../../constants";
 import * as path from 'path';
 import * as fs from 'fs';
-import { calculateChecksum, downloadFileWithProgressBar, httpsGet } from "../utils";
+import { calculateChecksum, downloadFileWithProgressBar, httpsGet } from "../../utils";
 import * as cp from 'child_process';
 import { promisify } from "util";
-import { l10n } from "../localiser";
-import { LOGGER } from "../extension";
-import { LogLevel } from "../logger";
+import { l10n } from "../../localiser";
+import { LOGGER } from "../../extension";
+import { LogLevel } from "../../logger";
 
 export class JdkDownloaderAction {
     public static readonly MANUAL_INSTALLATION_TYPE = "manual";

@@ -24,7 +24,7 @@ import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
 import { l10n } from "../localiser";
 import { window } from "vscode";
 import { ChildProcess } from "child_process";
-import { jdkDownloaderPrompt } from "../jdkDownloader/prompt";
+import { jdkDownloaderPrompt } from "../webviews/jdkDownloader/prompt";
 import * as os from 'os';
 import { LogLevel } from "../logger";
 import { isNbJavacDisabledHandler } from "../configurations/handlers";

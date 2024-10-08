@@ -25,3 +25,8 @@ export interface VSNetBeansAPI {
     version : string;
     apiVersion: string;
 }
+
+export type notificationOrRequestListenerType = {
+    type: any,
+    handler: any
+}
