@@ -16,6 +16,7 @@
 import { builtInConfigKeys, configKeys } from "../configurations/configuration"
 import { isDarkColorThemeHandler, isNbJavacDisabledHandler, jdkHomeValueHandler, lspServerVmOptionsHandler, projectSearchRootsValueHandler, userdirHandler } from "../configurations/handlers";
 import { l10n } from "../localiser";
+import { isString } from "../typesUtil";
 import { userDefinedLaunchOptionsType } from "./types"
 
 export const getUserConfigLaunchOptionsDefaults = (): userDefinedLaunchOptionsType => {
@@ -64,7 +65,7 @@ const prepareUserConfigLaunchOptions = (): string[] => {
             if (!optionToPass && Array.isArray(value)) {
                 launchOptions.push(...value);
             }
-            else if (typeof (optionToPass) === "string") {
+            else if (isString(optionToPass)) {
                 if (encloseInvertedComma) {
                     launchOptions.push(`${optionToPass}"${value}"`);
                 } else {

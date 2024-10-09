@@ -45,7 +45,7 @@ import { ExtensionInfo } from './extensionInfo';
 import { ClientPromise } from './lsp/clientPromise';
 import { ExtensionLogger } from './logger';
 import { NbProcessManager } from './lsp/nbProcessManager';
-import { initializeServer } from './lsp/initializer';
+import { clientInit, serverOptionsBuilder } from './lsp/initializer';
 import { NbLanguageClient } from './lsp/nbLanguageClient';
 import { subscribeCommands } from './commands/register';
 import { VSNetBeansAPI } from './lsp/types';
@@ -90,7 +90,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 
     globalVars.clientPromise.initialize();
     registerListenersBeforeClientInit();
-    doActivateWithJDK();
+    clientInit();
 
     //register debugger:
     let debugTrackerFactory =new NetBeansDebugAdapterTrackerFactory();
@@ -242,53 +242,6 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
     });
 }
 
-function doActivateWithJDK(): void {
-        const connection: () => Promise<StreamInfo> = initializeServer();
-        const client = NbLanguageClient.build(connection, LOGGER);
-        
-        LOGGER.log('Language Client: Starting');
-        client.start().then(() => {
-            globalVars.testAdapter = new NbTestAdapter();
-            registerListenersAfterClientInit();
-            registerNotificationListeners(client);
-            registerRequestListeners(client);
-            LOGGER.log('Language Client: Ready');
-            globalVars.clientPromise.initializedSuccessfully(client);
-        
-            createProjectView(client);
-        }).catch(globalVars.clientPromise.setClient[1]);
-}
-    async function createProjectView(client : NbLanguageClient) {
-        const ts : TreeViewService = client.findTreeViewService();
-        let tv : vscode.TreeView<Visualizer> = await ts.createView('foundProjects', 'Projects', { canSelectMany : false });
-
-        async function revealActiveEditor(ed? : vscode.TextEditor) {
-            const uri = window.activeTextEditor?.document?.uri;
-            if (!uri || uri.scheme.toLowerCase() !== 'file') {
-                return;
-            }
-            if (!tv.visible) {
-                return;
-            }
-            let vis : Visualizer | undefined = await ts.findPath(tv, uri.toString());
-            if (!vis) {
-                return;
-            }
-            tv.reveal(vis, { select : true, focus : false, expand : false });
-        }
-        const netbeansConfig = workspace.getConfiguration(extConstants.COMMAND_PREFIX);
-        globalVars.extensionInfo.pushSubscription(window.onDidChangeActiveTextEditor(ed => {
-            if (netbeansConfig.get("revealActiveInProjects")) {
-                revealActiveEditor(ed);
-            }
-        }));
-        globalVars.extensionInfo.pushSubscription(vscode.commands.registerCommand(extConstants.COMMAND_PREFIX + ".select.editor.projects", () => revealActiveEditor()));
-
-        // attempt to reveal NOW:
-        if (netbeansConfig.get("revealActiveInProjects")) {
-            revealActiveEditor();
-        }
-    }
 
 
 export function deactivate(): Thenable<void> {

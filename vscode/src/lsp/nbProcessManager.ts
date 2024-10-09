@@ -99,6 +99,10 @@ export class NbProcessManager {
     getStdOut = () => {
         return this.stdOutText
     }
+    
+    setStdOut = (stdOut: string | null) => {
+        this.stdOutText = stdOut;
+    }
 
     getStdErr = () => {
         return this.stdErrText;
