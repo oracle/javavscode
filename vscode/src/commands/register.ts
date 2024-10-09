@@ -22,6 +22,7 @@ import { registerWebviewCommands } from "./webViews";
 import { registerBuildOperationCommands } from "./buildOperations";
 import { registerRefactorCommands } from "./refactor";
 import { registerUtilCommands } from "./utilCommands";
+import { registerDebugCommands } from "./debug";
 
 type ICommandModules = Record<string, ICommand[]>;
 
@@ -32,7 +33,8 @@ const commandModules: ICommandModules = {
     webview: registerWebviewCommands,
     buildOperations: registerBuildOperationCommands,
     refactor: registerRefactorCommands,
-    util: registerUtilCommands
+    util: registerUtilCommands,
+    debug: registerDebugCommands
 }
 
 export const subscribeCommands = (context: ExtensionContext) => {

@@ -48,7 +48,6 @@ export const extCommands = {
     editNodeProps: appendPrefixToCommand('node.properties.edit'),
     selectEditorProjs: appendPrefixToCommand('select.editor.projects'),
     attachDebugger: appendPrefixToCommand("java.attachDebugger.connector"),
-    startDebug: 'workbench.action.debug.start',
 }
 
 export const builtInCommands = {
@@ -59,7 +58,8 @@ export const builtInCommands = {
     goToEditorLocations: 'editor.action.goToLocations',
     renameSymbol: 'editor.action.rename',
     quickAccess: 'workbench.action.quickOpen',
-    openSettings: 'workbench.action.openSettings'
+    openSettings: 'workbench.action.openSettings',
+    startDebug: 'workbench.action.debug.start',
 }
 
 export const nbCommands = {
