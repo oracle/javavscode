@@ -28,6 +28,7 @@ export const configKeys = {
     runConfigCwd: 'runConfig.cwd',
     verbose: 'verbose',
     userdir: 'userdir',
+    revealInActivteProj: "revealActiveInProjects"
 };
 
 export const builtInConfigKeys = {

@@ -71,7 +71,7 @@ export class ClientPromise {
             await this.stopClient();
             await nbProcessManager.killProcess(notifyKill);
             this.initialize();
-            initializeServer();
+            clientInit();
         } catch (error) {
             LOGGER.log(`Error during activation: ${error}`, LogLevel.ERROR);
             throw error;

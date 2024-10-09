@@ -14,40 +14,23 @@
   limitations under the License.
 */
 import { StreamInfo } from "vscode-languageclient/node";
-import { getUserConfigLaunchOptionsDefaults, prepareNbcodeLaunchOptions } from "./launchOptions";
+import { getUserConfigLaunchOptionsDefaults } from "./launchOptions";
 import { globalVars, LOGGER } from "../extension";
 import { configKeys } from "../configurations/configuration";
-import { NbProcessManager } from "./nbProcessManager";
-import { enableDisableModules, findNbcode } from "./utils";
+import { enableDisableModules } from "./utils";
 import * as net from 'net';
-import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
-import { l10n } from "../localiser";
-import { window } from "vscode";
 import { ChildProcess } from "child_process";
-import { jdkDownloaderPrompt } from "../webviews/jdkDownloader/prompt";
-import * as os from 'os';
-import { LogLevel } from "../logger";
-import { isNbJavacDisabledHandler } from "../configurations/handlers";
-
-const launchNbcode = (): void => {
-    const ideLaunchOptions = prepareNbcodeLaunchOptions();
-    const userdir = getUserConfigLaunchOptionsDefaults()[configKeys.userdir].value;
-    const specifiedJDK = getUserConfigLaunchOptionsDefaults()[configKeys.jdkHome].value;
-    const extensionPath = globalVars.extensionInfo.getExtensionStorageUri().fsPath;
-    const nbcodePath = findNbcode(extensionPath);
-
-    const requiredJdk = specifiedJDK ? specifiedJDK : 'default system JDK';
-    let launchMsg = l10n.value("jdk.extension.lspServer.statusBar.message.launching", {
-        SERVER_NAME: extConstants.SERVER_NAME,
-        requiredJdk: requiredJdk,
-        userdir: userdir
-    });
-    LOGGER.log(launchMsg);
-    window.setStatusBarMessage(launchMsg, 2000);
-
-    globalVars.nbProcessManager = new NbProcessManager(userdir, nbcodePath, ideLaunchOptions);
-    globalVars.nbProcessManager.startProcess();
-}
+import { getConfigurationValue, isNbJavacDisabledHandler } from "../configurations/handlers";
+import { attachNbProcessListeners, launchNbcode } from "./nbcode";
+import { NbLanguageClient } from "./nbLanguageClient";
+import { NbTestAdapter } from "../testAdapter";
+import { registerListenersAfterClientInit } from "../listener";
+import { registerNotificationListeners } from "./notifications/register";
+import { registerRequestListeners } from "./requests/register";
+import { TreeViewService, Visualizer } from "../explorer";
+import { commands, TextEditor, TreeView, window, workspace } from "vscode";
+import { extConstants } from "../constants";
+import { extCommands } from "../commands/commands";
 
 const establishConnection = () => new Promise<StreamInfo>((resolve, reject) => {
     const nbProcess = globalVars.nbProcessManager?.getProcess();
@@ -61,21 +44,8 @@ const establishConnection = () => new Promise<StreamInfo>((resolve, reject) => {
     LOGGER.log(`LSP server launching: ${nbProcessManager.getProcessId()}`);
     LOGGER.log(`LSP server user directory: ${getUserConfigLaunchOptionsDefaults()[configKeys.userdir].value}`);
 
-    let status = false;
-    nbProcess.stdout?.on('data', (d: any) => {
-        status = processOnDataHandler(nbProcessManager, d.toString(), true);
-    });
-    nbProcess.stderr?.on('data', (d: any) => {
-        processOnDataHandler(nbProcessManager, d.toString(), false);
-    });
-    nbProcess.on('close', (code: number) => {
-        const status = processOnCloseHandler(nbProcessManager, code)
-        if (status != null) {
-            reject(status);
-        }
-    });
-
     try {
+        attachNbProcessListeners(nbProcessManager);
         connectToServer(nbProcess).then(server => resolve({
             reader: server,
             writer: server
@@ -121,55 +91,11 @@ const connectToServer = (nbProcess: ChildProcess): Promise<net.Socket> => {
     });
 }
 
-const processOnDataHandler = (nbProcessManager: NbProcessManager, text: string, isOut: boolean) => {
-    if (nbProcessManager) {
-        globalVars.clientPromise.activationPending = false;
-    }
-    LOGGER.logNoNL(text);
-    isOut ? nbProcessManager.appendStdOut(text) : nbProcessManager.appendStdErr(text);
-
-    if (nbProcessManager.getStdOut()?.match(/org.netbeans.modules.java.lsp.server/)) {
-        return true;
-    }
-    return false;
-}
-
-
-const processOnCloseHandler = (nbProcessManager: NbProcessManager, code: number): string | null => {
-    const globalnbProcessManager = globalVars.nbProcessManager;
-    if (globalnbProcessManager == nbProcessManager) {
-        globalVars.nbProcessManager = null;
-        if (code != 0) {
-            window.showWarningMessage(l10n.value("jdk.extension.lspServer.warning_message.serverExited", { SERVER_NAME: extConstants.SERVER_NAME, code: code }));
-        }
-    }
-    if (nbProcessManager.getStdOut()?.match(/Cannot find java/) || (os.type() === NODE_WINDOWS_LABEL && !globalVars.deactivated)) {
-        jdkDownloaderPrompt();
-    }
-    if (nbProcessManager.getStdOut() != null) {
-        let match = nbProcessManager.getStdOut()!.match(/org.netbeans.modules.java.lsp.server[^\n]*/)
-        if (match?.length == 1) {
-            LOGGER.log(match[0]);
-        } else {
-            LOGGER.log("Cannot find org.netbeans.modules.java.lsp.server in the log!", LogLevel.ERROR);
-        }
-        LOGGER.log(`Please refer to troubleshooting section for more info: https://github.com/oracle/javavscode/blob/main/README.md#troubleshooting`);
-        LOGGER.showOutputChannelUI(false);
-
-        nbProcessManager.killProcess(false);
-        return l10n.value("jdk.extension.error_msg.notEnabled", { SERVER_NAME: extConstants.SERVER_NAME });
-    } else {
-        LOGGER.log(`LSP server ${nbProcessManager.getProcessId()} terminated with ${code}`);
-        LOGGER.log(`Exit code ${code}`);
-    }
-    return null;
-}
-
 const enableDisableNbjavacModule = () => {
     const userdirPath = getUserConfigLaunchOptionsDefaults()[configKeys.userdir].value
     const nbjavacValue = isNbJavacDisabledHandler();
     const extensionPath = globalVars.extensionInfo.getExtensionStorageUri().fsPath;
-    enableDisableModules(extensionPath, userdirPath, ['org.netbeans.libs.nbjavacapi'], nbjavacValue);
+    enableDisableModules(extensionPath, userdirPath, ['org.netbeans.libs.nbjavacapi'], !nbjavacValue);
 }
 
 const serverBuilder = () => {
@@ -179,7 +105,7 @@ const serverBuilder = () => {
 }
 
 export const clientInit = () => {
-    const connection: () => Promise<StreamInfo> = serverBuilder();
+    const connection: () => Promise<StreamInfo> = serverOptionsBuilder();
     const client = NbLanguageClient.build(connection, LOGGER);
     
     LOGGER.log('Language Client: Starting');
