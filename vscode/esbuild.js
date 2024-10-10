@@ -11,9 +11,7 @@ const baseConfig = {
 const scriptConfig = {
   ...baseConfig,
   target: "es2020",
-  format: "esm",
-  entryPoints: ["./src/propertiesView/script.ts"],
-  outfile: "./out/script.js",
+  format: "esm"
 };
 
 const watchConfig = {

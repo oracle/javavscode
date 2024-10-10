@@ -26,6 +26,7 @@ export const showHtmlPage = async (params: HtmlPageParams): Promise<void> => {
         const match = /<title>(.*)<\/title>/i.exec(data);
         const name = match && match.length > 1 ? match[1] : '';
         const resourceDir = Uri.joinPath(globalVars.extensionInfo.getGlobalStorage(), params.id);
+        // TODO: @vscode/codeicons is a devDependency not a prod dependency. So do we ever reach this code?
         const distPath = Uri.joinPath(globalVars.extensionInfo.getExtensionStorageUri(), 'node_modules', '@vscode/codicons', 'dist');
         workspace.fs.createDirectory(resourceDir);
         let view = window.createWebviewPanel('htmlView', name, ViewColumn.Beside, {
