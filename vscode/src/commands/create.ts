@@ -67,7 +67,7 @@ const newFromTemplate = async (ctx: any, template: any) => {
             }
         }
     } else {
-        throw l10n.value("jdk.extenstion.error_msg.doesntSupportNewTeamplate", { client });
+        throw l10n.value("jdk.extension.error_msg.doesntSupportNewTeamplate", { client });
     }
 }
 
@@ -92,7 +92,7 @@ const newProject = async (ctx: any) => {
             }
         }
     } else {
-        throw l10n.value("jdk.extenstion.error_msg.doesntSupportNewProject", { client });
+        throw l10n.value("jdk.extension.error_msg.doesntSupportNewProject", { client });
     }
 };
 

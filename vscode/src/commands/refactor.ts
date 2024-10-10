@@ -31,7 +31,7 @@ const goToSuperImplementationHandler = async () => {
     const locations: any[] = await commands.executeCommand(nbCommands.superImpl, uri.toString(), position) || [];
     return commands.executeCommand(builtInCommands.goToEditorLocations, window.activeTextEditor.document.uri, position,
         locations.map(location => new Location(Uri.parse(location.uri), new Range(location.range.start.line, location.range.start.character, location.range.end.line, location.range.end.character))),
-        'peek', l10n.value('jdk.extenstion.error_msg.noSuperImpl'));
+        'peek', l10n.value('jdk.extension.error_msg.noSuperImpl'));
 }
 
 const renameElementHandler = async (offset: any) => {
