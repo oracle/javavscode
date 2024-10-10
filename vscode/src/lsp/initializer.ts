@@ -105,7 +105,8 @@ const serverBuilder = () => {
 }
 
 export const clientInit = () => {
-    const connection: () => Promise<StreamInfo> = serverOptionsBuilder();
+    globalVars.deactivated = false;
+    const connection: () => Promise<StreamInfo> = serverBuilder();
     const client = NbLanguageClient.build(connection, LOGGER);
     
     LOGGER.log('Language Client: Starting');

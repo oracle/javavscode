@@ -60,7 +60,6 @@ export namespace globalVars {
 
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
-    globalVars.deactivated = false;
     globalVars.clientPromise = new ClientPromise();
     globalVars.extensionInfo = new ExtensionInfo(context);
     LOGGER = new ExtensionLogger(extConstants.SERVER_NAME);
