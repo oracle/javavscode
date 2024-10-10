@@ -14,14 +14,14 @@
   limitations under the License.
 */
 import { LogMessageNotification, MessageType, TelemetryEventNotification } from "vscode-languageclient";
-import { notificationOrRequestListenerType } from "../types";
-import { asRanges, ShowStatusMessageParams, StatusMessageRequest, TestProgressNotification, TextEditorDecorationDisposeNotification, TextEditorDecorationSetNotification } from "../protocol";
+import { notificationOrRequestListenerType } from "../../types";
+import { asRanges, ShowStatusMessageParams, StatusMessageRequest, TestProgressNotification, TextEditorDecorationDisposeNotification, TextEditorDecorationSetNotification } from "../../protocol";
 import { commands, window, workspace } from "vscode";
-import { isNbJavacDisabledHandler, updateConfigurationValue } from "../../configurations/handlers";
-import { l10n } from "../../localiser";
-import { configKeys } from "../../configurations/configuration";
-import { builtInCommands } from "../../commands/commands";
-import { globalVars, LOGGER } from "../../extension";
+import { isNbJavacDisabledHandler, updateConfigurationValue } from "../../../configurations/handlers";
+import { l10n } from "../../../localiser";
+import { configKeys } from "../../../configurations/configuration";
+import { builtInCommands } from "../../../commands/commands";
+import { globalVars, LOGGER } from "../../../extension";
 
 const checkInstallNbJavac = (msg: string) => {
     const NO_JAVA_SUPPORT = "Cannot initialize Java support";

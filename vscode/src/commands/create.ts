@@ -22,7 +22,7 @@ import * as fs from 'fs';
 import { ICommand } from "./types";
 import { globalVars } from "../extension";
 import { getContextUri, isNbCommandRegistered } from "./utils";
-import { isString } from "../typesUtil";
+import { isString } from "../utils";
 
 const newFromTemplate = async (ctx: any, template: any) => {
     const client: LanguageClient = await globalVars.clientPromise.client;

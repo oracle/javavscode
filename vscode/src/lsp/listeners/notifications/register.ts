@@ -13,8 +13,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { NbLanguageClient } from "../nbLanguageClient"
-import { notificationOrRequestListenerType } from "../types"
+
+import { NbLanguageClient } from "../../nbLanguageClient"
+import { notificationOrRequestListenerType } from "../../types"
 import { notificationListeners } from "./handlers"
 
 export const registerNotificationListeners = (client: NbLanguageClient) => {

@@ -16,7 +16,7 @@
 import { builtInConfigKeys, configKeys } from "../configurations/configuration"
 import { isDarkColorThemeHandler, isNbJavacDisabledHandler, jdkHomeValueHandler, lspServerVmOptionsHandler, projectSearchRootsValueHandler, userdirHandler } from "../configurations/handlers";
 import { l10n } from "../localiser";
-import { isString } from "../typesUtil";
+import { isString } from "../utils";
 import { userDefinedLaunchOptionsType } from "./types"
 
 export const getUserConfigLaunchOptionsDefaults = (): userDefinedLaunchOptionsType => {

@@ -279,3 +279,10 @@ export const calculateChecksum = async (filePath: string, algorithm: string = 's
 }
 
 export const appendPrefixToCommand = (command: string) => `${extConstants.COMMAND_PREFIX}.${command}`;
+
+export function isString(obj: unknown): obj is string {
+    return typeof obj === 'string';
+}
+export function isError(obj: unknown): obj is Error {
+    return obj instanceof Error;
+}

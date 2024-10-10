@@ -17,8 +17,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { globalVars, LOGGER } from '../extension';
-import { TextDocumentFilter } from 'vscode-languageclient';
-import { extensions } from 'vscode';
 import { extConstants } from '../constants';
 
 export const enableDisableModules = (
