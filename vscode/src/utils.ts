@@ -281,8 +281,24 @@ export const calculateChecksum = async (filePath: string, algorithm: string = 's
 export const appendPrefixToCommand = (command: string) => `${extConstants.COMMAND_PREFIX}.${command}`;
 
 export function isString(obj: unknown): obj is string {
-    return typeof obj === 'string';
+	return typeof obj === 'string';
 }
 export function isError(obj: unknown): obj is Error {
-    return obj instanceof Error;
+	return obj instanceof Error;
+}
+
+export async function initializeRunConfiguration(): Promise<boolean> {
+	if (vscode.workspace.name || vscode.workspace.workspaceFile) {
+		const java = await vscode.workspace.findFiles('**/*.java', '**/node_modules/**', 1);
+		if (java?.length > 0) {
+			return true;
+		}
+	} else {
+		for (let doc of vscode.workspace.textDocuments) {
+			if (doc.fileName?.endsWith(".java")) {
+				return true;
+			}
+		}
+	}
+	return false;
 }

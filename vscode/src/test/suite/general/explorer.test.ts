@@ -26,7 +26,7 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import { awaitClient } from '../../testutils';
-import * as myExplorer from '../../../explorer';
+import * as myExplorer from '../../../views/projects';
 
 suite('Explorer Test Suite', () => {
     vscode.window.showInformationMessage('Start explorer tests.');
