@@ -18,7 +18,7 @@ import { appendPrefixToCommand } from "../utils";
 
 export const extCommands = {
     configureRunSettings: appendPrefixToCommand('workspace.configureRunSettings'),
-    newFromTemplate : appendPrefixToCommand('workspace.new'),
+    newFromTemplate: appendPrefixToCommand('workspace.new'),
     newProject: appendPrefixToCommand('workspace.newproject'),
     openTest: appendPrefixToCommand('open.test'),
     deleteCache: appendPrefixToCommand('delete.cache'),
@@ -47,6 +47,8 @@ export const extCommands = {
     nbEventListener: appendPrefixToCommand('addEventListener'),
     selectEditorProjs: appendPrefixToCommand('select.editor.projects'),
     attachDebugger: appendPrefixToCommand("java.attachDebugger.connector"),
+    loadWorkspaceTests: appendPrefixToCommand("load.workspace.tests"),
+    projectDeleteEntry: "javals.foundProjects.deleteEntry"
 }
 
 export const builtInCommands = {
@@ -59,6 +61,7 @@ export const builtInCommands = {
     quickAccess: 'workbench.action.quickOpen',
     openSettings: 'workbench.action.openSettings',
     startDebug: 'workbench.action.debug.start',
+    focusReplDebug: 'workbench.debug.action.focusRepl',
 }
 
 export const nbCommands = {

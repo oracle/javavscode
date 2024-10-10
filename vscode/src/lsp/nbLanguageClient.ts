@@ -15,7 +15,7 @@
 */
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
 import { CloseAction, CloseHandlerResult, DocumentSelector, ErrorAction, ErrorHandlerResult, Message, RevealOutputChannelOn } from "vscode-languageclient";
-import { createTreeViewService, TreeViewService } from "../explorer";
+import { createTreeViewService, TreeViewService } from "../views/projects";
 import { OutputChannel, workspace } from "vscode";
 import { extConstants } from "../constants";
 import { userConfigsListenedByServer } from '../configurations/configuration';

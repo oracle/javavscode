@@ -20,17 +20,12 @@ import { configKeys } from "../configurations/configuration";
 import { enableDisableModules } from "./utils";
 import * as net from 'net';
 import { ChildProcess } from "child_process";
-import { getConfigurationValue, isNbJavacDisabledHandler } from "../configurations/handlers";
+import { isNbJavacDisabledHandler } from "../configurations/handlers";
 import { attachNbProcessListeners, launchNbcode } from "./nbcode";
 import { NbLanguageClient } from "./nbLanguageClient";
-import { NbTestAdapter } from "../testAdapter";
-import { registerListenersAfterClientInit } from "../listener";
+import { registerListenersAfterClientInit } from "../views/listener";
 import { registerNotificationListeners } from "./listeners/notifications/register";
 import { registerRequestListeners } from "./listeners/requests/register";
-import { TreeViewService, Visualizer } from "../explorer";
-import { commands, TextEditor, TreeView, window, workspace } from "vscode";
-import { extConstants } from "../constants";
-import { extCommands } from "../commands/commands";
 
 const establishConnection = () => new Promise<StreamInfo>((resolve, reject) => {
     const nbProcess = globalVars.nbProcessManager?.getProcess();
@@ -108,51 +103,17 @@ export const clientInit = () => {
     globalVars.deactivated = false;
     const connection: () => Promise<StreamInfo> = serverBuilder();
     const client = NbLanguageClient.build(connection, LOGGER);
-    
+
     LOGGER.log('Language Client: Starting');
     client.start().then(() => {
-        globalVars.testAdapter = new NbTestAdapter();
-        
+
+
         registerListenersAfterClientInit();
         registerNotificationListeners(client);
         registerRequestListeners(client);
-        
+
         LOGGER.log('Language Client: Ready');
         globalVars.clientPromise.initializedSuccessfully(client);
-    
-        createProjectView(client);
+
     }).catch(globalVars.clientPromise.setClient[1]);
-}
-
-
-async function createProjectView(client : NbLanguageClient) {
-    const ts : TreeViewService = client.findTreeViewService();
-    let tv : TreeView<Visualizer> = await ts.createView('foundProjects', 'Projects', { canSelectMany : false });
-
-    async function revealActiveEditor(ed? : TextEditor) {
-        const uri = window.activeTextEditor?.document?.uri;
-        if (!uri || uri.scheme.toLowerCase() !== 'file') {
-            return;
-        }
-        if (!tv.visible) {
-            return;
-        }
-        let vis : Visualizer | undefined = await ts.findPath(tv, uri.toString());
-        if (!vis) {
-            return;
-        }
-        tv.reveal(vis, { select : true, focus : false, expand : false });
-    }
-    const netbeansConfig = workspace.getConfiguration(extConstants.COMMAND_PREFIX);
-    globalVars.extensionInfo.pushSubscription(window.onDidChangeActiveTextEditor(ed => {
-        if (netbeansConfig.get("revealActiveInProjects")) {
-            revealActiveEditor(ed);
-        }
-    }));
-    globalVars.extensionInfo.pushSubscription(commands.registerCommand(extCommands.selectEditorProjs, () => revealActiveEditor()));
-
-    // attempt to reveal NOW:
-    if (getConfigurationValue(configKeys.revealInActivteProj)) {
-        revealActiveEditor();
-    }
 }

@@ -18,7 +18,7 @@ import { globalVars, LOGGER } from "../../../extension";
 import { notificationOrRequestListenerType } from "../../types";
 import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
 import { InputStep, MultiStepInput } from "../../../utils";
-import { runConfigurationUpdateAll } from "../../../runConfiguration";
+import { runConfigurationUpdateAll } from "../../../views/runConfiguration";
 import { isError } from "../../../utils";
 import { isString } from "../../../utils";
 import { LogLevel } from "../../../logger";
@@ -31,7 +31,7 @@ const textEditorDecorationCreateRequestHandler = (param: any) => {
 }
 
 const multiStepInputRequestHandler = async (param: any) => {
-    const client = await globalVars.clientPromise.client; 
+    const client = await globalVars.clientPromise.client;
     const data: { [name: string]: readonly QuickPickItem[] | string } = {};
     async function nextStep(input: MultiStepInput, step: number, state: { [name: string]: readonly QuickPickItem[] | string }): Promise<InputStep | void> {
         const inputStep = await client.sendRequest(MutliStepInputRequest.step, { inputId: param.id, step, data: state });
@@ -69,11 +69,11 @@ const multiStepInputRequestHandler = async (param: any) => {
     return data;
 }
 
-const inputBoxRequestHandler = async (param: any) =>{
+const inputBoxRequestHandler = async (param: any) => {
     return await window.showInputBox({ title: param.title, prompt: param.prompt, value: param.value, password: param.password });
 }
 
-const saveDocumentRequestHandler = async (request : SaveDocumentRequestParams) => {
+const saveDocumentRequestHandler = async (request: SaveDocumentRequestParams) => {
     const uriList = request.documents.map(s => {
         let re = /^file:\/(?:\/\/)?([A-Za-z]):\/(.*)$/.exec(s);
         if (!re) {
@@ -114,11 +114,11 @@ const quickPickRequestHandler = async (param: any) => {
     return selected ? Array.isArray(selected) ? selected : [selected] : undefined;
 }
 
-    
-export const requestListeners : notificationOrRequestListenerType[] = [{
+
+export const requestListeners: notificationOrRequestListenerType[] = [{
     type: TextEditorDecorationCreateRequest.type,
     handler: textEditorDecorationCreateRequestHandler
-},{
+}, {
     type: MutliStepInputRequest.type,
     handler: multiStepInputRequestHandler
 }, {

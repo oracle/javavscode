@@ -24,9 +24,11 @@ import { l10n } from '../localiser';
 import { StreamDebugAdapter } from './streamDebugAdapter';
 import { globalVars } from '../extension';
 import { extCommands, nbCommands } from '../commands/commands';
+import { argumentsNode, environmentVariablesNode, vmOptionsNode, workingDirectoryNode } from '../views/runConfiguration';
+import { initializeRunConfiguration } from '../utils';
 
 export function registerDebugger(context: ExtensionContext): void {
-    let debugTrackerFactory =new NetBeansDebugAdapterTrackerFactory();
+    let debugTrackerFactory = new NetBeansDebugAdapterTrackerFactory();
     context.subscriptions.push(vscode.debug.registerDebugAdapterTrackerFactory(extConstants.COMMAND_PREFIX, debugTrackerFactory));
     let configInitialProvider = new NetBeansConfigurationInitialProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(extConstants.COMMAND_PREFIX, configInitialProvider, vscode.DebugConfigurationProviderTriggerKind.Initial));
@@ -36,7 +38,12 @@ export function registerDebugger(context: ExtensionContext): void {
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(extConstants.COMMAND_PREFIX, configResolver));
     context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(((session) => onDidTerminateSession(session))));
     let debugDescriptionFactory = new NetBeansDebugAdapterDescriptionFactory();
-    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(extConstants.COMMAND_PREFIX, debugDescriptionFactory));  
+    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(extConstants.COMMAND_PREFIX, debugDescriptionFactory));
+    initializeRunConfiguration().then(initialized => {
+        if (initialized) {
+            context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(extConstants.COMMAND_PREFIX, new RunConfigurationProvider()));
+        }
+    });
 };
 
 class NetBeansDebugAdapterTrackerFactory implements vscode.DebugAdapterTrackerFactory {
@@ -66,13 +73,13 @@ class NetBeansDebugAdapterDescriptionFactory implements vscode.DebugAdapterDescr
                     }
                 } else {
                     // resolve(new vscode.DebugAdapterServer(debugPort));
-                   const socket = net.connect(globalVars.debugPort, "127.0.0.1", () => {});
-                   socket.on("connect", () => {
-                       const adapter = new StreamDebugAdapter();
-                       socket.write(globalVars.debugHash ? globalVars.debugHash : "");
-                       adapter.connect(socket, socket);
-                       resolve(new vscode.DebugAdapterInlineImplementation(adapter));
-                   });
+                    const socket = net.connect(globalVars.debugPort, "127.0.0.1", () => { });
+                    socket.on("connect", () => {
+                        const adapter = new StreamDebugAdapter();
+                        socket.write(globalVars.debugHash ? globalVars.debugHash : "");
+                        adapter.connect(socket, socket);
+                        resolve(new vscode.DebugAdapterInlineImplementation(adapter));
+                    });
                 }
             }
             fnc();
@@ -84,26 +91,26 @@ class NetBeansDebugAdapterDescriptionFactory implements vscode.DebugAdapterDescr
 class NetBeansConfigurationInitialProvider implements vscode.DebugConfigurationProvider {
 
     provideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration[]> {
-       return this.doProvideDebugConfigurations(folder, token);
+        return this.doProvideDebugConfigurations(folder, token);
     }
 
-    async doProvideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, _token?:  vscode.CancellationToken):  Promise<vscode.DebugConfiguration[]> {
-        let c : LanguageClient = await globalVars.clientPromise.client;
+    async doProvideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, _token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration[]> {
+        let c: LanguageClient = await globalVars.clientPromise.client;
         if (!folder) {
             return [];
         }
-        var u : vscode.Uri | undefined;
+        var u: vscode.Uri | undefined;
         if (folder && folder.uri) {
             u = folder.uri;
         } else {
             u = vscode.window.activeTextEditor?.document?.uri
         }
-        let result : vscode.DebugConfiguration[] = [];
-        const configNames : string[] | null | undefined = await vscode.commands.executeCommand(nbCommands.projectConfigurations, u?.toString());
+        let result: vscode.DebugConfiguration[] = [];
+        const configNames: string[] | null | undefined = await vscode.commands.executeCommand(nbCommands.projectConfigurations, u?.toString());
         if (configNames) {
-            let first : boolean = true;
+            let first: boolean = true;
             for (let cn of configNames) {
-                let cname : string;
+                let cname: string;
 
                 if (first) {
                     // ignore the default config, comes first.
@@ -112,7 +119,7 @@ class NetBeansConfigurationInitialProvider implements vscode.DebugConfigurationP
                 } else {
                     cname = "Launch Java: " + cn;
                 }
-                const debugConfig : vscode.DebugConfiguration = {
+                const debugConfig: vscode.DebugConfiguration = {
                     name: cname,
                     type: extConstants.COMMAND_PREFIX,
                     request: "launch",
@@ -135,19 +142,19 @@ class NetBeansConfigurationDynamicProvider implements vscode.DebugConfigurationP
     }
 
     provideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration[]> {
-       return this.doProvideDebugConfigurations(folder, this.context, this.commandValues, token);
+        return this.doProvideDebugConfigurations(folder, this.context, this.commandValues, token);
     }
 
-    async doProvideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, context: ExtensionContext, commandValues: Map<string, string>, _token?:  vscode.CancellationToken):  Promise<vscode.DebugConfiguration[]> {
-        let c : LanguageClient = await globalVars.clientPromise.client;
+    async doProvideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, context: ExtensionContext, commandValues: Map<string, string>, _token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration[]> {
+        let c: LanguageClient = await globalVars.clientPromise.client;
         if (!folder) {
             return [];
         }
-        let result : vscode.DebugConfiguration[] = [];
-        const attachConnectors : DebugConnector[] | null | undefined = await vscode.commands.executeCommand(extCommands.attachDebugger);
+        let result: vscode.DebugConfiguration[] = [];
+        const attachConnectors: DebugConnector[] | null | undefined = await vscode.commands.executeCommand(extCommands.attachDebugger);
         if (attachConnectors) {
             for (let ac of attachConnectors) {
-                const debugConfig : vscode.DebugConfiguration = {
+                const debugConfig: vscode.DebugConfiguration = {
                     name: ac.name,
                     type: ac.type,
                     request: "attach",
@@ -206,6 +213,61 @@ class NetBeansConfigurationResolver implements vscode.DebugConfigurationProvider
         return config;
     }
 }
+
+class RunConfigurationProvider implements vscode.DebugConfigurationProvider {
+
+    resolveDebugConfiguration(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
+        return new Promise<vscode.DebugConfiguration>(resolve => {
+            resolve(config);
+        });
+    }
+
+    resolveDebugConfigurationWithSubstitutedVariables?(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
+        return new Promise<vscode.DebugConfiguration>(resolve => {
+            const args = argumentsNode.getValue();
+            if (args) {
+                if (!config.args) {
+                    config.args = args;
+                } else {
+                    config.args = `${config.args} ${args}`;
+                }
+            }
+
+            const vmArgs = vmOptionsNode.getValue();
+            if (vmArgs) {
+                if (!config.vmArgs) {
+                    config.vmArgs = vmArgs;
+                } else {
+                    config.vmArgs = `${config.vmArgs} ${vmArgs}`;
+                }
+            }
+
+            const env = environmentVariablesNode.getValue();
+            if (env) {
+                const envs = env.split(',');
+                if (!config.env) {
+                    config.env = {};
+                }
+                for (let val of envs) {
+                    val = val.trim();
+                    const div = val.indexOf('=');
+                    if (div > 0) { // div === 0 means bad format (no ENV name)
+                        config.env[val.substring(0, div)] = val.substring(div + 1, val.length);
+                    }
+                }
+            }
+
+            const cwd = workingDirectoryNode.getValue();
+            if (cwd) {
+                config.cwd = cwd;
+            }
+
+            resolve(config);
+        });
+    }
+
+}
+
 
 function onDidTerminateSession(session: vscode.DebugSession): any {
     const config = session.configuration;
