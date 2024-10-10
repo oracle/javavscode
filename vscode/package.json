@@ -375,10 +375,6 @@
 		],
 		"commands": [
 			{
-				"command": "jdk.node.properties.edit",
-				"title": "%jdk.node.properties.edit%"
-			},
-			{
 				"command": "jdk.workspace.compile",
 				"title": "%jdk.workspace.compile%",
 				"category": "Java"
@@ -595,10 +591,6 @@
 					"when": "false"
 				},
 				{
-					"command": "jdk.node.properties.edit",
-					"when": "false"
-				},
-				{
 					"command": "jdk:Edit:org.openide.actions.DeleteAction",
 					"when": "false"
 				},
@@ -796,7 +788,6 @@
 	"dependencies": {
 		"@vscode/debugadapter": "^1.65.0",
 		"@vscode/l10n": "^0.0.18",
-		"@vscode/webview-ui-toolkit": "^1.2.2",
 		"jsonc-parser": "3.3.1",
 		"vscode-languageclient": "^8.1.0"
 	}

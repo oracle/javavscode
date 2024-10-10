@@ -45,7 +45,6 @@ export const extCommands = {
     abstractMethodsComplete: appendPrefixToCommand('java.complete.abstract.methods'),
     startupCondition: appendPrefixToCommand('startup.condition'),
     nbEventListener: appendPrefixToCommand('addEventListener'),
-    editNodeProps: appendPrefixToCommand('node.properties.edit'),
     selectEditorProjs: appendPrefixToCommand('select.editor.projects'),
     attachDebugger: appendPrefixToCommand("java.attachDebugger.connector"),
 }
