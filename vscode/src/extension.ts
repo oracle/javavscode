@@ -23,7 +23,7 @@
 
 'use strict';
 
-import { commands, workspace, ExtensionContext, TextEditorDecorationType } from 'vscode';
+import { ExtensionContext, TextEditorDecorationType } from 'vscode';
 
 
 import * as vscode from 'vscode';
@@ -41,6 +41,8 @@ import { subscribeCommands } from './commands/register';
 import { VSNetBeansAPI } from './lsp/types';
 import { registerListenersBeforeClientInit } from './listener';
 import { registerDebugger } from './debugger/debugger';
+import { registerConfigChangeListeners } from './configurations/listener';
+import { registerFileProviders } from './lsp/listeners/textDocumentContentProvider';
 
 export let LOGGER: ExtensionLogger;
 export namespace globalVars {
@@ -83,15 +85,8 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 
     // register commands
     subscribeCommands(context);
-
-    const archiveFileProvider = <vscode.TextDocumentContentProvider> {
-        provideTextDocumentContent: async (uri: vscode.Uri, token: vscode.CancellationToken): Promise<string> => {
-            return await commands.executeCommand(extConstants.COMMAND_PREFIX + '.get.archive.file.content', uri.toString());
-        }
-    };
-    context.subscriptions.push(workspace.registerTextDocumentContentProvider('jar', archiveFileProvider));
-    context.subscriptions.push(workspace.registerTextDocumentContentProvider('nbjrt', archiveFileProvider));
-
+    registerFileProviders(context);
+    
     launchConfigurations.updateLaunchConfig();
 
     // register completions:
