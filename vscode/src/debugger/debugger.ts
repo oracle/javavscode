@@ -62,7 +62,7 @@ class NetBeansDebugAdapterDescriptionFactory implements vscode.DebugAdapterDescr
                     if (cnt-- > 0) {
                         setTimeout(fnc, 1000);
                     } else {
-                        reject(new Error(l10n.value('jdk.extenstion.debugger.error_msg.debugAdapterNotInitialized')));
+                        reject(new Error(l10n.value('jdk.extension.debugger.error_msg.debugAdapterNotInitialized')));
                     }
                 } else {
                     // resolve(new vscode.DebugAdapterServer(debugPort));

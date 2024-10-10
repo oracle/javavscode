@@ -72,7 +72,7 @@ const goToTest = async (ctx: any) => {
             window.showInformationMessage(err?.message || l10n.value("jdk.extension.fileSelector.label.noTestFound"));
         }
     } else {
-        throw l10n.value("jdk.extenstion.error_msg.doesntSupportGoToTest", { client });
+        throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest", { client });
     }
 }
 
