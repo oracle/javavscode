@@ -23,6 +23,7 @@ import * as fs from 'fs';
 import { promisify } from "util";
 import * as crypto from 'crypto';
 import { l10n } from './localiser';
+import { extConstants } from './constants';
 
 class InputFlowAction {
 	static back = new InputFlowAction();
@@ -276,3 +277,5 @@ export const calculateChecksum = async (filePath: string, algorithm: string = 's
 	const checksum = hash.digest('hex');
 	return checksum;
 }
+
+export const appendPrefixToCommand = (command: string) => `${extConstants.COMMAND_PREFIX}.${command}`;

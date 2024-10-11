@@ -25,8 +25,8 @@ import { commands, CompletionItem, CompletionList, ExtensionContext, languages, 
 import { InsertTextFormat } from 'vscode-languageclient';
 import * as jsoncp from 'jsonc-parser';
 import * as fs from 'fs';
-import { COMMAND_PREFIX } from "./extension";
 import { l10n } from './localiser';
+import { extConstants } from './constants';
 export function updateLaunchConfig() {
     workspace.findFiles('.vscode/launch.json').then(async files => {
 
@@ -88,7 +88,7 @@ export function registerCompletion(context: ExtensionContext) {
                         let completionItems: ProviderResult<CompletionList<CompletionItem>> | CompletionItem[];
                         if (path.length == 1) {
                             // Get all configurations:
-                            completionItems = commands.executeCommand(COMMAND_PREFIX + '.project.configuration.completion', uri);
+                            completionItems = commands.executeCommand(extConstants.COMMAND_PREFIX + '.project.configuration.completion', uri);
                         } else {
                             let node: jsoncp.Node = currentNode;
                             if (currentNode.type == 'property' && currentNode.parent) {
@@ -99,11 +99,11 @@ export function registerCompletion(context: ExtensionContext) {
                                 node = currentNode.parent;
                                 let attributesMap = getAttributes(node);
                                 // Get possible values of property 'propName':
-                                completionItems = commands.executeCommand(COMMAND_PREFIX + '.project.configuration.completion', uri, attributesMap, propName);
+                                completionItems = commands.executeCommand(extConstants.COMMAND_PREFIX + '.project.configuration.completion', uri, attributesMap, propName);
                             } else {
                                 let attributesMap = getAttributes(node);
                                 // Get additional possible attributes:
-                                completionItems = commands.executeCommand(COMMAND_PREFIX + '.project.configuration.completion', uri, attributesMap);
+                                completionItems = commands.executeCommand(extConstants.COMMAND_PREFIX + '.project.configuration.completion', uri, attributesMap);
                             }
                         }
                         return (completionItems as Thenable<CompletionList<CompletionItem>>).then(itemsList => {
