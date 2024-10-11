@@ -24,7 +24,6 @@
 import * as assert from "assert";
 import * as fs from "fs";
 import * as glob from 'glob';
-import * as myExtension from "../extension";
 import * as Mocha from 'mocha';
 import * as path from "path";
 import { promisify } from "util";
@@ -32,6 +31,10 @@ import { Readable } from "stream";
 import { spawn, ChildProcessByStdio, exec } from "child_process";
 import * as vscode from "vscode";
 import { EXAMPLE_POM, MAIN_JAVA, MAIN_TEST_JAVA, SAMPLE_APP_JAVA, SAMPLE_BUILD_GRADLE, SAMPLE_CODE_FORMAT_DOCUMENT, SAMPLE_CODE_REFACTOR, SAMPLE_CODE_SORT_IMPORTS, SAMPLE_CODE_UNUSED_IMPORTS, SAMPLE_SETTINGS_GRADLE } from "./constants";
+import { NbLanguageClient } from "../lsp/nbLanguageClient";
+import { extConstants } from "../constants";
+import { l10n } from "../localiser";
+import { globalVars } from "../extension";
 
 /**
  * Folder path currently opened in VSCode workspace
@@ -147,7 +150,7 @@ export async function waitCommandsReady(): Promise<void> {
 				}
 			}
 		}
-		myExtension.awaitClient().then(() => checkCommands(5, () => { }));
+		awaitClient().then(() => checkCommands(5, () => { }));
 	});
 }
 
@@ -161,12 +164,12 @@ export async function waitProjectRecognized(someJavaFile: string): Promise<void>
 		const u: vscode.Uri = vscode.Uri.file(someJavaFile);
 		// clear out possible bad or negative caches.
 		return vscode.commands
-			.executeCommand(myExtension.COMMAND_PREFIX + ".clear.project.caches")
+			.executeCommand(extConstants.COMMAND_PREFIX + ".clear.project.caches")
 			.then(
 				// this should assure opening the root with the created project.
 				() =>
 					vscode.commands.executeCommand(
-						myExtension.COMMAND_PREFIX + ".java.get.project.packages",
+						extConstants.COMMAND_PREFIX + ".java.get.project.packages",
 						u.toString()
 					)
 			);
@@ -327,4 +330,44 @@ export function runTestSuite(folder: string): Promise<void> {
 			}
 		});
 	});
+}
+
+export const awaitClient = async () : Promise<NbLanguageClient> => {
+    const extension = vscode.extensions.getExtension(extConstants.ORACLE_VSCODE_EXTENSION_ID);
+    if (!extension) {
+        return Promise.reject(new Error(l10n.value("jdk.extension.notInstalled.label")));
+    }
+    if(extension.isActive){
+        return globalVars.clientPromise.client;
+    }
+    const waitForExtenstionActivation : Thenable<NbLanguageClient> = extension.activate().then(async () => {
+        return await globalVars.clientPromise.client;
+    });
+    return Promise.resolve(waitForExtenstionActivation);
+}
+
+export function findClusters(myPath : string): string[] {
+    let clusters = [];
+    for (let e of vscode.extensions.all) {
+        if (e.extensionPath === myPath) {
+            continue;
+        }
+        const dir = path.join(e.extensionPath, 'nbcode');
+        if (!fs.existsSync(dir)) {
+            continue;
+        }
+        const exists = fs.readdirSync(dir);
+        for (let clusterName of exists) {
+            let clusterPath = path.join(dir, clusterName);
+            let clusterModules = path.join(clusterPath, 'config', 'Modules');
+            if (!fs.existsSync(clusterModules)) {
+                continue;
+            }
+            let perm = fs.statSync(clusterModules);
+            if (perm.isDirectory()) {
+                clusters.push(clusterPath);
+            }
+        }
+    }
+    return clusters;
 }

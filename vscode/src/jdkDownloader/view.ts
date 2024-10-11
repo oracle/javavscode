@@ -14,12 +14,14 @@
   limitations under the License.
 */
 
-import { OPEN_JDK_VERSION_DOWNLOAD_LINKS, ORACLE_JDK_DOWNLOAD_VERSIONS } from '../constants';
-import { OutputChannel, Uri, ViewColumn, WebviewPanel, window } from 'vscode';
+import { jdkDownloaderConstants } from '../constants';
+import { ViewColumn, WebviewPanel, window } from 'vscode';
 import * as os from 'os';
 import { JdkDownloaderAction } from './action';
 import { downloaderCss } from './styles';
 import { l10n } from '../localiser';
+import { LOGGER } from '../extension';
+import { LogLevel } from '../logger';
 
 export class JdkDownloaderView {
     public static readonly OPEN_JDK_LABEL = "OpenJDK";
@@ -31,13 +33,9 @@ export class JdkDownloaderView {
     private osType?: string;
     private machineArch?: string;
 
-    constructor(
-        private readonly logger: OutputChannel
-    ) { }
-
     public createView = () => {
         try {
-            this.logger.appendLine("Creating JDK downloader webview");
+            LOGGER.log("Creating JDK downloader webview");
             this.jdkDownloaderWebView = window.createWebviewPanel(
                 'jdkDownloader',
                 this.jdkDownloaderTitle,
@@ -49,13 +47,13 @@ export class JdkDownloaderView {
             this.setDropdownOptions();
             this.jdkDownloaderWebView.webview.html = this.fetchJdkDownloadViewHtml();
             this.jdkDownloaderWebView.webview.onDidReceiveMessage(message => {
-                const jdkDownloader = new JdkDownloaderAction(this.logger, this);
+                const jdkDownloader = new JdkDownloaderAction(this);
                 jdkDownloader.attachListener(message);
             });
-            this.logger.appendLine("JDK downloader webview created successfully");
+            LOGGER.log("JDK downloader webview created successfully");
         } catch (err: any) {
-            this.logger.appendLine("Error creating JDK downloader webview:")
-            this.logger.appendLine(err?.message || "No Error message received");
+            LOGGER.log("Error creating JDK downloader webview:", LogLevel.ERROR)
+            LOGGER.log(err?.message || "No Error message received", LogLevel.ERROR);
             window.showErrorMessage(l10n.value("jdk.downloader.error_message.errorLoadingPage"));
         }
     }
@@ -77,7 +75,7 @@ export class JdkDownloaderView {
                 this.osType = "windows";
                 break;
         }
-        this.logger.appendLine(`OS identified: ${this.osType}`);
+        LOGGER.log(`OS identified: ${this.osType}`);
 
         const machineArchNode = os.arch();
         if (machineArchNode === "arm64") {
@@ -86,7 +84,7 @@ export class JdkDownloaderView {
         else {
             this.machineArch = "x64";
         }
-        this.logger.appendLine(`Machine architecture identified: ${this.machineArch}`);
+        LOGGER.log(`Machine architecture identified: ${this.machineArch}`);
     }
 
     private fetchJdkDownloadViewHtml = (): string => {
@@ -114,7 +112,7 @@ export class JdkDownloaderView {
                 <br />
                 <div class="jdk-version-dropdown">
                 <select id="oracleJDKVersionDropdown">
-                    ${this.getJdkVersionsHtml(ORACLE_JDK_DOWNLOAD_VERSIONS)}
+                    ${this.getJdkVersionsHtml(jdkDownloaderConstants.ORACLE_JDK_DOWNLOAD_VERSIONS)}
                 </select>
                 </div>
             </div>
@@ -146,7 +144,7 @@ export class JdkDownloaderView {
                 <br />
                 <div class="jdk-version-dropdown">
                 <select id="openJDKVersionDropdown">
-                    ${this.getJdkVersionsHtml(Object.keys(OPEN_JDK_VERSION_DOWNLOAD_LINKS))}
+                    ${this.getJdkVersionsHtml(Object.keys(jdkDownloaderConstants.OPEN_JDK_VERSION_DOWNLOAD_LINKS))}
                 </select>
                 </div>
             </div>

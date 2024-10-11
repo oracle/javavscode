@@ -16,13 +16,15 @@
 
 import { commands, OpenDialogOptions, OutputChannel, window, workspace } from "vscode";
 import { JdkDownloaderView } from "./view";
-import { OPEN_JDK_VERSION_DOWNLOAD_LINKS, ORACLE_JDK_BASE_DOWNLOAD_URL } from "../constants";
+import { jdkDownloaderConstants } from "../constants";
 import * as path from 'path';
 import * as fs from 'fs';
 import { calculateChecksum, downloadFileWithProgressBar, httpsGet } from "../utils";
 import * as cp from 'child_process';
 import { promisify } from "util";
 import { l10n } from "../localiser";
+import { LOGGER } from "../extension";
+import { LogLevel } from "../logger";
 
 export class JdkDownloaderAction {
     public static readonly MANUAL_INSTALLATION_TYPE = "manual";
@@ -38,12 +40,12 @@ export class JdkDownloaderAction {
     private downloadFilePath?: string;
     private downloadUrl?: string;
 
-    constructor(private readonly logger: OutputChannel, private readonly downloaderView: JdkDownloaderView) { }
+    constructor(private readonly downloaderView: JdkDownloaderView) { }
 
     public attachListener = async (message: any) => {
         const { command, id, jdkVersion, jdkOS, jdkArch, installType } = message;
         if (command === JdkDownloaderView.DOWNLOAD_CMD_LABEL) {
-            this.logger.appendLine(`Request received for downloading ${id} version ${jdkVersion}`);
+            LOGGER.log(`Request received for downloading ${id} version ${jdkVersion}`);
 
             this.jdkType = id;
             this.jdkVersion = jdkVersion;
@@ -52,7 +54,7 @@ export class JdkDownloaderAction {
             this.installType = installType;
             this.installationPath = await this.getInstallationPathFromUser();
 
-            this.logger.appendLine(`Parameters set in JDK Downloader: 
+            LOGGER.log(`Parameters set in JDK Downloader: 
                 JDK Type: ${this.jdkType}, 
                 JDK Version: ${this.jdkVersion}, 
                 OS Type: ${this.osType}, 
@@ -92,14 +94,14 @@ export class JdkDownloaderAction {
                 workspace.getConfiguration('jdk').update('jdkhome', this.installationPath, true);
                 await this.installationCompletion();
 
-                this.logger.appendLine(`manual JDK installation completed successfully`);
+                LOGGER.log(`manual JDK installation completed successfully`);
                 return;
             }
 
             await this.jdkInstallationManager();
         } catch (err: any) {
             window.showErrorMessage(l10n.value("jdk.downloader.error_message.installingJDK", { error: err }));
-            this.logger.appendLine(err?.message || "No Error message received");
+            LOGGER.log(err?.message || "No Error message received", LogLevel.ERROR);
         }
     }
 
@@ -110,7 +112,7 @@ export class JdkDownloaderAction {
         } else {
             dialogBoxMessage = l10n.value("jdk.downloader.message.completedInstallingJdk");
         }
-        this.logger.appendLine(`JDK installation completed successfully`);
+        LOGGER.log(`JDK installation completed successfully`);
 
         const reloadNow: string = l10n.value("jdk.downloader.message.reload");
         const selected = await window.showInformationMessage(dialogBoxMessage, reloadNow);
@@ -140,8 +142,8 @@ export class JdkDownloaderAction {
         });
         window.showInformationMessage(downloadSuccessLabel);
 
-        this.logger.appendLine(`JDK downloaded successfully`);
-        this.logger.appendLine(`JDK installation starting...`);
+        LOGGER.log(`JDK downloaded successfully`);
+        LOGGER.log(`JDK installation starting...`);
         await this.rmPreviousMatchingDownloads();
 
         await this.extractJDK();
@@ -151,13 +153,13 @@ export class JdkDownloaderAction {
         let baseDownloadUrl: string = '';
 
         if (this.jdkType === JdkDownloaderView.OPEN_JDK_LABEL) {
-            baseDownloadUrl = `${OPEN_JDK_VERSION_DOWNLOAD_LINKS[`${this.jdkVersion}`]}_${this.osType!.toLowerCase()}-${this.machineArch}_bin`;
+            baseDownloadUrl = `${jdkDownloaderConstants.OPEN_JDK_VERSION_DOWNLOAD_LINKS[`${this.jdkVersion}`]}_${this.osType!.toLowerCase()}-${this.machineArch}_bin`;
         }
         else if (this.jdkType === JdkDownloaderView.ORACLE_JDK_LABEL) {
-            baseDownloadUrl = `${ORACLE_JDK_BASE_DOWNLOAD_URL}/${this.jdkVersion}/latest/jdk-${this.jdkVersion}_${this.osType!.toLowerCase()}-${this.machineArch}_bin`;
+            baseDownloadUrl = `${jdkDownloaderConstants.ORACLE_JDK_BASE_DOWNLOAD_URL}/${this.jdkVersion}/latest/jdk-${this.jdkVersion}_${this.osType!.toLowerCase()}-${this.machineArch}_bin`;
         }
         const downloadUrl = this.osType === 'windows' ? `${baseDownloadUrl}.zip` : `${baseDownloadUrl}.tar.gz`;
-        this.logger.appendLine(`Downloading JDK from ${downloadUrl}`);
+        LOGGER.log(`Downloading JDK from ${downloadUrl}`);
 
         return downloadUrl;
     }
@@ -170,7 +172,7 @@ export class JdkDownloaderAction {
             fs.mkdirSync(this.DOWNLOAD_DIR);
         }
         const downloadLocation = path.join(this.DOWNLOAD_DIR, newFileName);
-        this.logger.appendLine(`Downloading JDK at ${downloadLocation}`);
+        LOGGER.log(`Downloading JDK at ${downloadLocation}`);
 
         return downloadLocation;
     }
@@ -181,7 +183,7 @@ export class JdkDownloaderAction {
             jdkVersion: this.jdkVersion
         });
         await downloadFileWithProgressBar(this.downloadUrl!, this.downloadFilePath!, message);
-        this.logger.appendLine(`JDK downloaded successfully`);
+        LOGGER.log(`JDK downloaded successfully`);
 
         const doesMatch = await this.checksumMatch();
         if (!doesMatch) {
@@ -192,7 +194,7 @@ export class JdkDownloaderAction {
             });
             throw new Error(checksumMatchFailedLabel);
         }
-        this.logger.appendLine(`Checksum match successful`);
+        LOGGER.log(`Checksum match successful`);
     }
 
     private checksumMatch = async (): Promise<boolean> => {
@@ -209,25 +211,25 @@ export class JdkDownloaderAction {
     }
 
     private extractJDK = async (): Promise<void> => {
-        this.logger.appendLine(`Extracting JDK...`);
+        LOGGER.log(`Extracting JDK...`);
 
         const extractCommand = `tar -xzf "${this.downloadFilePath}" -C "${this.DOWNLOAD_DIR}"`;
 
         const exec = promisify(cp.exec);
         try {
             await exec(extractCommand);
-            this.logger.appendLine(`Extracting JDK successful`);
+            LOGGER.log(`Extracting JDK successful`);
         } catch (err) {
-            this.logger.appendLine(`Error while extracting JDK: ${(err as Error).message}`);
+            LOGGER.log(`Error while extracting JDK: ${(err as Error).message}`, LogLevel.ERROR);
             throw new Error(l10n.value("jdk.downloader.error_message.extractionError", {
                 jdkType: this.jdkType,
                 jdkVersion: this.jdkVersion
             }));
         }
 
-        this.logger.appendLine(`Copying JDK to installation path...`);
+        LOGGER.log(`Copying JDK to installation path...`);
         await this.copyJdkAndFinishInstallation();
-        this.logger.appendLine(`Copying JDK to installation path successful`);
+        LOGGER.log(`Copying JDK to installation path successful`);
     }
 
     private copyJdkAndFinishInstallation = async () => {
@@ -252,8 +254,8 @@ export class JdkDownloaderAction {
 
         // If user agrees for deleting the directory then delete it and move the temp directory to the user selected location
         await fs.promises.rename(tempDirectoryPath, newDirectoryPath);
-        this.logger.appendLine(`Copying extracted JDK at the installation path...`);
-        this.logger.appendLine(`Updating jdk.jdkhome settings...`);
+        LOGGER.log(`Copying extracted JDK at the installation path...`);
+        LOGGER.log(`Updating jdk.jdkhome settings...`);
 
         let binPath = newDirectoryPath;
         if (this.osType === 'macOS') {
@@ -262,14 +264,14 @@ export class JdkDownloaderAction {
 
         workspace.getConfiguration('jdk').update('jdkhome', binPath, true);
 
-        this.logger.appendLine(`Finishing up installation...`);
+        LOGGER.log(`Finishing up installation...`);
         this.installationCleanup(tempDirectoryPath, newDirectoryPath);
     }
 
     private installationCleanup = (tempDirPath: string, newDirPath: string) => {
         fs.unlink(this.downloadFilePath!, async (err) => {
             if (err) {
-                this.logger.appendLine(`Error while installation cleanup: ${err.message}`);
+                LOGGER.log(`Error while installation cleanup: ${err.message}`, LogLevel.ERROR);
                 window.showErrorMessage(l10n.value("jdk.downloader.error_message.installationCleanup"));
             } else {
                 if (tempDirPath && fs.existsSync(tempDirPath)) {

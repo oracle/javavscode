@@ -30,7 +30,6 @@ import * as myExplorer from '../../../explorer';
 
 suite('Explorer Test Suite', () => {
     vscode.window.showInformationMessage('Start explorer tests.');
-    myExtension.enableConsoleLog();
 
     test('Explorer can be created', async () => {
         const lvp = await myExplorer.createViewProvider(await myExtension.awaitClient(), 'foundProjects');
