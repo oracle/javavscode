@@ -56,14 +56,14 @@ export function getFilePaths(): { [key: string]: string } {
     filePaths['pkg'] = path.join(folder, 'src', 'main', 'java', 'pkg');
     filePaths['testPkg'] = path.join(folder, 'src', 'test', 'java', 'pkg');
     filePaths['resources'] = path.join(folder, 'src', 'main', 'resources');
-    
+
     filePaths['mainJava'] = path.join(filePaths['pkg'], 'Main.java');
     filePaths['formatDocument'] = path.join(filePaths['pkg'], 'FormatDocument.java');
     filePaths['sortImports'] = path.join(filePaths['pkg'], 'SortImports.java');
     filePaths['unusedImports'] = path.join(filePaths['pkg'], 'UnusedImports.java');
     filePaths['refactorActions'] = path.join(filePaths['pkg'], 'RefactorActions.java');
     filePaths['mainTestJava'] = path.join(filePaths['testPkg'], 'MainTest.java');
-    
+
     filePaths['pom'] = path.join(folder, 'pom.xml');
 
     return filePaths;
@@ -233,7 +233,7 @@ export function matchKeys(jsonFilePath1: string, jsonFilePath2: string): boolean
  * @param validKeyValues 
  * @returns number of js files in the directory specified which invoke l10n.value with incorrect key or placeholder map 
  */
-export function checkl10nUsageInFiles(dirPath: string, ignoredDirEntriesNames: Set<string>, validKeyValues: any): number {
+export function checkL10nUsageInFiles(dirPath: string, ignoredDirEntriesNames: Set<string>, validKeyValues: any): number {
 
     let result: number = 0;
     fs.readdirSync(dirPath).forEach(DirEntryName => {
@@ -242,14 +242,14 @@ export function checkl10nUsageInFiles(dirPath: string, ignoredDirEntriesNames: S
         const stats = fs.lstatSync(absPath);
         if (stats.isFile() && path.extname(DirEntryName) === ".js") {
             if (
-                !(checkl10UsageInFile(absPath, /l10n.value\("([^"]*)"\)/g, validKeyValues) &&
-                    checkl10UsageInFile(absPath, /l10n.value\('([^']*)'\)/g, validKeyValues) &&
-                    checkl10UsageInFile(absPath, /l10n.value\('([^']*)',\s*\{([^\}]*)\}\s*\)/g, validKeyValues) &&
-                    checkl10UsageInFile(absPath, /l10n.value\("([^"]*)",\s*\{([^\}]*)\}\s*\)/g, validKeyValues)
+                !(checkL10nUsageInFile(absPath, /l10n.value\("([^"]*)"\)/g, validKeyValues) &&
+                    checkL10nUsageInFile(absPath, /l10n.value\('([^']*)'\)/g, validKeyValues) &&
+                    checkL10nUsageInFile(absPath, /l10n.value\('([^']*)',\s*\{([^\}]*)\}\s*\)/g, validKeyValues) &&
+                    checkL10nUsageInFile(absPath, /l10n.value\("([^"]*)",\s*\{([^\}]*)\}\s*\)/g, validKeyValues)
                 )
             ) result++;
         } else if (stats.isDirectory()) {
-            result += checkl10nUsageInFiles(absPath, ignoredDirEntriesNames, validKeyValues);
+            result += checkL10nUsageInFiles(absPath, ignoredDirEntriesNames, validKeyValues);
         }
     });
     return result;
@@ -295,9 +295,6 @@ export function checkViewsLocalisation(views: any, validKeys: Set<string>): bool
     let localized: boolean = true;
     const explorer: any = views.explorer;
     const explorerLocalisableFields = ["name", "contextualTitle"];
-    let localizingKey: string;
-    var fieldVal: string;
-    var id: string;
     for (const obj of explorer) {
         if (!isLocalizedObj(obj, explorerLocalisableFields, obj.id, "explorer", validKeys)) localized = false;
     }
@@ -308,22 +305,8 @@ export function checkViewsLocalisation(views: any, validKeys: Set<string>): bool
 export function checkCommandsLocalisation(commands: any, validKeys: Set<string>): boolean {
     const localisableFields = ['title'];
     let localized: boolean = true;
-    let localizingKey: string;
-    var fieldVal: any;
-    var id: string;
     for (const command of commands) {
-        id = command.command;
-        for (const field of localisableFields) {
-            fieldVal = command[field];
-            if (fieldVal === undefined) continue;
-            localizingKey = getlocalizingKey(fieldVal);
-            if (!isLocalizedVal(fieldVal)) {
-                localized = false;
-                console.log(`${field} of the command '${id}' is not being localized`)
-            } else if (!validKeys.has(localizingKey)) {
-                console.log(`Invalid localizing key for the command '${id}' key '${localizingKey}' not found in the package.nls.json`);
-            }
-        }
+        if (!isLocalizedObj(command, localisableFields, command.command, "Command", validKeys)) localized = false;
     }
     return localized;
 }
@@ -344,8 +327,7 @@ function matchTemplate(str1: string, str2: string): boolean {
 
 function setEqual(setA: Set<string>, setB: Set<string>): boolean {
     for (const elem of setA) {
-        if (setB.has(elem)) continue;
-        return false;
+        if (!setB.has(elem)) return false;
     }
     return setA.size === setB.size;
 }
@@ -386,7 +368,7 @@ function getPlaceholders(dictString: string): Set<string> {
  * @param validKeyValues From the bundle.en.json filee 
  * @returns All usage of l10n.value according to the pattern is having valid keys and placeholder map
  */
-function checkl10UsageInFile(filePath: string, pattern: RegExp, validKeyValues: any): boolean {
+function checkL10nUsageInFile(filePath: string, pattern: RegExp, validKeyValues: any): boolean {
     const fileContent: string = fs.readFileSync(filePath, 'utf8');
     const matches = fileContent.matchAll(pattern);
     const keys = new Set(Object.keys(validKeyValues));
@@ -423,7 +405,7 @@ function checkl10UsageInFile(filePath: string, pattern: RegExp, validKeyValues: 
  * @returns value of the form %key% where key is some string containing alphanumeric characters 
  */
 function isLocalizedVal(value: string): boolean {
-    return (value[0] === value[value.length - 1]) && value[0] === '%';
+    return value.length > 2 && value[0] === '%' && value[0] === value[value.length - 1];
 }
 
 
