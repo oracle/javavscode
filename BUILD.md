@@ -35,16 +35,7 @@
 ## Fetching and building the code
 
 ```bash
-$ git clone https://github.com/oracle/javavscode.git
-$ cd javavscode/
-$ git clone https://github.com/apache/netbeans.git
-$ cd netbeans/
-$ git checkout 23
-$ cd ..
-$ git clone https://github.com/apache/netbeans-l10n.git
-$ cd netbeans-l10n
-$ git checkout ece00239dc7a208fba60703c2256ffd818da1646 # head commit in master
-$ cd ..
+$ git clone --recurse-submodules https://github.com/oracle/javavscode.git
 # the following target requires git executable to be on PATH:
 $ ant apply-patches
 $ ant build-netbeans
@@ -107,3 +98,24 @@ $ npm_config_https_proxy=http://your.proxy.com:port ant test-vscode-ext
 
 when executing the tests for the first time. That shall overcome the proxy
 and download an instance of `code` to execute the tests with.
+
+## Working with submodules 
+This project uses [git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) . In particular netbeans and netbeans-l10n are submodules pointing to specific commits in their respective repositories .
+### Switching Branches 
+Add the --recurse-submodules  flag to the git checkout command to update the submodules during the checkout.
+```bash
+git checkout --recurse-submodules <branch_name>
+```
+Note:- Merging branches with submodules pointing to different commits can be tricky. Refer the [git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) for more details on the same.
+### Changing submodules versions 
+```bash
+# Fetching changes from remote submodule repositories 
+git submodule update --remote   
+# Changing the submodule version
+cd netbeans
+git checkout <commit_hash>
+cd ..
+# Committing the submodule version 
+git add netbeans
+git commit -m "Updated netbeans"
+```
