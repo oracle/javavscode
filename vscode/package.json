@@ -791,7 +791,9 @@
 		"nyc": "^17.1.0",
 		"ps-node": "^0.1.6",
 		"sinon": "^19.0.2",
-		"typescript": "^4.6.4"
+		"ts-mockito": "^2.6.1",
+		"typescript": "^4.6.4",
+		"vscode-uri": "^3.0.8"
 	},
 	"dependencies": {
 		"@vscode/debugadapter": "^1.65.0",

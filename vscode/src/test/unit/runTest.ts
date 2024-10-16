@@ -1,6 +1,7 @@
 import * as Mocha from 'mocha';
 import { glob } from 'glob';
 import * as path from 'path';
+import { vscodeMockInit } from './mocks/vscode/vscodeMock';
 
 
 const mocha = new Mocha({
@@ -45,6 +46,7 @@ try {
     if (args.length) {
         console.log(`Running unit tests for following speicified modules: ${args.map(el => el)}`);
     }
+    vscodeMockInit();
     testRunner(args);
 } catch (err: any) {
     console.error("Exception occurred while running tests");
