@@ -14,14 +14,14 @@
   limitations under the License.
 */
 import { QuickPickItem, Uri, window, workspace, WorkspaceConfiguration } from "vscode";
-import { globalVars, LOGGER } from "../../../extension";
+import { globalVars } from "../../../extension";
 import { notificationOrRequestListenerType } from "../../types";
 import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
 import { InputStep, MultiStepInput } from "../../../utils";
 import { runConfigurationUpdateAll } from "../../../views/runConfiguration";
 import { isError } from "../../../utils";
 import { isString } from "../../../utils";
-import { LogLevel } from "../../../logger";
+import { LOGGER } from "../../../logger";
 import { execInHtmlPage, showHtmlPage } from "../../../webviews/nbWebviewHandler";
 
 const textEditorDecorationCreateRequestHandler = (param: any) => {
@@ -104,7 +104,7 @@ const updateConfigRequestHandler = async (param: any) => {
                     runConfigurationUpdateAll();
                 });
         } catch (err) {
-            LOGGER.log("Failed to update configuration. Reason: " + (isString(err) ? err : isError(err) ? err.message : "error"), LogLevel.ERROR);
+            LOGGER.error("Failed to update configuration. Reason: " + (isString(err) ? err : isError(err) ? err.message : "error"));
         }
     }
 }

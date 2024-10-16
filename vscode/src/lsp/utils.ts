@@ -16,7 +16,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { globalVars, LOGGER } from '../extension';
+import { globalVars } from '../extension';
+import { LOGGER } from '../logger';
 import { extConstants } from '../constants';
 
 export const enableDisableModules = (

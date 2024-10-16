@@ -19,7 +19,8 @@ import { l10n } from "../localiser";
 import * as path from 'path';
 import { ICommand } from "./types";
 import { LanguageClient } from "vscode-languageclient/node";
-import { globalVars, LOGGER } from "../extension";
+import { globalVars } from "../extension";
+import { LOGGER } from '../logger';
 import { getContextUri, isNbCommandRegistered, wrapCommandWithProgress } from "./utils";
 
 const goToTest = async (ctx: any) => {

@@ -13,13 +13,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { LOGGER } from "../extension";
 import { spawn, ChildProcessByStdio, ChildProcess } from 'child_process';
 import { Readable } from "stream";
 import { window } from "vscode";
 import { l10n } from "../localiser";
 import { extConstants } from "../constants";
-import { LogLevel } from "../logger";
+import { LOGGER } from "../logger";
 
 export class NbProcessManager {
     private process?: ChildProcess | null;
@@ -49,7 +48,7 @@ export class NbProcessManager {
         LOGGER.log("Request to kill LSP server.");
 
         if (!this.process) {
-            LOGGER.log("Cannot kill: No current process", LogLevel.ERROR);
+            LOGGER.error("Cannot kill: No current process");
             return Promise.resolve();
         }
         const processToKill = this.process;
@@ -99,7 +98,7 @@ export class NbProcessManager {
     getStdOut = () => {
         return this.stdOutText
     }
-    
+
     setStdOut = (stdOut: string | null) => {
         this.stdOutText = stdOut;
     }

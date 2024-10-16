@@ -20,7 +20,7 @@ import { OutputChannel, workspace } from "vscode";
 import { extConstants } from "../constants";
 import { userConfigsListenedByServer } from '../configurations/configuration';
 import { restartWithJDKLater } from './utils';
-import { ExtensionLogger, LogLevel } from '../logger';
+import { ExtensionLogger } from '../logger';
 import { globalVars } from '../extension';
 
 
@@ -71,7 +71,7 @@ export class NbLanguageClient extends LanguageClient {
                     return { action: ErrorAction.Continue, message: error.message };
                 },
                 closed: function (): CloseHandlerResult {
-                    logger.log(`Connection to ${extConstants.SERVER_NAME} closed.`, LogLevel.WARN);
+                    logger.warn(`Connection to ${extConstants.SERVER_NAME} closed.`);
                     if (!globalVars.clientPromise.activationPending) {
                         restartWithJDKLater(10000, false);
                     }

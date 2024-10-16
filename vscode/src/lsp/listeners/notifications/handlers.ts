@@ -21,7 +21,8 @@ import { isNbJavacDisabledHandler, updateConfigurationValue } from "../../../con
 import { l10n } from "../../../localiser";
 import { configKeys } from "../../../configurations/configuration";
 import { builtInCommands } from "../../../commands/commands";
-import { globalVars, LOGGER } from "../../../extension";
+import { globalVars } from "../../../extension";
+import { LOGGER } from '../../../logger';
 
 const checkInstallNbJavac = (msg: string) => {
     const NO_JAVA_SUPPORT = "Cannot initialize Java support";
