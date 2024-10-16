@@ -33,7 +33,6 @@ import * as launchConfigurations from './launchConfigurations';
 import { extConstants } from './constants';
 import { ExtensionInfo } from './extensionInfo';
 import { ClientPromise } from './lsp/clientPromise';
-import { ExtensionLogger } from './logger';
 import { NbProcessManager } from './lsp/nbProcessManager';
 import { clientInit } from './lsp/initializer';
 import { subscribeCommands } from './commands/register';
@@ -43,7 +42,6 @@ import { registerConfigChangeListeners } from './configurations/listener';
 import { registerFileProviders } from './lsp/listeners/textDocumentContentProvider';
 import { createViews } from './views/initializer';
 
-export let LOGGER: ExtensionLogger;
 export namespace globalVars {
     export const listeners = new Map<string, string[]>();
     export let extensionInfo: ExtensionInfo;
@@ -61,7 +59,6 @@ export namespace globalVars {
 export function activate(context: ExtensionContext): VSNetBeansAPI {
     globalVars.clientPromise = new ClientPromise();
     globalVars.extensionInfo = new ExtensionInfo(context);
-    LOGGER = new ExtensionLogger(extConstants.SERVER_NAME);
 
     globalVars.clientPromise.initialize();
     registerConfigChangeListeners(context);

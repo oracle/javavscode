@@ -17,9 +17,9 @@ import { commands, OutputChannel, ProgressLocation, Uri, window } from "vscode";
 import { nbCommands } from "./commands";
 import { ProjectActionParams } from "../lsp/protocol";
 import { LanguageClient } from "vscode-languageclient/node";
-import { globalVars, LOGGER } from "../extension";
+import { globalVars } from "../extension";
 import { l10n } from "../localiser";
-import { LogLevel } from "../logger";
+import { LOGGER } from "../logger";
 
 export const getContextUri = (ctx: any): Uri | undefined => {
     if (ctx?.fsPath) {
@@ -98,14 +98,14 @@ export const wrapCommandWithProgress = (lsCommand: string, title: string, log?: 
                             resolve(res);
                         } else {
                             if (log) {
-                                LOGGER.log(`Command ${lsCommand} takes too long to start`, LogLevel.ERROR);
+                                LOGGER.error(`Command ${lsCommand} takes too long to start`);
                             }
                             reject(res);
                         }
                     }, humanVisibleDelay);
                 } catch (err: any) {
                     if (log) {
-                        LOGGER.log(`command ${lsCommand} executed with error: ${JSON.stringify(err)}`, LogLevel.ERROR);
+                        LOGGER.error(`command ${lsCommand} executed with error: ${JSON.stringify(err)}`);
                     }
                 }
             } else {

@@ -20,8 +20,7 @@ import * as os from 'os';
 import { JdkDownloaderAction } from './action';
 import { downloaderCss } from './styles';
 import { l10n } from '../../localiser';
-import { LOGGER } from '../../extension';
-import { LogLevel } from '../../logger';
+import { LOGGER } from '../../logger';
 
 export class JdkDownloaderView {
     public static readonly OPEN_JDK_LABEL = "OpenJDK";
@@ -52,8 +51,8 @@ export class JdkDownloaderView {
             });
             LOGGER.log("JDK downloader webview created successfully");
         } catch (err: any) {
-            LOGGER.log("Error creating JDK downloader webview:", LogLevel.ERROR)
-            LOGGER.log(err?.message || "No Error message received", LogLevel.ERROR);
+            LOGGER.error("Error creating JDK downloader webview:");
+            LOGGER.error(err?.message || "No Error message received");
             window.showErrorMessage(l10n.value("jdk.downloader.error_message.errorLoadingPage"));
         }
     }

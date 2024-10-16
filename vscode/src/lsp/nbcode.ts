@@ -17,13 +17,13 @@
 import { window } from "vscode";
 import { configKeys } from "../configurations/configuration";
 import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
-import { globalVars, LOGGER } from "../extension";
+import { globalVars } from "../extension";
 import { prepareNbcodeLaunchOptions, getUserConfigLaunchOptionsDefaults } from "./launchOptions";
 import { NbProcessManager } from "./nbProcessManager";
 import { findNbcode } from "./utils";
 import { l10n } from "../localiser";
 import { jdkDownloaderPrompt } from "../webviews/jdkDownloader/prompt";
-import { LogLevel } from "../logger";
+import { LOGGER } from "../logger";
 import * as os from 'os';
 
 export const launchNbcode = (): void => {
@@ -95,7 +95,7 @@ const processOnCloseHandler = (nbProcessManager: NbProcessManager, code: number)
         if (match?.length == 1) {
             LOGGER.log(match[0]);
         } else {
-            LOGGER.log("Cannot find org.netbeans.modules.java.lsp.server in the log!", LogLevel.ERROR);
+            LOGGER.error("Cannot find org.netbeans.modules.java.lsp.server in the log!");
         }
         LOGGER.log(`Please refer to troubleshooting section for more info: https://github.com/oracle/javavscode/blob/main/README.md#troubleshooting`);
         LOGGER.showOutputChannelUI(false);

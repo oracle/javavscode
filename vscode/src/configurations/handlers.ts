@@ -17,8 +17,8 @@ import { extensions, workspace } from "vscode";
 import { builtInConfigKeys, configKeys } from "./configuration";
 import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
 import * as os from 'os';
-import { globalVars, LOGGER } from "../extension";
-import { LogLevel } from "../logger";
+import { globalVars } from "../extension";
+import { LOGGER } from "../logger";
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -53,7 +53,7 @@ export const projectSearchRootsValueHandler = (): string => {
         try {
             projectSearchRoots = os.homedir() as string;
         } catch (err: any) {
-            LOGGER.log(`Failed to obtain the user home directory due to: ${err}`, LogLevel.ERROR);
+            LOGGER.error(`Failed to obtain the user home directory due to: ${err}`);
         }
         if (!projectSearchRoots) {
             projectSearchRoots = os.type() === NODE_WINDOWS_LABEL ? '%USERPROFILE%' : '$HOME';   // The launcher script may perform the env variable substitution
@@ -83,7 +83,7 @@ export const lspServerVmOptionsHandler = (): string[] => {
 }
 
 export const isDarkColorThemeHandler = (): boolean => {
-    const themeName: string = getBuiltinConfigurationValue(builtInConfigKeys.vscodeTheme);    
+    const themeName: string = getBuiltinConfigurationValue(builtInConfigKeys.vscodeTheme);
     if (!themeName) {
         return false;
     }

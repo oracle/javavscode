@@ -13,7 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { LOGGER } from "../extension";
+
+import { LOGGER } from "../logger";
 import { l10n } from "../localiser";
 import { extCommands, nbCommands } from "./commands";
 import { ICommand } from "./types";

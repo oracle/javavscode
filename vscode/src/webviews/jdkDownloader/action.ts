@@ -23,8 +23,7 @@ import { calculateChecksum, downloadFileWithProgressBar, httpsGet } from "../../
 import * as cp from 'child_process';
 import { promisify } from "util";
 import { l10n } from "../../localiser";
-import { LOGGER } from "../../extension";
-import { LogLevel } from "../../logger";
+import { LOGGER } from "../../logger";
 
 export class JdkDownloaderAction {
     public static readonly MANUAL_INSTALLATION_TYPE = "manual";
@@ -101,7 +100,7 @@ export class JdkDownloaderAction {
             await this.jdkInstallationManager();
         } catch (err: any) {
             window.showErrorMessage(l10n.value("jdk.downloader.error_message.installingJDK", { error: err }));
-            LOGGER.log(err?.message || "No Error message received", LogLevel.ERROR);
+            LOGGER.error(err?.message || "No Error message received");
         }
     }
 
@@ -220,7 +219,7 @@ export class JdkDownloaderAction {
             await exec(extractCommand);
             LOGGER.log(`Extracting JDK successful`);
         } catch (err) {
-            LOGGER.log(`Error while extracting JDK: ${(err as Error).message}`, LogLevel.ERROR);
+            LOGGER.error(`Error while extracting JDK: ${(err as Error).message}`);
             throw new Error(l10n.value("jdk.downloader.error_message.extractionError", {
                 jdkType: this.jdkType,
                 jdkVersion: this.jdkVersion
@@ -271,7 +270,7 @@ export class JdkDownloaderAction {
     private installationCleanup = (tempDirPath: string, newDirPath: string) => {
         fs.unlink(this.downloadFilePath!, async (err) => {
             if (err) {
-                LOGGER.log(`Error while installation cleanup: ${err.message}`, LogLevel.ERROR);
+                LOGGER.error(`Error while installation cleanup: ${err.message}`);
                 window.showErrorMessage(l10n.value("jdk.downloader.error_message.installationCleanup"));
             } else {
                 if (tempDirPath && fs.existsSync(tempDirPath)) {

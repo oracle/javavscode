@@ -15,7 +15,8 @@
 */
 import { StreamInfo } from "vscode-languageclient/node";
 import { getUserConfigLaunchOptionsDefaults } from "./launchOptions";
-import { globalVars, LOGGER } from "../extension";
+import { globalVars } from "../extension";
+import { LOGGER } from '../logger';
 import { configKeys } from "../configurations/configuration";
 import { enableDisableModules } from "./utils";
 import * as net from 'net';

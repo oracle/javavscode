@@ -14,8 +14,8 @@
   limitations under the License.
 */
 import { commands } from "vscode";
-import { globalVars, LOGGER } from "../extension";
-import { LogLevel } from "../logger";
+import { globalVars } from "../extension";
+import { LOGGER } from "../logger";
 import { NbProcessManager } from "./nbProcessManager";
 import { clientInit } from "./initializer";
 import { NbLanguageClient } from "./nbLanguageClient";
@@ -60,11 +60,11 @@ export class ClientPromise {
 
     public restartExtension = async (nbProcessManager: NbProcessManager | null, notifyKill: boolean) => {
         if (this.activationPending) {
-            LOGGER.log("Server activation requested repeatedly, ignoring...", LogLevel.WARN);
+            LOGGER.warn("Server activation requested repeatedly, ignoring...");
             return;
         }
         if (!nbProcessManager) {
-            LOGGER.log("Nbcode Process is null", LogLevel.ERROR);
+            LOGGER.error("Nbcode Process is null");
             return;
         }
         try {
@@ -73,7 +73,7 @@ export class ClientPromise {
             this.initialize();
             clientInit();
         } catch (error) {
-            LOGGER.log(`Error during activation: ${error}`, LogLevel.ERROR);
+            LOGGER.error(`Error during activation: ${error}`);
             throw error;
         } finally {
             this.activationPending = false;
