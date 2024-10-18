@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-import { commands, OpenDialogOptions, OutputChannel, window, workspace } from "vscode";
+import { commands, OpenDialogOptions, window, workspace } from "vscode";
 import { JdkDownloaderView } from "./view";
 import { jdkDownloaderConstants } from "../../constants";
 import * as path from 'path';

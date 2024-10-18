@@ -1,15 +1,21 @@
 {
     "extends": "@istanbuljs/nyc-config-typescript",
-    "reporter":[
+    "reporter": [
         "text",
         "html",
         "text-summary",
         "cobertura"
     ],
-    "all": true,
-    "cache": false,
+    "all": false,
     "include": [
-        "src/**/*.ts", "out/**/*.js"
+        "src/**/*.ts",
+        "out/**/*.js"
     ],
-    "exclude": [ "src/test/**/*.ts", "out/test/**/*.js"]
+    "exclude": [
+        "src/test/**/*.ts",
+        "out/test/**/*.js",
+        "out/utils.js",
+        "out/logger.js",
+        "out/constants.js"
+    ]
 }

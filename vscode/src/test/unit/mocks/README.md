@@ -1,0 +1,2 @@
+## Important Note:
+Every entity exported from this directory should be prefixed with `Mock` or `Mocked` so that any developer doesn't import mocked VS Code or mocked elements in the extension main logic code.
