@@ -22,7 +22,7 @@ export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
 export const ORACLE_JDK_DOWNLOAD_VERSIONS = ['23','21'];
 
 export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-  "23": "https://download.java.net/java/GA/jdk23/3c5b90190c68498b986a97f276efd28a/37/GPL/openjdk-23"
+  "23": "https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1"
 };
 
 export const ORACLE_VSCODE_EXTENSION_ID = 'oracle.oracle-java';

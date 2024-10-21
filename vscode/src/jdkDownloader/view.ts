@@ -201,8 +201,12 @@ export class JdkDownloaderView {
     }
 
     private getMachineArchHtml = () => {
-        return `<option value="aarch64" ${this.machineArch === 'aarch64' ? 'selected' : null}>arm64</option>
-                <option value="x64" ${this.machineArch === 'x64' ? 'selected' : null}>x64</option>`
+        if (this.osType === 'windows') {
+            return `<option value="x64" selected>x64</option>`;
+        } else {
+            return `<option value="aarch64" ${this.machineArch === 'aarch64' ? 'selected' : null}>arm64</option>
+                    <option value="x64" ${this.machineArch === 'x64' ? 'selected' : null}>x64</option>`;
+        }
     }
 
     private getScriptJs = () => {
@@ -233,6 +237,28 @@ export class JdkDownloaderView {
                 document.getElementById("oracleJDKDownloadButton")?.addEventListener('click', event => {
                     triggerJDKDownload(event);
                 });
+
+                document.getElementById("oracleJDKOsTypeDropdown")?.addEventListener('change', (event) => {
+                    updateMachineArchOptions(event.target.id);
+                });
+
+                document.getElementById("openJDKOsTypeDropdown")?.addEventListener('change', (event) => {
+                    updateMachineArchOptions(event.target.id);
+                });
+                
+                const updateMachineArchOptions = (osDropdownId) => {
+                    const osDropdown = document.getElementById(osDropdownId);
+                    const machineArchDropdown = document.getElementById(osDropdownId.replace('OsTypeDropdown', 'MachineArchDropdown'));
+                    
+                    if (osDropdown.value === 'windows') {
+                        machineArchDropdown.innerHTML = '<option value="x64" selected>x64</option>';
+                    } else {
+                        machineArchDropdown.innerHTML = \`
+                            <option value="aarch64" \${machineArchDropdown.value === 'aarch64' ? 'selected' : null}>arm64</option>
+                            <option value="x64" \${machineArchDropdown.value === 'x64' ? 'selected' : null}>x64</option>
+                        \`;
+                    }
+                };
 
                 const hideOrDisplayDivs = (e) => {
                     const { id } = e.target;
