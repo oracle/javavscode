@@ -169,7 +169,7 @@ Oracle Java Platform extension provides Test Explorer view which allows to run a
 ### Localisation support
 Oracle Java Platform extension provides localisation support for _Japanese_ and _Simplified Chinese_. 
 To switch language `Go to command Palette->Configure display language` select `ja` for _Japanese_ or `zh-cn` for _Simplified Chinese_ 
-![localisation.gif](localisation.gif)
+![localisation.gif](vscode/images/localisation.gif)
 
 ## Selecting the JDK
 The JDK to build, run and debug projects is being searched in the following locations:
