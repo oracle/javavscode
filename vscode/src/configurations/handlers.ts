@@ -13,7 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { extensions, workspace } from "vscode";
+
+import { extensions, workspace, WorkspaceConfiguration } from "vscode";
 import { builtInConfigKeys, configKeys } from "./configuration";
 import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
 import * as os from 'os';
@@ -21,6 +22,10 @@ import { globalVars } from "../extension";
 import { LOGGER } from "../logger";
 import * as path from 'path';
 import * as fs from 'fs';
+
+export const getConfiguration = (key: string = extConstants.COMMAND_PREFIX): WorkspaceConfiguration => {
+    return workspace.getConfiguration(key);
+}
 
 export const getConfigurationValue = <T>(key: string, defaultValue: T | undefined = undefined): T => {
     const conf = workspace.getConfiguration(extConstants.COMMAND_PREFIX);

@@ -30,15 +30,18 @@ export class ExtensionLogger {
     }
 
     public log(message: string): void {
-        this.outChannel.appendLine(`[${LogLevel.INFO}]: ${message}`);
+        const formattedMessage = `[${LogLevel.INFO}]: ${message}`;
+        this.printLog(formattedMessage);
     }
 
     public warn(message: string): void {
-        this.outChannel.appendLine(`[${LogLevel.WARN}]: ${message}`);
+        const formattedMessage = `[${LogLevel.WARN}]: ${message}`;
+        this.printLog(formattedMessage);
     }
 
     public error(message: string): void {
-        this.outChannel.appendLine(`[${LogLevel.ERROR}]: ${message}`);
+        const formattedMessage = `[${LogLevel.ERROR}]: ${message}`;
+        this.printLog(formattedMessage);
     }
 
     public logNoNL(message: string): void {
@@ -55,6 +58,11 @@ export class ExtensionLogger {
 
     public dispose(): void {
         this.outChannel.dispose();
+    }
+
+    private printLog(message: string): void{
+        const timestamp = new Date().toISOString();
+        this.outChannel.appendLine(`[${timestamp}] ${message}`);
     }
 }
 

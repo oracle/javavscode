@@ -30,7 +30,7 @@ import * as myExplorer from '../../../views/projects';
 import { CodeAction, commands, extensions, Selection, Uri, window, workspace, TreeItem } from 'vscode';
 import { assertWorkspace, awaitClient, dumpJava, findClusters, getFilePaths, openFile, prepareProject, replaceCode } from '../../testutils';
 import { FORMATTED_POM_XML, SAMPLE_CODE_FORMAT_DOCUMENT, SAMPLE_CODE_SORT_IMPORTS, SAMPLE_CODE_UNUSED_IMPORTS } from '../../constants';
-import { extConstants } from '../../../constants';
+import { extCommands } from '../../../commands/commands';
 
 suite('Extension Test Suite', function () {
   window.showInformationMessage('Start all tests.');
@@ -166,7 +166,7 @@ suite('Extension Test Suite', function () {
     if (refactorActions && refactorActions.length > 0) {
       for await (const action of refactorActions) {
         if (action.command && action.command.arguments) {
-          if (action.command.command === extConstants.COMMAND_PREFIX + ".surround.with") {
+          if (action.command.command === extCommands.surroundWith) {
             //this action has a popup where the user needs to
             //select a template that should be used for the surround:
             continue;
@@ -197,7 +197,7 @@ suite('Extension Test Suite', function () {
       assert.strictEqual(tests[1].tests[0].name, 'testTrue', `Invalid test name returned`);
 
       console.log("Test: run all workspace tests");
-      await vscode.commands.executeCommand(extConstants.COMMAND_PREFIX + '.run.test', workspaceFolder.uri.toString());
+      await vscode.commands.executeCommand(extCommands.runTest, workspaceFolder.uri.toString());
       console.log(`Test: run all workspace tests finished`);
     } catch (error) {
       dumpJava();
