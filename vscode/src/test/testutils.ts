@@ -35,6 +35,7 @@ import { NbLanguageClient } from "../lsp/nbLanguageClient";
 import { extConstants } from "../constants";
 import { l10n } from "../localiser";
 import { globalVars } from "../extension";
+import { nbCommands } from "../commands/commands";
 
 /**
  * Folder path currently opened in VSCode workspace
@@ -164,12 +165,12 @@ export async function waitProjectRecognized(someJavaFile: string): Promise<void>
 		const u: vscode.Uri = vscode.Uri.file(someJavaFile);
 		// clear out possible bad or negative caches.
 		return vscode.commands
-			.executeCommand(extConstants.COMMAND_PREFIX + ".clear.project.caches")
+			.executeCommand(nbCommands.clearProjectCaches)
 			.then(
 				// this should assure opening the root with the created project.
 				() =>
 					vscode.commands.executeCommand(
-						extConstants.COMMAND_PREFIX + ".java.get.project.packages",
+						nbCommands.javaProjectPackages,
 						u.toString()
 					)
 			);

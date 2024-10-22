@@ -62,8 +62,8 @@ export class NbLanguageClient extends LanguageClient {
                     'wantsJavaSupport': true,
                     'wantsGroovySupport': false,
                     'commandPrefix': extConstants.COMMAND_PREFIX,
-                    'configurationPrefix': 'jdk.',
-                    'altConfigurationPrefix': 'jdk.'
+                    'configurationPrefix': `${extConstants.COMMAND_PREFIX}.`,
+                    'altConfigurationPrefix': `${extConstants.COMMAND_PREFIX}.`
                 }
             },
             errorHandler: {

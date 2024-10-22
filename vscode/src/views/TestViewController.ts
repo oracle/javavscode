@@ -24,8 +24,7 @@
 import { commands, debug, tests, workspace, CancellationToken, TestController, TestItem, TestRunProfileKind, TestRunRequest, Uri, TestRun, TestMessage, Location, Position, MarkdownString } from "vscode";
 import * as path from 'path';
 import { asRange, TestCase, TestSuite } from "../lsp/protocol";
-import { extConstants } from "../constants";
-import { extCommands, builtInCommands } from "../commands/commands"
+import { extCommands, builtInCommands, nbCommands } from "../commands/commands"
 
 export class NbTestAdapter {
 
@@ -313,7 +312,7 @@ export class NbTestAdapter {
             }
             const result = regExp.exec(line);
             if (result) {
-                message.appendText(result[1]).appendText('(').appendMarkdown(`[${result[3]}](command:${extConstants.COMMAND_PREFIX}.open.stacktrace?${encodeURIComponent(JSON.stringify([currentTestUri, result[2], result[4], +result[5]]))})`).appendText(')');
+                message.appendText(result[1]).appendText('(').appendMarkdown(`[${result[3]}](command:${nbCommands.openStackTrace}?${encodeURIComponent(JSON.stringify([currentTestUri, result[2], result[4], +result[5]]))})`).appendText(')');
             } else {
                 message.appendText(line);
             }

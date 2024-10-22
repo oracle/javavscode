@@ -33,7 +33,7 @@ const deleteCache = async () => {
     if (userDir && fs.existsSync(userDir)) {
         const yes = l10n.value("jdk.extension.cache.label.confirmation.yes")
         const cancel = l10n.value("jdk.extension.cache.label.confirmation.cancel")
-        const confirmation = await window.showInformationMessage('Are you sure you want to delete cache for this workspace  and reload the window ?',
+        const confirmation = await window.showInformationMessage(l10n.value("jdk.extension.cache.message.confirmToDeleteCache"),
             yes, cancel);
         if (confirmation === yes) {
             const reloadWindowActionLabel = l10n.value("jdk.extension.cache.label.reloadWindow");

@@ -36,7 +36,6 @@ export function registerDebugger(context: ExtensionContext): void {
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(extConstants.COMMAND_PREFIX, configDynamicProvider, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
     let configResolver = new NetBeansConfigurationResolver();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(extConstants.COMMAND_PREFIX, configResolver));
-    context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(((session) => onDidTerminateSession(session))));
     let debugDescriptionFactory = new NetBeansDebugAdapterDescriptionFactory();
     context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(extConstants.COMMAND_PREFIX, debugDescriptionFactory));
     initializeRunConfiguration().then(initialized => {
@@ -266,15 +265,4 @@ class RunConfigurationProvider implements vscode.DebugConfigurationProvider {
         });
     }
 
-}
-
-
-function onDidTerminateSession(session: vscode.DebugSession): any {
-    const config = session.configuration;
-    if (config.env) {
-        const file = config.env["MICRONAUT_CONFIG_FILES"];
-        if (file) {
-            vscode.workspace.fs.delete(vscode.Uri.file(file));
-        }
-    }
 }

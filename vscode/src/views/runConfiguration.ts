@@ -22,6 +22,8 @@
 import * as vscode from 'vscode';
 import { homedir } from 'os';
 import { l10n } from '../localiser';
+import { getConfiguration } from '../configurations/handlers';
+import { configKeys } from '../configurations/configuration';
 
 
 
@@ -108,7 +110,7 @@ class RunConfigurationNode extends vscode.TreeItem {
 	}
 
 	getConfig(): vscode.WorkspaceConfiguration {
-		return vscode.workspace.getConfiguration('jdk.runConfig');
+		return getConfiguration(configKeys.runConfig);
 	}
 
 }
