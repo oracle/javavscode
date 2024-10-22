@@ -6,7 +6,7 @@
         "text-summary",
         "cobertura"
     ],
-    "all": false,
+    "all": true,
     "include": [
         "src/**/*.ts",
         "out/**/*.js"

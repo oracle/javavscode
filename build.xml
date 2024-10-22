@@ -67,6 +67,7 @@
             patches/nbjavac-not-required.diff
             patches/l10n-licence.diff
             patches/no-security-manager-allow.diff
+            patches/add-licences.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
