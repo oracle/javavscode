@@ -83,7 +83,7 @@
   "jdk.extension.notInstalled.label":"Extension not installed.",
   "jdk.extension.error_msg.clientNotAvailable":"Client not available",
   "jdk.extension.progressBar.error_msg.cannotRun":"cannot run {lsCommand}; client is {client}",
-  "jdk.extension.error_msg.doesntSupportNewTeamplate":"Client {client} doesn't support creating a new file",
+  "jdk.extension.error_msg.doesntSupportNewTeamplate":"Client {client} doesn't support creating a new file from template",
   "jdk.extension.error_msg.doesntSupportNewProject":"Client {client} doesn't support new project",
   "jdk.extension.error_msg.doesntSupportGoToTest":"Client {client} doesn't support go to test",
   "jdk.extension.error_msg.noSuperImpl":"No super implementation found",

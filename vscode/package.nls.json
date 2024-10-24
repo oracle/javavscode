@@ -3,7 +3,7 @@
     "jdk.views.explorer.projects": "Projects",
     "jdk.workspace.compile": "Compile Workspace",
     "jdk.workspace.clean": "Clean Workspace",
-    "jdk.workspace.new": "New File...",
+    "jdk.workspace.new": "New File from Template...",
     "jdk.workspace.newproject": "New Project...",
     "jdk.java.goto.super.implementation": "Go to Super Implementation",
     "jdk.open.type": "Open Type...",
