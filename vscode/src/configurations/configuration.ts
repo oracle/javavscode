@@ -24,9 +24,10 @@ export const configKeys = {
     formatPrefs: 'format',
     hintPrefs: 'hints',
     importPrefs: 'java.imports',
-    runConfig: 'runCofig',
     runConfigVmOptions: 'runConfig.vmOptions',
+    runConfigArguments: 'runConfig.arguments',
     runConfigCwd: 'runConfig.cwd',
+    runConfigEnv: 'runConfig.env',
     verbose: 'verbose',
     userdir: 'userdir',
     revealInActivteProj: "revealActiveInProjects"

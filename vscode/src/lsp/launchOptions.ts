@@ -14,7 +14,7 @@
   limitations under the License.
 */
 import { builtInConfigKeys, configKeys } from "../configurations/configuration"
-import { isDarkColorThemeHandler, isNbJavacDisabledHandler, jdkHomeValueHandler, lspServerVmOptionsHandler, projectSearchRootsValueHandler, userdirHandler } from "../configurations/handlers";
+import { isDarkColorThemeHandler, isNetbeansVerboseEnabled, jdkHomeValueHandler, lspServerVmOptionsHandler, projectSearchRootsValueHandler, userdirHandler } from "../configurations/handlers";
 import { l10n } from "../localiser";
 import { isString } from "../utils";
 import { userDefinedLaunchOptionsType } from "./types"
@@ -33,8 +33,9 @@ export const getUserConfigLaunchOptionsDefaults = (): userDefinedLaunchOptionsTy
             value: projectSearchRootsValueHandler(),
             optionToPass: '-J-Dproject.limitScanRoot=',
             encloseInvertedComma: true
-        }, [configKeys.verbose]: {
-            value: isNbJavacDisabledHandler(),
+        }, 
+        [configKeys.verbose]: {
+            value: isNetbeansVerboseEnabled(),
             optionToPass: '-J-Dnetbeans.logger.console='
         },
         [builtInConfigKeys.vscodeTheme]: {

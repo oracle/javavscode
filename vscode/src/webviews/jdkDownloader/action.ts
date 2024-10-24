@@ -24,6 +24,8 @@ import * as cp from 'child_process';
 import { promisify } from "util";
 import { l10n } from "../../localiser";
 import { LOGGER } from "../../logger";
+import { updateConfigurationValue } from "../../configurations/handlers";
+import { configKeys } from "../../configurations/configuration";
 
 export class JdkDownloaderAction {
     public static readonly MANUAL_INSTALLATION_TYPE = "manual";
@@ -90,7 +92,7 @@ export class JdkDownloaderAction {
     private startInstallation = async () => {
         try {
             if (this.installType === JdkDownloaderAction.MANUAL_INSTALLATION_TYPE) {
-                workspace.getConfiguration('jdk').update('jdkhome', this.installationPath, true);
+                updateConfigurationValue(configKeys.jdkHome, this.installationPath, true);
                 await this.installationCompletion();
 
                 LOGGER.log(`manual JDK installation completed successfully`);
@@ -260,8 +262,7 @@ export class JdkDownloaderAction {
         if (this.osType === 'macOS') {
             binPath = path.join(newDirectoryPath, 'Contents', 'Home');
         }
-
-        workspace.getConfiguration('jdk').update('jdkhome', binPath, true);
+        updateConfigurationValue(configKeys.jdkHome, binPath, true);
 
         LOGGER.log(`Finishing up installation...`);
         this.installationCleanup(tempDirectoryPath, newDirectoryPath);

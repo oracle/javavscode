@@ -25,12 +25,14 @@ import { configKeys } from "../configurations/configuration";
 import { initializeRunConfiguration } from "../utils";
 import { NbTestAdapter } from "./TestViewController";
 
-export async function createViews(context: ExtensionContext) {
+export async function createViews() {
+    const context = globalVars.extensionInfo.getExtensionContext();
     createRunConfigurationView(context);
     const client = await globalVars.clientPromise.client;
     createProjectView(client);
     globalVars.testAdapter = new NbTestAdapter();
 }
+
 function createRunConfigurationView(context: ExtensionContext) {
     initializeRunConfiguration().then(initialized => {
         if (initialized) {
@@ -59,9 +61,8 @@ async function createProjectView(client: NbLanguageClient) {
         }
         tv.reveal(vis, { select: true, focus: false, expand: false });
     }
-    const netbeansConfig = workspace.getConfiguration(extConstants.COMMAND_PREFIX);
     globalVars.extensionInfo.pushSubscription(window.onDidChangeActiveTextEditor(ed => {
-        if (netbeansConfig.get("revealActiveInProjects")) {
+        if (getConfigurationValue(configKeys.revealInActivteProj)) {
             revealActiveEditor(ed);
         }
     }));

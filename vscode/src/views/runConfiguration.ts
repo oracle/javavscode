@@ -22,12 +22,8 @@
 import * as vscode from 'vscode';
 import { homedir } from 'os';
 import { l10n } from '../localiser';
-import { getConfiguration } from '../configurations/handlers';
+import { getConfigurationValue, updateConfigurationValue } from '../configurations/handlers';
 import { configKeys } from '../configurations/configuration';
-
-
-
-
 
 class RunConfigurationNodeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
@@ -70,7 +66,7 @@ class RunConfigurationNode extends vscode.TreeItem {
 
 		this.settingsKey = settingsKey;
 
-		this.value = this.getConfig().get(this.settingsKey);
+		this.value = getConfigurationValue(this.settingsKey);
 		this.updateNode();
 	}
 
@@ -96,29 +92,24 @@ class RunConfigurationNode extends vscode.TreeItem {
 
 	setValue(value: string | undefined) {
 		this.value = value;
-		this.getConfig().update(this.settingsKey, this.value, vscode.workspace.name || vscode.workspace.workspaceFile ? null : true);
+		updateConfigurationValue(this.settingsKey, this.value, vscode.workspace.name || vscode.workspace.workspaceFile ? null : true);
 		this.updateNode();
 	}
 
 	updateNode(reload?: boolean) {
 		if (reload) {
-			this.value = this.getConfig().get(this.settingsKey) as string;
+			this.value =  getConfigurationValue(this.settingsKey) as string;
 		}
 		this.description = this.value ? this.value : l10n.value("jdk.extension.runConfig.default.label");
 		this.tooltip = `${this.label} ${this.description}`;
 		runConfigurationNodeProvider.refresh();
 	}
-
-	getConfig(): vscode.WorkspaceConfiguration {
-		return getConfiguration(configKeys.runConfig);
-	}
-
 }
 
 class ArgumentsNode extends RunConfigurationNode {
 
 	constructor() {
-		super(l10n.value("jdk.extension.runConfig.arguments.label"), l10n.value("jdk.extension.runConfig.arguments.prompt"), l10n.value("jdk.extension.runConfig.example.label", { data: "foo bar" }), 'arguments');
+		super(l10n.value("jdk.extension.runConfig.arguments.label"), l10n.value("jdk.extension.runConfig.arguments.prompt"), l10n.value("jdk.extension.runConfig.example.label", { data: "foo bar" }), configKeys.runConfigArguments);
 	}
 
 }
@@ -127,7 +118,7 @@ export const argumentsNode = new ArgumentsNode();
 class VMOptionsNode extends RunConfigurationNode {
 
 	constructor() {
-		super(l10n.value("jdk.extension.runConfig.vmoptions.label"), l10n.value("jdk.extension.runConfig.vmoptions.prompt"), l10n.value("jdk.extension.runConfig.example.label", { data: "-Xmx512m -Xms256m" }), 'vmOptions');
+		super(l10n.value("jdk.extension.runConfig.vmoptions.label"), l10n.value("jdk.extension.runConfig.vmoptions.prompt"), l10n.value("jdk.extension.runConfig.example.label", { data: "-Xmx512m -Xms256m" }), configKeys.runConfigVmOptions);
 	}
 
 }
@@ -136,7 +127,7 @@ export const vmOptionsNode = new VMOptionsNode();
 class EnvironmentVariablesNode extends RunConfigurationNode {
 
 	constructor() {
-		super(l10n.value("jdk.extension.runConfig.env.label"), l10n.value("jdk.extension.runConfig.env.prompt"), l10n.value("jdk.extension.runConfig.example.label", { data: "var1=one, varTwo=2" }), 'env');
+		super(l10n.value("jdk.extension.runConfig.env.label"), l10n.value("jdk.extension.runConfig.env.prompt"), l10n.value("jdk.extension.runConfig.example.label", { data: "var1=one, varTwo=2" }), configKeys.runConfigEnv);
 	}
 
 }
@@ -145,7 +136,7 @@ export const environmentVariablesNode = new EnvironmentVariablesNode();
 class WorkingDirectoryNode extends RunConfigurationNode {
 
 	constructor() {
-		super(l10n.value("jdk.extension.runConfig.wrkdir.label"), l10n.value("jdk.extension.runConfig.wrkdir.prompt"), WorkingDirectoryNode.getExample(), 'cwd');
+		super(l10n.value("jdk.extension.runConfig.wrkdir.label"), l10n.value("jdk.extension.runConfig.wrkdir.prompt"), WorkingDirectoryNode.getExample(), configKeys.runConfigCwd);
 	}
 
 	static getExample(): string {

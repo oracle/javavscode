@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-import { extensions, workspace, WorkspaceConfiguration } from "vscode";
+import { ConfigurationTarget, extensions, workspace, WorkspaceConfiguration } from "vscode";
 import { builtInConfigKeys, configKeys } from "./configuration";
 import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
 import * as os from 'os';
@@ -28,12 +28,12 @@ export const getConfiguration = (key: string = extConstants.COMMAND_PREFIX): Wor
 }
 
 export const getConfigurationValue = <T>(key: string, defaultValue: T | undefined = undefined): T => {
-    const conf = workspace.getConfiguration(extConstants.COMMAND_PREFIX);
-    return defaultValue != undefined ? conf.get(key, defaultValue) : conf.get(key) as T;
+        const conf = getConfiguration();
+        return defaultValue != undefined ? conf.get(key, defaultValue) : conf.get(key) as T;
 }
 
-export const updateConfigurationValue = <T>(key: string, newValue: T): void => {
-    workspace.getConfiguration(extConstants.COMMAND_PREFIX).update(key, newValue);
+export const updateConfigurationValue = <T>(key: string, newValue: T, configurationTarget: ConfigurationTarget | boolean | null = null): void => {
+    getConfiguration().update(key, newValue, configurationTarget);
 }
 
 export const getBuiltinConfigurationValue = <T>(key: string, defaultValue: T | undefined = undefined): T => {
@@ -115,8 +115,9 @@ export const isDarkColorThemeHandler = (): boolean => {
 
 export const userdirHandler = (): string => {
     const userdirScope = process.env['nbcode_userdir'] || getConfigurationValue(configKeys.userdir, "local");
-    const userdirParentDir = userdirScope === "local"
-        ? globalVars.extensionInfo.getWorkspaceStorage()?.fsPath
+    const workspaceStoragePath = globalVars.extensionInfo.getWorkspaceStorage()?.fsPath;
+    const userdirParentDir = userdirScope === "local" && workspaceStoragePath
+        ? workspaceStoragePath
         : globalVars.extensionInfo.getGlobalStorage().fsPath;
 
     if (!userdirParentDir) {
@@ -142,4 +143,8 @@ export const userdirHandler = (): string => {
 
 export const isNbJavacDisabledHandler = (): boolean => {
     return getConfigurationValue(configKeys.disableNbJavac, false);
+}
+
+export const isNetbeansVerboseEnabled = (): boolean => {
+    return getConfigurationValue(configKeys.verbose, false);
 }

@@ -40,7 +40,6 @@ import { VSNetBeansAPI } from './lsp/types';
 import { registerDebugger } from './debugger/debugger';
 import { registerConfigChangeListeners } from './configurations/listener';
 import { registerFileProviders } from './lsp/listeners/textDocumentContentProvider';
-import { createViews } from './views/initializer';
 
 export namespace globalVars {
     export const listeners = new Map<string, string[]>();
@@ -66,7 +65,6 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 
     registerDebugger(context);
     subscribeCommands(context);
-    createViews(context);
     registerFileProviders(context);
 
     launchConfigurations.updateLaunchConfig();
