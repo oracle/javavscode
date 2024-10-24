@@ -105,13 +105,13 @@ export function launch(
     }
 
     if (info.projectSearchRoots) {
-        ideArgs.push(`-J-Dproject.limitScanRoot="${info.projectSearchRoots}"`);
+        ideArgs.push(`-J-Dproject.limitScanRoot=${info.projectSearchRoots}`);
     }
 
     if (info.verbose) {
         ideArgs.push('-J-Dnetbeans.logger.console=true');
     }
-    ideArgs.push(`-J-Dnetbeans.extra.dirs="${clusterPath}"`)
+    ideArgs.push(`-J-Dnetbeans.extra.dirs=${clusterPath}`)
     if (env['netbeans.extra.options']) {     
         ideArgs.push(...env['netbeans.extra.options'].split(' '));
     }
