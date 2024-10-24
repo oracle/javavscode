@@ -23,10 +23,7 @@
 
 'use strict';
 
-import { ExtensionContext, TextEditorDecorationType } from 'vscode';
-
-
-import * as vscode from 'vscode';
+import { ExtensionContext, TextEditorDecorationType, Uri } from 'vscode';
 import { NbTestAdapter } from './views/TestViewController';
 import { SetTextEditorDecorationParams } from './lsp/protocol';
 import * as launchConfigurations from './launchConfigurations';
@@ -40,7 +37,6 @@ import { VSNetBeansAPI } from './lsp/types';
 import { registerDebugger } from './debugger/debugger';
 import { registerConfigChangeListeners } from './configurations/listener';
 import { registerFileProviders } from './lsp/listeners/textDocumentContentProvider';
-import { createViews } from './views/initializer';
 
 export namespace globalVars {
     export const listeners = new Map<string, string[]>();
@@ -52,7 +48,7 @@ export namespace globalVars {
     export let nbProcessManager: NbProcessManager | null;
     export let testAdapter: NbTestAdapter | undefined;
     export let decorations = new Map<string, TextEditorDecorationType>();
-    export let decorationParamsByUri = new Map<vscode.Uri, SetTextEditorDecorationParams>();
+    export let decorationParamsByUri = new Map<Uri, SetTextEditorDecorationParams>();
 }
 
 
@@ -66,7 +62,6 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 
     registerDebugger(context);
     subscribeCommands(context);
-    createViews(context);
     registerFileProviders(context);
 
     launchConfigurations.updateLaunchConfig();

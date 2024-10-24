@@ -23,16 +23,17 @@ import { wrapCommandWithProgress, wrapProjectActionWithProgress } from "./utils"
 const compileWorkspaceHandler = () => {
     return wrapCommandWithProgress(nbCommands.buildWorkspace, l10n.value('jdk.extension.command.progress.compilingWorkSpace'), LOGGER.getOutputChannel());
 }
+
 const cleanWorkspaceHandler = () => {
     return wrapCommandWithProgress(nbCommands.cleanWorkspace,l10n.value('jdk.extension.command.progress.cleaningWorkSpace'), LOGGER.getOutputChannel());
 }
 
 const compileProjectHandler = (args: any) => {
-    return wrapProjectActionWithProgress('build', undefined, l10n.value('jdk.extension.command.progress.compilingProject'), LOGGER.getOutputChannel(), args);
+    wrapProjectActionWithProgress('build', undefined, l10n.value('jdk.extension.command.progress.compilingProject'), LOGGER.getOutputChannel(), args);
 }
 
 const cleanProjectHandler = (args: any) => {
-    return wrapProjectActionWithProgress('clean', undefined, l10n.value('jdk.extension.command.progress.cleaningProject'), LOGGER.getOutputChannel(), args);
+    wrapProjectActionWithProgress('clean', undefined, l10n.value('jdk.extension.command.progress.cleaningProject'), LOGGER.getOutputChannel(), args);
 }
 
 

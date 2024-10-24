@@ -67,10 +67,12 @@ const processOnDataHandler = (nbProcessManager: NbProcessManager, text: string, 
     if (nbProcessManager) {
         globalVars.clientPromise.activationPending = false;
     }
+    if(!text.match(/with hash/)){
+        LOGGER.logNoNL(text);
+    }
     if (nbProcessManager.getStdOut() == null) {
         return;
     }
-    LOGGER.logNoNL(text);
     isOut ? nbProcessManager.appendStdOut(text) : nbProcessManager.appendStdErr(text);
 
     if (nbProcessManager.getStdOut()?.match(/org.netbeans.modules.java.lsp.server/)) {
@@ -87,7 +89,7 @@ const processOnCloseHandler = (nbProcessManager: NbProcessManager, code: number)
             window.showWarningMessage(l10n.value("jdk.extension.lspServer.warning_message.serverExited", { SERVER_NAME: extConstants.SERVER_NAME, code }));
         }
     }
-    if (nbProcessManager.getStdOut()?.match(/Cannot find java/) || (os.type() === NODE_WINDOWS_LABEL && !globalVars.deactivated)) {
+    if (nbProcessManager.getStdErr()?.match(/Cannot find java/) || (os.type() === NODE_WINDOWS_LABEL && !globalVars.deactivated)) {
         jdkDownloaderPrompt();
     }
     if (nbProcessManager.getStdOut() != null) {

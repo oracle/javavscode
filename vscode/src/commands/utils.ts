@@ -98,7 +98,7 @@ export const wrapCommandWithProgress = (lsCommand: string, title: string, log?: 
                             resolve(res);
                         } else {
                             if (log) {
-                                LOGGER.error(`Command ${lsCommand} takes too long to start`);
+                                LOGGER.error(`Result not obtained while executing ${lsCommand}`);
                             }
                             reject(res);
                         }
@@ -107,6 +107,7 @@ export const wrapCommandWithProgress = (lsCommand: string, title: string, log?: 
                     if (log) {
                         LOGGER.error(`command ${lsCommand} executed with error: ${JSON.stringify(err)}`);
                     }
+                    reject(err);
                 }
             } else {
                 reject(l10n.value("jdk.extension.progressBar.error_msg.cannotRun", { lsCommand: lsCommand, client: c }));
