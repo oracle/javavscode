@@ -1,5 +1,4 @@
 {
-    
   "jdk.downloader.heading": "JDKダウンローダ",
   "jdk.downloader.html.details":"<p>このツールは、<a href='https://www.java.com/freeuselicense'>Oracle No-Fee Terms and Conditions</a>の最新のOracle Java SE JDKまたは、<a href='https://openjdk.org/legal/gplv2+ce.html'>クラスパス例外付きGNU Public License</a>に基づいたOracle OpenJDKビルドのいずれかをダウンロードできます</p> <p>次に、インストールおよび構成をかわりに処理します。</p> <p>これにより、この拡張によって提供されたすべての機能を最大限活用できます。</p>",
   "jdk.downloader.button.label.oracleJdk": "Oracle Java SE JDKのダウンロード",
@@ -84,7 +83,7 @@
   "jdk.extension.notInstalled.label":"拡張機能がインストールされませんでした。",
   "jdk.extension.error_msg.clientNotAvailable":"クライアントを使用できません",
   "jdk.extension.progressBar.error_msg.cannotRun":"{lsCommand}を実行できません。クライアントは{client}です",
-  "jdk.extension.error_msg.doesntSupportNewTeamplate":"クライアント{client}では、「テンプレートから新規作成」はサポートされていません",
+  "jdk.extension.error_msg.doesntSupportNewTeamplate":"クライアント{client}では、「ファイル新規作成」はサポートされていません",
   "jdk.extension.error_msg.doesntSupportNewProject":"クライアント{client}では、新規プロジェクトはサポートされていません",
   "jdk.extension.error_msg.doesntSupportGoToTest":"クライアント{client}では、「テストへ移動」はサポートされていません",
   "jdk.extension.error_msg.noSuperImpl":"スーパークラスの実装が見つかりません",
