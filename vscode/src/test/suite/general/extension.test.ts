@@ -26,11 +26,11 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as myExtension from '../../../extension';
-import * as myExplorer from '../../../explorer';
+import * as myExplorer from '../../../views/projects';
 import { CodeAction, commands, extensions, Selection, Uri, window, workspace, TreeItem } from 'vscode';
-import { assertWorkspace, dumpJava, getFilePaths, openFile, prepareProject, replaceCode } from '../../testutils';
+import { assertWorkspace, awaitClient, dumpJava, findClusters, getFilePaths, openFile, prepareProject, replaceCode } from '../../testutils';
 import { FORMATTED_POM_XML, SAMPLE_CODE_FORMAT_DOCUMENT, SAMPLE_CODE_SORT_IMPORTS, SAMPLE_CODE_UNUSED_IMPORTS } from '../../constants';
+import { extCommands } from '../../../commands/commands';
 
 suite('Extension Test Suite', function () {
   window.showInformationMessage('Start all tests.');
@@ -67,7 +67,7 @@ suite('Extension Test Suite', function () {
     assert(nbcode);
 
     const extraCluster = path.join(nbcode.extensionPath, "nbcode", "extra");
-    let clusters = myExtension.findClusters('non-existent').
+    let clusters = findClusters('non-existent').
       // ignore 'extra' cluster in the extension path, since nbjavac is there during development:
       filter(s => !s.startsWith(extraCluster));
 
@@ -166,7 +166,7 @@ suite('Extension Test Suite', function () {
     if (refactorActions && refactorActions.length > 0) {
       for await (const action of refactorActions) {
         if (action.command && action.command.arguments) {
-          if (action.command.command === myExtension.COMMAND_PREFIX + ".surround.with") {
+          if (action.command.command === extCommands.surroundWith) {
             //this action has a popup where the user needs to
             //select a template that should be used for the surround:
             continue;
@@ -197,7 +197,7 @@ suite('Extension Test Suite', function () {
       assert.strictEqual(tests[1].tests[0].name, 'testTrue', `Invalid test name returned`);
 
       console.log("Test: run all workspace tests");
-      await vscode.commands.executeCommand(myExtension.COMMAND_PREFIX + '.run.test', workspaceFolder.uri.toString());
+      await vscode.commands.executeCommand(extCommands.runTest, workspaceFolder.uri.toString());
       console.log(`Test: run all workspace tests finished`);
     } catch (error) {
       dumpJava();
@@ -215,7 +215,7 @@ suite('Extension Test Suite', function () {
     const mainClass = path.join(folder, 'target', 'classes', 'pkg', 'Main.class');
     assert.ok(fs.statSync(mainClass).isFile(), "Class created by compilation: " + mainClass);
 
-    myExplorer.createViewProvider(await myExtension.awaitClient(), "foundProjects").then(async (lvp) => {
+    myExplorer.createViewProvider(await awaitClient(), "foundProjects").then(async (lvp) => {
       const firstLevelChildren = await (lvp.getChildren() as Thenable<any[]>);
       assert.strictEqual(firstLevelChildren.length, 1, "One child under the root");
       const item = await (lvp.getTreeItem(firstLevelChildren[0]) as Thenable<TreeItem>);

@@ -15,15 +15,26 @@
 */
 
 
-export const JDK_RELEASES_TRACK_URL = `https://www.java.com/releases/releases.json`;
+export namespace extConstants {
+  export const API_VERSION: string = "1.0";
+  export const SERVER_NAME: string = "Oracle Java SE Language Server";
+  export const NB_LANGUAGE_CLIENT_ID: string = 'Oracle Java SE';
+  export const NB_LANGUAGE_CLIENT_NAME: string = "java";
+  export const LANGUAGE_ID: string = "java";
+  export const ORACLE_VSCODE_EXTENSION_ID = 'oracle.oracle-java';
+  export const COMMAND_PREFIX = 'jdk';
+}
 
-export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
+export namespace jdkDownloaderConstants {
+  export const JDK_RELEASES_TRACK_URL = `https://www.java.com/releases/releases.json`;
 
-export const ORACLE_JDK_DOWNLOAD_VERSIONS = ['23','21'];
+  export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
 
-export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-  "23": "https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1"
-};
+  export const ORACLE_JDK_DOWNLOAD_VERSIONS = ['23', '21'];
 
-export const ORACLE_VSCODE_EXTENSION_ID = 'oracle.oracle-java';
+  export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
+    "23": "https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1"
+  };  
+}
+
 export const NODE_WINDOWS_LABEL = "Windows_NT";
