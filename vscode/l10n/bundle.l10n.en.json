@@ -1,5 +1,4 @@
 {
-    
   "jdk.downloader.heading": "JDK Downloader",
   "jdk.downloader.html.details":"<p>This tool enables you to download either the latest Oracle Java SE JDK with <a href='https://www.java.com/freeuselicense'>Oracle No-Fee Terms and Conditions</a> or the Oracle OpenJDK builds under the <a href='https://openjdk.org/legal/gplv2+ce.html'>GNU Public License with ClassPath Exception</a></p> <p>It will then handle the installation and configuration on your behalf.</p> <p>This enables you to take full advantage of all the features offered by this extension.</p>",
   "jdk.downloader.button.label.oracleJdk": "Download Oracle Java SE JDK",
@@ -84,7 +83,7 @@
   "jdk.extension.notInstalled.label":"Extension not installed.",
   "jdk.extension.error_msg.clientNotAvailable":"Client not available",
   "jdk.extension.progressBar.error_msg.cannotRun":"cannot run {lsCommand}; client is {client}",
-  "jdk.extension.error_msg.doesntSupportNewTeamplate":"Client {client} doesn't support new from template",
+  "jdk.extension.error_msg.doesntSupportNewTeamplate":"Client {client} doesn't support creating a new file",
   "jdk.extension.error_msg.doesntSupportNewProject":"Client {client} doesn't support new project",
   "jdk.extension.error_msg.doesntSupportGoToTest":"Client {client} doesn't support go to test",
   "jdk.extension.error_msg.noSuperImpl":"No super implementation found",
