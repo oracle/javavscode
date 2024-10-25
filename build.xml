@@ -61,6 +61,7 @@
             patches/remove-db.diff
             patches/nbjavac-not-required.diff
             patches/l10n-licence.diff
+            patches/no-security-manager-allow.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
@@ -105,6 +106,8 @@
         <move file="${lsp.build.dir}/platform/lib/nbexec" tofile="${lsp.build.dir}/platform/lib/nbexec.sh" />
         <replace file="${lsp.build.dir}/bin/nbcode.sh" token="/platform*/lib/nbexec" value="/platform*/lib/nbexec.sh"/>
         <replace file="${lsp.build.dir}/bin/nbcode.sh" token="basename &quot;$PRG&quot;" value="basename &quot;$PRG&quot; &quot;.sh&quot;"/>
+        <replace file="${lsp.build.dir}/platform/lib/nbexec.dll" token="java.security.manager" value="no.java.secur.manager" encoding="ISO-8859-1"/>
+        <replace file="${lsp.build.dir}/platform/lib/nbexec64.dll" token="java.security.manager" value="no.java.secur.manager" encoding="ISO-8859-1"/>
         <chmod file="${lsp.build.dir}/bin/nbcode.sh" perm="u+x" />
         <chmod file="${lsp.build.dir}/platform/lib/nbexec.sh" perm="u+x"/>
         <chmod file="${lsp.build.dir}/java/maven/bin/mvn.sh" perm="u+x" />

@@ -1,0 +1,13 @@
+diff --git a/platform/o.n.bootstrap/launcher/unix/nbexec b/platform/o.n.bootstrap/launcher/unix/nbexec
+index 1d6ad6e530..228b37cbe2 100755
+--- a/platform/o.n.bootstrap/launcher/unix/nbexec
++++ b/platform/o.n.bootstrap/launcher/unix/nbexec
+@@ -192,7 +192,7 @@ fi
+ # rename old heap dump to .old
+ mv "${userdir}/var/log/heapdump.hprof" "${userdir}/var/log/heapdump.hprof.old" > /dev/null 2>&1
+ 
+-jargs_without_clusters="$jargs -Djava.security.manager=allow"
++jargs_without_clusters="$jargs"
+ jargs="-Dnetbeans.dirs=\"${clusters}\" $jargs_without_clusters"
+ 
+ if [ -z "$cachedirspecified" ]; then

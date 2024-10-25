@@ -107,7 +107,7 @@ export function launch(
     if (info.projectSearchRoots) {
         ideArgs.push(`-J-Dproject.limitScanRoot="${info.projectSearchRoots}"`);
     }
-
+    ideArgs.push('-J-DTopSecurityManager.disable=true');
     if (info.verbose) {
         ideArgs.push('-J-Dnetbeans.logger.console=true');
     }
