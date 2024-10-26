@@ -23,6 +23,7 @@ import * as fs from 'fs';
 import { promisify } from "util";
 import * as crypto from 'crypto';
 import { l10n } from './localiser';
+import { extConstants } from './constants';
 
 class InputFlowAction {
 	static back = new InputFlowAction();
@@ -275,4 +276,29 @@ export const calculateChecksum = async (filePath: string, algorithm: string = 's
 
 	const checksum = hash.digest('hex');
 	return checksum;
+}
+
+export const appendPrefixToCommand = (command: string) => `${extConstants.COMMAND_PREFIX}.${command}`;
+
+export function isString(obj: unknown): obj is string {
+	return typeof obj === 'string';
+}
+export function isError(obj: unknown): obj is Error {
+	return obj instanceof Error;
+}
+
+export async function initializeRunConfiguration(): Promise<boolean> {
+	if (vscode.workspace.name || vscode.workspace.workspaceFile) {
+		const java = await vscode.workspace.findFiles('**/*.java', '**/node_modules/**', 1);
+		if (java?.length > 0) {
+			return true;
+		}
+	} else {
+		for (let doc of vscode.workspace.textDocuments) {
+			if (doc.fileName?.endsWith(".java")) {
+				return true;
+			}
+		}
+	}
+	return false;
 }

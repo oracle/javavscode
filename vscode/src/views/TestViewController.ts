@@ -23,13 +23,13 @@
 
 import { commands, debug, tests, workspace, CancellationToken, TestController, TestItem, TestRunProfileKind, TestRunRequest, Uri, TestRun, TestMessage, Location, Position, MarkdownString } from "vscode";
 import * as path from 'path';
-import { asRange, TestCase, TestSuite } from "./protocol";
-import { COMMAND_PREFIX } from "./extension";
+import { asRange, TestCase, TestSuite } from "../lsp/protocol";
+import { extCommands, builtInCommands, nbCommands } from "../commands/commands"
 
 export class NbTestAdapter {
 
     private readonly testController: TestController;
-	private disposables: { dispose(): void }[] = [];
+    private disposables: { dispose(): void }[] = [];
     private currentRun: TestRun | undefined;
     private itemsToRun: Set<TestItem> | undefined;
     private started: boolean = false;
@@ -45,7 +45,7 @@ export class NbTestAdapter {
 
     async load(): Promise<void> {
         for (let workspaceFolder of workspace.workspaceFolders || []) {
-            const loadedTests: any = await commands.executeCommand(COMMAND_PREFIX + '.load.workspace.tests', workspaceFolder.uri.toString());
+            const loadedTests: any = await commands.executeCommand(extCommands.loadWorkspaceTests, workspaceFolder.uri.toString());
             if (loadedTests) {
                 loadedTests.forEach((suite: TestSuite) => {
                     this.updateTests(suite);
@@ -56,7 +56,7 @@ export class NbTestAdapter {
 
     async run(request: TestRunRequest, cancellation: CancellationToken): Promise<void> {
         if (!this.currentRun) {
-            commands.executeCommand('workbench.debug.action.focusRepl');
+            commands.executeCommand(builtInCommands.focusReplDebug);
             cancellation.onCancellationRequested(() => this.cancel());
             this.currentRun = this.testController.createTestRun(request);
             this.itemsToRun = new Set();
@@ -68,7 +68,7 @@ export class NbTestAdapter {
                         this.set(item, 'enqueued');
                         const idx = item.id.indexOf(':');
                         if (!cancellation.isCancellationRequested) {
-                            await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? COMMAND_PREFIX + '.debug.single' : COMMAND_PREFIX + '.run.single', item.uri.toString(), idx < 0 ? undefined : item.id.slice(idx + 1));
+                            await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? extCommands.debugSingle : extCommands.runSingle, item.uri.toString(), idx < 0 ? undefined : item.id.slice(idx + 1));
                         }
                     }
                 }
@@ -76,7 +76,7 @@ export class NbTestAdapter {
                 this.testController.items.forEach(item => this.set(item, 'enqueued'));
                 for (let workspaceFolder of workspace.workspaceFolders || []) {
                     if (!cancellation.isCancellationRequested) {
-                        await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? COMMAND_PREFIX + '.debug.test': COMMAND_PREFIX + '.run.test', workspaceFolder.uri.toString());
+                        await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? extCommands.debugTest : extCommands.runTest, workspaceFolder.uri.toString());
                     }
                 }
             }
@@ -89,7 +89,7 @@ export class NbTestAdapter {
         }
     }
 
-    set(item: TestItem, state: 'enqueued' | 'started' | 'passed' | 'failed' | 'skipped' | 'errored', message?: TestMessage | readonly TestMessage[], noPassDown? : boolean): void {
+    set(item: TestItem, state: 'enqueued' | 'started' | 'passed' | 'failed' | 'skipped' | 'errored', message?: TestMessage | readonly TestMessage[], noPassDown?: boolean): void {
         if (this.currentRun) {
             switch (state) {
                 case 'enqueued':
@@ -119,12 +119,12 @@ export class NbTestAdapter {
     }
 
     dispose(): void {
-		this.cancel();
-		for (const disposable of this.disposables) {
-			disposable.dispose();
-		}
-		this.disposables = [];
-	}
+        this.cancel();
+        for (const disposable of this.disposables) {
+            disposable.dispose();
+        }
+        this.disposables = [];
+    }
 
     testOutput(output: string): void {
         if (this.currentRun && output) {
@@ -287,15 +287,15 @@ export class NbTestAdapter {
         return undefined;
     }
 
-    selectParent(parents: Map<TestItem, string>): {test: TestItem, label: string} | undefined {
-        let ret: {test: TestItem, label: string} | undefined = undefined;
+    selectParent(parents: Map<TestItem, string>): { test: TestItem, label: string } | undefined {
+        let ret: { test: TestItem, label: string } | undefined = undefined;
         parents.forEach((label, parentTest) => {
             if (ret) {
                 if (parentTest.id.replace(/#\w*/g, '').length > ret.test.id.replace(/#\w*/g, '').length) {
-                    ret = {test: parentTest, label};
+                    ret = { test: parentTest, label };
                 }
             } else {
-                ret = {test: parentTest, label};
+                ret = { test: parentTest, label };
             }
         });
         return ret;
@@ -312,7 +312,7 @@ export class NbTestAdapter {
             }
             const result = regExp.exec(line);
             if (result) {
-                message.appendText(result[1]).appendText('(').appendMarkdown(`[${result[3]}](command:${COMMAND_PREFIX}.open.stacktrace?${encodeURIComponent(JSON.stringify([currentTestUri, result[2], result[4], +result[5]]))})`).appendText(')');
+                message.appendText(result[1]).appendText('(').appendMarkdown(`[${result[3]}](command:${nbCommands.openStackTrace}?${encodeURIComponent(JSON.stringify([currentTestUri, result[2], result[4], +result[5]]))})`).appendText(')');
             } else {
                 message.appendText(line);
             }

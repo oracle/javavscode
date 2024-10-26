@@ -23,8 +23,7 @@ import * as vscode from 'vscode';
 import {
     ProtocolNotificationType,
     ProtocolRequestType,
-    ShowMessageParams,
-    NotificationType
+    ShowMessageParams
 } from 'vscode-languageclient';
 
 import {
@@ -101,9 +100,9 @@ export interface ShowInputBoxParams {
      * An optional title of the input box.
      */
     title?: string;
-     /**
-     * The text to display underneath the input box.
-     */
+    /**
+    * The text to display underneath the input box.
+    */
     prompt: string;
     /**
      * The value to prefill in the input box.
@@ -131,13 +130,13 @@ export interface ShowMutliStepInputParams {
 }
 
 export interface InputCallbackParams {
-    inputId : string;
+    inputId: string;
     step: number;
     data: { [name: string]: readonly vscode.QuickPickItem[] | string };
 }
 
 export interface StepInfo {
-	totalSteps: number;
+    totalSteps: number;
     stepId: string;
 }
 
@@ -212,43 +211,43 @@ export namespace SaveDocumentsRequest {
 }
 
 export interface NodeChangedParams {
-    rootId : number;
-    nodeId : number | null;
-    types? : NodeChangeType[];
-    properties? : String[];
+    rootId: number;
+    nodeId: number | null;
+    types?: NodeChangeType[];
+    properties?: String[];
 }
 
 export interface CreateExplorerParams {
-    explorerId : string;
+    explorerId: string;
 }
 
 export interface NodeOperationParams {
-    nodeId : number;
+    nodeId: number;
 }
 
 export interface ProjectActionParams {
-    action : string;
-    configuration? : string;
-    fallback? : boolean;
+    action: string;
+    configuration?: string;
+    fallback?: boolean;
 }
 
 export interface GetResourceParams {
-    uri : vscode.Uri;
-    acceptEncoding? : string[];
-    acceptContent? : string[];
+    uri: vscode.Uri;
+    acceptEncoding?: string[];
+    acceptContent?: string[];
 }
 
 export interface ResourceData {
-    contentType : string;
-    encoding : string;
-    content : string;
-    contentSize : number;
+    contentType: string;
+    encoding: string;
+    content: string;
+    contentSize: number;
 }
 
 export interface FindPathParams {
-    rootNodeId : number;
-    uri? : vscode.Uri;
-    selectData? : any;
+    rootNodeId: number;
+    uri?: vscode.Uri;
+    selectData?: any;
 }
 
 export enum NodeChangeType {
@@ -271,31 +270,31 @@ export namespace NodeInfoNotification {
 
 export namespace NodeInfoRequest {
     export const explorermanager = new ProtocolRequestType<CreateExplorerParams, never, Data, void, void>('nodes/explorermanager');
-    export const info = new ProtocolRequestType<NodeOperationParams, Data, never,void, void>('nodes/info');
+    export const info = new ProtocolRequestType<NodeOperationParams, Data, never, void, void>('nodes/info');
     export const children = new ProtocolRequestType<NodeOperationParams, number[], never, void, void>('nodes/children');
     export const destroy = new ProtocolRequestType<NodeOperationParams, boolean, never, void, void>('nodes/delete');
     export const collapsed = new ProtocolNotificationType<NodeOperationParams, void>('nodes/collapsed');
     export const getresource = new ProtocolRequestType<GetResourceParams, ResourceData, never, void, void>('nodes/getresource');
     export const findparams = new ProtocolRequestType<FindPathParams, number[], never, void, void>('nodes/findpath');
     export const changes = new ProtocolRequestType<NodeChangesParams, number, never, void, void>('nodes/changes');
-    
+
     export interface IconDescriptor {
-        baseUri : vscode.Uri;
+        baseUri: vscode.Uri;
     }
     export interface Data {
-        id : number; /* numeric ID of the node */
-        name : string; /* Node.getName() */
-        label : string; /* Node.getDisplayName() */
-        tooltip? : string; 
-        description : string; /* Node.getShortDescription() */
-        resourceUri? : string; /* external URL to file: resource */
-        collapsibleState : vscode.TreeItemCollapsibleState;
-        canDestroy : boolean; /* Node.canDestroy() */
-        contextValue : string; /* Node.getCookies() */
-        iconDescriptor? : IconDescriptor;
-        iconUri : string | null;
-        iconIndex : number;
-        command? : string;
+        id: number; /* numeric ID of the node */
+        name: string; /* Node.getName() */
+        label: string; /* Node.getDisplayName() */
+        tooltip?: string;
+        description: string; /* Node.getShortDescription() */
+        resourceUri?: string; /* external URL to file: resource */
+        collapsibleState: vscode.TreeItemCollapsibleState;
+        canDestroy: boolean; /* Node.canDestroy() */
+        contextValue: string; /* Node.getCookies() */
+        iconDescriptor?: IconDescriptor;
+        iconUri: string | null;
+        iconIndex: number;
+        command?: string;
     }
 };
 

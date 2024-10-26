@@ -45,7 +45,7 @@
   "jdk.extension.fileSelector.label.testFilesOrSourceFiles": "Test files or source files associated to each other",
   "jdk.extension.fileSelector.label.noFileSelected": "No file selected",
   "jdk.extension.fileSelector.label.noTestFound": "No Test or Tested class found",
-  "jdk.extension.cache.message.confirmToDeleteCache": "Are you sure you want to delete cache for this workspace?",
+  "jdk.extension.cache.message.confirmToDeleteCache": "Are you sure you want to delete the cache for this workspace and reload the window?",
   "jdk.extension.cache.label.confirmation.yes":"Yes",
   "jdk.extension.cache.label.confirmation.cancel":"Cancel",
   "jdk.extension.cache.message.cacheCleared":"Cache cleared successfully for this workspace",

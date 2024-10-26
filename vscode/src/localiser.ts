@@ -19,7 +19,7 @@
 import * as l10nLib from '@vscode/l10n'
 
 import * as vscode from 'vscode';
-import { ORACLE_VSCODE_EXTENSION_ID } from './constants';
+import { extConstants } from './constants';
 
 const DEFAULT_LANGAUGE = "en";
 const DEFAULT_BUNDLE_FILE = `l10n/bundle.l10n.${DEFAULT_LANGAUGE}.json`;
@@ -61,4 +61,4 @@ class l10Wrapper implements l10n {
 }
 
 
-export const l10n: l10n = new l10Wrapper(ORACLE_VSCODE_EXTENSION_ID, DEFAULT_BUNDLE_FILE);
+export const l10n: l10n = new l10Wrapper(extConstants.ORACLE_VSCODE_EXTENSION_ID, DEFAULT_BUNDLE_FILE);

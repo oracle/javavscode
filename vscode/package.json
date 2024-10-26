@@ -375,10 +375,6 @@
 		],
 		"commands": [
 			{
-				"command": "jdk.node.properties.edit",
-				"title": "%jdk.node.properties.edit%"
-			},
-			{
 				"command": "jdk.workspace.compile",
 				"title": "%jdk.workspace.compile%",
 				"category": "Java"
@@ -595,10 +591,6 @@
 					"when": "false"
 				},
 				{
-					"command": "jdk.node.properties.edit",
-					"when": "false"
-				},
-				{
 					"command": "jdk:Edit:org.openide.actions.DeleteAction",
 					"when": "false"
 				},
@@ -773,9 +765,9 @@
 		"compile": "tsc -p ./ && node ./esbuild.js",
 		"watch": "tsc -watch -p ./ | node ./esbuild.js --watch",
 		"test": "npm run compile && node ./out/test/runTest.js",
-		"nbcode": "node ./out/nbcode.js",
-		"nbjavac": "node ./out/nbcode.js -J-Dnetbeans.close=true --modules --install .*nbjavac.*",
-		"apisupport": "node ./out/nbcode.js -J-Dnetbeans.close=true --modules --install '(org.netbeans.libs.xerces|org.netbeans.modules.editor.structure|org.netbeans.modules.xml|org.netbeans.modules.xml.axi|org.netbeans.modules.xml.retriever|org.netbeans.modules.xml.schema.model|org.netbeans.modules.xml.tax|org.netbeans.modules.xml.text|org.netbeans.modules.ant.browsetask|.*apisupport.*|org.netbeans.modules.debugger.jpda.ant)' && node ./out/nbcode.js -J-Dnetbeans.close=true --modules --enable .*apisupport.ant",
+		"nbcode": "node ./out/test/launchNbcode.js",
+		"nbjavac": "node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --install .*nbjavac.*",
+		"apisupport": "node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --install '(org.netbeans.libs.xerces|org.netbeans.modules.editor.structure|org.netbeans.modules.xml|org.netbeans.modules.xml.axi|org.netbeans.modules.xml.retriever|org.netbeans.modules.xml.schema.model|org.netbeans.modules.xml.tax|org.netbeans.modules.xml.text|.*apisupport.*|org.netbeans.modules.debugger.jpda.ant)' && node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --enable .*apisupport.ant",
 		"artifactory:check": "node ./esbuild.js --artifactory-check"
 	},
 	"devDependencies": {
@@ -796,7 +788,6 @@
 	"dependencies": {
 		"@vscode/debugadapter": "^1.65.0",
 		"@vscode/l10n": "^0.0.18",
-		"@vscode/webview-ui-toolkit": "^1.2.2",
 		"jsonc-parser": "3.3.1",
 		"vscode-languageclient": "^8.1.0"
 	}
