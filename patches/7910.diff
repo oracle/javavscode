@@ -1,0 +1,249 @@
+diff --git a/.gitattributes b/.gitattributes
+index b96c7fd985..7c9b72b889 100644
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -35,3 +35,7 @@
+
+ # Define some file types explicitly as being binary.
+ *.jar             binary
++
++# Define rules for files in specific paths, such as test data,
++# for line endings, binary types etc.
++java/java.hints/test/unit/data/goldenfiles/**           text eol=lf
+diff --git a/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/TreeRuleTestBase.java b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/TreeRuleTestBase.java
+index ede2a586e888..a351d52bd5fc 100644
+--- a/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/TreeRuleTestBase.java
++++ b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/TreeRuleTestBase.java
+@@ -242,9 +242,11 @@ protected String performFixTest(String fileName, String code, int pos, String er
+         String realCode = toCheckDocument.getText(0, toCheckDocument.getLength());
+         
+         //ignore whitespaces:
+-        realCode = realCode.replaceAll("[ \t\n]+", " ");
++        realCode = realCode.replaceAll("\\s+", " ");
+ 
+         if (golden != null) {
++            //ignore CRLF/LF differences in golden:
++            if (!"\n".equals(System.lineSeparator())) golden = golden.replaceAll(System.lineSeparator(), " ");
+             assertEquals("The output code does not match the expected code.", golden, realCode);
+         }
+         
+diff --git a/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/indexing/VanillaCompileWorkerTest.java b/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/indexing/VanillaCompileWorkerTest.java
+index bcd1c07c8701..fb4f11400726 100644
+--- a/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/indexing/VanillaCompileWorkerTest.java
++++ b/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/indexing/VanillaCompileWorkerTest.java
+@@ -685,6 +685,7 @@ public void testPreserveValidMethods1() throws Exception {
+                 "        System.err.println(\"Hello, world!\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -729,6 +730,7 @@ public void testClearInvalidMethod() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code - compiler.err.cant.resolve.location\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -792,6 +794,7 @@ public void testPreserveValidInitializers() throws Exception {
+                 "    private int F5a;\n" +
+                 "    private int F5b;\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -834,6 +837,7 @@ public void testBrokenClassHeader1() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -883,6 +887,7 @@ public void testNullReturnUnknown() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -932,6 +937,7 @@ public void testBrokenNewClass() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -983,6 +989,7 @@ public void testReturnBroken() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1037,6 +1044,7 @@ public void testAssertBroken() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1117,6 +1125,7 @@ public void testAnonymousComplex() throws Exception {
+                 "        };\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1165,6 +1174,7 @@ public void testFieldInit() throws Exception {
+                 "        super();\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1239,6 +1249,7 @@ public void testAnonymousComplex2() throws Exception {
+                 "        }\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1285,6 +1296,7 @@ public void testNewClass() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code - compiler.err.cant.apply.symbol\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1336,6 +1348,7 @@ public void testUndefNewArray() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1412,6 +1425,7 @@ public void testUndefAnonymous() throws Exception {
+                 "        }\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1471,6 +1485,7 @@ public void testWeirdSuperCall() throws Exception {
+                 "        }\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1590,6 +1605,7 @@ public void testAnonymousComplex3() throws Exception {
+                 "        }\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1690,6 +1706,7 @@ public void testAnonymousComplex4() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code - compiler.err.cant.resolve.location.args\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1763,6 +1780,7 @@ public void testAnonymousComplexCorrect() throws Exception {
+                 "        }\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1806,6 +1824,7 @@ public void testWarningsAreNotErrors() throws Exception {
+                 "    }\n" +
+                 "    Test t;\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1878,6 +1897,7 @@ public void testSuperCall() throws Exception {
+                 "    public default void test2() {\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -1923,6 +1943,7 @@ public void testStaticInit() throws Exception {
+                 "        System.err.println();\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -2161,6 +2182,7 @@ public void testMethodWithErroneousInMemberRef() throws Exception {
+                 "    \n" +
+                 "    public Object test(Object o);\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -2242,6 +2264,7 @@ public void testPatternSwitch() throws Exception {
+                 "        throw new java.lang.RuntimeException(\"Uncompilable code\");\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -2294,6 +2317,7 @@ public void testTypeTest() throws Exception {
+                 "        }\n" +
+                 "    }\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -2339,6 +2363,7 @@ public void testWrongRecordComponent() throws Exception {
+                 "    }\n" +
+                 "    private final int wait;\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -2391,6 +2416,7 @@ public void testRecord1() throws Exception {
+                 "    }\n" +
+                 "    private final int i;\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
+@@ -2428,6 +2454,7 @@ public void testRecord2() throws Exception {
+                 "    }\n" +
+                 "    private final int i;\n" +
+                 "}");
++        if (!"\n".equals(System.lineSeparator())) file2Fixed.replaceAll((k, v) -> v.replaceAll(System.lineSeparator(), "\n"));
+         assertEquals(expected, file2Fixed);
+     }
+ 
