@@ -372,3 +372,259 @@ export function findClusters(myPath : string): string[] {
     }
     return clusters;
 }
+
+export function getKeysFromJSON(filePath: string): Set<string> {
+    return new Set(Object.keys(JSON.parse(fs.readFileSync(filePath, 'utf8'))));
+}
+
+export function matchValuesTemplate(jsonFileBase: string, jsonFileTarget: string): boolean {
+
+    if (!matchKeys(jsonFileBase, jsonFileTarget)) {
+        console.log("Keys don't match");
+        return false;
+    }
+
+    var obj1 = JSON.parse(fs.readFileSync(jsonFileBase, 'utf8'));
+    var obj2 = JSON.parse(fs.readFileSync(jsonFileTarget, 'utf8'));
+    var keys = new Set(Object.keys(obj1));
+    var matched: boolean = true;
+    for (const key of keys) {
+
+        if (matchTemplate(obj1[key], obj2[key])) {
+            continue;
+        }
+        console.log("Templates of the key " + key + " don't match .'" + obj1[key] + "' and '" + obj2[key] + "' don't match");
+        matched = false;
+    }
+    return matched;
+}
+
+
+
+export function matchKeys(jsonFilePath1: string, jsonFilePath2: string): boolean {
+    return setEqual(getKeysFromJSON(jsonFilePath1), getKeysFromJSON(jsonFilePath2));
+}
+
+/**
+ * 
+ * @param dirPath 
+ * @param ignoredDirEntriesNames 
+ * @param validKeyValues 
+ * @returns number of js files in the directory specified which invoke l10n.value with incorrect key or placeholder map 
+ */
+export function checkL10nUsageInFiles(dirPath: string, ignoredDirEntriesNames: Set<string>, validKeyValues: any): number {
+
+    let result: number = 0;
+    fs.readdirSync(dirPath).forEach(DirEntryName => {
+        if (ignoredDirEntriesNames.has(DirEntryName)) return;
+        const absPath = path.join(dirPath, DirEntryName);
+        const stats = fs.lstatSync(absPath);
+        if (stats.isFile() && path.extname(DirEntryName) === ".js") {
+            if (
+                !(checkL10nUsageInFile(absPath, /l10n.value\("([^"]*)"\)/g, validKeyValues) &&
+                    checkL10nUsageInFile(absPath, /l10n.value\('([^']*)'\)/g, validKeyValues) &&
+                    checkL10nUsageInFile(absPath, /l10n.value\('([^']*)',\s*\{([^\}]*)\}\s*\)/g, validKeyValues) &&
+                    checkL10nUsageInFile(absPath, /l10n.value\("([^"]*)",\s*\{([^\}]*)\}\s*\)/g, validKeyValues)
+                )
+            ) result++;
+        } else if (stats.isDirectory()) {
+            result += checkL10nUsageInFiles(absPath, ignoredDirEntriesNames, validKeyValues);
+        }
+    });
+    return result;
+}
+
+
+export function checkConfigurationLocalisation(configuration: any, validKeys: Set<string>): boolean {
+    let localized: boolean = true;
+    const configPropertiesIds = Object.keys(configuration.properties);
+    const propertiesLocalisableFields = ["description", "enumDescriptions"];
+    let property: any;
+    for (const propertyId of configPropertiesIds) {
+        property = configuration.properties[propertyId];
+        if (!isLocalizedObj(property, propertiesLocalisableFields, propertyId, "Configuration Property", validKeys)) localized = false;
+    }
+    return localized;
+}
+
+export function checkDebuggersLocalisation(debuggers: any, validKeys: Set<string>): boolean {
+    let localized = true;
+    const propertiesLocalisableFields = ['description'];
+    const configLocalisableFields = ['name'];
+    const snippetLocalisableFields = ['label', 'description'];
+    for (const debug of debuggers) {
+        // check configurationAttributes
+        for (const [propName, prop] of Object.entries(debug.configurationAttributes.launch.properties)) {
+            if (!isLocalizedObj(prop, propertiesLocalisableFields, propName, "Configuration Attributes : Launch properties ", validKeys)) localized = false;
+        }
+        // check initialConfigurations
+        for (const initConfig of debug.initialConfigurations) {
+            if (!isLocalizedObj(initConfig, configLocalisableFields, "", "Initial Configuration", validKeys)) localized = false;
+        }
+        // check configurationSnippets
+        for (const snippet of debug.configurationSnippets) {
+            if (!isLocalizedObj(snippet, snippetLocalisableFields, "", "configuration Snippet", validKeys)) localized = false;
+        }
+    }
+    return localized;
+}
+
+
+export function checkViewsLocalisation(views: any, validKeys: Set<string>): boolean {
+    let localized: boolean = true;
+    const explorer: any = views.explorer;
+    const explorerLocalisableFields = ["name", "contextualTitle"];
+    for (const obj of explorer) {
+        if (!isLocalizedObj(obj, explorerLocalisableFields, obj.id, "explorer", validKeys)) localized = false;
+    }
+    return localized;
+}
+
+
+export function checkCommandsLocalisation(commands: any, validKeys: Set<string>): boolean {
+    const localisableFields = ['title'];
+    let localized: boolean = true;
+    for (const command of commands) {
+        if (!isLocalizedObj(command, localisableFields, command.command, "Command", validKeys)) localized = false;
+    }
+    return localized;
+}
+
+
+/**
+ * 
+ * @param str1 
+ * @param str2 
+ * @returns Checks if the placeholders specified as {placeholder} match for str1 and str2
+ */
+function matchTemplate(str1: string, str2: string): boolean {
+    const regexp = /\{[^\{\}]*\}/g;
+    const params1 = new Set([...str1.matchAll(regexp)].map((value) => value[0]));
+    const params2 = new Set([...str2.matchAll(regexp)].map((value) => value[0]));
+    return setEqual(params1, params2);
+}
+
+function setEqual(setA: Set<string>, setB: Set<string>): boolean {
+    for (const elem of setA) {
+        if (!setB.has(elem)) return false;
+    }
+    return setA.size === setB.size;
+}
+
+/**
+ * 
+ * @param targetString String containing placeholder in form of {placeholder}
+ * @param placeholders Set of required placeholders in the target string 
+ * @returns Whether the placeholders present in the targetString and in the placeholders set are same 
+ */
+function placeholderMatch(targetString: string, placeholders: Set<string>): boolean {
+    const regexp = /\{([^\{\}]*)\}/g;
+    const params1 = new Set([...targetString.matchAll(regexp)].map((value) => value[1]));
+    return setEqual(params1, placeholders);
+}
+
+
+
+/**
+ * 
+ * @param dictString String having key value pairs {key1:value1,key2:value2...}
+ * @returns Set of keys used in the dictString
+ */
+function getPlaceholders(dictString: string): Set<string> {
+    const placeholders = new Set<string>();
+    const cleanedDictString = dictString.replace(/"[^"]*"/g, "SOME_STRING_VALUE").replace(/'[^']*'/g, "SOME_STRING_VALUE");
+    for (const keyVal of cleanedDictString.split(',')) {
+        // improve this so that if value has key:"," that doesn't get picked up 
+        placeholders.add(keyVal.split(':')[0].trim());
+    }
+    return placeholders;
+}
+
+/**
+ * 
+ * @param filePath 
+ * @param pattern To extract the keys and the placeholder map used when calling l10n.value
+ * @param validKeyValues From the bundle.en.json filee 
+ * @returns All usage of l10n.value according to the pattern is having valid keys and placeholder map
+ */
+function checkL10nUsageInFile(filePath: string, pattern: RegExp, validKeyValues: any): boolean {
+    const fileContent: string = fs.readFileSync(filePath, 'utf8');
+    const matches = fileContent.matchAll(pattern);
+    const keys = new Set(Object.keys(validKeyValues));
+    let result = true;
+    for (const matchArr of matches) {
+        const context: string = matchArr[0];
+        const key: string = matchArr[1];
+
+        const placeholders: undefined | Set<string> = matchArr.length === 3 ? getPlaceholders(matchArr[2]) : undefined;
+        if (!keys.has(key)) {
+            console.log(`Found invalid localisation key in file:'${filePath.replace(".js", ".ts")}'.Here is the expression used in file with invalid key '${context}'`);
+            result = false;
+            continue;
+        }
+        if (placeholders != undefined) {
+            if (!placeholderMatch(validKeyValues[key], placeholders)) {
+                console.log(placeholders);
+                result = false;
+                console.log(`Wrong placeholder map for a localisation key  in file:'${filePath.replace(".js", ".ts")}'.Here is the expression used in file with wrong placeholder map '${context}'. Here is the bundle value '${validKeyValues[key]}'`);
+            }
+        } else {
+            if (!matchTemplate("", validKeyValues[key])) {
+                result = false;
+                console.log(`Placeholder map not provided for a localisation key in file:'${filePath.replace(".js", ".ts")}'.Here is the expression used in file without the placeholder '${context}'. Here is the bundle value '${validKeyValues[key]}'`);
+            }
+        }
+    }
+    return result;
+}
+
+/**
+ * 
+ * @param value string to be checked
+ * @returns value of the form %key% where key is some string containing alphanumeric characters 
+ */
+function isLocalizedVal(value: string): boolean {
+    return value.length > 2 && value[0] === '%' && value[0] === value[value.length - 1];
+}
+
+
+/**
+ * 
+ * @param str localised value of the form %key%
+ * @returns key 
+ */
+function getlocalizingKey(str: string): string {
+    const length = str.length;
+    return str.substring(1, length - 1);
+}
+
+/**
+ * 
+ * @param obj 
+ * @param localisableFields Array or Scalar fields which are to be tested for localisation 
+ * @param id 
+ * @param category 
+ * @param validKeys Keys present in the package.nls.json
+ * @returns Whether the object given has the required fields localised by some valid key 
+ */
+function isLocalizedObj(obj: any, localisableFields: any, id: string, category: string, validKeys: Set<string>): boolean {
+    let localized: boolean = true;
+    let fieldVals: any;
+    let localizingKey: string;
+    for (const field of localisableFields) {
+        fieldVals = obj[field];
+        if (fieldVals === undefined) continue;
+        if (!Array.isArray(fieldVals)) fieldVals = [fieldVals];
+        for (const fieldVal of fieldVals) {
+            localizingKey = getlocalizingKey(fieldVal);
+            if (!isLocalizedVal(fieldVal)) {
+                console.log(`${category} object with id ${id} has a unlocalized field field:'${field}'`);
+                localized = false;
+            } else if (!validKeys.has(localizingKey)) {
+                console.log(`${category} object of id '${id}' has a invalid  localizing key for the field:'${field}' key:'${localizingKey}'`);
+                localized = false;
+            }
+        }
+    }
+    return localized;
+}
