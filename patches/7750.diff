@@ -154,7 +154,7 @@ index 0f2bda50ae..06fd93d3e5 100644
          }
      }
 +    
-+    public void testConvertToLineOnlyFolds() {
++    public void testConvertToLineOnlyFolds() { // TODO: Setup client capabilities 
 +        assertNull(convertToLineOnlyFolds(null));
 +        assertEquals(0, convertToLineOnlyFolds(Collections.emptyList()).size());
 +        List<FoldingRange> inputFolds, outputFolds;
