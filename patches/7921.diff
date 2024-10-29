@@ -1,0 +1,34 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
+index 7a5a5f40e4f9..85c223130e32 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
+@@ -128,6 +128,7 @@
+ import org.eclipse.lsp4j.DocumentSymbol;
+ import org.eclipse.lsp4j.DocumentSymbolParams;
+ import org.eclipse.lsp4j.FoldingRange;
++import org.eclipse.lsp4j.FoldingRangeCapabilities;
+ import org.eclipse.lsp4j.FoldingRangeKind;
+ import org.eclipse.lsp4j.FoldingRangeRequestParams;
+ import org.eclipse.lsp4j.Hover;
+@@ -160,6 +161,7 @@
+ import org.eclipse.lsp4j.SignatureHelpParams;
+ import org.eclipse.lsp4j.SignatureInformation;
+ import org.eclipse.lsp4j.SymbolInformation;
++import org.eclipse.lsp4j.TextDocumentClientCapabilities;
+ import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
+ import org.eclipse.lsp4j.TextDocumentEdit;
+ import org.eclipse.lsp4j.TextEdit;
+@@ -1638,7 +1640,12 @@ public CompletableFuture<List<FoldingRange>> foldingRange(FoldingRangeRequestPar
+         if (source == null) {
+             return CompletableFuture.completedFuture(Collections.emptyList());
+         }
+-        final boolean lineFoldingOnly = client.getNbCodeCapabilities().getClientCapabilities().getTextDocument().getFoldingRange().getLineFoldingOnly() == Boolean.TRUE;
++        ClientCapabilities clientCapabilities = client.getNbCodeCapabilities()
++                                                      .getClientCapabilities();
++        TextDocumentClientCapabilities textDocumentCapabilities = clientCapabilities != null ? clientCapabilities.getTextDocument() : null;
++        FoldingRangeCapabilities foldingRangeCapabilities = textDocumentCapabilities != null ? textDocumentCapabilities.getFoldingRange() : null;
++        Boolean lineFoldingOnlyCapability = foldingRangeCapabilities != null ? foldingRangeCapabilities.getLineFoldingOnly() : null;
++        final boolean lineFoldingOnly = lineFoldingOnlyCapability == Boolean.TRUE;
+         CompletableFuture<List<FoldingRange>> result = new CompletableFuture<>();
+         try {
+             source.runUserActionTask(cc -> {
