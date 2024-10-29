@@ -238,4 +238,8 @@ public class App {
         System.out.println("Hello, yourProject!");
     }
 }
-`
+`;
+export const EXTENSION_NAME = "oracle.oracle-java";
+export const DEFAULT_BUNDLE_FILE_NAME = "bundle.l10n.en.json";
+export const SUPPORTED_LANGUAGES = new Set(["ja", "zh-cn"]);
+export const DEFAULT_PACKAGE_FILE_NAME = "package.nls.json";
