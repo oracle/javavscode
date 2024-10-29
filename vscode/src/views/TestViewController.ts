@@ -25,6 +25,7 @@ import { commands, debug, tests, workspace, CancellationToken, TestController, T
 import * as path from 'path';
 import { asRange, TestCase, TestSuite } from "../lsp/protocol";
 import { extCommands, builtInCommands, nbCommands } from "../commands/commands"
+import { extConstants } from "../constants";
 
 export class NbTestAdapter {
 
@@ -35,7 +36,7 @@ export class NbTestAdapter {
     private started: boolean = false;
 
     constructor() {
-        this.testController = tests.createTestController('apacheNetBeansController', 'Apache NetBeans');
+        this.testController = tests.createTestController(extConstants.ORACLE_VSCODE_EXTENSION_ID + '.testController', 'Java');
         const runHandler = (request: TestRunRequest, cancellation: CancellationToken) => this.run(request, cancellation);
         this.testController.createRunProfile('Run Tests', TestRunProfileKind.Run, runHandler);
         this.testController.createRunProfile('Debug Tests', TestRunProfileKind.Debug, runHandler);
@@ -219,54 +220,29 @@ export class NbTestAdapter {
             currentSuite.range = suiteRange;
         }
         const children: TestItem[] = []
-        const parentTests: Map<TestItem, TestItem[]> = new Map();
-        suite.tests?.forEach(test => {
-            let currentTest = currentSuite?.children.get(test.id);
-            const testUri = test.file ? Uri.parse(test.file) : undefined;
+        suite.tests?.forEach(testCase => {
+            let currentTest = currentSuite?.children.get(testCase.id);
+            const testUri = testCase.file ? Uri.parse(testCase.file) : undefined;
             if (currentTest) {
                 if (testUri && currentTest.uri?.toString() !== testUri?.toString()) {
-                    currentTest = this.testController.createTestItem(test.id, test.name, testUri);
+                    currentTest = this.testController.createTestItem(testCase.id, testCase.name, testUri);
                     currentSuite?.children.add(currentTest);
                 }
-                const testRange = asRange(test.range);
+                const testRange = asRange(testCase.range);
                 if (!testExecution && testRange && testRange !== currentTest.range) {
                     currentTest.range = testRange;
                 }
                 children.push(currentTest);
             } else {
-                if (testExecution) {
-                    const parents: Map<TestItem, string> = new Map();
-                    currentSuite?.children.forEach(item => {
-                        const subName = this.subTestName(item, test);
-                        if (subName && '()' !== subName) {
-                            parents.set(item, subName);
-                        }
-                    });
-                    const parent = this.selectParent(parents);
-                    if (parent) {
-                        let arr = parentTests.get(parent.test);
-                        if (!arr) {
-                            parentTests.set(parent.test, arr = []);
-                            children.push(parent.test);
-                        }
-                        arr.push(this.testController.createTestItem(test.id, parent.label));
-                    }
-                } else {
-                    currentTest = this.testController.createTestItem(test.id, test.name, testUri);
-                    currentTest.range = asRange(test.range);
+                if (!testExecution) {
+                    currentTest = this.testController.createTestItem(testCase.id, testCase.name, testUri);
+                    currentTest.range = asRange(testCase.range);
                     children.push(currentTest);
                     currentSuite?.children.add(currentTest);
                 }
             }
         });
-        if (testExecution) {
-            parentTests.forEach((val, key) => {
-                const item = this.testController.createTestItem(key.id, key.label, key.uri);
-                item.range = key.range;
-                item.children.replace(val);
-                currentSuite?.children.add(item);
-            });
-        } else {
+        if (!testExecution) {
             currentSuite.children.replace(children);
         }
     }
