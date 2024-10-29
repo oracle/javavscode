@@ -17,9 +17,9 @@ import { commands, OutputChannel, ProgressLocation, Uri, window } from "vscode";
 import { nbCommands } from "./commands";
 import { ProjectActionParams } from "../lsp/protocol";
 import { LanguageClient } from "vscode-languageclient/node";
-import { globalVars } from "../extension";
 import { l10n } from "../localiser";
 import { LOGGER } from "../logger";
+import { globalState } from "../globalState";
 
 export const getContextUri = (ctx: any): Uri | undefined => {
     if (ctx?.fsPath) {
@@ -78,7 +78,7 @@ export const wrapProjectActionWithProgress = (action: string, configuration: str
 export const wrapCommandWithProgress = (lsCommand: string, title: string, log?: OutputChannel, ...args: any[]): Thenable<unknown> => {
     return window.withProgress({ location: ProgressLocation.Window }, p => {
         return new Promise(async (resolve, reject) => {
-            let c: LanguageClient = await globalVars.clientPromise.client;
+            let c: LanguageClient = await globalState.getClientPromise().client;
             if (await isNbCommandRegistered(lsCommand)) {
                 p.report({ message: title });
                 c.outputChannel.show(true);

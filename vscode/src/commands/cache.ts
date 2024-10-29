@@ -14,16 +14,16 @@
   limitations under the License.
 */
 import { commands, window } from "vscode";
-import { globalVars } from "../extension";
 import { builtInCommands, extCommands } from "./commands";
 import { ICommand } from "./types";
 import { l10n } from "../localiser";
 import * as fs from 'fs';
 import * as path from 'path';
+import { globalState } from "../globalState";
 
 const deleteCache = async () => {
     // TODO: Change workspace path to userdir path
-    const storagePath = globalVars.extensionInfo.getWorkspaceStorage()?.fsPath;
+    const storagePath = globalState.getExtensionContextInfo().getWorkspaceStorage()?.fsPath;
     if (!storagePath) {
         window.showErrorMessage(l10n.value("jdk.extension.cache.error_msg.cannotFindWrkSpacePath"));
         return;
@@ -38,9 +38,9 @@ const deleteCache = async () => {
         if (confirmation === yes) {
             const reloadWindowActionLabel = l10n.value("jdk.extension.cache.label.reloadWindow");
             try {
-                await globalVars.clientPromise.stopClient();
-                globalVars.deactivated = true;
-                await globalVars.nbProcessManager?.killProcess(false);
+                await globalState.getClientPromise().stopClient();
+                globalState.setDeactivated(true);
+                await globalState.getNbProcessManager()?.killProcess(false);
                 await fs.promises.rmdir(userDir, { recursive: true });
                 await window.showInformationMessage(l10n.value("jdk.extension.message.cacheDeleted"), reloadWindowActionLabel);
             } catch (err) {

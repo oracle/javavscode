@@ -15,16 +15,16 @@
 */
 
 import { Disposable, TextEditor, window } from "vscode";
-import { globalVars } from "../extension";
 import { asRanges } from "../lsp/protocol";
+import { globalState } from "../globalState";
 
 
 
 const visibleTextEditorsChangeHandler = (editors: readonly TextEditor[]) => {
     editors.forEach((editor: any) => {
-        let decorationParams = globalVars.decorationParamsByUri.get(editor.document.uri);
+        let decorationParams = globalState.getDecorationParamsByUriByKey(editor.document.uri);
         if (decorationParams) {
-            let decorationType = globalVars.decorations.get(decorationParams.key);
+            let decorationType = globalState.getDecoration(decorationParams.key);
             if (decorationType) {
                 editor.setDecorations(decorationType, asRanges(decorationParams.ranges));
             }
@@ -38,6 +38,6 @@ const afterInitlisteners: Disposable[] = [visibleTextEditorsChangeListener];
 
 export const registerListenersAfterClientInit = () => {
     afterInitlisteners.forEach(listener => {
-        globalVars.extensionInfo.pushSubscription(listener);
+        globalState.getExtensionContextInfo().pushSubscription(listener);
     });
 }

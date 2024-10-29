@@ -16,9 +16,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { globalVars } from '../extension';
 import { LOGGER } from '../logger';
 import { extConstants } from '../constants';
+import { globalState } from '../globalState';
 
 export const enableDisableModules = (
     extensionPath: string,
@@ -62,7 +62,7 @@ export const findNbcode = (extensionPath: string): string => {
 
 export const restartWithJDKLater = (time: number, notifyKill: boolean): void => {
     LOGGER.log(`Restart of ${extConstants.SERVER_NAME} requested in ${time / 1000} s.`);
-    const nbProcessManager = globalVars.nbProcessManager;
+    const nbProcessManager = globalState.getNbProcessManager();
 
-    setTimeout(() => globalVars.clientPromise.restartExtension(nbProcessManager, notifyKill), time);
+    setTimeout(() => globalState.getClientPromise().restartExtension(nbProcessManager, notifyKill), time);
 };

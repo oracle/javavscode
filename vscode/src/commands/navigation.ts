@@ -19,12 +19,12 @@ import { l10n } from "../localiser";
 import * as path from 'path';
 import { ICommand } from "./types";
 import { LanguageClient } from "vscode-languageclient/node";
-import { globalVars } from "../extension";
 import { LOGGER } from '../logger';
 import { getContextUri, isNbCommandRegistered, wrapCommandWithProgress } from "./utils";
+import { globalState } from "../globalState";
 
 const goToTest = async (ctx: any) => {
-    let client: LanguageClient = await globalVars.clientPromise.client;
+    let client: LanguageClient = await globalState.getClientPromise().client;
     if (await isNbCommandRegistered(nbCommands.goToTest)) {
         try {
             const res: any = await commands.executeCommand(nbCommands.goToTest, getContextUri(ctx)?.toString());

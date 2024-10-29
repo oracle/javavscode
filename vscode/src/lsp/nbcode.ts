@@ -17,7 +17,6 @@
 import { window } from "vscode";
 import { configKeys } from "../configurations/configuration";
 import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
-import { globalVars } from "../extension";
 import { prepareNbcodeLaunchOptions, getUserConfigLaunchOptionsDefaults } from "./launchOptions";
 import { NbProcessManager } from "./nbProcessManager";
 import { findNbcode } from "./utils";
@@ -25,12 +24,13 @@ import { l10n } from "../localiser";
 import { jdkDownloaderPrompt } from "../webviews/jdkDownloader/prompt";
 import { LOGGER } from "../logger";
 import * as os from 'os';
+import { globalState } from "../globalState";
 
 export const launchNbcode = (): void => {
     const ideLaunchOptions = prepareNbcodeLaunchOptions();
     const userdir = getUserConfigLaunchOptionsDefaults()[configKeys.userdir].value;
     const specifiedJDK = getUserConfigLaunchOptionsDefaults()[configKeys.jdkHome].value;
-    const extensionPath = globalVars.extensionInfo.getExtensionStorageUri().fsPath;
+    const extensionPath = globalState.getExtensionContextInfo().getExtensionStorageUri().fsPath;
     const nbcodePath = findNbcode(extensionPath);
 
     const requiredJdk = specifiedJDK ? specifiedJDK : 'default system JDK';
@@ -42,8 +42,8 @@ export const launchNbcode = (): void => {
     LOGGER.log(launchMsg);
     window.setStatusBarMessage(launchMsg, 2000);
 
-    globalVars.nbProcessManager = new NbProcessManager(userdir, nbcodePath, ideLaunchOptions);
-    globalVars.nbProcessManager.startProcess();
+    globalState.setNbProcessManager(new NbProcessManager(userdir, nbcodePath, ideLaunchOptions));
+    globalState.getNbProcessManager()!.startProcess();
 }
 
 
@@ -65,7 +65,7 @@ export const attachNbProcessListeners = (nbProcessManager: NbProcessManager): vo
 
 const processOnDataHandler = (nbProcessManager: NbProcessManager, text: string, isOut: boolean) => {
     if (nbProcessManager) {
-        globalVars.clientPromise.activationPending = false;
+        globalState.getClientPromise().activationPending = false;
     }
     if(!text.match(/with hash/)){
         LOGGER.logNoNL(text);
@@ -82,14 +82,14 @@ const processOnDataHandler = (nbProcessManager: NbProcessManager, text: string, 
 
 
 const processOnCloseHandler = (nbProcessManager: NbProcessManager, code: number): string | null => {
-    const globalnbProcessManager = globalVars.nbProcessManager;
+    const globalnbProcessManager = globalState.getNbProcessManager();
     if (globalnbProcessManager == nbProcessManager) {
-        globalVars.nbProcessManager = null;
+        globalState.setNbProcessManager(null);
         if (code && code != 0) {
             window.showWarningMessage(l10n.value("jdk.extension.lspServer.warning_message.serverExited", { SERVER_NAME: extConstants.SERVER_NAME, code }));
         }
     }
-    if (nbProcessManager.getStdErr()?.match(/Cannot find java/) || (os.type() === NODE_WINDOWS_LABEL && !globalVars.deactivated)) {
+    if (nbProcessManager.getStdErr()?.match(/Cannot find java/) || (os.type() === NODE_WINDOWS_LABEL && !globalState.isDeactivated())) {
         jdkDownloaderPrompt();
     }
     if (nbProcessManager.getStdOut() != null) {
