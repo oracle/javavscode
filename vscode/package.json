@@ -765,7 +765,7 @@
 		"compile": "tsc -p ./ && node ./esbuild.js",
 		"watch": "tsc -watch -p ./ | node ./esbuild.js --watch",
 		"test:unit": "npm run compile && node ./out/test/unit/runTest.js",
-		"test:coverage": "nyc npm run test:unit",
+		"test:coverage": "nyc --require ts-node/register npm run test:unit",
 		"test": "npm run compile && node ./out/test/integration/runTest.js",
 		"nbcode": "node ./out/test/launchNbcode.js",
 		"nbjavac": "node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --install .*nbjavac.*",
@@ -792,6 +792,7 @@
 		"ps-node": "^0.1.6",
 		"sinon": "^19.0.2",
 		"ts-mockito": "^2.6.1",
+		"ts-node": "^10.9.2",
 		"typescript": "^4.6.4",
 		"vscode-uri": "^3.0.8"
 	},
