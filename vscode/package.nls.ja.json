@@ -1,10 +1,9 @@
 {
-    "jdk.node.properties.edit": "プロパティ",
     "jdk.views.run.config": "実行構成",
     "jdk.views.explorer.projects": "プロジェクト",
     "jdk.workspace.compile": "ワークスペースのコンパイル",
     "jdk.workspace.clean": "ワークスペースの消去",
-    "jdk.workspace.new": "テンプレートから新規作成...",
+    "jdk.workspace.new": "ファイル新規作成...",
     "jdk.workspace.newproject": "新規プロジェクト...",
     "jdk.java.goto.super.implementation": "スーパークラスの実装へ移動",
     "jdk.open.type": "タイプを開く...",

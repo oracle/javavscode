@@ -9,7 +9,7 @@ index 87ec97a64b..781f97f44e 100644
  public final class AttachConfigurations {
  
 -    static final String CONFIG_TYPE = "java+";     // NOI18N
-+    static final String CONFIG_TYPE = "jdk";     // NOI18N
++    public static final String CONFIG_TYPE = "jdk";     // NOI18N
      static final String CONFIG_REQUEST = "attach";  // NOI18N
  
      static final RequestProcessor RP = new RequestProcessor(AttachConfigurations.class);
@@ -26,3 +26,33 @@ index 91bf8e30db..6d9a77e63a 100644
  
      @Override
      public CompletableFuture<List<CompletionItem>> configurations(Supplier<CompletableFuture<Project>> projectSupplier) {
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+index 4fce71a094..2b6362ce37 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+@@ -177,6 +177,7 @@ import org.netbeans.api.sendopts.CommandLine;
+ import org.netbeans.junit.NbTestCase;
+ import org.netbeans.modules.java.hints.infrastructure.JavaErrorProvider;
+ import org.netbeans.modules.java.lsp.server.TestCodeLanguageClient;
++import org.netbeans.modules.java.lsp.server.debugging.attach.AttachConfigurations;
+ import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
+ import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
+ import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
+@@ -1223,7 +1224,7 @@ public class ServerTest extends NbTestCase {
+     }
+ 
+     private void checkAttachToPort(DebugConnector c) {
+-        assertEquals("java+", c.getType());
++        assertEquals(AttachConfigurations.CONFIG_TYPE, c.getType());
+         List<String> arguments = c.getArguments();
+         assertEquals(2, arguments.size());
+         assertEquals("hostName", arguments.get(0));
+@@ -1232,7 +1233,7 @@ public class ServerTest extends NbTestCase {
+     }
+ 
+     private void checkAttachToProcess(DebugConnector c) {
+-        assertEquals("java+", c.getType());
++        assertEquals(AttachConfigurations.CONFIG_TYPE, c.getType());
+         List<String> arguments = c.getArguments();
+         assertEquals(1, arguments.size());
+         assertEquals("processId", arguments.get(0));

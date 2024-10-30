@@ -1,0 +1,6 @@
+[submodule "netbeans-l10n"]
+	path = netbeans-l10n
+	url = https://github.com/apache/netbeans-l10n.git
+[submodule "netbeans"]
+	path = netbeans
+	url = https://github.com/apache/netbeans.git

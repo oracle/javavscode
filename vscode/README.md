@@ -36,14 +36,14 @@ Java Platform extension from Oracle brings full featured development support (ed
     - For more information, see the section [Selecting the JDK](#selecting-the-jdk).
 4. Use any one of the following ways to start coding, compiling and debugging in Java.
     - Simply create a new Java class with `public static void main(String[] args)` method.
-    - Use the __Java: New From Template...__ command to create a new Java file.
+    - Use the __Java: New File...__ command to create a new Java file.
     - Use the __Java: New Project...__ command to create a new project.
     - Open the folder with existing __Maven__ or __Gradle__ project files (_pom.xml_ or _build.gradle, gradle.properties_).
 
 ## Supported Actions
 In the VS Code command palette :
 * __Java: New Project...__ allows creation of new Maven or Gradle project 
-* __Java: New from Template...__ add various files to currently selected open project. Files are:
+* __Java: New File...__ add various files to currently selected open project. Files are:
     * Java - broad selection of various predefined Java classes
     * Unit tests - JUnit and TestNG templates for test suites and test cases
     * Other - various templates for Javascript, JSON, YAML, properties, ... files
@@ -58,6 +58,12 @@ In the VS Code command palette :
 ## Project Explorer
 Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.  
 ![Project Explorer](images/project-explorer.png)
+
+### Localisation support
+Oracle Java Platform extension provides localisation support for _Japanese_ and _Simplified Chinese_.
+To switch language `Go to command Palette->Configure display language` select `ja` for _Japanese_ or `zh-cn` for _Simplified Chinese_
+![localisation.gif](images/localisation.gif)
+
 
 ## Debugger and Launch Configurations
 Language Server __Java+ ...__ launch configuration supports debugging and running Java applications using JDK11 or newer. 
