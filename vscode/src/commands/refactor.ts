@@ -18,9 +18,9 @@ import { ICommand } from "./types";
 import { extConstants } from "../constants";
 import { builtInCommands, extCommands, nbCommands } from "./commands";
 import { l10n } from "../localiser";
-import { globalVars } from "../extension";
 import { WorkspaceEdit } from 'vscode-languageserver-protocol';
 import { SymbolInformation } from 'vscode-languageclient';
+import { globalState } from "../globalState";
 
 const goToSuperImplementationHandler = async () => {
     if (window.activeTextEditor?.document.languageId !== extConstants.LANGUAGE_ID) {
@@ -48,7 +48,7 @@ const surroundWithHandler = async (items: any) => {
     const selected: any = await window.showQuickPick(items, { placeHolder: l10n.value('jdk.extension.command.quickPick.placeholder.surroundWith') });
     if (selected) {
         if (selected.userData.edit) {
-            const client = await globalVars.clientPromise.client;
+            const client = await globalState.getClientPromise().client;
             const edit = await client.protocol2CodeConverter.asWorkspaceEdit(selected.userData.edit as WorkspaceEdit);
             await workspace.applyEdit(edit);
             await commands.executeCommand(builtInCommands.focusActiveEditorGroup);
@@ -60,7 +60,7 @@ const surroundWithHandler = async (items: any) => {
 const codeGenerateHandler = async (command: any, data: any) => {
     const edit: any = await commands.executeCommand(command, data);
     if (edit) {
-        const client = await globalVars.clientPromise.client;
+        const client = await globalState.getClientPromise().client;
         const wsEdit = await client.protocol2CodeConverter.asWorkspaceEdit(edit as WorkspaceEdit);
         await workspace.applyEdit(wsEdit);
         await commands.executeCommand(builtInCommands.focusActiveEditorGroup);
@@ -76,7 +76,7 @@ const completeAbstractMethodsHandler = async () => {
 }
 
 const workspaceSymbolsHandler = async (query: any) => {
-    const client = await globalVars.clientPromise.client;
+    const client = await globalState.getClientPromise().client;
     return (await client.sendRequest<SymbolInformation[]>("workspace/symbol", { "query": query })) ?? [];
 }
 

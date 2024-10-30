@@ -22,10 +22,10 @@ import { DebugConnector } from '../lsp/protocol';
 import { extConstants } from '../constants';
 import { l10n } from '../localiser';
 import { StreamDebugAdapter } from './streamDebugAdapter';
-import { globalVars } from '../extension';
 import { extCommands, nbCommands } from '../commands/commands';
 import { argumentsNode, environmentVariablesNode, vmOptionsNode, workingDirectoryNode } from '../views/runConfiguration';
 import { initializeRunConfiguration } from '../utils';
+import { globalState } from '../globalState';
 
 export function registerDebugger(context: ExtensionContext): void {
     let debugTrackerFactory = new NetBeansDebugAdapterTrackerFactory();
@@ -50,8 +50,9 @@ class NetBeansDebugAdapterTrackerFactory implements vscode.DebugAdapterTrackerFa
     createDebugAdapterTracker(_session: vscode.DebugSession): vscode.ProviderResult<vscode.DebugAdapterTracker> {
         return {
             onDidSendMessage(message: any): void {
-                if (globalVars.testAdapter && message.type === 'event' && message.event === 'output') {
-                    globalVars.testAdapter.testOutput(message.body.output);
+                const testAdapter = globalState.getTestAdapter();
+                if (testAdapter && message.type === 'event' && message.event === 'output') {
+                    testAdapter.testOutput(message.body.output);
                 }
             }
         }
@@ -64,7 +65,7 @@ class NetBeansDebugAdapterDescriptionFactory implements vscode.DebugAdapterDescr
         return new Promise<vscode.DebugAdapterDescriptor>((resolve, reject) => {
             let cnt = 10;
             const fnc = () => {
-                if (globalVars.debugPort < 0) {
+                if (globalState.getDebugPort() < 0) {
                     if (cnt-- > 0) {
                         setTimeout(fnc, 1000);
                     } else {
@@ -72,10 +73,10 @@ class NetBeansDebugAdapterDescriptionFactory implements vscode.DebugAdapterDescr
                     }
                 } else {
                     // resolve(new vscode.DebugAdapterServer(debugPort));
-                    const socket = net.connect(globalVars.debugPort, "127.0.0.1", () => { });
+                    const socket = net.connect(globalState.getDebugPort(), "127.0.0.1", () => { });
                     socket.on("connect", () => {
                         const adapter = new StreamDebugAdapter();
-                        socket.write(globalVars.debugHash ? globalVars.debugHash : "");
+                        socket.write(globalState?.getDebugHash() || "");
                         adapter.connect(socket, socket);
                         resolve(new vscode.DebugAdapterInlineImplementation(adapter));
                     });
@@ -94,7 +95,7 @@ class NetBeansConfigurationInitialProvider implements vscode.DebugConfigurationP
     }
 
     async doProvideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, _token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration[]> {
-        let c: LanguageClient = await globalVars.clientPromise.client;
+        let c: LanguageClient = await globalState.getClientPromise().client;
         if (!folder) {
             return [];
         }
@@ -145,7 +146,7 @@ class NetBeansConfigurationDynamicProvider implements vscode.DebugConfigurationP
     }
 
     async doProvideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, context: ExtensionContext, commandValues: Map<string, string>, _token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration[]> {
-        let c: LanguageClient = await globalVars.clientPromise.client;
+        let c: LanguageClient = await globalState.getClientPromise().client;
         if (!folder) {
             return [];
         }

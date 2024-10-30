@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2024, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,44 +19,25 @@
  * under the License.
  */
 
-/* This file has been modified for Oracle Java SE extension */
-
 'use strict';
 
-import { ExtensionContext, TextEditorDecorationType, Uri } from 'vscode';
-import { NbTestAdapter } from './views/TestViewController';
-import { SetTextEditorDecorationParams } from './lsp/protocol';
+import { ExtensionContext } from 'vscode';
 import * as launchConfigurations from './launchConfigurations';
 import { extConstants } from './constants';
-import { ExtensionInfo } from './extensionInfo';
-import { ClientPromise } from './lsp/clientPromise';
-import { NbProcessManager } from './lsp/nbProcessManager';
 import { clientInit } from './lsp/initializer';
 import { subscribeCommands } from './commands/register';
 import { VSNetBeansAPI } from './lsp/types';
 import { registerDebugger } from './debugger/debugger';
 import { registerConfigChangeListeners } from './configurations/listener';
 import { registerFileProviders } from './lsp/listeners/textDocumentContentProvider';
-
-export namespace globalVars {
-    export const listeners = new Map<string, string[]>();
-    export let extensionInfo: ExtensionInfo;
-    export let clientPromise: ClientPromise;
-    export let debugPort: number = -1;
-    export let debugHash: string | undefined;
-    export let deactivated: boolean = true;
-    export let nbProcessManager: NbProcessManager | null;
-    export let testAdapter: NbTestAdapter | undefined;
-    export let decorations = new Map<string, TextEditorDecorationType>();
-    export let decorationParamsByUri = new Map<Uri, SetTextEditorDecorationParams>();
-}
-
+import { ExtensionContextInfo } from './extensionContextInfo';
+import { ClientPromise } from './lsp/clientPromise';
+import { globalState } from './globalState';
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
-    globalVars.clientPromise = new ClientPromise();
-    globalVars.extensionInfo = new ExtensionInfo(context);
+    globalState.initialize(new ExtensionContextInfo(context), new ClientPromise());
+    globalState.getClientPromise().initialize();
 
-    globalVars.clientPromise.initialize();
     registerConfigChangeListeners(context);
     clientInit();
 
@@ -78,10 +59,10 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 
 
 export function deactivate(): Thenable<void> {
-    const process = globalVars.nbProcessManager?.getProcess();
+    const process = globalState.getNbProcessManager()?.getProcess();
     if (process != null) {
         process?.kill();
     }
-    return globalVars.clientPromise.stopClient();
+    return globalState.getClientPromise().stopClient();
 }
 

@@ -21,8 +21,8 @@ import { isNbJavacDisabledHandler, updateConfigurationValue } from "../../../con
 import { l10n } from "../../../localiser";
 import { configKeys } from "../../../configurations/configuration";
 import { builtInCommands } from "../../../commands/commands";
-import { globalVars } from "../../../extension";
 import { LOGGER } from '../../../logger';
+import { globalState } from "../../../globalState";
 
 const checkInstallNbJavac = (msg: string) => {
     const NO_JAVA_SUPPORT = "Cannot initialize Java support";
@@ -74,32 +74,34 @@ const logMessageHandler = (param: any) => {
 }
 
 const testProgressHandler = (param: any) => {
-    if (globalVars.testAdapter) {
-        globalVars.testAdapter.testProgress(param.suite);
+    const testAdapter = globalState.getTestAdapter();
+    if (testAdapter) {
+        testAdapter.testProgress(param.suite);
     }
 }
 
 const textEditorSetDecorationHandler = (param: any) => {
-    let decorationType = globalVars.decorations.get(param.key);
+    let decorationType = globalState.getDecoration(param.key);
     if (decorationType) {
         let editorsWithUri = window.visibleTextEditors.filter(
             editor => editor.document.uri.toString() == param.uri
         );
         if (editorsWithUri.length > 0) {
             editorsWithUri[0].setDecorations(decorationType, asRanges(param.ranges));
-            globalVars.decorationParamsByUri.set(editorsWithUri[0].document.uri, param);
+            globalState.setDecorationParams(editorsWithUri[0].document.uri, param);
         }
     }
 }
 
 const textEditorDecorationDisposeHandler = (param: any) => {
-    let decorationType = globalVars.decorations.get(param);
+    let decorationType = globalState.getDecoration(param);
     if (decorationType) {
-        globalVars.decorations.delete(param);
+        globalState.removeDecoration(param);
         decorationType.dispose();
-        globalVars.decorationParamsByUri.forEach((value, key, map) => {
+        
+        globalState.getDecorationParamsByUri().forEach((value, key) => {
             if (value.key == param) {
-                map.delete(key);
+                globalState.removeDecorationParams(key);
             }
         });
     }
@@ -107,7 +109,7 @@ const textEditorDecorationDisposeHandler = (param: any) => {
 
 
 const telemetryEventHandler = (param: any) => {
-    const ls = globalVars.listeners.get(param);
+    const ls = globalState.getListener(param);
     if (ls) {
         for (const listener of ls) {
             commands.executeCommand(listener);

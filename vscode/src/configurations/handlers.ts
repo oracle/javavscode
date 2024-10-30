@@ -18,10 +18,10 @@ import { ConfigurationTarget, extensions, workspace, WorkspaceConfiguration } fr
 import { builtInConfigKeys, configKeys } from "./configuration";
 import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
 import * as os from 'os';
-import { globalVars } from "../extension";
 import { LOGGER } from "../logger";
 import * as path from 'path';
 import * as fs from 'fs';
+import { globalState } from "../globalState";
 
 export const getConfiguration = (key: string = extConstants.COMMAND_PREFIX): WorkspaceConfiguration => {
     return workspace.getConfiguration(key);
@@ -114,11 +114,12 @@ export const isDarkColorThemeHandler = (): boolean => {
 }
 
 export const userdirHandler = (): string => {
+    const extensionContextInfo = globalState.getExtensionContextInfo();
     const userdirScope = process.env['nbcode_userdir'] || getConfigurationValue(configKeys.userdir, "local");
-    const workspaceStoragePath = globalVars.extensionInfo.getWorkspaceStorage()?.fsPath;
+    const workspaceStoragePath = extensionContextInfo.getWorkspaceStorage()?.fsPath;
     const userdirParentDir = userdirScope === "local" && workspaceStoragePath
         ? workspaceStoragePath
-        : globalVars.extensionInfo.getGlobalStorage().fsPath;
+        : extensionContextInfo.getGlobalStorage().fsPath;
 
     if (!userdirParentDir) {
         throw new Error(`Cannot create path for ${userdirScope} directory.`);

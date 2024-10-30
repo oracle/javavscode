@@ -14,7 +14,6 @@
   limitations under the License.
 */
 import { QuickPickItem, Uri, window, workspace, WorkspaceConfiguration } from "vscode";
-import { globalVars } from "../../../extension";
 import { notificationOrRequestListenerType } from "../../types";
 import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
 import { InputStep, MultiStepInput } from "../../../utils";
@@ -23,15 +22,16 @@ import { isError } from "../../../utils";
 import { isString } from "../../../utils";
 import { LOGGER } from "../../../logger";
 import { execInHtmlPage, showHtmlPage } from "../../../webviews/nbWebviewHandler";
+import { globalState } from "../../../globalState";
 
 const textEditorDecorationCreateRequestHandler = (param: any) => {
     let decorationType = window.createTextEditorDecorationType(param);
-    globalVars.decorations.set(decorationType.key, decorationType);
+    globalState.setDecoration(decorationType.key, decorationType);
     return decorationType.key;
 }
 
 const multiStepInputRequestHandler = async (param: any) => {
-    const client = await globalVars.clientPromise.client;
+    const client = await globalState.getClientPromise().client;
     const data: { [name: string]: readonly QuickPickItem[] | string } = {};
     async function nextStep(input: MultiStepInput, step: number, state: { [name: string]: readonly QuickPickItem[] | string }): Promise<InputStep | void> {
         const inputStep = await client.sendRequest(MutliStepInputRequest.step, { inputId: param.id, step, data: state });

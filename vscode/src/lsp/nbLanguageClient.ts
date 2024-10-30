@@ -21,7 +21,7 @@ import { extConstants } from "../constants";
 import { userConfigsListenedByServer } from '../configurations/configuration';
 import { restartWithJDKLater } from './utils';
 import { ExtensionLogger } from '../logger';
-import { globalVars } from '../extension';
+import { globalState } from '../globalState';
 
 
 export class NbLanguageClient extends LanguageClient {
@@ -72,7 +72,7 @@ export class NbLanguageClient extends LanguageClient {
                 },
                 closed: function (): CloseHandlerResult {
                     logger.warn(`Connection to ${extConstants.SERVER_NAME} closed.`);
-                    if (!globalVars.clientPromise.activationPending) {
+                    if (!globalState.getClientPromise().activationPending) {
                         restartWithJDKLater(10000, false);
                     }
                     return { action: CloseAction.DoNotRestart };

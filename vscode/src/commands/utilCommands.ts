@@ -13,21 +13,16 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { globalVars } from "../extension";
+import { globalState } from "../globalState";
 import { extCommands } from "./commands";
 import { ICommand } from "./types";
 
 const startupConditionHandler = () => {
-    return globalVars.clientPromise.client;
+    return globalState.getClientPromise().client;
 }
 
 const addEventListenerHandler = async (eventName: any, listener: any) => {
-    let ls = globalVars.listeners.get(eventName);
-    if (!ls) {
-        ls = [];
-        globalVars.listeners.set(eventName, ls);
-    }
-    ls.push(listener);
+    globalState.addListener(eventName, listener);
 }
 
 

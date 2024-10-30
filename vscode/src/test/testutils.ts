@@ -34,8 +34,8 @@ import { EXAMPLE_POM, MAIN_JAVA, MAIN_TEST_JAVA, SAMPLE_APP_JAVA, SAMPLE_BUILD_G
 import { NbLanguageClient } from "../lsp/nbLanguageClient";
 import { extConstants } from "../constants";
 import { l10n } from "../localiser";
-import { globalVars } from "../extension";
 import { nbCommands } from "../commands/commands";
+import { globalState } from "../globalState";
 
 /**
  * Folder path currently opened in VSCode workspace
@@ -339,10 +339,10 @@ export const awaitClient = async () : Promise<NbLanguageClient> => {
         return Promise.reject(new Error(l10n.value("jdk.extension.notInstalled.label")));
     }
     if(extension.isActive){
-        return globalVars.clientPromise.client;
+        return globalState.getClientPromise().client;
     }
     const waitForExtenstionActivation : Thenable<NbLanguageClient> = extension.activate().then(async () => {
-        return await globalVars.clientPromise.client;
+        return await globalState.getClientPromise().client;
     });
     return Promise.resolve(waitForExtenstionActivation);
 }

@@ -20,12 +20,12 @@ import { l10n } from "../localiser";
 import * as os from 'os';
 import * as fs from 'fs';
 import { ICommand } from "./types";
-import { globalVars } from "../extension";
 import { getContextUri, isNbCommandRegistered } from "./utils";
 import { isString } from "../utils";
+import { globalState } from "../globalState";
 
 const newFromTemplate = async (ctx: any, template: any) => {
-    const client: LanguageClient = await globalVars.clientPromise.client;
+    const client: LanguageClient = await globalState.getClientPromise().client;
     if (await isNbCommandRegistered(nbCommands.newFromTemplate)) {
         const workspaces = workspace.workspaceFolders;
 
@@ -72,7 +72,7 @@ const newFromTemplate = async (ctx: any, template: any) => {
 }
 
 const newProject = async (ctx: any) => {
-    const client: LanguageClient = await globalVars.clientPromise.client;
+    const client: LanguageClient = await globalState.getClientPromise().client;
     if (await isNbCommandRegistered(nbCommands.newProject)) {
         const res = await commands.executeCommand(nbCommands.newProject, getContextUri(ctx)?.toString());
         if (isString(res)) {

@@ -13,24 +13,23 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { ExtensionContext, window, commands, TreeView, TextEditor, workspace } from "vscode";
-import { globalVars } from "../extension";
+import { ExtensionContext, window, commands, TreeView, TextEditor } from "vscode";
 import { runConfigurationNodeProvider } from "./runConfiguration";
 import { NbLanguageClient } from "../lsp/nbLanguageClient";
 import { TreeViewService, Visualizer } from "./projects";
-import { extConstants } from "../constants";
 import { builtInCommands, extCommands } from "../commands/commands";
 import { getConfigurationValue } from "../configurations/handlers";
 import { configKeys } from "../configurations/configuration";
 import { initializeRunConfiguration } from "../utils";
 import { NbTestAdapter } from "./TestViewController";
+import { globalState } from "../globalState";
 
 export async function createViews() {
-    const context = globalVars.extensionInfo.getExtensionContext();
+    const context = globalState.getExtensionContextInfo().getExtensionContext();
     createRunConfigurationView(context);
-    const client = await globalVars.clientPromise.client;
+    const client = await globalState.getClientPromise().client;
     createProjectView(client);
-    globalVars.testAdapter = new NbTestAdapter();
+    globalState.setTestAdapter(new NbTestAdapter());
 }
 
 function createRunConfigurationView(context: ExtensionContext) {
@@ -61,12 +60,12 @@ async function createProjectView(client: NbLanguageClient) {
         }
         tv.reveal(vis, { select: true, focus: false, expand: false });
     }
-    globalVars.extensionInfo.pushSubscription(window.onDidChangeActiveTextEditor(ed => {
+    globalState.getExtensionContextInfo().pushSubscription(window.onDidChangeActiveTextEditor(ed => {
         if (getConfigurationValue(configKeys.revealInActivteProj)) {
             revealActiveEditor(ed);
         }
     }));
-    globalVars.extensionInfo.pushSubscription(commands.registerCommand(extCommands.selectEditorProjs, () => revealActiveEditor()));
+    globalState.getExtensionContextInfo().pushSubscription(commands.registerCommand(extCommands.selectEditorProjs, () => revealActiveEditor()));
 
     // attempt to reveal NOW:
     if (getConfigurationValue(configKeys.revealInActivteProj)) {

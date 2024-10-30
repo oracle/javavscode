@@ -14,11 +14,11 @@
   limitations under the License.
 */
 import { commands } from "vscode";
-import { globalVars } from "../extension";
 import { LOGGER } from "../logger";
 import { NbProcessManager } from "./nbProcessManager";
 import { clientInit } from "./initializer";
 import { NbLanguageClient } from "./nbLanguageClient";
+import { globalState } from "../globalState";
 
 export class ClientPromise {
     setClient!: [(c: NbLanguageClient) => void, (err: any) => void];
@@ -42,14 +42,15 @@ export class ClientPromise {
     }
 
     public initializedSuccessfully = (client: NbLanguageClient) => {
-        globalVars.clientPromise.setClient[0](client);
+        globalState.getClientPromise().setClient[0](client);
         commands.executeCommand('setContext', 'nbJdkReady', true);
     }
 
     public stopClient = async (): Promise<void> => {
-        if (globalVars.testAdapter) {
-            globalVars.testAdapter.dispose();
-            globalVars.testAdapter = undefined;
+        const testAdapter = globalState.getTestAdapter();
+        if (testAdapter) {
+            testAdapter.dispose();
+            globalState.setTestAdapter(undefined);
         }
         if (!this.client) {
             return Promise.resolve();

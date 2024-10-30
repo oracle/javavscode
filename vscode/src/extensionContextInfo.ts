@@ -15,7 +15,7 @@
 */
 import { Disposable, ExtensionContext } from "vscode";
 
-export class ExtensionInfo {
+export class ExtensionContextInfo {
   constructor(private context: ExtensionContext) { }
 
   getGlobalStorage = () => this.context.globalStorageUri;

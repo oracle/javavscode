@@ -15,15 +15,15 @@
 */
 
 import { ConfigurationChangeEvent, ExtensionContext, workspace } from "vscode";
-import { globalVars } from "../extension";
 import { userConfigsListened } from "./configuration";
 import { Disposable } from "vscode-languageclient";
+import { globalState } from "../globalState";
 
 const configChangeHandler = (params: ConfigurationChangeEvent) => {
     userConfigsListened.forEach((config: string) => {
         const doesAffect = params.affectsConfiguration(config);
         if (doesAffect) {
-            globalVars.clientPromise.restartExtension(globalVars.nbProcessManager, true);
+            globalState.getClientPromise().restartExtension(globalState.getNbProcessManager(), true);
         }
     });
 }

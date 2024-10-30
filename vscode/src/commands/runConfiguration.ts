@@ -15,13 +15,13 @@
 */
 
 import { extCommands } from "./commands";
-import { globalVars } from "../extension";
 import { configureRunSettings } from "../views/runConfiguration";
 import { ICommand } from "./types";
+import { globalState } from "../globalState";
 
 
 const configureRunSettingsHandler = (...params: any[]) => {
-  configureRunSettings(globalVars.extensionInfo.getExtensionContext(), params);
+  configureRunSettings(globalState.getExtensionContextInfo().getExtensionContext(), params);
 }
 
 
