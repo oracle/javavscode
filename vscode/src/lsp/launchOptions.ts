@@ -53,7 +53,8 @@ const extraLaunchOptions = [
     "-J-XX:PerfMaxStringConstLength=10240",
     "--locale", l10n.nbLocaleCode(),
     "--start-java-language-server=listen-hash:0",
-    "--start-java-debug-adapter-server=listen-hash:0"
+    "--start-java-debug-adapter-server=listen-hash:0",
+    "-J-DTopSecurityManager.disable=true"
 ];
 
 const prepareUserConfigLaunchOptions = (): string[] => {
