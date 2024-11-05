@@ -31,11 +31,11 @@ import { Readable } from "stream";
 import { spawn, ChildProcessByStdio, exec } from "child_process";
 import * as vscode from "vscode";
 import { EXAMPLE_POM, MAIN_JAVA, MAIN_TEST_JAVA, SAMPLE_APP_JAVA, SAMPLE_BUILD_GRADLE, SAMPLE_CODE_FORMAT_DOCUMENT, SAMPLE_CODE_REFACTOR, SAMPLE_CODE_SORT_IMPORTS, SAMPLE_CODE_UNUSED_IMPORTS, SAMPLE_SETTINGS_GRADLE } from "./constants";
-import { NbLanguageClient } from "../lsp/nbLanguageClient";
-import { extConstants } from "../constants";
-import { l10n } from "../localiser";
-import { nbCommands } from "../commands/commands";
-import { globalState } from "../globalState";
+import { NbLanguageClient } from "../../lsp/nbLanguageClient";
+import { extConstants } from "../../constants";
+import { l10n } from "../../localiser";
+import { nbCommands } from "../../commands/commands";
+import { globalState } from "../../globalState";
 
 /**
  * Folder path currently opened in VSCode workspace
