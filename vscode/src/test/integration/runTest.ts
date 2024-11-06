@@ -46,7 +46,7 @@ async function main() {
             const workspaceDir = path.join(suiteDir, 'ws');
 
             if (fs.existsSync(workspaceDir)) {
-                fs.rmdirSync(workspaceDir, { recursive: true });
+                fs.rmSync(workspaceDir, { recursive: true });
             }
             fs.mkdirSync(workspaceDir, { recursive: true });
 
