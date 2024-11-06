@@ -2,7 +2,7 @@
 
 <!--
 
-    Copyright (c) 2023, Oracle and/or its affiliates.
+    Copyright (c) 2023-2024, Oracle and/or its affiliates.
 
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -23,7 +23,25 @@
 
 -->
 
-<!-- This file has been modified for Oracle Java SE extension -->
+## Version 23.0.1
+### What's Changed
+
+#### Bugs
+* [JAVAVSCODE-217] Remove grouping of test runner cases to fix incorrect results https://github.com/oracle/javavscode/pull/307
+* [JAVAVSCODE-249] Fixed code folding for if-else https://github.com/oracle/javavscode/pull/304 and https://github.com/oracle/javavscode/pull/308
+* [JAVAVSCODE-291] Fixed JDK Downloader to NOT offer Windows ARM64 option https://github.com/oracle/javavscode/pull/294
+* [JAVAVSCODE-300] Fixed launching of NBLS when arguments contain spaces https://github.com/oracle/javavscode/pull/301
+* Fixed "Move Refactoring" for some buggy cases https://github.com/oracle/javavscode/pull/320
+
+#### Other Changes
+* Remove the usage of java SecurityManager in NBLS https://github.com/oracle/javavscode/pull/318
+* Refactored extension frontend code for better maintainability and tests https://github.com/oracle/javavscode/pull/292 and https://github.com/oracle/javavscode/pull/310 
+* Renamed command label "New from Template" to "New File from Template" for better understandability https://github.com/oracle/javavscode/pull/323
+* Updated JDK Downloader URLs for Oct24 CPUs https://github.com/oracle/javavscode/pull/294
+* Updated JVSC Git repo to use Git submodules for ease of use: NB & NB-l10n https://github.com/oracle/javavscode/pull/295
+* Fix l10n translations for important modules/keys of the NetBeans LS https://github.com/oracle/javavscode/pull/325
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v23.0.0...v23.0.1
 
 ## Version 23.0.0
 ### What's Changed
