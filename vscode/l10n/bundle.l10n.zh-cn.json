@@ -83,7 +83,7 @@
   "jdk.extension.notInstalled.label":"未安装扩展。",
   "jdk.extension.error_msg.clientNotAvailable":"客户端不可用",
   "jdk.extension.progressBar.error_msg.cannotRun":"无法运行 {lsCommand}；客户端为 {client}",
-  "jdk.extension.error_msg.doesntSupportNewTeamplate":"客户端 {client} 不支持建新文件",
+  "jdk.extension.error_msg.doesntSupportNewTeamplate":"客户端 {client} 不支持从模板新建文件",
   "jdk.extension.error_msg.doesntSupportNewProject":"客户端 {client} 不支持新项目",
   "jdk.extension.error_msg.doesntSupportGoToTest":"客户端 {client} 不支持转至测试",
   "jdk.extension.error_msg.noSuperImpl":"未找到超类实现",

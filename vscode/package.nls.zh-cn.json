@@ -3,7 +3,7 @@
     "jdk.views.explorer.projects": "项目",
     "jdk.workspace.compile": "编译工作区",
     "jdk.workspace.clean": "清除工作区",
-    "jdk.workspace.new": "建新文件...",
+    "jdk.workspace.new": "从模板新建文件...",
     "jdk.workspace.newproject": "新建项目...",
     "jdk.java.goto.super.implementation": "转至超类实现",
     "jdk.open.type": "打开类型...",
