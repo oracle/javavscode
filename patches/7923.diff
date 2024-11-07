@@ -1,0 +1,24 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/MoveRefactoring.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/MoveRefactoring.java
+index a72abd44ef..12acbc7081 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/MoveRefactoring.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/MoveRefactoring.java
+@@ -420,6 +420,9 @@ public final class MoveRefactoring extends CodeRefactoring {
+         }
+ 
+         private static Project getSelectedProject(NamedPath selectedProject) {
++            if (selectedProject == null) {
++                return null;
++            }
+             try {
+                 String path = selectedProject.getPath();
+                 return path != null ? FileOwnerQuery.getOwner(Utils.fromUri(path)) : null;
+@@ -429,6 +432,9 @@ public final class MoveRefactoring extends CodeRefactoring {
+         }
+ 
+         private static FileObject getSelectedRoot(NamedPath selectedRoot) {
++            if (selectedRoot == null) {
++                return null;
++            }
+             try {
+                 String path = selectedRoot.getPath();
+                 return path != null ? Utils.fromUri(path) : null;

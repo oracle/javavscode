@@ -58,7 +58,7 @@
             patches/7750.diff
             patches/7910.diff
             patches/7921.diff
-            patches/7923_draft.diff
+            patches/7923.diff
             patches/7926.diff
             patches/mvn-sh.diff
             patches/generate-dependencies.diff
