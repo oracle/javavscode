@@ -151,7 +151,7 @@ class NetBeansConfigurationDynamicProvider implements vscode.DebugConfigurationP
             return [];
         }
         let result: vscode.DebugConfiguration[] = [];
-        const attachConnectors: DebugConnector[] | null | undefined = await vscode.commands.executeCommand(extCommands.attachDebugger);
+        const attachConnectors: DebugConnector[] | null | undefined = await vscode.commands.executeCommand(extCommands.attachDebuggerConfigurations);
         if (attachConnectors) {
             for (let ac of attachConnectors) {
                 const debugConfig: vscode.DebugConfiguration = {
@@ -163,7 +163,7 @@ class NetBeansConfigurationDynamicProvider implements vscode.DebugConfigurationP
                     let defaultValue: string = ac.defaultValues[i];
                     if (!defaultValue.startsWith("${command:")) {
                         // Create a command that asks for the argument value:
-                        let cmd: string = `${extCommands.attachDebugger}.${ac.id}.${ac.arguments[i]}`;
+                        let cmd: string = `${extCommands.attachDebuggerConnector}.${ac.id}.${ac.arguments[i]}`;
                         debugConfig[ac.arguments[i]] = "${command:" + cmd + "}";
                         if (!commandValues.has(cmd)) {
                             commandValues.set(cmd, ac.defaultValues[i]);
