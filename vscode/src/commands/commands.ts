@@ -46,7 +46,8 @@ export const extCommands = {
     startupCondition: appendPrefixToCommand('startup.condition'),
     nbEventListener: appendPrefixToCommand('addEventListener'),
     selectEditorProjs: appendPrefixToCommand('select.editor.projects'),
-    attachDebugger: appendPrefixToCommand("java.attachDebugger.connector"),
+    attachDebuggerConnector: appendPrefixToCommand("java.attachDebugger.connector"),
+    attachDebuggerConfigurations: appendPrefixToCommand("java.attachDebugger.configurations"),
     loadWorkspaceTests: appendPrefixToCommand("load.workspace.tests"),
     projectDeleteEntry: appendPrefixToCommand("foundProjects.deleteEntry")
 }
