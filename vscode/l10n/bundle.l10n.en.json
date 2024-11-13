@@ -93,5 +93,6 @@
   "jdk.extension.debugger.error_msg.debugAdapterNotInitialized":"Oracle Java SE Debug Server Adapter not yet initialized. Please wait for a while and try again.",
   "jdk.workspace.new.prompt": "Input the directory path where the new file will be generated",
   "jdk.extension.utils.error_message.failedHttpsRequest": "Failed to get {url} ({statusCode})",
-  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} not enabled"
+  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} not enabled",
+  "jdk.telemetry.consent": "Do you want to enable telemetry for {extensionName} extension?"
 }

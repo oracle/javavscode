@@ -20,6 +20,7 @@ enum LogLevel {
     INFO = 'INFO',
     WARN = 'WARN',
     ERROR = 'ERROR',
+    DEBUG = 'DEBUG',
 }
 
 export class ExtensionLogger {
@@ -42,6 +43,13 @@ export class ExtensionLogger {
     public error(message: string): void {
         const formattedMessage = `[${LogLevel.ERROR}]: ${message}`;
         this.printLog(formattedMessage);
+    }
+
+    public debug(message: string): void {
+        if(process.env['debug_logs']){
+            const formattedMessage = `[${LogLevel.DEBUG}]: ${message}`;
+            this.printLog(formattedMessage);
+        }
     }
 
     public logNoNL(message: string): void {

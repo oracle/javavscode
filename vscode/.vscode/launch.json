@@ -20,6 +20,22 @@
 			"env": {
 				"nbcode_userdir": "global"
 			}
+		},{
+			"name": "Debug Telemetry",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}"
+			],
+			"outFiles": [
+				"${workspaceFolder}/out/**/*.js"
+			],
+			"preLaunchTask": "${defaultBuildTask}",
+			"env": {
+				"nbcode_userdir": "global",
+				"debug_logs": "true"
+			}
 		},
 		{
 			"name": "Extension Tests",

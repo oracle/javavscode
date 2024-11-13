@@ -44,6 +44,10 @@ export const getBuiltinConfigurationValue = <T>(key: string, defaultValue: T | u
     return defaultValue != undefined ? conf?.get(confKey, defaultValue) : conf?.get(confKey) as T;
 }
 
+export const inspectConfiguration = (config: string) => {
+    return workspace.getConfiguration().inspect(config);
+}
+
 export const jdkHomeValueHandler = (): string | null => {
     return getConfigurationValue(configKeys.jdkHome) ||
         process.env.JDK_HOME ||

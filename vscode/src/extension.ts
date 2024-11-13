@@ -33,11 +33,14 @@ import { registerFileProviders } from './lsp/listeners/textDocumentContentProvid
 import { ExtensionContextInfo } from './extensionContextInfo';
 import { ClientPromise } from './lsp/clientPromise';
 import { globalState } from './globalState';
+import { Telemetry } from './telemetry/telemetry';
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
-    globalState.initialize(new ExtensionContextInfo(context), new ClientPromise());
+    const contextInfo = new ExtensionContextInfo(context);
+    globalState.initialize(contextInfo, new ClientPromise());
     globalState.getClientPromise().initialize();
 
+    Telemetry.initializeTelemetry(contextInfo);
     registerConfigChangeListeners(context);
     clientInit();
 
@@ -59,6 +62,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
 
 
 export function deactivate(): Thenable<void> {
+    Telemetry.enqueueCloseEvent();
     const process = globalState.getNbProcessManager()?.getProcess();
     if (process != null) {
         process?.kill();
