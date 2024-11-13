@@ -236,6 +236,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "%jdk.configuration.disableProjectSearchLimit.description%"
+				},
+				"jdk.telemetry.enabled": {
+					"type": "boolean",
+					"description": "%jdk.configuration.telemetry.enabled.description%",
+					"default": false
 				}
 			}
 		},

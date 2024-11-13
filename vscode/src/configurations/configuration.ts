@@ -30,7 +30,8 @@ export const configKeys = {
     runConfigEnv: 'runConfig.env',
     verbose: 'verbose',
     userdir: 'userdir',
-    revealInActivteProj: "revealActiveInProjects"
+    revealInActivteProj: "revealActiveInProjects",
+    telemetryEnabled: 'telemetry.enabled',
 };
 
 export const builtInConfigKeys = {
