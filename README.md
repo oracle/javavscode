@@ -166,11 +166,12 @@ When adding JavaDoc to code Oracle Java Platform extension assists by suggesting
 Oracle Java Platform extension provides Test Explorer view which allows to run all tests in a project, examine the results, go to source code and  run particular test.  
 ![Test Explorer](vscode/images/Test_explorer.png)
 
-### Localisation support
-Oracle Java Platform extension provides localisation support for _Japanese_ and _Simplified Chinese_. 
-To switch language `Go to command Palette->Configure display language` select `ja` for _Japanese_ or `zh-cn` for _Simplified Chinese_ 
-![localisation.gif](vscode/images/localisation.gif)
+### Localization support
+Oracle Java Platform extension provides localization support for _Japanese_ and _Simplified Chinese_. 
+To switch language `Go to command Palette->Configure display language` select `ja` for _Japanese_ or `zh-cn` for _Simplified Chinese_
 
+
+![Localization.gif](vscode/images/Localization.gif)
 ## Selecting the JDK
 The JDK to build, run and debug projects is being searched in the following locations:
 
