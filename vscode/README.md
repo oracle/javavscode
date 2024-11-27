@@ -59,12 +59,12 @@ In the VS Code command palette :
 Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.  
 ![Project Explorer](images/project-explorer.png)
 
-### Localisation support
-Oracle Java Platform extension provides localisation support for _Japanese_ and _Simplified Chinese_.
+### Localization support
+Oracle Java Platform extension provides localization support for _Japanese_ and _Simplified Chinese_.
 To switch language `Go to command Palette->Configure display language` select `ja` for _Japanese_ or `zh-cn` for _Simplified Chinese_
-![localisation.gif](images/localisation.gif)
 
 
+![Localization.gif](images/Localization.gif)
 ## Debugger and Launch Configurations
 Language Server __Java+ ...__ launch configuration supports debugging and running Java applications using JDK11 or newer. 
 1. The launch configuration (debugger) is invoked when `Run main | Debug main` code lense is selected in the code.
