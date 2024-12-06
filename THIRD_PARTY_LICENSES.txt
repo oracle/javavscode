@@ -8979,11 +8979,6 @@ THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ----------------------- Dependencies Grouped by License ------------
 -------- Dependency
-lru-cache
--------- Copyrights
-Copyright (c) Isaac Z. Schlueter and Contributors
-
--------- Dependency
 minimatch
 -------- Copyrights
 Copyright (c) Isaac Z. Schlueter and Contributors
@@ -8995,10 +8990,8 @@ Copyright (c) Isaac Z. Schlueter and Contributors
 Copyright Isaac Z. Schlueter
 
 -------- Dependencies Summary
-lru-cache
 minimatch
 semver
-yallist
 
 -------- License used by Dependencies
 SPDX:ISC
