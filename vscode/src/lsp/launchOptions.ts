@@ -54,7 +54,8 @@ const extraLaunchOptions = [
     "--locale", l10n.nbLocaleCode(),
     "--start-java-language-server=listen-hash:0",
     "--start-java-debug-adapter-server=listen-hash:0",
-    "-J-DTopSecurityManager.disable=true"
+    "-J-DTopSecurityManager.disable=true",
+    "-J--enable-native-access=ALL-UNNAMED"
 ];
 
 const prepareUserConfigLaunchOptions = (): string[] => {
