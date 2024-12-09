@@ -17,10 +17,12 @@ import { TelemetryManager } from "./telemetryManager";
 import { ExtensionContextInfo } from "../extensionContextInfo";
 import { LOGGER } from "../logger";
 import { BaseEvent } from "./events/baseEvent";
+import { TelemetryReporter } from "./types";
 
 export namespace Telemetry {
 
 	let telemetryManager: TelemetryManager;
+	export const isTelemetryFeatureAvailable = process.env["oracle.oracle-java.enable.telemetry"] === "true";
 
 	export const initializeTelemetry = (contextInfo: ExtensionContextInfo): TelemetryManager => {
 		if (!!telemetryManager) {
@@ -28,24 +30,31 @@ export namespace Telemetry {
 			return telemetryManager;
 		}
 		telemetryManager = new TelemetryManager(contextInfo);
-		telemetryManager.initializeReporter();
+		if (isTelemetryFeatureAvailable) {
+			telemetryManager.initializeReporter();
+		}
 
 		return telemetryManager;
 	}
 
-	export const sendTelemetry = (event: BaseEvent<any>): void => {
-		if (!telemetryManager.isExtTelemetryEnabled()) {
-			return;
+	const enqueueEvent = (cbFunction: (reporter: TelemetryReporter) => void) => {
+		if (telemetryManager.isExtTelemetryEnabled() && isTelemetryFeatureAvailable) {
+			const reporter = telemetryManager.getReporter();
+			if (reporter) {
+				cbFunction(reporter);
+			}
 		}
+	}
 
-		telemetryManager.getReporter()?.addEventToQueue(event);
+	export const sendTelemetry = (event: BaseEvent<any>): void => {
+		enqueueEvent((reporter) => reporter.addEventToQueue(event));
 	}
 
 	export const enqueueStartEvent = (): void => {
-		telemetryManager.getReporter()?.startEvent();
+		enqueueEvent((reporter) => reporter.startEvent());
 	}
 
 	export const enqueueCloseEvent = (): void => {
-		telemetryManager.getReporter()?.closeEvent();
+		enqueueEvent((reporter) => reporter.closeEvent());
 	}
 }

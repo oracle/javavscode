@@ -1,0 +1,336 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
+index d82646afb1..a9fa6fd5a8 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
+@@ -21,32 +21,34 @@ package org.netbeans.modules.java.lsp.server.protocol;
+ import com.google.gson.JsonArray;
+ import com.google.gson.JsonObject;
+ import com.google.gson.JsonPrimitive;
++import java.lang.ref.WeakReference;
+ import java.math.BigInteger;
+ import java.nio.charset.StandardCharsets;
+ import java.security.MessageDigest;
+ import java.security.NoSuchAlgorithmException;
+-import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.Collections;
+-import java.util.HashSet;
++import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+-import java.util.Set;
+ import java.util.WeakHashMap;
+ import java.util.concurrent.Future;
+ import java.util.concurrent.atomic.AtomicBoolean;
++import java.util.logging.Level;
++import java.util.logging.Logger;
+ import java.util.stream.Collectors;
+ import org.eclipse.lsp4j.ConfigurationItem;
+ import org.eclipse.lsp4j.ConfigurationParams;
+ import org.eclipse.lsp4j.MessageType;
+ import org.eclipse.lsp4j.services.LanguageClient;
++import org.netbeans.api.java.platform.JavaPlatform;
+ import org.netbeans.api.java.queries.CompilerOptionsQuery;
+ import org.netbeans.api.java.queries.CompilerOptionsQuery.Result;
+ import org.netbeans.api.project.Project;
+ import org.netbeans.api.project.ProjectManager;
+ import org.netbeans.api.project.ui.ProjectProblems;
++import org.netbeans.modules.java.platform.implspi.JavaPlatformProvider;
+ import org.openide.filesystems.FileObject;
+-import org.openide.util.Exceptions;
+ import org.openide.util.Lookup;
+ 
+ /**
+@@ -55,56 +57,67 @@ import org.openide.util.Lookup;
+  */
+ public class LspServerTelemetryManager {
+ 
+-    public final String SCAN_START_EVT = "SCAN_START_EVT";
+-    public final String SCAN_END_EVT = "SCAN_END_EVT";
+-    public final String WORKSPACE_INFO_EVT = "WORKSPACE_INFO_EVT";
++    private static final Logger LOG = Logger.getLogger(LspServerTelemetryManager.class.getName());
++    public static final String SCAN_START_EVT = "SCAN_START_EVT";
++    public static final String SCAN_END_EVT = "SCAN_END_EVT";
++    public static final String WORKSPACE_INFO_EVT = "workspaceChange";
+ 
+     private final String ENABLE_PREVIEW = "--enable-preview";
+-    private final String STANDALONE_PRJ = "Standalone";
+-    private final WeakHashMap<LanguageClient, Future<Void>> clients = new WeakHashMap<>();
+-    private long lspServerIntiailizationTime;
++    private final String STANDALONE_PRJ = "standalone";
++    private volatile boolean isTelemetryEnabled = false;
+ 
+-    public synchronized void connect(LanguageClient client, Future<Void> future) {
+-        clients.put(client, future);
+-        lspServerIntiailizationTime = System.currentTimeMillis();
++    private static final LspServerTelemetryManager INSTANCE = new LspServerTelemetryManager();
++
++    private LspServerTelemetryManager() {
+     }
+ 
+-    public synchronized void sendTelemetry(TelemetryEvent event) {
+-        Set<LanguageClient> toRemove = new HashSet<>();
+-        List<LanguageClient> toSendTelemetry = new ArrayList<>();
++    public static LspServerTelemetryManager getInstance() {
++        return INSTANCE;
++    }
+ 
++    private final WeakHashMap<LanguageClient, WeakReference<Future<Void>>> clients = new WeakHashMap<>();
++    private long lspServerIntiailizationTime;
++
++    public boolean isIsTelemetryEnabled() {
++        return isTelemetryEnabled;
++    }
++
++    public void connect(LanguageClient client, Future<Void> future) {
+         synchronized (clients) {
+-            for (Map.Entry<LanguageClient, Future<Void>> entry : clients.entrySet()) {
+-                if (entry.getValue().isDone()) {
+-                    toRemove.add(entry.getKey());
+-                } else {
+-                    toSendTelemetry.add(entry.getKey());
+-                }
+-            }
+-            clients.keySet().removeAll(toRemove);
++            clients.put(client, new WeakReference<>(future));
++            isTelemetryEnabled = true;
+         }
++        lspServerIntiailizationTime = System.currentTimeMillis();
++    }
+ 
+-        for (LanguageClient client : toSendTelemetry) {
+-            client.telemetryEvent(event);
+-        }
++    public void sendTelemetry(TelemetryEvent event) {
++        clients.keySet().forEach(client -> this.sendTelemetry(client, event));
+     }
+-    
++
+     public void sendTelemetry(LanguageClient client, TelemetryEvent event) {
+-        boolean shouldSendTelemetry = false;
++        try {
++            if (isTelemetryEnabled) {
++                Future<Void> future = handleClients(client);
+ 
+-        synchronized (clients) {
+-            if(clients.containsKey(client)){
+-                if (clients.get(client).isDone()) {
+-                    clients.remove(client);
+-                } else {
+-                    shouldSendTelemetry = true;
++                if (future != null) {
++                    client.telemetryEvent(event);
+                 }
+             }
++        } catch (Exception e) {
++            LOG.log(Level.WARNING, "telemetry send failed: {0}", e.getMessage());
+         }
++    }
+ 
+-        if (shouldSendTelemetry) {
+-            client.telemetryEvent(event);
++    private synchronized Future<Void> handleClients(LanguageClient client) {
++        Future<Void> future = clients.computeIfPresent(client,
++                (key, val) -> val.get() == null || val.get().isDone() ? null : val)
++                .get();
++
++        if (clients.isEmpty()) {
++            isTelemetryEnabled = false;
+         }
++
++        return future;
+     }
+ 
+     public void sendWorkspaceInfo(LanguageClient client, List<FileObject> workspaceClientFolders, Collection<Project> prjs, long timeToOpenPrjs) {
+@@ -118,49 +131,44 @@ public class LspServerTelemetryManager {
+             try {
+                 JsonObject obj = new JsonObject();
+                 String prjPath = workspaceFolder.getPath();
+-                String prjId = this.getPrjId(prjPath);
++                String prjId = getPrjId(prjPath);
+                 obj.addProperty("id", prjId);
+-                
+-                // In future if different JDK is used for different project then this can be updated 
+-                obj.addProperty("javaVersion", System.getProperty("java.version"));
++                String javaVersion = getProjectJavaVersion();
++                obj.addProperty("javaVersion", javaVersion);
+ 
+                 if (mp.containsKey(prjPath)) {
+                     Project prj = mp.get(prjPath);
++                    String projectType = getProjectType(prj);
++                    boolean isPreviewFlagEnabled = isPreviewEnabled(prj.getProjectDirectory(), projectType);
+ 
+-                    ProjectManager.Result r = ProjectManager.getDefault().isProject2(prj.getProjectDirectory());
+-                    String projectType = r.getProjectType();
+-                    obj.addProperty("buildTool", (projectType.contains("maven") ? "MavenProject" : "GradleProject"));
+-
+-                    obj.addProperty("openedWithProblems", ProjectProblems.isBroken(prj));
+-
+-                    boolean isPreviewFlagEnabled = this.isEnablePreivew(prj.getProjectDirectory(), projectType);
+-                    obj.addProperty("enablePreview", isPreviewFlagEnabled);
++                    obj.addProperty("buildTool", projectType);
++                    obj.addProperty("isOpenedWithProblems", ProjectProblems.isBroken(prj));
++                    obj.addProperty("isPreviewEnabled", isPreviewFlagEnabled);
+                 } else {
++                    boolean isPreviewFlagEnabled = isPreviewEnabled(workspaceFolder, this.STANDALONE_PRJ);
+                     obj.addProperty("buildTool", this.STANDALONE_PRJ);
+-                    obj.addProperty("javaVersion", System.getProperty("java.version"));
+-                    obj.addProperty("openedWithProblems", false);
+-
+-                    boolean isPreviewFlagEnabled = this.isEnablePreivew(workspaceFolder, this.STANDALONE_PRJ);
+-                    obj.addProperty("enablePreview", isPreviewFlagEnabled);
++                    obj.addProperty("isPreviewEnabled", isPreviewFlagEnabled);
+                 }
+ 
+                 prjProps.add(obj);
+ 
+-            } catch (NoSuchAlgorithmException ex) {
+-                Exceptions.printStackTrace(ex);
++            } catch (NoSuchAlgorithmException e) {
++                LOG.log(Level.INFO, "NoSuchAlgorithmException while creating workspaceInfo event: {0}", e.getMessage());
++            } catch (Exception e) {
++                LOG.log(Level.INFO, "Exception while creating workspaceInfo event: {0}", e.getMessage());
+             }
+         }
+ 
+-        properties.add("prjsInfo", prjProps);
++        properties.add("projectInfo", prjProps);
+ 
+-        properties.addProperty("timeToOpenPrjs", timeToOpenPrjs);
+-        properties.addProperty("numOfPrjsOpened", workspaceClientFolders.size());
+-        properties.addProperty("lspServerInitializationTime", System.currentTimeMillis() - this.lspServerIntiailizationTime);
++        properties.addProperty("projInitTimeTaken", timeToOpenPrjs);
++        properties.addProperty("numProjects", workspaceClientFolders.size());
++        properties.addProperty("lspInitTimeTaken", System.currentTimeMillis() - this.lspServerIntiailizationTime);
+ 
+-        this.sendTelemetry(client, new TelemetryEvent(MessageType.Info.toString(), this.WORKSPACE_INFO_EVT, properties));
++        this.sendTelemetry(client, new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.WORKSPACE_INFO_EVT, properties));
+     }
+-    
+-    private boolean isEnablePreivew(FileObject source, String prjType) {
++
++    private boolean isPreviewEnabled(FileObject source, String prjType) {
+         if (prjType.equals(this.STANDALONE_PRJ)) {
+             NbCodeLanguageClient client = Lookup.getDefault().lookup(NbCodeLanguageClient.class);
+             if (client == null) {
+@@ -173,10 +181,10 @@ public class LspServerTelemetryManager {
+                 String config = ((JsonPrimitive) ((List<Object>) c).get(0)).getAsString();
+                 isEnablePreviewSet.set(config.contains(this.ENABLE_PREVIEW));
+             });
+-            
++
+             return isEnablePreviewSet.get();
+         }
+-        
++
+         Result result = CompilerOptionsQuery.getOptions(source);
+         return result.getArguments().contains(this.ENABLE_PREVIEW);
+     }
+@@ -187,15 +195,47 @@ public class LspServerTelemetryManager {
+ 
+         BigInteger number = new BigInteger(1, hash);
+ 
+-        // Convert message digest into hex value
+         StringBuilder hexString = new StringBuilder(number.toString(16));
+ 
+-        // Pad with leading zeros
+         while (hexString.length() < 64) {
+             hexString.insert(0, '0');
+         }
+ 
+         return hexString.toString();
+     }
+-    
++
++    private String getProjectJavaVersion() {
++        JavaPlatformProvider javaPlatformProvider = Lookup.getDefault().lookup(JavaPlatformProvider.class);
++        JavaPlatform defaultPlatform = javaPlatformProvider.getDefaultPlatform();
++
++        Map<String, String> props = new HashMap<>();
++        if (defaultPlatform == null) {
++            props.put("java.version", System.getProperty("java.version"));
++            props.put("java.vm.version", System.getProperty("java.vm.version"));
++            props.put("java.vendor.version", System.getProperty("java.vendor.version"));
++            props.put("java.vm.name", System.getProperty("java.vm.name"));
++        } else {
++            props = defaultPlatform.getSystemProperties();
++        }
++        // projectJavaVersion format "{1};{2};{3}"
++
++        // 1st Part
++        String javaVersion = props.get("java.version");
++        String firstPart = props.getOrDefault("java.vm.version", javaVersion);
++
++        // 2nd Part
++        String vmVersion = props.get("java.vm.version");
++        String secondPart = props.getOrDefault("java.vendor.version", vmVersion);
++
++        // 3rd Part
++        String thirdPart = props.get("java.vm.name");
++
++        return String.format("%s;%s;%s", firstPart, secondPart, thirdPart);
++    }
++
++    private String getProjectType(Project prj) {
++        ProjectManager.Result r = ProjectManager.getDefault().isProject2(prj.getProjectDirectory());
++        String projectType = r.getProjectType();
++        return projectType.contains("maven") ? "maven" : "gradle";
++    }
+ }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
+index 203cb9e7bc..a7797b3479 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
+@@ -160,7 +160,6 @@ import org.openide.util.lookup.ProxyLookup;
+  */
+ public final class Server {
+     private static final Logger LOG = Logger.getLogger(Server.class.getName());
+-    private static final LspServerTelemetryManager LSP_SERVER_TELEMETRY = new LspServerTelemetryManager();
+     
+     private Server() {
+     }
+@@ -183,7 +182,6 @@ public final class Server {
+         ((LanguageClientAware) server).connect(remote);
+         msgProcessor.attachClient(server.client);
+         Future<Void> runningServer = serverLauncher.startListening();
+-        LSP_SERVER_TELEMETRY.connect(server.client, runningServer);        
+         return new NbLspServer(server, runningServer);
+     }
+     
+@@ -773,7 +771,7 @@ public final class Server {
+                     }
+                     f.complete(candidateMapping);
+                     List<FileObject> workspaceClientFolders = workspaceService.getClientWorkspaceFolders();
+-                    LSP_SERVER_TELEMETRY.sendWorkspaceInfo(client, workspaceClientFolders, openedProjects, System.currentTimeMillis() - t);
++                    LspServerTelemetryManager.getInstance().sendWorkspaceInfo(client, workspaceClientFolders, openedProjects, System.currentTimeMillis() - t);
+                     LOG.log(Level.INFO, "{0} projects opened in {1}ms", new Object[] { prjsRequested.length, (System.currentTimeMillis() - t) });
+                 } else {
+                     LOG.log(Level.FINER, "{0}: Collecting projects to prime from: {1}", new Object[]{id, Arrays.asList(additionalProjects)});
+@@ -929,7 +927,10 @@ public final class Server {
+         @Override
+         public CompletableFuture<InitializeResult> initialize(InitializeParams init) {
+             NbCodeClientCapabilities capa = NbCodeClientCapabilities.get(init);
+-            client.setClientCaps(capa);
++            client.setClientCaps(capa);            
++            if(capa.wantsTelemetryEnabled()){
++                LspServerTelemetryManager.getInstance().connect(client, this.lspSession.getLspServer().getRunningFuture());
++            }
+             hackConfigureGroovySupport(capa);
+             hackNoReuseOfOutputsForAntProjects();
+             List<FileObject> projectCandidates = new ArrayList<>();
+@@ -1405,13 +1406,13 @@ public final class Server {
+ 
+         @Override
+         public synchronized boolean scanStarted(Context context) {
+-           LSP_SERVER_TELEMETRY.sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LSP_SERVER_TELEMETRY.SCAN_START_EVT, "nbls.scanStarted")); 
++           LspServerTelemetryManager.getInstance().sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.SCAN_START_EVT, "nbls.scanStarted")); 
+ 	   return true;
+         }
+ 
+         @Override
+         public synchronized void scanFinished(Context context) {
+-        LSP_SERVER_TELEMETRY.sendTelemetry(new TelemetryEvent(MessageType.Info.toString(),LSP_SERVER_TELEMETRY.SCAN_END_EVT,"nbls.scanFinished"));
++            LspServerTelemetryManager.getInstance().sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.SCAN_END_EVT,"nbls.scanFinished"));
+         }
+ 
+         @Override

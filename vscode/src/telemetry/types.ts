@@ -13,11 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { Uri } from "vscode";
 import { BaseEvent } from "./events/baseEvent";
 
 export interface TelemetryReporter {
-    startEvent(): Promise<void>;
+    startEvent(): void;
 
     addEventToQueue(event: BaseEvent<any>): void;
 

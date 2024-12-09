@@ -62,9 +62,9 @@ export class ExtensionStartEvent extends BaseEvent<StartEventData> {
         this.addEventToCache();
     }
 
-    public static builder = async (): Promise<ExtensionStartEvent | null> => {
+    public static builder = (): ExtensionStartEvent | null => {
         const startEventData = getEnvironmentInfo(globalState.getExtensionContextInfo());
-        const cachedValue: string | undefined = await cacheService.get(this.NAME);
+        const cachedValue: string | undefined = cacheService.get(this.NAME);
         const envString = JSON.stringify(startEventData);
         const newValue = getHashCode(envString);
 

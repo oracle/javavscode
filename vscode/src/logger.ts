@@ -25,9 +25,11 @@ enum LogLevel {
 
 export class ExtensionLogger {
     private outChannel: OutputChannel;
+    private isDebugLogEnabled: boolean;
 
     constructor(channelName: string) {
         this.outChannel = window.createOutputChannel(channelName);
+        this.isDebugLogEnabled = process.env['oracle.oracle-java.enable.debug-logs'] === "true";
     }
 
     public log(message: string): void {
@@ -46,7 +48,7 @@ export class ExtensionLogger {
     }
 
     public debug(message: string): void {
-        if(process.env['debug_logs']){
+        if(this.isDebugLogEnabled){
             const formattedMessage = `[${LogLevel.DEBUG}]: ${message}`;
             this.printLog(formattedMessage);
         }

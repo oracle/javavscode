@@ -68,6 +68,7 @@
             patches/l10n-licence.diff
             patches/no-security-manager-allow.diff
             patches/dev-dependency-licenses.diff
+            patches/nb-telemetry.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">

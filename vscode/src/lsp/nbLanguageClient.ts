@@ -22,6 +22,7 @@ import { userConfigsListenedByServer } from '../configurations/configuration';
 import { restartWithJDKLater } from './utils';
 import { ExtensionLogger } from '../logger';
 import { globalState } from '../globalState';
+import { Telemetry } from '../telemetry/telemetry';
 
 
 export class NbLanguageClient extends LanguageClient {
@@ -61,6 +62,7 @@ export class NbLanguageClient extends LanguageClient {
                     'showHtmlPageSupport': true,
                     'wantsJavaSupport': true,
                     'wantsGroovySupport': false,
+                    'wantsTelemetryEnabled': Telemetry.isTelemetryFeatureAvailable,
                     'commandPrefix': extConstants.COMMAND_PREFIX,
                     'configurationPrefix': `${extConstants.COMMAND_PREFIX}.`,
                     'altConfigurationPrefix': `${extConstants.COMMAND_PREFIX}.`

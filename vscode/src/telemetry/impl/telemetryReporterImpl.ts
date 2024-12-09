@@ -37,8 +37,8 @@ export class TelemetryReporterImpl implements TelemetryReporter {
         this.retryManager.registerCallbackHandler(this.sendEvents);
     }
 
-    public startEvent = async (): Promise<void> => {
-        const extensionStartEvent = await ExtensionStartEvent.builder();
+    public startEvent = (): void => {
+        const extensionStartEvent = ExtensionStartEvent.builder();
         if(extensionStartEvent != null){
             this.addEventToQueue(extensionStartEvent);
             LOGGER.debug(`Start event enqueued: ${extensionStartEvent.getPayload}`);

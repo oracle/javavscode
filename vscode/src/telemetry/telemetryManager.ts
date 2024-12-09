@@ -45,12 +45,8 @@ export class TelemetryManager {
         this.openTelemetryDialog();
     }
 
-    public getReporter = (): TelemetryReporter | undefined => {
-        if (!this.reporter) {
-            LOGGER.error("Reporter not initiaized");
-            return;
-        }
-        return this.reporter;
+    public getReporter = (): TelemetryReporter | null => {
+        return this.reporter || null;
     }
 
     private openTelemetryDialog = async () => {
