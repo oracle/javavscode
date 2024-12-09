@@ -63,7 +63,7 @@
   "jdk.extension.lspServer.message.noJdkFound": "No JDK found!",
   "jdk.extension.lspServer.label.downloadAndSetup": "Download JDK and setup automatically",
   "jdk.extension.lspServer.error_message": "Error initializing {reason}",
-  "jdk.extension.nbjavac.message.supportedVersionRequired": "Supported version of javac needed. Please either enable the nb-javac library, or use JDK 22+",
+  "jdk.extension.nbjavac.message.supportedVersionRequired": "Supported version of javac needed. Please either enable the nb-javac library, or use JDK 23+",
   "jdk.extension.nbjavac.label.enableNbjavac": "Enable the nb-javac library",
   "jdk.extension.nbjavac.label.openSettings": "Open settings",
   "jdk.extension.javaSupport.label.installGpl": "Install GPLv2+CPEx code",
@@ -94,5 +94,5 @@
   "jdk.workspace.new.prompt": "Input the directory path where the new file will be generated",
   "jdk.extension.utils.error_message.failedHttpsRequest": "Failed to get {url} ({statusCode})",
   "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} not enabled",
-  "jdk.telemetry.consent": "Do you want to enable telemetry for {extensionName} extension?"
+  "jdk.telemetry.consent": "Do you want to enable telemetry for {extensionName} extension? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled."
 }

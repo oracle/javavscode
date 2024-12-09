@@ -27,10 +27,9 @@ export interface TelemetryPostResponse {
 };
 
 export class PostTelemetry {
-    private static readonly TELEMETRY_BASE_SERVER_URL = "http://localhost:8080";
+    private static readonly TELEMETRY_BASE_SERVER_URL = "";
     private static readonly TELEMETRY_EVENTS_BASE_ENDPOINT = "/vscode/java/sendTelemetry";
-    // private static readonly TELEMETRY_EVENTS_VERSION = "/v1";
-    private static readonly TELEMETRY_EVENTS_VERSION = "";
+    private static readonly TELEMETRY_EVENTS_VERSION = "/v1";
 
     public post = async (events: BaseEvent<any>[]): Promise<TelemetryPostResponse> => {
         try {

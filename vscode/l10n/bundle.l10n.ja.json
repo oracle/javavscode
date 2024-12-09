@@ -63,7 +63,7 @@
   "jdk.extension.lspServer.message.noJdkFound": "JDKが見つかりません!",
   "jdk.extension.lspServer.label.downloadAndSetup": "JDKをダウンロードして自動的に設定",
   "jdk.extension.lspServer.error_message": "初期化中にエラーが発生しました {reason}",
-  "jdk.extension.nbjavac.message.supportedVersionRequired": "サポートされているバージョンのjavacが必要です。nb-javacライブラリを有効にするか、JDK 22+を使用してください",
+  "jdk.extension.nbjavac.message.supportedVersionRequired": "サポートされているバージョンのjavacが必要です。nb-javacライブラリを有効にするか、JDK 23+を使用してください",
   "jdk.extension.nbjavac.label.enableNbjavac": "nb-javacライブラリの有効化",
   "jdk.extension.nbjavac.label.openSettings": "設定を開く",
   "jdk.extension.javaSupport.label.installGpl": "GPLv2+CPExコードのインストール",
@@ -93,5 +93,6 @@
   "jdk.extension.debugger.error_msg.debugAdapterNotInitialized":"Oracle Java SEのデバッグ・サーバー・アダプタが、まだ初期化されていません。しばらく待ってから再試行してください。",
   "jdk.workspace.new.prompt": "新しいファイルを生成するディレクトリのパスを入力してください",
   "jdk.extension.utils.error_message.failedHttpsRequest": "{url}の取得に失敗しました({statusCode})",
-  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME}が有効化されていません"
+  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME}が有効化されていません",
+  "jdk.telemetry.consent": "Do you want to enable telemetry for {extensionName} extension? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled."
 }
