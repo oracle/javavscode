@@ -41,7 +41,7 @@ const deleteCache = async () => {
                 await globalState.getClientPromise().stopClient();
                 globalState.setDeactivated(true);
                 await globalState.getNbProcessManager()?.killProcess(false);
-                await fs.promises.rmdir(userDir, { recursive: true });
+                await fs.promises.rm(userDir, { recursive: true });
                 await window.showInformationMessage(l10n.value("jdk.extension.message.cacheDeleted"), reloadWindowActionLabel);
             } catch (err) {
                 await window.showErrorMessage(l10n.value("jdk.extension.error_msg.cacheDeletionError"), reloadWindowActionLabel);
