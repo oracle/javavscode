@@ -1,9 +1,158 @@
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties
+new file mode 100755
+index 000000000..b1feab14a
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties
+@@ -0,0 +1,20 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++DESC_StartJavaDebugAdapterServer=Java\u30C7\u30D0\u30C3\u30B0\u30FB\u30A2\u30C0\u30D7\u30BF\u30FB\u30B5\u30FC\u30D0\u30FC\u3092\u958B\u59CB\u3057\u307E\u3059
++DESC_StartJavaLanguageServer=Java\u8A00\u8A9E\u30B5\u30FC\u30D0\u30FC\u3092\u958B\u59CB\u3057\u307E\u3059
++MSG_ConnectionSpecError=''{0}''\u3092\u63A5\u7D9A\u3068\u3057\u3066\u89E3\u6790\u3067\u304D\u307E\u305B\u3093\u3002''stdio''\u3001''\u805E\u304F:<\u30DD\u30FC\u30C8>''\u307E\u305F\u306F''\u63A5\u7D9A\u3059\u308B:<\u30DD\u30FC\u30C8>''\u3092\u4F7F\u7528\u3057\u307E\u3059
++MSG_PortParseError=''{0}''\u306E\u30DD\u30FC\u30C8\u3068\u3057\u3066''{1}''\u3092\u89E3\u6790\u3067\u304D\u307E\u305B\u3093
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties
+new file mode 100755
+index 000000000..e1ab4370a
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties
+@@ -0,0 +1,18 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++MSG_FrameRestartFailed=\u30D5\u30EC\u30FC\u30E0: {0}\u3092\u518D\u8D77\u52D5\u3067\u304D\u307E\u305B\u3093
++MSG_FrameRestartUnsupported=\u30D5\u30EC\u30FC\u30E0\u306E\u518D\u8D77\u52D5\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_ja.properties
+new file mode 100755
+index 000000000..616122c99
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_ja.properties
+@@ -0,0 +1,33 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++DESC_HostName=\u63A5\u7D9A\u3059\u308B\u30DB\u30B9\u30C8\u30FB\u30DE\u30B7\u30F3\u306E\u540D\u524D\u307E\u305F\u306FIP\u30A2\u30C9\u30EC\u30B9
++DESC_Port=\u63A5\u7D9A\u3059\u308B\u30DD\u30FC\u30C8\u756A\u53F7
++DESC_Process=\u30C7\u30D0\u30C3\u30B0\u5BFE\u8C61\u306E\u30D7\u30ED\u30BB\u30B9ID
++DESC_ShMem=\u30BF\u30FC\u30B2\u30C3\u30C8VM\u304C\u30EA\u30B9\u30CB\u30F3\u30B0\u3057\u3066\u3044\u308B\u5171\u6709\u30E1\u30E2\u30EA\u30FC\u30FB\u30C8\u30E9\u30F3\u30B9\u30DD\u30FC\u30C8\u30FB\u30A2\u30C9\u30EC\u30B9
++LBL_AttachBy={0}\u306B\u3088\u3063\u3066\u30A2\u30BF\u30C3\u30C1
++LBL_AttachToPort=\u30DD\u30FC\u30C8\u306B\u30A2\u30BF\u30C3\u30C1
++LBL_AttachToProcess=\u30D7\u30ED\u30BB\u30B9\u306B\u30A2\u30BF\u30C3\u30C1
++LBL_AttachToShmem=\u5171\u6709\u30E1\u30E2\u30EA\u30FC\u306B\u30A2\u30BF\u30C3\u30C1
++LBL_ListenForAttach=\u30A2\u30BF\u30C3\u30C1\u3059\u308B\u30C7\u30D0\u30C3\u30B0\u5BFE\u8C61\u3092\u30EA\u30B9\u30CB\u30F3\u30B0
++LBL_ListenOnPort=\u30DD\u30FC\u30C8\u3067\u30EA\u30B9\u30CB\u30F3\u30B0
++LBL_PickNativeProcessAttach=\u30A2\u30BF\u30C3\u30C1\u3059\u308B\u30CD\u30A4\u30C6\u30A3\u30D6\u30FB\u30A4\u30E1\u30FC\u30B8\u30FB\u30D7\u30ED\u30BB\u30B9\u306E\u9078\u629E:
++LBL_PickProcessAttach=\u30A2\u30BF\u30C3\u30C1\u3059\u308BJVM\u30D7\u30ED\u30BB\u30B9\u306E\u9078\u629E:
++MSG_ConnectorInvalidValue={0}\u306E\u5024\u304C\u7121\u52B9\u3067\u3059: {1}
++MSG_FailedToAttach=\u30A2\u30BF\u30C3\u30C1\u306B\u5931\u6557\u3057\u307E\u3057\u305F
++MSG_InvalidConnector=\u30B3\u30CD\u30AF\u30BF\u540D\u304C\u7121\u52B9\u3067\u3059: {0}
++MSG_NoDebuggableProcess=\u30C7\u30D0\u30C3\u30B0\u53EF\u80FD\u306AJVM\u30D7\u30ED\u30BB\u30B9\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002`-agentlib:jdwp=transport=dt_socket,server=y`\u30AA\u30D7\u30B7\u30E7\u30F3\u3092\u4F7F\u7528\u3059\u308B\u3088\u3046\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002
++MSG_UnknownNIPath=\u4E0D\u660E\u306A\u30CD\u30A4\u30C6\u30A3\u30D6\u30FB\u30A4\u30E1\u30FC\u30B8\u30FB\u30D1\u30B9\u3002`nativeImagePath`\u3092\u8A2D\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_ja.properties
+new file mode 100755
+index 000000000..7c9769a3e
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_ja.properties
+@@ -0,0 +1,22 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++ERR_LaunchDefaultConfiguration=\u30C7\u30D5\u30A9\u30EB\u30C8\u306E\u3082\u306E\u3002
++ERR_LaunchSupportiveConfigName="{0}"
++ERR_UnsupportedLaunch=\u3053\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u3067\u306F\u5B9F\u884C\u4E2D\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002
++ERR_UnsupportedLaunchConfig=\u5B9F\u884C\u4E2D\u306F\u69CB\u6210"{0}"\u3067\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002{1}\u306B\u5207\u308A\u66FF\u3048\u3066\u304F\u3060\u3055\u3044\u3002
++ERR_UnsupportedLaunchDebug=\u3053\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u3067\u306F\u30C7\u30D0\u30C3\u30B0\u4E2D\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002
++ERR_UnsupportedLaunchDebugConfig=\u30C7\u30D0\u30C3\u30B0\u4E2D\u306F\u69CB\u6210"{0}"\u3067\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002{1}\u306B\u5207\u308A\u66FF\u3048\u3066\u304F\u3060\u3055\u3044
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties
+new file mode 100755
+index 000000000..008c8ad8f
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties
+@@ -0,0 +1,26 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++ProjectProblem_Title=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}: {1}
++ProjectProblems_Additional={1}\u3002\u8FFD\u52A0\u4FEE\u6B63({0})\u304C\u4F7F\u7528\u53EF\u80FD\u3067\u3059\u3002
++ProjectProblems_Fixable_Title=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}: {1}
++ProjectProblems_Resolved_Error=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u554F\u984C\u304C\u4FEE\u6B63\u3055\u308C\u3066\u3044\u307E\u305B\u3093
++ProjectProblems_Resolved_ErrorMessage1="{0}"\u306E\u4FEE\u6B63\u306B\u5931\u6557\u3057\u307E\u3057\u305F: {1}
++ProjectProblems_Resolved_ErrorMessage2="{0}"\u306E\u4FEE\u6B63\u306B\u5931\u6557\u3057\u307E\u3057\u305F: {1}\u3002{2}
++ProjectProblems_Resolved_Info=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u554F\u984C\u306F\u89E3\u6C7A\u3055\u308C\u307E\u3057\u305F
++ProjectProblems_Resolved_Warning=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u554F\u984C\u306F\u89E3\u6C7A\u3055\u308C\u307E\u3057\u305F
++ProjectProblems_Resolved_WarningMessage1=\u554F\u984C"{0}"\u306F\u89E3\u6C7A\u3055\u308C\u307E\u3057\u305F: {1}
++ProjectProblems_Resolved_WarningMessage2=\u554F\u984C"{0}"\u306F\u89E3\u6C7A\u3055\u308C\u307E\u3057\u305F: {1}
 diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
 new file mode 100755
-index 000000000..88b6b4608
+index 000000000..8a85dd0a6
 --- /dev/null
 +++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,87 @@
 +# Licensed to the Apache Software Foundation (ASF) under one
 +# or more contributor license agreements.  See the NOTICE file
 +# distributed with this work for additional information
@@ -33,12 +182,532 @@ index 000000000..88b6b4608
 +LBL_Clean=\u6D88\u53BB
 +LBL_Build=\u4F5C\u6210
 +LBL_ContinuousMode=\u9023\u7D9A\u30E2\u30FC\u30C9
++
++CTL_TemplateUI_SelectGroup=\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u30FB\u30BF\u30A4\u30D7\u306E\u9078\u629E
++CTL_TemplateUI_SelectName=\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306E\u540D\u524D\u3002
++CTL_TemplateUI_SelectPackageName=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u30D1\u30C3\u30B1\u30FC\u30B8\u540D\u3002
++CTL_TemplateUI_SelectPackageNameSuggestion=org.yourcompany.yourproject
++CTL_TemplateUI_SelectProjectTarget=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u30FB\u30C7\u30A3\u30EC\u30AF\u30C8\u30EA\u306E\u6307\u5B9A
++CTL_TemplateUI_SelectTarget=\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306E\u914D\u7F6E\u5148\u3002
++CTL_TemplateUI_SelectTemplate=\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u306E\u9078\u629E
++DN_ConstructorAlreadyExists=\u6307\u5B9A\u306E\u30B3\u30F3\u30B9\u30C8\u30E9\u30AF\u30BF\u306F\u3059\u3067\u306B\u5B58\u5728\u3057\u307E\u3059
++DN_From=({0}\u304B\u3089)
++DN_GenerateConstructor=\u30B3\u30F3\u30B9\u30C8\u30E9\u30AF\u30BF\u306E\u751F\u6210...
++DN_GenerateDelegateMethod=\u59D4\u8B72\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
++DN_GenerateEquals=equals()...\u306E\u751F\u6210
++DN_GenerateEqualsHashCode=equals()\u304A\u3088\u3073hashCode()\u306E\u751F\u6210...
++DN_GenerateGetterFor="{0}"\u306E\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210
++DN_GenerateGetterSetterFor="{0}"\u306E\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u3068\u8A2D\u5B9A\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210
++DN_GenerateGetters=\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
++DN_GenerateGettersSetters=\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u304A\u3088\u3073\u8A2D\u5B9A\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
++DN_GenerateHashCode=hashCode()\u306E\u751F\u6210...
++DN_GenerateImplementMethod=\u5B9F\u88C5\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
++DN_GenerateLogger=\u30ED\u30AC\u30FC\u306E\u751F\u6210...
++DN_GenerateOverrideMethod=\u30AA\u30FC\u30D0\u30FC\u30E9\u30A4\u30C9\u30FB\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
++DN_GenerateSetterFor="{0}"\u306E\u8A2D\u5B9A\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210
++DN_GenerateSetters=\u8A2D\u5B9A\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
++DN_GenerateTestClass=\u30C6\u30B9\u30C8\u306E\u751F\u6210...
++DN_GenerateToString=toString()\u306E\u751F\u6210...
++DN_NoTypeFound=\u958B\u304B\u308C\u305F\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u5185\u306B\u30BF\u30A4\u30D7\u306F\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F
++DN_OrganizeImports=\u30A4\u30F3\u30DD\u30FC\u30C8\u306E\u7DE8\u6210
++DN_ProvideClassName=\u30BF\u30FC\u30B2\u30C3\u30C8\u30FB\u30C6\u30B9\u30C8\u30FB\u30AF\u30E9\u30B9\u540D\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044
++DN_SelectConstructorFields=\u30B3\u30F3\u30B9\u30C8\u30E9\u30AF\u30BF\u3067\u521D\u671F\u5316\u3059\u308B\u30D5\u30A3\u30FC\u30EB\u30C9\u306E\u9078\u629E
++DN_SelectDelegateMethodField=\u59D4\u8B72\u3092\u751F\u6210\u3059\u308B\u305F\u3081\u306E\u30BF\u30FC\u30B2\u30C3\u30C8\u30FB\u30D5\u30A3\u30FC\u30EB\u30C9\u306E\u9078\u629E
++DN_SelectDelegateMethods=\u59D4\u8B72\u3092\u751F\u6210\u3059\u308B\u305F\u3081\u306E\u30E1\u30BD\u30C3\u30C9\u306E\u9078\u629E
++DN_SelectEquals=equals()\u306B\u542B\u3081\u308B\u30D5\u30A3\u30FC\u30EB\u30C9\u306E\u9078\u629E
++DN_SelectEqualsHashCode=equals()\u3068hashCode()\u306B\u542B\u3081\u308B\u30D5\u30A3\u30FC\u30EB\u30C9\u306E\u9078\u629E
++DN_SelectFramework=\u4F7F\u7528\u3059\u308B\u30C6\u30B9\u30C8\u30FB\u30D5\u30EC\u30FC\u30E0\u30EF\u30FC\u30AF\u306E\u9078\u629E
++DN_SelectGetters=\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u3092\u751F\u6210\u3059\u308B\u30D5\u30A3\u30FC\u30EB\u30C9\u306E\u9078\u629E
++DN_SelectGettersSetters=\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u304A\u3088\u3073\u8A2D\u5B9A\u30E1\u30BD\u30C3\u30C9\u3092\u751F\u6210\u3059\u308B\u30D5\u30A3\u30FC\u30EB\u30C9\u306E\u9078\u629E
++DN_SelectHashCode=hashCode()\u306B\u542B\u3081\u308B\u30D5\u30A3\u30FC\u30EB\u30C9\u306E\u9078\u629E
++DN_SelectImplementMethod=\u5B9F\u88C5\u3059\u308B\u30E1\u30BD\u30C3\u30C9\u306E\u9078\u629E
++DN_SelectLoggerName=\u30ED\u30AC\u30FC\u30FB\u30D5\u30A3\u30FC\u30EB\u30C9\u540D
++DN_SelectOverrideMethod=\u30AA\u30FC\u30D0\u30FC\u30E9\u30A4\u30C9\u3059\u308B\u30E1\u30BD\u30C3\u30C9\u306E\u9078\u629E
++DN_SelectSetters=\u8A2D\u5B9A\u30E1\u30BD\u30C3\u30C9\u3092\u751F\u6210\u3059\u308B\u30D5\u30A3\u30FC\u30EB\u30C9\u306E\u9078\u629E
++DN_SelectSuperConstructor=\u30B9\u30FC\u30D1\u30FC\u30FB\u30B3\u30F3\u30B9\u30C8\u30E9\u30AF\u30BF\u306E\u9078\u629E
++DN_SelectToString=toString()\u306B\u542B\u3081\u308B\u30D5\u30A3\u30FC\u30EB\u30C9\u306E\u9078\u629E
++DN_SelectType=\u958B\u304F\u30BF\u30A4\u30D7\u306E\u9078\u629E
++DN_SurroundWith={0}\u3067\u56F2\u3080
++DN_SurroundWithAll=\u56F2\u3080...
++ERR_ExistingPath={0}\u306F\u3059\u3067\u306B\u5B58\u5728\u3057\u307E\u3059
++ERR_InvalidPath={0}\u306F\u6709\u52B9\u306A\u30D5\u30A9\u30EB\u30C0\u3067\u306F\u3042\u308A\u307E\u305B\u3093
++LBL_LaunchJavaConfig=Java\u306E\u8D77\u52D5: {0}
++LBL_LaunchJavaConfig_desc={0}\u3092\u4F7F\u7528\u3057\u3066Java\u30A2\u30D7\u30EA\u30B1\u30FC\u30B7\u30E7\u30F3\u3092\u8D77\u52D5\u3057\u307E\u3059\u3002
++MSG_ProjectFolderInitializationComplete=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
++MSG_ProjectFolderInitializationComplete2={0}\u304A\u3088\u3073{1}\u306E\u4ED6\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
++PROMPT_AskOpenProject=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u3059\u3079\u3066\u306E\u6A5F\u80FD\u3092\u6709\u52B9\u306B\u3059\u308B\u306B\u306F\u3001\u8A00\u8A9E\u30B5\u30FC\u30D0\u30FC\u306B\u3088\u3063\u3066\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u304C\u958B\u304B\u308C\u3001\u521D\u671F\u5316\u3055\u308C\u3066\u3044\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002\u7D9A\u884C\u3057\u307E\u3059\u304B\u3002
++PROMPT_AskOpenProjectForFile=\u30D5\u30A1\u30A4\u30EB{0}\u306F\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{1}\u306B\u5C5E\u3057\u3066\u3044\u307E\u3059\u3002\u3059\u3079\u3066\u306E\u6A5F\u80FD\u3092\u6709\u52B9\u306B\u3059\u308B\u306B\u306F\u3001\u8A00\u8A9E\u30B5\u30FC\u30D0\u30FC\u306B\u3088\u3063\u3066\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u304C\u958B\u304B\u308C\u3001\u521D\u671F\u5316\u3055\u308C\u3066\u3044\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002\u7D9A\u884C\u3057\u307E\u3059\u304B\u3002
++PROMPT_AskOpenProjectForFile_No=\u3044\u3044\u3048
++PROMPT_AskOpenProjectForFile_Unnamed=(\u7121\u540D)
++PROMPT_AskOpenProjectForFile_Yes=\u958B\u3044\u3066\u521D\u671F\u5316
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties
+new file mode 100755
+index 000000000..f4eca0c80
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties
+@@ -0,0 +1,31 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++DN_ChangeMethodParams=\u30E1\u30BD\u30C3\u30C9\u30FB\u30D1\u30E9\u30E1\u30FC\u30BF\u306E\u5909\u66F4...
++DN_ChangeMethodSignature=\u30E1\u30BD\u30C3\u30C9\u30FB\u30B7\u30B0\u30CB\u30C1\u30E3\u306E\u5909\u66F4
++DN_CreateNewClass=<\u65B0\u898F\u30AF\u30E9\u30B9\u306E\u4F5C\u6210>
++DN_DefaultPackage=<\u30C7\u30D5\u30A9\u30EB\u30C8\u30FB\u30D1\u30C3\u30B1\u30FC\u30B8>
++DN_ExtractInterface=\u30A4\u30F3\u30BF\u30D5\u30A7\u30FC\u30B9\u306E\u62BD\u51FA...
++DN_ExtractSuperclass=\u30B9\u30FC\u30D1\u30FC\u30AF\u30E9\u30B9\u306E\u62BD\u51FA...
++DN_Move=\u79FB\u52D5...
++DN_PullUp=\u30D7\u30EB\u30FB\u30A2\u30C3\u30D7...
++DN_PushDown=\u30D7\u30C3\u30B7\u30E5\u30FB\u30C0\u30A6\u30F3...
++DN_SelectClassName=\u30AF\u30E9\u30B9\u540D\u306E\u9078\u629E
++DN_SelectInterfaceName=\u30A4\u30F3\u30BF\u30D5\u30A7\u30FC\u30B9\u540D\u306E\u9078\u629E
++DN_SelectMembersToExtract=\u62BD\u51FA\u3059\u308B\u30E1\u30F3\u30D0\u30FC\u306E\u9078\u629E
++DN_SelectMembersToPullUp=\u30D7\u30EB\u30FB\u30A2\u30C3\u30D7\u3059\u308B\u30E1\u30F3\u30D0\u30FC\u306E\u9078\u629E
++DN_SelectMembersToPushDown=\u30D7\u30C3\u30B7\u30E5\u30FB\u30C0\u30A6\u30F3\u3059\u308B\u30E1\u30F3\u30D0\u30FC\u306E\u9078\u629E
++DN_SelectTargetSupertype=\u30BF\u30FC\u30B2\u30C3\u30C8\u30FB\u30B9\u30FC\u30D1\u30FC\u30BF\u30A4\u30D7\u306E\u9078\u629E
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html
+new file mode 100755
+index 000000000..0876db7a8
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html
+@@ -0,0 +1,59 @@
++<!DOCTYPE html>
++<html lang="en">
++
++<head>
++    <meta charset="UTF-8">
++    <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="refactoring.css">
++    <link rel="stylesheet" href="codicon.css">
++    <title>リファクタ: メソッド・パラメータの変更...</title>
++<meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
++
++<body>
++    <div class="section">
++        <div class="flex vdivider">
++            <div>
++                <label>アクセス:</label>
++                <select data-bind="options: availableModifiers, value: selectedModifier"></select>
++            </div>
++            <div class="flex-grow hdivider">
++                <label>戻す:</label>
++                <input type="text" data-bind="textInput: returnType">
++            </div>
++            <div class="flex-grow hdivider">
++                <label>名前:</label>
++                <input type="text" data-bind="textInput: name">
++            </div>
++        </div>
++        <label>パラメータ:</label>
++        <div class="flex">
++            <label class="flex-grow params-caption">タイプ:</label>
++            <label class="flex-grow params-caption">名前:</label>
++            <span class="filler"></span>
++        </div>
++    </div>
++    <div class="flex-vscrollable section2" data-bind="foreach: parameters">
++        <div class="flex row">
++            <input type="text" data-bind="textInput: type" class="flex-grow">
++            <input type="text" data-bind="textInput: name" class="flex-grow">
++            <button class="action-button codicon codicon-arrow-up" data-bind="click: $root.moveUpParameter"></button>
++            <button class="action-button codicon codicon-arrow-down" data-bind="click: $root.moveDownParameter"></button>
++            <button class="action-button codicon codicon-trash" data-bind="click: $root.removeParameter"></button>
++        </div>
++    </div>
++    <div class="add-param flex">
++        <button id="addParam" class="silent-button codicon codicon-add full-width flex-grow" data-bind="click: addParameter"><span class="button-text vscode-font">パラメータの追加</span></button>
++    </div>
++    <div class="section">
++        <label>署名プレビュー:</label>
++    </div>
++    <div class="section1">
++        <p class="preview-panel" data-bind="text: preview"></p>
++    </div>
++    <div>
++        <button id="accept" hidden class="regular-button vscode-font align-right">リファクタ</button>
++        <button id="reject" hidden class="regular-button vscode-font">取消</button>
++    </div>
++</body>
++</html>
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html
+new file mode 100755
+index 000000000..5e8d20142
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html
+@@ -0,0 +1,46 @@
++<!DOCTYPE html>
++<html lang="en">
++
++<head>
++    <meta charset="UTF-8">
++    <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="refactoring.css">
++    <title>リファクタ: クラスの移動...</title>
++<meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
++
++<body>
++    <div class="section">
++        <label>クラスを<span class="vscode-editor-font" data-bind="text: from"></span>次へ移動:</label>
++    </div>
++    <div class="section3">
++        <div class="flex vdivider2">
++            <div class="flex-equal">
++                <label>プロジェクト:</label>
++                <select data-bind="options: availableProjects, optionsText: 'name', value: selectedProject"></select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>場所:</label>
++                <select data-bind="options: availableRoots, optionsText: 'name', value: selectedRoot">
++                </select>
++            </div>
++        </div>
++        <div class="flex vdivider">
++            <div class="flex-equal">
++                <label>パッケージ:</label>
++                <select data-bind="options: availablePackages, value: selectedPackage">
++                </select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>クラス:</label>
++                <select data-bind="options: availableClasses, optionsText: 'label', value: selectedClass">
++                </select>
++            </div>
++        </div>
++    </div>
++    <div class="flex section">
++        <button id="accept" hidden class="regular-button vscode-font align-right">リファクタ</button>
++        <button id="reject" hidden class="regular-button vscode-font">取消</button>
++    </div>
++</body>
++</html>
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html
+new file mode 100755
+index 000000000..282e5e52a
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html
+@@ -0,0 +1,75 @@
++<!DOCTYPE html>
++<html lang="en">
++
++<head>
++    <meta charset="UTF-8">
++    <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="refactoring.css">
++    <title>リファクタ: メンバーの移動...</title>
++<meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
++
++<body>
++    <div class="section">
++        <label>メンバーを次から移動<span class="vscode-editor-font" data-bind="text: from"></span>:</label>
++    </div>
++    <div class="section3">
++        <div class="flex vdivider2">
++            <div class="flex-equal">
++                <label>プロジェクト:</label>
++                <select data-bind="options: availableProjects, optionsText: 'name', value: selectedProject"></select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>場所:</label>
++                <select data-bind="options: availableRoots, optionsText: 'name', value: selectedRoot">
++                </select>
++            </div>
++        </div>
++        <div class="flex vdivider">
++            <div class="flex-equal">
++                <label>パッケージ:</label>
++                <select data-bind="options: availablePackages, value: selectedPackage">
++                </select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>クラス:</label>
++                <select data-bind="options: availableClasses, optionsText: 'label', value: selectedClass">
++                </select>
++            </div>
++        </div>
++        <div class="flex vdivider">
++            <div class="flex-equal">
++                <label>可視性:</label>
++                <select data-bind="options: availableVisibilities, value: selectedVisibility">
++                </select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>JavaDoc:</label>
++                <select data-bind="options: availableJavaDoc, value: selectedJavaDoc">
++                </select>
++            </div>
++        </div>
++        <label>移動するメンバー:</label>
++    </div>
++    <div class="flex-vscrollable section1 row-always-visible">
++        <nobr data-bind="foreach: members">
++            <div class="flex row">
++                <input type="checkbox" data-bind="checked: selected, attr: {id: 'member_' + $index()}">
++                <label class="checkbox-label vscode-editor-font" data-bind="text: label, attr: {for: 'member_' + $index()}"></label>
++            </div>
++        </nobr>
++    </div>
++    <div class="flex section">
++        <input type="checkbox" id="keep_original" data-bind="checked: keepMethodSelected">
++        <label class="checkbox-label" for="keep_original">元のメソッドを維持し、移動したメソッドに委譲する</label>
++    </div>
++    <div class="flex section-nested">
++        <input type="checkbox" id="deprecate_old" data-bind="checked: deprecateMethodSelected, enable: keepMethodSelected">
++        <label class="checkbox-label" for="deprecate_old">古いメソッドを非推奨にする</label>
++    </div>
++    <div class="flex section">
++        <button id="accept" hidden class="regular-button vscode-font align-right">リファクタ</button>
++        <button id="reject" hidden class="regular-button vscode-font">取消</button>
++    </div>
++</body>
++</html>
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/ui/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/ui/Bundle_ja.properties
+new file mode 100755
+index 000000000..adb9f9396
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/ui/Bundle_ja.properties
+@@ -0,0 +1,22 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++MSG_InvalidInput=\u7121\u52B9\u306A\u5165\u529B\u3067\u3059
++MSG_NoHtmlUI=HTML UI\u306F\u30AF\u30E9\u30A4\u30A2\u30F3\u30C8\u3067\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002
++OPTION_Cancel=\u53D6\u6D88
++OPTION_No=\u3044\u3044\u3048
++OPTION_OK=OK
++OPTION_Yes=\u306F\u3044
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/Bundle_ja.properties
+new file mode 100755
+index 000000000..822891777
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/Bundle_ja.properties
+@@ -0,0 +1,20 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++CTL_MavenArchetypeDisplayName=Maven\u539f\u578b
++GeneratedMethodBody=\u751F\u6210\u3055\u308C\u305F\u30E1\u30BD\u30C3\u30C9\u672C\u4F53
++LambdaBody=\u751F\u6210\u3055\u308C\u305F\u30E9\u30E0\u30C0\u672C\u4F53
++OverriddenMethodBody=\u30AA\u30FC\u30D0\u30FC\u30E9\u30A4\u30C9\u3055\u308C\u305F\u30E1\u30BD\u30C3\u30C9\u672C\u4F53
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/commands/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/commands/Bundle_ja.properties
+new file mode 100755
+index 000000000..109efd701
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/commands/Bundle_ja.properties
+@@ -0,0 +1,18 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++ERR_FileNotInProject=\u3069\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306B\u3082{0}\u30D5\u30A1\u30A4\u30EB\u304C\u3042\u308A\u307E\u305B\u3093\u3002
++ERR_InvalidFileUri=\u4E0D\u6B63\u306AURI: {0}
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..e508a10a2
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_zh_CN.properties
+@@ -0,0 +1,20 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++DESC_StartJavaDebugAdapterServer=\u542F\u52A8 Java Debug Adapter Server
++DESC_StartJavaLanguageServer=\u542F\u52A8 Java Language Server
++MSG_ConnectionSpecError=\u8BED\u6CD5\u5206\u6790\u65E0\u6CD5\u5C06 ''{0}'' \u8F6C\u6362\u4E3A\u8FDE\u63A5\u3002\u8BF7\u4F7F\u7528 ''stdio''\u3001''\u542C:<\u0020\u7AEF\u53E3>'' \u6216 ''\u8FDE\u63A5:<\u0020\u7AEF\u53E3>''
++MSG_PortParseError=\u65E0\u6CD5\u5BF9 ''{1}'' \u8FDB\u884C\u8BED\u6CD5\u5206\u6790\uFF0C\u56E0\u4E3A\u7AEF\u53E3\u91C7\u7528 ''{0}''
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..8fb38714e
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_zh_CN.properties
+@@ -0,0 +1,18 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++MSG_FrameRestartFailed=\u65E0\u6CD5\u91CD\u65B0\u542F\u52A8\u6846\u67B6\uFF1A{0}
++MSG_FrameRestartUnsupported=\u4E0D\u652F\u6301\u91CD\u65B0\u542F\u52A8\u6846\u67B6\u3002
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..92de456d7
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_zh_CN.properties
+@@ -0,0 +1,33 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++DESC_HostName=\u8981\u8FDE\u63A5\u5230\u7684\u4E3B\u673A\u7684\u540D\u79F0\u6216 IP \u5730\u5740
++DESC_Port=\u8981\u8FDE\u63A5\u5230\u7684\u7AEF\u53E3\u53F7
++DESC_Process=\u88AB\u8C03\u8BD5\u7A0B\u5E8F\u7684\u8FDB\u7A0B ID
++DESC_ShMem=\u76EE\u6807 VM \u76D1\u542C\u7684\u5171\u4EAB\u5185\u5B58\u4F20\u8F93\u5730\u5740
++LBL_AttachBy=\u7531 {0} \u9644\u52A0
++LBL_AttachToPort=\u9644\u52A0\u5230\u7AEF\u53E3
++LBL_AttachToProcess=\u9644\u52A0\u5230\u8FDB\u7A0B
++LBL_AttachToShmem=\u9644\u52A0\u5230\u5171\u4EAB\u5185\u5B58
++LBL_ListenForAttach=\u76D1\u542C\u8981\u9644\u52A0\u7684\u88AB\u8C03\u8BD5\u7A0B\u5E8F
++LBL_ListenOnPort=\u76D1\u542C\u7AEF\u53E3
++LBL_PickNativeProcessAttach=\u9009\u53D6\u8981\u9644\u52A0\u5230\u7684\u672C\u673A\u6620\u50CF\u8FDB\u7A0B\uFF1A
++LBL_PickProcessAttach=\u9009\u53D6\u8981\u9644\u52A0\u5230\u7684 JVM \u8FDB\u7A0B\uFF1A
++MSG_ConnectorInvalidValue={0} \u7684\u503C\u65E0\u6548\uFF1A{1}
++MSG_FailedToAttach=\u65E0\u6CD5\u9644\u52A0\u3002
++MSG_InvalidConnector=\u8FDE\u63A5\u5668\u540D\u79F0\u65E0\u6548\uFF1A{0}
++MSG_NoDebuggableProcess=\u672A\u627E\u5230\u53EF\u8C03\u8BD5\u7684 JVM \u8FDB\u7A0B\u3002\u8BF7\u52A1\u5FC5\u4F7F\u7528 `-agentlib:jdwp=transport=dt_socket,server=y` \u9009\u9879\u3002
++MSG_UnknownNIPath=\u672C\u673A\u6620\u50CF\u8DEF\u5F84\u672A\u77E5\u3002\u8BF7\u8BBE\u7F6E `nativeImagePath`\u3002
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..cdca82a59
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_zh_CN.properties
+@@ -0,0 +1,22 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++ERR_LaunchDefaultConfiguration=\u9ED8\u8BA4\u914D\u7F6E\u3002
++ERR_LaunchSupportiveConfigName="{0}"
++ERR_UnsupportedLaunch=\u6B64\u9879\u76EE\u4E0D\u652F\u6301\u8FD0\u884C\u3002
++ERR_UnsupportedLaunchConfig=\u914D\u7F6E "{0}" \u4E0D\u652F\u6301\u8FD0\u884C\uFF0C\u8BF7\u5207\u6362\u5230 {1}\u3002
++ERR_UnsupportedLaunchDebug=\u6B64\u9879\u76EE\u4E0D\u652F\u6301\u8C03\u8BD5\u3002
++ERR_UnsupportedLaunchDebugConfig=\u914D\u7F6E "{0}" \u4E0D\u652F\u6301\u8C03\u8BD5\uFF0C\u8BF7\u5207\u6362\u5230 {1}
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..a5f769359
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties
+@@ -0,0 +1,26 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++ProjectProblem_Title=\u9879\u76EE {0}\uFF1A{1}
++ProjectProblems_Additional={1}\u3002\u6709\u5176\u4ED6\u4FEE\u590D ({0}) \u53EF\u7528\u3002
++ProjectProblems_Fixable_Title=\u9879\u76EE {0}\uFF1A{1}
++ProjectProblems_Resolved_Error=\u672A\u4FEE\u590D\u9879\u76EE {0} \u95EE\u9898
++ProjectProblems_Resolved_ErrorMessage1="{0}" \u7684\u4FEE\u590D\u5931\u8D25\uFF1A{1}
++ProjectProblems_Resolved_ErrorMessage2="{0}" \u7684\u4FEE\u590D\u5931\u8D25\uFF1A{1}\u3002{2}
++ProjectProblems_Resolved_Info=\u5DF2\u89E3\u51B3\u9879\u76EE {0} \u95EE\u9898
++ProjectProblems_Resolved_Warning=\u5DF2\u89E3\u51B3\u9879\u76EE {0} \u95EE\u9898
++ProjectProblems_Resolved_WarningMessage1=\u5DF2\u89E3\u51B3\u95EE\u9898 "{0}"\uFF1A{1}
++ProjectProblems_Resolved_WarningMessage2=\u5DF2\u89E3\u51B3\u95EE\u9898 "{0}"\uFF1A{1}
 diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
 new file mode 100755
-index 000000000..97a321575
+index 000000000..3b060015d
 --- /dev/null
 +++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,87 @@
 +# Licensed to the Apache Software Foundation (ASF) under one
 +# or more contributor license agreements.  See the NOTICE file
 +# distributed with this work for additional information
@@ -68,4 +737,374 @@ index 000000000..97a321575
 +LBL_Clean=\u6E05\u9664
 +LBL_Build=\u6784\u5EFA
 +LBL_ContinuousMode=\u8FDE\u7EED\u6A21\u5F0F
-\ No newline at end of file
++
++CTL_TemplateUI_SelectGroup=\u9009\u62E9\u6A21\u677F\u7C7B\u578B
++CTL_TemplateUI_SelectName=\u5BF9\u8C61\u7684\u540D\u79F0\uFF1F
++CTL_TemplateUI_SelectPackageName=\u9879\u76EE\u7684\u7A0B\u5E8F\u5305\u540D\u79F0\uFF1F
++CTL_TemplateUI_SelectPackageNameSuggestion=org.yourcompany.yourproject
++CTL_TemplateUI_SelectProjectTarget=\u6307\u5B9A\u9879\u76EE\u76EE\u5F55
++CTL_TemplateUI_SelectTarget=\u5C06\u5BF9\u8C61\u653E\u7F6E\u5728\u4F55\u5904\uFF1F
++CTL_TemplateUI_SelectTemplate=\u9009\u62E9\u6A21\u677F
++DN_ConstructorAlreadyExists=\u7ED9\u5B9A\u7684\u6784\u9020\u51FD\u6570\u5DF2\u5B58\u5728
++DN_From=\uFF08\u6765\u81EA {0}\uFF09
++DN_GenerateConstructor=\u751F\u6210\u6784\u9020\u51FD\u6570...
++DN_GenerateDelegateMethod=\u751F\u6210\u59D4\u6258\u65B9\u6CD5...
++DN_GenerateEquals=\u751F\u6210 equals()\u3002\u3002\u3002
++DN_GenerateEqualsHashCode=\u751F\u6210 equals() \u548C hashCode()\u3002\u3002\u3002
++DN_GenerateGetterFor=\u751F\u6210 "{0}" \u7684 \u5438\u6C14\u5242
++DN_GenerateGetterSetterFor=\u751F\u6210 "{0}" \u7684 \u5438\u6C14\u5242 \u548C \u4E8C\u4F20\u624B
++DN_GenerateGetters=\u751F\u6210 \u5438\u6C14\u5242...
++DN_GenerateGettersSetters=\u751F\u6210 \u5438\u6C14\u5242 \u548C \u4E8C\u4F20\u624B...
++DN_GenerateHashCode=\u751F\u6210 hashCode()...
++DN_GenerateImplementMethod=\u751F\u6210\u5B9E\u65BD\u65B9\u6CD5...
++DN_GenerateLogger=\u751F\u6210\u65E5\u5FD7\u8BB0\u5F55\u7A0B\u5E8F...
++DN_GenerateOverrideMethod=\u751F\u6210\u8986\u76D6\u65B9\u6CD5...
++DN_GenerateSetterFor=\u751F\u6210 "{0}" \u7684 \u4E8C\u4F20\u624B
++DN_GenerateSetters=\u751F\u6210 \u4E8C\u4F20\u624B...
++DN_GenerateTestClass=\u751F\u6210\u6D4B\u8BD5...
++DN_GenerateToString=\u751F\u6210 toString()...
++DN_NoTypeFound=\u5728\u6253\u5F00\u7684\u9879\u76EE\u4E2D\u672A\u627E\u5230\u7C7B\u578B
++DN_OrganizeImports=\u8C03\u6574\u8FDB\u53E3
++DN_ProvideClassName=\u8BF7\u952E\u5165\u76EE\u6807\u6D4B\u8BD5\u7C7B\u540D\u79F0
++DN_SelectConstructorFields=\u9009\u62E9\u5C06\u7531\u6784\u9020\u51FD\u6570\u521D\u59CB\u5316\u7684\u5B57\u6BB5
++DN_SelectDelegateMethodField=\u9009\u62E9\u8981\u751F\u6210\u59D4\u6258\u7684\u76EE\u6807\u5B57\u6BB5
++DN_SelectDelegateMethods=\u9009\u62E9\u8981\u751F\u6210\u59D4\u6258\u7684\u65B9\u6CD5
++DN_SelectEquals=\u9009\u62E9\u8981\u5305\u542B\u5728 equals() \u4E2D\u7684\u5B57\u6BB5
++DN_SelectEqualsHashCode=\u9009\u62E9\u8981\u5305\u542B\u5728 equals() \u548C hashCode() \u4E2D\u7684\u5B57\u6BB5
++DN_SelectFramework=\u9009\u62E9\u8981\u4F7F\u7528\u7684\u6D4B\u8BD5\u6846\u67B6
++DN_SelectGetters=\u9009\u62E9\u8981\u751F\u6210 \u5438\u6C14\u5242 \u7684\u5B57\u6BB5
++DN_SelectGettersSetters=\u9009\u62E9\u8981\u751F\u6210 \u5438\u6C14\u5242 \u548C \u4E8C\u4F20\u624B \u7684\u5B57\u6BB5
++DN_SelectHashCode=\u9009\u62E9\u8981\u5305\u542B\u5728 hashCode() \u4E2D\u7684\u5B57\u6BB5
++DN_SelectImplementMethod=\u9009\u62E9\u8981\u5B9E\u73B0\u7684\u65B9\u6CD5
++DN_SelectLoggerName=\u65E5\u5FD7\u8BB0\u5F55\u7A0B\u5E8F\u5B57\u6BB5\u540D\u79F0
++DN_SelectOverrideMethod=\u9009\u62E9\u8981\u8986\u76D6\u7684\u65B9\u6CD5
++DN_SelectSetters=\u9009\u62E9\u8981\u751F\u6210 \u4E8C\u4F20\u624B \u7684\u5B57\u6BB5
++DN_SelectSuperConstructor=\u9009\u62E9\u8D85\u7EA7\u6784\u9020\u51FD\u6570
++DN_SelectToString=\u9009\u62E9\u8981\u5305\u542B\u5728 toString() \u4E2D\u7684\u5B57\u6BB5
++DN_SelectType=\u9009\u62E9\u8981\u6253\u5F00\u7684\u7C7B\u578B
++DN_SurroundWith=\u7531 {0} \u5305\u542B
++DN_SurroundWithAll=\u5305\u542B\u65B9\u5F0F...
++ERR_ExistingPath={0} \u5DF2\u5B58\u5728
++ERR_InvalidPath={0} \u4E0D\u662F\u6709\u6548\u6587\u4EF6\u5939
++LBL_LaunchJavaConfig=\u542F\u52A8 Java\uFF1A{0}
++LBL_LaunchJavaConfig_desc=\u4F7F\u7528 {0} \u542F\u52A8 Java \u5E94\u7528\u7A0B\u5E8F\u3002
++MSG_ProjectFolderInitializationComplete=\u5DF2\u5B8C\u6210\u9879\u76EE {0} \u7684\u521D\u59CB\u5316
++MSG_ProjectFolderInitializationComplete2=\u5DF2\u5B8C\u6210 {0} \u548C {1} \u4E2A\u5176\u4ED6\u9879\u76EE\u7684\u521D\u59CB\u5316
++PROMPT_AskOpenProject=\u8981\u542F\u7528\u9879\u76EE {0} \u7684\u6240\u6709\u529F\u80FD\uFF0C\u5E94\u4F7F\u7528 Language Server \u6253\u5F00\u5E76\u521D\u59CB\u5316\u6B64\u9879\u76EE\u3002\u662F\u5426\u8981\u7EE7\u7EED\uFF1F
++PROMPT_AskOpenProjectForFile=\u6587\u4EF6 {0} \u5C5E\u4E8E\u9879\u76EE {1}\u3002\u8981\u542F\u7528\u6240\u6709\u529F\u80FD\uFF0C\u5E94\u4F7F\u7528 Language Server \u6253\u5F00\u5E76\u521D\u59CB\u5316\u6B64\u9879\u76EE\u3002\u662F\u5426\u8981\u7EE7\u7EED\uFF1F
++PROMPT_AskOpenProjectForFile_No=\u5426
++PROMPT_AskOpenProjectForFile_Unnamed=\uFF08\u672A\u547D\u540D\uFF09
++PROMPT_AskOpenProjectForFile_Yes=\u6253\u5F00\u5E76\u521D\u59CB\u5316
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..e608784a4
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties
+@@ -0,0 +1,31 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++DN_ChangeMethodParams=\u66F4\u6539\u65B9\u6CD5\u53C2\u6570...
++DN_ChangeMethodSignature=\u66F4\u6539\u65B9\u6CD5\u7B7E\u540D
++DN_CreateNewClass=<\u521B\u5EFA\u65B0\u7C7B>
++DN_DefaultPackage=<\u9ED8\u8BA4\u7A0B\u5E8F\u5305>
++DN_ExtractInterface=\u63D0\u53D6\u63A5\u53E3...
++DN_ExtractSuperclass=\u63D0\u53D6\u8D85\u7C7B...
++DN_Move=\u79FB\u52A8...
++DN_PullUp=\u4E0A\u79FB\u81F3\u8D85\u7C7B...
++DN_PushDown=\u4E0B\u79FB...
++DN_SelectClassName=\u9009\u62E9\u7C7B\u540D\u79F0
++DN_SelectInterfaceName=\u9009\u62E9\u63A5\u53E3\u540D\u79F0
++DN_SelectMembersToExtract=\u9009\u62E9\u8981\u63D0\u53D6\u7684\u6210\u5458
++DN_SelectMembersToPullUp=\u9009\u62E9\u8981\u4E0A\u79FB\u7684\u6210\u5458
++DN_SelectMembersToPushDown=\u9009\u62E9\u8981\u4E0B\u79FB\u7684\u6210\u5458
++DN_SelectTargetSupertype=\u9009\u62E9\u76EE\u6807\u8D85\u7C7B\u578B
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html
+new file mode 100755
+index 000000000..e27e1ae5a
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html
+@@ -0,0 +1,59 @@
++<!DOCTYPE html>
++<html lang="en">
++
++<head>
++    <meta charset="UTF-8">
++    <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="refactoring.css">
++    <link rel="stylesheet" href="codicon.css">
++    <title>重构：更改方法参数...</title>
++<meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
++
++<body>
++    <div class="section">
++        <div class="flex vdivider">
++            <div>
++                <label>访问：</label>
++                <select data-bind="options: availableModifiers, value: selectedModifier"></select>
++            </div>
++            <div class="flex-grow hdivider">
++                <label>返回：</label>
++                <input type="text" data-bind="textInput: returnType">
++            </div>
++            <div class="flex-grow hdivider">
++                <label>名称：</label>
++                <input type="text" data-bind="textInput: name">
++            </div>
++        </div>
++        <label>参数：</label>
++        <div class="flex">
++            <label class="flex-grow params-caption">类型：</label>
++            <label class="flex-grow params-caption">名称：</label>
++            <span class="filler"></span>
++        </div>
++    </div>
++    <div class="flex-vscrollable section2" data-bind="foreach: parameters">
++        <div class="flex row">
++            <input type="text" data-bind="textInput: type" class="flex-grow">
++            <input type="text" data-bind="textInput: name" class="flex-grow">
++            <button class="action-button codicon codicon-arrow-up" data-bind="click: $root.moveUpParameter"></button>
++            <button class="action-button codicon codicon-arrow-down" data-bind="click: $root.moveDownParameter"></button>
++            <button class="action-button codicon codicon-trash" data-bind="click: $root.removeParameter"></button>
++        </div>
++    </div>
++    <div class="add-param flex">
++        <button id="addParam" class="silent-button codicon codicon-add full-width flex-grow" data-bind="click: addParameter"><span class="button-text vscode-font">添加参数</span></button>
++    </div>
++    <div class="section">
++        <label>签名预览：</label>
++    </div>
++    <div class="section1">
++        <p class="preview-panel" data-bind="text: preview"></p>
++    </div>
++    <div>
++        <button id="accept" hidden class="regular-button vscode-font align-right">重构</button>
++        <button id="reject" hidden class="regular-button vscode-font">取消</button>
++    </div>
++</body>
++</html>
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html
+new file mode 100755
+index 000000000..4fa4b361c
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html
+@@ -0,0 +1,46 @@
++<!DOCTYPE html>
++<html lang="en">
++
++<head>
++    <meta charset="UTF-8">
++    <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="refactoring.css">
++    <title>重构：移动类...</title>
++<meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
++
++<body>
++    <div class="section">
++        <label>将类<span class="vscode-editor-font" data-bind="text: from"></span>移至：</label>
++    </div>
++    <div class="section3">
++        <div class="flex vdivider2">
++            <div class="flex-equal">
++                <label>项目：</label>
++                <select data-bind="options: availableProjects, optionsText: 'name', value: selectedProject"></select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>位置：</label>
++                <select data-bind="options: availableRoots, optionsText: 'name', value: selectedRoot">
++                </select>
++            </div>
++        </div>
++        <div class="flex vdivider">
++            <div class="flex-equal">
++                <label>程序包：</label>
++                <select data-bind="options: availablePackages, value: selectedPackage">
++                </select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>类：</label>
++                <select data-bind="options: availableClasses, optionsText: 'label', value: selectedClass">
++                </select>
++            </div>
++        </div>
++    </div>
++    <div class="flex section">
++        <button id="accept" hidden class="regular-button vscode-font align-right">重构</button>
++        <button id="reject" hidden class="regular-button vscode-font">取消</button>
++    </div>
++</body>
++</html>
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html
+new file mode 100755
+index 000000000..7be2a601f
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html
+@@ -0,0 +1,75 @@
++<!DOCTYPE html>
++<html lang="en">
++
++<head>
++    <meta charset="UTF-8">
++    <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="refactoring.css">
++    <title>重构：移动成员...</title>
++<meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
++
++<body>
++    <div class="section">
++        <label>将成员<span class="vscode-editor-font" data-bind="text: from"></span>移至：</label>
++    </div>
++    <div class="section3">
++        <div class="flex vdivider2">
++            <div class="flex-equal">
++                <label>项目：</label>
++                <select data-bind="options: availableProjects, optionsText: 'name', value: selectedProject"></select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>位置：</label>
++                <select data-bind="options: availableRoots, optionsText: 'name', value: selectedRoot">
++                </select>
++            </div>
++        </div>
++        <div class="flex vdivider">
++            <div class="flex-equal">
++                <label>程序包：</label>
++                <select data-bind="options: availablePackages, value: selectedPackage">
++                </select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>类：</label>
++                <select data-bind="options: availableClasses, optionsText: 'label', value: selectedClass">
++                </select>
++            </div>
++        </div>
++        <div class="flex vdivider">
++            <div class="flex-equal">
++                <label>可见性：</label>
++                <select data-bind="options: availableVisibilities, value: selectedVisibility">
++                </select>
++            </div>
++            <div class="flex-equal hdivider">
++                <label>JavaDoc：</label>
++                <select data-bind="options: availableJavaDoc, value: selectedJavaDoc">
++                </select>
++            </div>
++        </div>
++        <label>要移动的成员：</label>
++    </div>
++    <div class="flex-vscrollable section1 row-always-visible">
++        <nobr data-bind="foreach: members">
++            <div class="flex row">
++                <input type="checkbox" data-bind="checked: selected, attr: {id: 'member_' + $index()}">
++                <label class="checkbox-label vscode-editor-font" data-bind="text: label, attr: {for: 'member_' + $index()}"></label>
++            </div>
++        </nobr>
++    </div>
++    <div class="flex section">
++        <input type="checkbox" id="keep_original" data-bind="checked: keepMethodSelected">
++        <label class="checkbox-label" for="keep_original">保留初始方法并委托给已移动的方法</label>
++    </div>
++    <div class="flex section-nested">
++        <input type="checkbox" id="deprecate_old" data-bind="checked: deprecateMethodSelected, enable: keepMethodSelected">
++        <label class="checkbox-label" for="deprecate_old">废弃旧方法</label>
++    </div>
++    <div class="flex section">
++        <button id="accept" hidden class="regular-button vscode-font align-right">重构</button>
++        <button id="reject" hidden class="regular-button vscode-font">取消</button>
++    </div>
++</body>
++</html>
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/ui/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/ui/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..b0232be67
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/ui/Bundle_zh_CN.properties
+@@ -0,0 +1,22 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++MSG_InvalidInput=\u8F93\u5165\u65E0\u6548
++MSG_NoHtmlUI=\u5BA2\u6237\u7AEF\u4E0D\u652F\u6301 HTML UI\uFF01
++OPTION_Cancel=\u53D6\u6D88
++OPTION_No=\u5426
++OPTION_OK=\u786E\u5B9A
++OPTION_Yes=\u662F
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..3ccea09e8
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/Bundle_zh_CN.properties
+@@ -0,0 +1,20 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++CTL_MavenArchetypeDisplayName=Maven \u9879\u76EE\u7ED3\u6784
++GeneratedMethodBody=\u751F\u6210\u7684\u65B9\u6CD5\u4E3B\u4F53
++LambdaBody=\u751F\u6210\u7684 Lambda \u4E3B\u4F53
++OverriddenMethodBody=\u8986\u76D6\u7684\u65B9\u6CD5\u4E3B\u4F53
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/commands/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/commands/Bundle_zh_CN.properties
+new file mode 100755
+index 000000000..b1efa2c99
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/nbcode/integration/integration/org/netbeans/modules/nbcode/integration/commands/Bundle_zh_CN.properties
+@@ -0,0 +1,18 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++ERR_FileNotInProject=\u6587\u4EF6 {0} \u4E0D\u5728\u4EFB\u4F55\u9879\u76EE\u4E2D\u3002
++ERR_InvalidFileUri=URI \u683C\u5F0F\u9519\u8BEF\uFF1A{0}

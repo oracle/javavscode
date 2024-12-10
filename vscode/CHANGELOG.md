@@ -2,7 +2,7 @@
 
 <!--
 
-    Copyright (c) 2023, Oracle and/or its affiliates.
+    Copyright (c) 2023-2024, Oracle and/or its affiliates.
 
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -23,7 +23,25 @@
 
 -->
 
-<!-- This file has been modified for Oracle Java SE extension -->
+## Version 23.0.1
+### What's Changed
+
+#### Bug Fixes
+* [JAVAVSCODE-217] Remove grouping of test runner cases to fix incorrect results https://github.com/oracle/javavscode/pull/307
+* [JAVAVSCODE-249] Fixed code folding for if-else https://github.com/oracle/javavscode/pull/304 and https://github.com/oracle/javavscode/pull/308
+* [JAVAVSCODE-291] Fixed JDK Downloader to NOT offer Windows ARM64 option https://github.com/oracle/javavscode/pull/294
+* [JAVAVSCODE-300] Fixed launching of NBLS when arguments contain spaces https://github.com/oracle/javavscode/pull/301
+* Fixed "Move Refactoring" for some buggy cases https://github.com/oracle/javavscode/pull/320
+
+#### Other Changes
+* Remove the usage of java SecurityManager in NBLS https://github.com/oracle/javavscode/pull/318
+* Refactored extension frontend code for better maintainability and tests https://github.com/oracle/javavscode/pull/292 and https://github.com/oracle/javavscode/pull/310 
+* Renamed command label "New from Template" to "New File from Template" for better understandability https://github.com/oracle/javavscode/pull/323
+* Updated JDK Downloader URLs for Oct24 CPUs https://github.com/oracle/javavscode/pull/294
+* Updated JVSC Git repo to use Git submodules for ease of use: NB & NB-l10n https://github.com/oracle/javavscode/pull/295
+* Fix l10n translations for important modules/keys of the NetBeans LS https://github.com/oracle/javavscode/pull/325
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v23.0.0...v23.0.1
 
 ## Version 23.0.0
 ### What's Changed
@@ -40,7 +58,7 @@
 * Progress bar added to track JDK download progress https://github.com/oracle/javavscode/pull/248
 * JDK 23 now available in the JDK Downloader https://github.com/oracle/javavscode/pull/274
 * Restrict parent directory traversal when locating the associated project https://github.com/oracle/javavscode/pull/251
-#### Bugs
+#### Bug Fixes
 * [JAVAVSCODE-57] Rename refactoring should not replace in comments by default https://github.com/oracle/javavscode/pull/261
 * [JAVAVSCODE-148] Corrected configuration selection from launch settings during run and debug sessions https://github.com/oracle/javavscode/pull/266
 * [JAVAVSCODE-203] Fixed rename refactoring for record components https://github.com/apache/netbeans/pull/7670
@@ -58,7 +76,7 @@
 ## Version 22.1.2
 ### What's Changed
 
-#### Bugs
+#### Bug Fixes
 * [JAVAVSCODE-96] Honour SuppressWarnings annotations for `unused` entities https://github.com/oracle/javavscode/pull/227
 * [JAVAVSCODE-182] Show the constructor's JavaDoc on hovering over its usage; instead of the class' JavaDoc https://github.com/oracle/javavscode/pull/238
 * [JAVAVSCODE-185] Formatting of XML (pom.xml) files fixed https://github.com/oracle/javavscode/pull/226
@@ -96,7 +114,7 @@
 ## Version 22.0.1 (May 30th, 2024)
 ### What's Changed
 
-#### Bugs
+#### Bug Fixes
 * [JAVAVSCODE-59] In VSCode provide quickfix relevant to the position of the cursor https://github.com/apache/netbeans/pull/7353
 * [JAVAVSCODE-101] Command jdk.java.project.resolveProjectProblems' not found https://github.com/apache/netbeans/pull/7370
 
@@ -121,7 +139,7 @@
 * Bump up axios 1.6.0 to 1.6.8 https://github.com/oracle/javavscode/pull/127
 * Bump up @vscode/debugadapter from 1.55.1 to 1.65.0 https://github.com/oracle/javavscode/pull/135
 
-#### Bugs
+#### Bug Fixes
 * [JAVAVSCODE-29] vscode reports a need to upgrade Gradle to an earlier version for JDK-21 https://github.com/apache/netbeans/pull/6807
 * [JAVAVSCODE-30] Fixed refactoring of pom.xml as well on renaming class name https://github.com/oracle/javavscode/pull/120
 * [JAVAVSCODE-95] Fixed false error thrown if parent pom version uses variable https://github.com/oracle/javavscode/pull/125
@@ -148,7 +166,7 @@
 * [JAVAVSCODE-80] Renamed downloaded jdk binaries so that it is not replaced by the already present binaries https://github.com/oracle/javavscode/pull/82
 * Update to NetBeans 20 https://github.com/oracle/javavscode/pull/92
 
-#### Bugs
+#### Bug Fixes
 * [JAVAVSCODE-23] Class outline/structure missing in some cases fixed https://github.com/apache/netbeans/pull/6642
 * [JAVAVSCODE-24] Error on formatting pom.xml fixed https://github.com/apache/netbeans/pull/6631
 * [JAVAVSCODE-26] Don’t create “lock files” in the user’s project folders https://github.com/apache/netbeans/pull/6690
