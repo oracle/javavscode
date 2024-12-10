@@ -12,3 +12,4 @@ vsc-extension-quickstart.md
 coverage/**
 **/.nycrc.json
 esbuild.js
+images/*
