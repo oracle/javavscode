@@ -23,6 +23,7 @@ import { NbLanguageClient } from '../lsp/nbLanguageClient';
 import { NodeChangedParams, NodeInfoNotification, NodeInfoRequest, GetResourceParams, NodeChangeType, NodeChangesParams } from '../lsp/protocol';
 import { l10n } from '../localiser';
 import { extCommands } from '../commands/commands';
+import { globalState } from '../globalState';
 const doLog: boolean = false;
 const EmptyIcon = "EMPTY_ICON";
 
@@ -913,6 +914,7 @@ export function createTreeViewService(log: vscode.OutputChannel, c: NbLanguageCl
       }));
     }
   });
+  globalState.getExtensionContextInfo().pushSubscription(d);
   const ts: TreeViewService = new TreeViewService(log, c, [d]);
   return ts;
 }

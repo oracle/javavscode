@@ -63,7 +63,7 @@
   "jdk.extension.lspServer.message.noJdkFound": "未找到 JDK！",
   "jdk.extension.lspServer.label.downloadAndSetup": "自动下载 JDK 并进行设置",
   "jdk.extension.lspServer.error_message": "初始化时出错：{reason}",
-  "jdk.extension.nbjavac.message.supportedVersionRequired": "需要支持的 javac 版本。请启用 nb-javac 库或使用 JDK 22+",
+  "jdk.extension.nbjavac.message.supportedVersionRequired": "需要支持的 javac 版本。请启用 nb-javac 库或使用 JDK 23+",
   "jdk.extension.nbjavac.label.enableNbjavac": "启用 nb-javac 库",
   "jdk.extension.nbjavac.label.openSettings": "打开设置",
   "jdk.extension.javaSupport.label.installGpl": "安装 GPLv2+CPEx 代码",
@@ -93,5 +93,6 @@
   "jdk.extension.debugger.error_msg.debugAdapterNotInitialized":"Oracle Java SE 调试服务器适配器尚未初始化。请稍候，然后重试。",
   "jdk.workspace.new.prompt": "输入生成新文件的目录路径",
   "jdk.extension.utils.error_message.failedHttpsRequest": "无法获取 {url} ({statusCode})",
-  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} 未启用"
+  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} 未启用",
+  "jdk.telemetry.consent": "Do you want to enable telemetry for {extensionName} extension? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled."
 }
