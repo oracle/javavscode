@@ -207,7 +207,7 @@ export class JdkDownloaderAction {
     private rmPreviousMatchingDownloads = async () => {
         const matchingOldDirs = await this.getMatchingDirs(this.jdkVersion!);
         for await (const oldDirName of matchingOldDirs) {
-            await fs.promises.rmdir(path.join(this.DOWNLOAD_DIR, oldDirName), { recursive: true });
+            await fs.promises.rm(path.join(this.DOWNLOAD_DIR, oldDirName), { recursive: true });
         }
     }
 
@@ -275,7 +275,7 @@ export class JdkDownloaderAction {
                 window.showErrorMessage(l10n.value("jdk.downloader.error_message.installationCleanup"));
             } else {
                 if (tempDirPath && fs.existsSync(tempDirPath)) {
-                    await fs.promises.rmdir(tempDirPath, { recursive: true });
+                    await fs.promises.rm(tempDirPath, { recursive: true });
                 }
                 if (newDirPath !== null) {
                     await this.installationCompletion();
@@ -298,7 +298,7 @@ export class JdkDownloaderAction {
             const noLabel = l10n.value("jdk.downloader.message.confirmation.no");
             const selected = await window.showInformationMessage(CONFIRMATION_MESSAGE, yesLabel, noLabel);
             if (selected === yesLabel) {
-                await fs.promises.rmdir(directoryPath, { recursive: true });
+                await fs.promises.rm(directoryPath, { recursive: true });
             }
             else if (selected === noLabel) {
                 return null;
