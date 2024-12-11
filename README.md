@@ -65,7 +65,7 @@ Project Explorer provides an overview of logical project structure, groups sourc
 
 ## Debugger and Launch Configurations
 Language Server __Java+ ...__ launch configuration supports debugging and running Java applications using JDK11 or newer. 
-1. The launch configuration (debugger) is invoked when `Run main | Debug main` code lense is selected in the code.
+1. The launch configuration (debugger) is invoked when `Run main | Debug main` codelens is selected in the code.
 2. Or __Java+...__ is selected in __Run and Debug__ activity panel.  
 ![Debug configurations](vscode/images/debuggers.png)
 ### Launch Configurations
@@ -73,12 +73,12 @@ Language Server __Java+ ...__ launch configuration supports debugging and runnin
 * __Attach to Port__ & __Attach to Process__ - Attach debugger actions. Available when __Java+ ...__ at the bottom of drop down list is selected.
     * Select this configuration, then click the ![Run](vscode/images/run.png) 
     * Select either from available process or enter the port to connect to JVM running with JDWP.
-    * __Attach to Shared Memory__ is available on Windows in addtion to above mentioned _Attach..._
+    * __Attach to Shared Memory__ is available on Windows in addition to above mentioned _Attach..._
 
 Default launch configurations provided by Language Server can modified in `launch.json` file.
 
 ### Run Configurations panel
-Program arguments, VM options, evironment variables,... can be set in Run Configuration panel a part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).  
+Program arguments, VM options, environment variables,... can be set in Run Configuration panel a part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).  
 ![Run Configuration](vscode/images/run_config.png) 
 
 ## JDK Downloader
@@ -213,4 +213,4 @@ Please consult the [security guide](https://github.com/oracle/javavscode/blob/ma
 Copyright (c) 2024 Oracle and/or its affiliates.
 
 Oracle Java Platform Extension for Visual Studio Code is licensed under [Apache 2.0 License](https://github.com/oracle/javavscode/blob/main/LICENSE.txt). 
-The [THIRD_PARTY_LICENSES](https://github.com/oracle/javavscode/blob/main/THIRD_PARTY_LICENSES.txt) file contains third party notices and licenses.
+The [THIRD_PARTY_LICENSES](./THIRD_PARTY_LICENSES.txt) file contains third party notices and licenses.
