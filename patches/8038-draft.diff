@@ -1,0 +1,128 @@
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/ProjectTrust.java b/extide/gradle/src/org/netbeans/modules/gradle/ProjectTrust.java
+index 216291f86fd4..cb9d51baa54c 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/ProjectTrust.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/ProjectTrust.java
+@@ -48,6 +48,7 @@
+ public class ProjectTrust {
+     private static final Logger LOG = Logger.getLogger(ProjectTrust.class.getName());
+     
++    private static final int KEY_LENGTH = 64;
+     private static final String KEY_SALT     = "secret";     //NOI18N
+     private static final String NODE_PROJECT = "projects"; //NOI18N
+     private static final String NODE_TRUST   = "trust";    //NOI18N
+@@ -68,7 +69,7 @@ public class ProjectTrust {
+     ProjectTrust(Preferences prefs) {
+         byte[] buf = prefs.getByteArray(KEY_SALT, null);
+         if (buf == null) {
+-            buf = new byte[16];
++            buf = new byte[KEY_LENGTH];
+             new SecureRandom().nextBytes(buf);
+             prefs.putByteArray(KEY_SALT, buf);
+         }
+diff --git a/platform/o.n.bootstrap/src/org/netbeans/CLIHandler.java b/platform/o.n.bootstrap/src/org/netbeans/CLIHandler.java
+index 3140aba8eafa..11327beed908 100644
+--- a/platform/o.n.bootstrap/src/org/netbeans/CLIHandler.java
++++ b/platform/o.n.bootstrap/src/org/netbeans/CLIHandler.java
+@@ -63,7 +63,7 @@
+  */
+ public abstract class CLIHandler extends Object {
+     /** lenght of the key used for connecting */
+-    private static final int KEY_LENGTH = 10;
++    private static final int KEY_LENGTH = 64;
+     private static final byte[] VERSION = {
+         'N', 'B', 'C', 'L', 'I', 0, 0, 0, 0, 1
+     };
+@@ -579,7 +579,19 @@ static Status initialize(
+                 enterState(10, block);
+                 
+                 final byte[] arr = new byte[KEY_LENGTH];
+-                new SecureRandom().nextBytes(arr);
++                SecureRandom secureRandom = new SecureRandom();
++                boolean isPrefix;
++                // making sure arr doesn't have VERSION as prefix, rare occurance
++                do{
++                    secureRandom.nextBytes(arr);
++                    isPrefix = true;
++                    for(int j = 0; j < VERSION.length; j++) {
++                        if (arr[j] != VERSION[j]) {
++                            isPrefix = false;
++                            break;
++                        }
++                    }
++                } while(isPrefix);
+ 
+                 
+                 final RandomAccessFile os = raf;
+@@ -741,7 +753,7 @@ public void run() {
+                         } else {
+                             os.write(key);
+                         }
+-                        assert VERSION.length == key.length;
++                        assert VERSION.length <= key.length;
+                         os.flush();
+                         
+                         enterState(30, block);
+@@ -1144,7 +1156,7 @@ private void handleConnect(Socket s) throws IOException {
+             
+             enterState(70, block);
+ 
+-            is.readFully(check);
++            is.readFully(check, 0, VERSION.length);
+ 
+             final DataOutputStream os = new DataOutputStream(s.getOutputStream());
+ 
+@@ -1162,6 +1174,9 @@ private void handleConnect(Socket s) throws IOException {
+                 is.readFully(check);
+             } else {
+                 requestedVersion = 0;
++                if(check.length > VERSION.length){
++                    is.readFully(check, VERSION.length, check.length);
++                }
+             }
+             
+             enterState(90, block);
+diff --git a/platform/o.n.bootstrap/test/unit/src/org/netbeans/CLIHandlerTest.java b/platform/o.n.bootstrap/test/unit/src/org/netbeans/CLIHandlerTest.java
+index 91df241d2429..bc7c0925ba26 100644
+--- a/platform/o.n.bootstrap/test/unit/src/org/netbeans/CLIHandlerTest.java
++++ b/platform/o.n.bootstrap/test/unit/src/org/netbeans/CLIHandlerTest.java
+@@ -274,14 +274,14 @@ public void testFileExistsButTheServerCannotBeContactedAndWeDoNotWantToCleanTheF
+         File f = runner.resultFile();
+         byte[] arr = new byte[(int)f.length()];
+         int len = arr.length;
+-        assertTrue("We know that the size of the file should be int + key_length + 4 for ip address: ", len >=14 && len <= 18);
++        assertTrue("We know that the size of the file should be int + key_length + 4 for ip address: ", len >=68 && len <= 72);
+         FileInputStream is = new FileInputStream(f);
+         assertEquals("Fully read", arr.length, is.read(arr));
+         is.close();
+         
+-        byte[] altarr = new byte[18];
+-        for (int i = 0; i < 18; i++) {
+-            altarr[i] = i<14? arr[i]: 1;
++        byte[] altarr = new byte[72];
++        for (int i = 0; i < 72; i++) {
++            altarr[i] = i<68? arr[i]: 1;
+         }
+         
+         // change the IP at the end of the file
+diff --git a/platform/o.n.bootstrap/test/unit/src/org/netbeans/CLIHowHardIsToGuessKeyTest.java b/platform/o.n.bootstrap/test/unit/src/org/netbeans/CLIHowHardIsToGuessKeyTest.java
+index 00ad770223ec..365561dc9388 100644
+--- a/platform/o.n.bootstrap/test/unit/src/org/netbeans/CLIHowHardIsToGuessKeyTest.java
++++ b/platform/o.n.bootstrap/test/unit/src/org/netbeans/CLIHowHardIsToGuessKeyTest.java
+@@ -107,14 +107,14 @@ public void run() {
+         LOG.info("lock file exists" + lock);
+         for (int i = 0; i < 500; i++) {
+             LOG.info(i + ": testing its size: " + lock.length());
+-            if (lock.length() >= 14) {
++            if (lock.length() >= 68) {
+                 break;
+             }
+             Thread.sleep(500);
+         }
+-        assertTrue("Lock must contain the key now: " + lock.length(), lock.length() >= 14);//fail("Ok");
++        assertTrue("Lock must contain the key now: " + lock.length(), lock.length() >= 68);//fail("Ok");
+         
+-        final byte[] arr = new byte[10]; // CLIHandler.KEY_LENGTH
++        final byte[] arr = new byte[64]; // CLIHandler.KEY_LENGTH
+         DataInputStream is = new DataInputStream(new FileInputStream(lock));
+         final int port = is.readInt();
+         int read = is.read(arr);
