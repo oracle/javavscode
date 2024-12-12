@@ -60,6 +60,8 @@
             patches/7921.diff
             patches/7923.diff
             patches/7926.diff
+            patches/8036-draft.diff
+            patches/8038-draft.diff
             patches/mvn-sh.diff
             patches/generate-dependencies.diff
             patches/rename-debugger.diff
