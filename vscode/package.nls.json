@@ -44,7 +44,7 @@
     "jdk.configuration.serverVmOptions.description": "Specifies extra VM arguments used to launch the Java Language Server",
     "jdk.configuration.runConfig.env.description": "Environment variables",
     "jdk.configuration.runConfig.cwd.description": "Working directory",
-    "jdk.configuration.disableNbJavac.description": "Advanced option: disable nb-javac library, javac from the selected JDK will be used. The selected JDK must be at least JDK 22.",
+    "jdk.configuration.disableNbJavac.description": "Advanced option: disable nb-javac library, javac from the selected JDK will be used. The selected JDK must be at least JDK 23.",
     "jdk.configuration.disableProjectSearchLimit.description": "Advanced option: disable limits on searching in containing folders for project information.",
     "jdk.debugger.configuration.mainClass.description": "Absolute path to the program main class.",
     "jdk.debugger.configuration.classPaths.description": "The classpaths for launching the JVM.",
