@@ -63,7 +63,7 @@
   "jdk.extension.lspServer.message.noJdkFound": "未找到 JDK！",
   "jdk.extension.lspServer.label.downloadAndSetup": "自动下载 JDK 并进行设置",
   "jdk.extension.lspServer.error_message": "初始化时出错：{reason}",
-  "jdk.extension.nbjavac.message.supportedVersionRequired": "需要支持的 javac 版本。请启用 nb-javac 库或使用 JDK 22+",
+  "jdk.extension.nbjavac.message.supportedVersionRequired": "需要支持的 javac 版本。请启用 nb-javac 库或使用 JDK 23+",
   "jdk.extension.nbjavac.label.enableNbjavac": "启用 nb-javac 库",
   "jdk.extension.nbjavac.label.openSettings": "打开设置",
   "jdk.extension.javaSupport.label.installGpl": "安装 GPLv2+CPEx 代码",
