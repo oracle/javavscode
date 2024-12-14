@@ -42,7 +42,7 @@ index d82646afb1..3d507b5fe3 100644
  import org.openide.util.Lookup;
  
  /**
-@@ -55,130 +58,164 @@ import org.openide.util.Lookup;
+@@ -55,130 +58,171 @@ import org.openide.util.Lookup;
   */
  public class LspServerTelemetryManager {
  
@@ -63,7 +63,7 @@ index d82646afb1..3d507b5fe3 100644
 -    public synchronized void connect(LanguageClient client, Future<Void> future) {
 -        clients.put(client, future);
 -        lspServerIntiailizationTime = System.currentTimeMillis();
-+    private static enum ProjectType {
++    public static enum ProjectType {
 +        standalone,
 +        maven,
 +        gradle;
@@ -188,12 +188,12 @@ index d82646afb1..3d507b5fe3 100644
 -                
 -                // In future if different JDK is used for different project then this can be updated 
 -                obj.addProperty("javaVersion", System.getProperty("java.version"));
--
--                if (mp.containsKey(prjPath)) {
--                    Project prj = mp.get(prjPath);
 +                String javaVersion = getProjectJavaVersion();
 +                obj.addProperty("javaVersion", javaVersion);
- 
+
+-                if (mp.containsKey(prjPath)) {
+-                    Project prj = mp.get(prjPath);
+-
 -                    ProjectManager.Result r = ProjectManager.getDefault().isProject2(prj.getProjectDirectory());
 -                    String projectType = r.getProjectType();
 -                    obj.addProperty("buildTool", (projectType.contains("maven") ? "MavenProject" : "GradleProject"));
@@ -220,7 +220,7 @@ index d82646afb1..3d507b5fe3 100644
 +                    obj.addProperty("isOpenedWithProblems", ProjectProblems.isBroken(prj));
                  }
 +                obj.addProperty("buildTool", projectType.name());
-+                boolean isPreviewFlagEnabled = isPreviewEnabled(projectDirectory, projectType);
++                boolean isPreviewFlagEnabled = isPreviewEnabled(projectDirectory, projectType, client);
 +                obj.addProperty("isPreviewEnabled", isPreviewFlagEnabled);
  
                  prjProps.add(obj);
@@ -236,26 +236,35 @@ index d82646afb1..3d507b5fe3 100644
  
 -        properties.add("prjsInfo", prjProps);
 +        properties.add("projectInfo", prjProps);
- 
--        properties.addProperty("timeToOpenPrjs", timeToOpenPrjs);
--        properties.addProperty("numOfPrjsOpened", workspaceClientFolders.size());
--        properties.addProperty("lspServerInitializationTime", System.currentTimeMillis() - this.lspServerIntiailizationTime);
++
 +        properties.addProperty("projInitTimeTaken", timeToOpenProjects);
 +        properties.addProperty("numProjects", workspaceClientFolders.size());
 +        properties.addProperty("lspInitTimeTaken", System.currentTimeMillis() - this.lspServerIntializationTime);
  
--        this.sendTelemetry(client, new TelemetryEvent(MessageType.Info.toString(), this.WORKSPACE_INFO_EVT, properties));
+-        properties.addProperty("timeToOpenPrjs", timeToOpenPrjs);
+-        properties.addProperty("numOfPrjsOpened", workspaceClientFolders.size());
+-        properties.addProperty("lspServerInitializationTime", System.currentTimeMillis() - this.lspServerIntiailizationTime);
 +        this.sendTelemetry(client, new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.WORKSPACE_INFO_EVT, properties));
++    }
+
+-        this.sendTelemetry(client, new TelemetryEvent(MessageType.Info.toString(), this.WORKSPACE_INFO_EVT, properties));
++    public boolean isPreviewEnabled(FileObject source, ProjectType prjType) {
++        return isPreviewEnabled(source, prjType, null);
      }
 -    
 -    private boolean isEnablePreivew(FileObject source, String prjType) {
 -        if (prjType.equals(this.STANDALONE_PRJ)) {
+-            NbCodeLanguageClient client = Lookup.getDefault().lookup(NbCodeLanguageClient.class);
 +
-+    private boolean isPreviewEnabled(FileObject source, ProjectType prjType) {
++    public boolean isPreviewEnabled(FileObject source, ProjectType prjType, LanguageClient languageClient) {
 +        if (prjType == ProjectType.standalone) {
-             NbCodeLanguageClient client = Lookup.getDefault().lookup(NbCodeLanguageClient.class);
++            NbCodeLanguageClient client = languageClient instanceof NbCodeLanguageClient ? (NbCodeLanguageClient) languageClient : null ;
              if (client == null) {
-                 return false;
+-                return false;
++                client = Lookup.getDefault().lookup(NbCodeLanguageClient.class);
++                if (client == null) {
++                    return false;
++                }
              }
 -            AtomicBoolean isEnablePreviewSet = new AtomicBoolean(false);
 +            boolean[] isEnablePreviewSet = {false};
@@ -283,7 +292,7 @@ index d82646afb1..3d507b5fe3 100644
      }
  
      private String getPrjId(String prjPath) throws NoSuchAlgorithmException {
-@@ -187,15 +224,50 @@ public class LspServerTelemetryManager {
+@@ -187,15 +231,50 @@ public class LspServerTelemetryManager {
  
          BigInteger number = new BigInteger(1, hash);
  
@@ -331,7 +340,7 @@ index d82646afb1..3d507b5fe3 100644
 +        return propertyLookup.apply("java.vm.name");
 +    }
 +
-+    private ProjectType getProjectType(Project prj) {
++    public ProjectType getProjectType(Project prj) {
 +        ProjectManager.Result r = ProjectManager.getDefault().isProject2(prj.getProjectDirectory());
 +        String projectType = r == null ? null : r.getProjectType();
 +        return projectType != null && projectType.contains(ProjectType.maven.name()) ? ProjectType.maven : ProjectType.gradle;
@@ -358,7 +367,7 @@ index 9134992f5f..f070fec320 100644
      }
  
 +    public boolean wantsTelemetryEnabled() {
-+        return wantsTelemetryEnabled;
++        return wantsTelemetryEnabled == Boolean.TRUE;
 +    }
 +
      private NbCodeClientCapabilities withCapabilities(ClientCapabilities caps) {

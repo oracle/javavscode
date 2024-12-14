@@ -49,8 +49,8 @@ export class JdkFeatureEvent extends BaseEvent<JdkFeatureEventData> {
             const names: string[] = [];
             
             events.forEach(event => {
-                jeps.push(...event.getPayload.jeps);
-                names.push(...event.getPayload.names);
+                if (event.getPayload.jeps) jeps.push(...event.getPayload.jeps);
+                if (event.getPayload.names) names.push(...event.getPayload.names);
             });
 
             return new JdkFeatureEvent({
