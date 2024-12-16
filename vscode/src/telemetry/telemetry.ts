@@ -24,7 +24,7 @@ export namespace Telemetry {
 
 	let telemetryManager: TelemetryManager;
 	
-	export const isTelemetryFeatureAvailable = TELEMETRY_API.baseUrl != null && TELEMETRY_API.baseUrl.trim().length;
+	export const isTelemetryFeatureAvailable:boolean = TELEMETRY_API.baseUrl != null && TELEMETRY_API.baseUrl.trim().length > 0;
 	
 	export const initializeTelemetry = (contextInfo: ExtensionContextInfo): TelemetryManager => {
 		if (!!telemetryManager) {
