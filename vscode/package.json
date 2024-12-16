@@ -11,7 +11,7 @@
 		"url": "https://github.com/oracle/javavscode"
 	},
 	"publisher": "Oracle",
-	"icon": "images/logo.png",
+	"icon": "icons/logo.png",
 	"categories": [
 		"Programming Languages",
 		"Debuggers",
@@ -794,9 +794,9 @@
 		"vscode-uri": "^3.0.8"
 	},
 	"dependencies": {
-		"@vscode/debugadapter": "^1.65.0",
+		"@vscode/debugadapter": "^1.68.0",
 		"@vscode/l10n": "^0.0.18",
 		"jsonc-parser": "3.3.1",
-		"vscode-languageclient": "^8.1.0"
+		"vscode-languageclient": "^9.0.1"
 	}
 }
