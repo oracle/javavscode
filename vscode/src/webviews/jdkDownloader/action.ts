@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-import { commands, OpenDialogOptions, window, workspace } from "vscode";
+import { commands, OpenDialogOptions, window } from "vscode";
 import { JdkDownloaderView } from "./view";
 import { jdkDownloaderConstants } from "../../constants";
 import * as path from 'path';
@@ -26,11 +26,15 @@ import { l10n } from "../../localiser";
 import { LOGGER } from "../../logger";
 import { updateConfigurationValue } from "../../configurations/handlers";
 import { configKeys } from "../../configurations/configuration";
+import { Telemetry } from "../../telemetry/telemetry";
+import { JdkDownloadEvent, JdkDownloadEventData } from "../../telemetry/events/jdkDownload";
+import { getCurrentUTCDateInSeconds } from "../../telemetry/utils";
 
 export class JdkDownloaderAction {
     public static readonly MANUAL_INSTALLATION_TYPE = "manual";
     public static readonly AUTO_INSTALLATION_TYPE = "automatic";
     private readonly DOWNLOAD_DIR = path.join(__dirname, 'jdk_downloads');
+    private startTimer: number | null = null;
 
     private jdkType?: string;
     private jdkVersion?: string;
@@ -98,11 +102,14 @@ export class JdkDownloaderAction {
                 LOGGER.log(`manual JDK installation completed successfully`);
                 return;
             }
+            this.startTimer = getCurrentUTCDateInSeconds();
 
             await this.jdkInstallationManager();
         } catch (err: any) {
             window.showErrorMessage(l10n.value("jdk.downloader.error_message.installingJDK", { error: err }));
             LOGGER.error(err?.message || "No Error message received");
+        } finally {
+            this.startTimer = null;
         }
     }
 
@@ -269,6 +276,18 @@ export class JdkDownloaderAction {
     }
 
     private installationCleanup = (tempDirPath: string, newDirPath: string) => {
+        const currentTime = getCurrentUTCDateInSeconds();
+        const downloadTelemetryEvent: JdkDownloadEventData = {
+            vendor: this.jdkType!,
+            version: this.jdkVersion!,
+            os: this.osType!,
+            arch: this.machineArch!,
+            timeTaken: Math.min(currentTime - this.startTimer!)
+        };
+
+        const event: JdkDownloadEvent = new JdkDownloadEvent(downloadTelemetryEvent);
+        Telemetry.sendTelemetry(event);
+
         fs.unlink(this.downloadFilePath!, async (err) => {
             if (err) {
                 LOGGER.error(`Error while installation cleanup: ${err.message}`);

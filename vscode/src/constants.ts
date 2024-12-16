@@ -34,7 +34,7 @@ export namespace jdkDownloaderConstants {
 
   export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
     "23": "https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1"
-  };  
+  };
 }
 
 export const NODE_WINDOWS_LABEL = "Windows_NT";
