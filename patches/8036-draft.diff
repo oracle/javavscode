@@ -1,5 +1,5 @@
 diff --git a/platform/core.network/src/org/netbeans/core/network/proxy/pac/impl/NbPacScriptEvaluator.java b/platform/core.network/src/org/netbeans/core/network/proxy/pac/impl/NbPacScriptEvaluator.java
-index 76bb6080c73c..a708698bd008 100644
+index 76bb6080c73c..da54d0c76922 100644
 --- a/platform/core.network/src/org/netbeans/core/network/proxy/pac/impl/NbPacScriptEvaluator.java
 +++ b/platform/core.network/src/org/netbeans/core/network/proxy/pac/impl/NbPacScriptEvaluator.java
 @@ -26,6 +26,7 @@
@@ -29,17 +29,16 @@ index 76bb6080c73c..a708698bd008 100644
      private final String pacScriptSource;
  
  
-@@ -213,7 +219,8 @@ public NbPacScriptEvaluator(String pacSourceCocde) throws PacParsingException {
+@@ -213,7 +219,7 @@ public NbPacScriptEvaluator(String pacSourceCocde) throws PacParsingException {
      @Override
      public List<Proxy> findProxyForURL(URI uri) throws PacValidationException {
  
 -        List<Proxy> jsResultAnalyzed;
-+        AtomicReference<List<Proxy>> resultHolder = new AtomicReference<>(null);
 +        List<Proxy> jsResultAnalyzed = null;
  
          // First try the cache
          if (resultCache != null) {
-@@ -222,38 +229,36 @@ public List<Proxy> findProxyForURL(URI uri) throws PacValidationException {
+@@ -222,38 +228,37 @@ public List<Proxy> findProxyForURL(URI uri) throws PacValidationException {
                  return jsResultAnalyzed;
              }
          }
@@ -73,6 +72,7 @@ index 76bb6080c73c..a708698bd008 100644
 +        if (timeout <= 0){
 +            jsResultAnalyzed = executeProxyScript(uri);
 +        } else {
++            AtomicReference<List<Proxy>> resultHolder = new AtomicReference<>(null);
 +            Task task = getRequestProcessor().post(() -> {
 +                resultHolder.set(executeProxyScript(uri));
 +            });
@@ -93,10 +93,10 @@ index 76bb6080c73c..a708698bd008 100644
 -            LOGGER.log(Level.WARNING, "Error when executing PAC script function " + scriptEngine.getJsMainFunction().getJsFunctionName() + " : ", ex);
 -            return Collections.singletonList(Proxy.NO_PROXY);
 +            jsResultAnalyzed  = resultHolder.get();
-+        }
+         }
 +        if (canUseURLCaching && (resultCache != null) && (jsResultAnalyzed != null)) {
 +                resultCache.put(uri, jsResultAnalyzed);   // save the result in the cache
-         }
++        }
 +        return jsResultAnalyzed != null ? jsResultAnalyzed : Collections.singletonList(Proxy.NO_PROXY);
      }
 -
@@ -210,7 +210,7 @@ index 178c9b162feb..90812bfa4612 100644
          testPacFile2("pac-test4.js", factory);
      }
 diff --git a/platform/o.n.core/src/org/netbeans/core/ProxySettings.java b/platform/o.n.core/src/org/netbeans/core/ProxySettings.java
-index 2d29427cd3c2..19e48d9bad82 100644
+index 2d29427cd3c2..593c99f5d6fe 100644
 --- a/platform/o.n.core/src/org/netbeans/core/ProxySettings.java
 +++ b/platform/o.n.core/src/org/netbeans/core/ProxySettings.java
 @@ -49,6 +49,8 @@ public class ProxySettings {
@@ -218,7 +218,7 @@ index 2d29427cd3c2..19e48d9bad82 100644
      public static final String DIRECT = "DIRECT";   // NOI18N
      public static final String PAC = "PAC";     // NOI18N
 +    public static final String PAC_SCRIPT_TIMEOUT = "pacScriptTimeout"; // NOI18N
-+    public static final int DEFAULT_TIMEOUT = 60000;
++    public static final int DEFAULT_TIMEOUT = 10000;
      
      public static final String SYSTEM_PROXY_HTTP_HOST = "systemProxyHttpHost";      // NOI18N
      public static final String SYSTEM_PROXY_HTTP_PORT = "systemProxyHttpPort";      // NOI18N
