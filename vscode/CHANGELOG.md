@@ -23,6 +23,15 @@
 
 -->
 
+## Version 23.1.0
+### What's Changed
+
+#### Other Changes
+* Minor README updates and fixes  [#334](https://github.com/oracle/javavscode/pull/334) and [#339](https://github.com/oracle/javavscode/pull/339)
+* Suppressed JNI warning during language server startup [#338](https://github.com/oracle/javavscode/pull/338)
+* Dependency upgrades [#337](https://github.com/oracle/javavscode/pull/337)
+* Extension maintainance changes [#348](https://github.com/oracle/javavscode/pull/348) and [#349](https://github.com/oracle/javavscode/pull/349)
+
 ## Version 23.0.1
 ### What's Changed
 
