@@ -13,8 +13,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+import { integer } from "vscode-languageclient";
 import { LOGGER } from "../../logger";
-import { TELEMETRY_API } from "../config";
+import { TelemetryConfiguration } from "../config";
 import { BaseEvent } from "../events/baseEvent";
 
 interface TelemetryEventResponse {
@@ -28,9 +29,11 @@ export interface TelemetryPostResponse {
 };
 
 export class PostTelemetry {
+    private TELEMETRY_API = TelemetryConfiguration.getInstance().getApiConfig();
+
     public post = async (events: BaseEvent<any>[]): Promise<TelemetryPostResponse> => {
         try {
-            if (TELEMETRY_API.baseUrl == null) {
+            if (this.TELEMETRY_API.baseUrl == null) {
                 return {
                     success: [],
                     failures: []
@@ -47,7 +50,7 @@ export class PostTelemetry {
     };
 
     private addBaseEndpoint = (endpoint: string) => {
-        return `${TELEMETRY_API.baseUrl}${TELEMETRY_API.baseEndpoint}${TELEMETRY_API.version}${endpoint}`;
+        return `${this.TELEMETRY_API.baseUrl}${this.TELEMETRY_API.baseEndpoint}${this.TELEMETRY_API.version}${endpoint}`;
     }
 
     private postEvent = (event: BaseEvent<any>): Promise<Response> => {
@@ -57,7 +60,12 @@ export class PostTelemetry {
 
         return fetch(serverEndpoint, {
             method: "POST",
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            redirect: "follow",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
         });
     }
 
@@ -65,17 +73,21 @@ export class PostTelemetry {
         let success: TelemetryEventResponse[] = [], failures: TelemetryEventResponse[] = [];
         eventResponses.forEach((eventResponse, index) => {
             const event = events[index];
+            let list: TelemetryEventResponse[] = success;
+            let statusCode: integer = 0;
             if (eventResponse.status === "rejected") {
-                failures.push({
-                    event,
-                    statusCode: -1
-                });
+                list = failures;
+                statusCode = -1;
             } else {
-                success.push({
-                    statusCode: eventResponse.value.status,
-                    event
-                });
+                statusCode = eventResponse.value.status;
+                if (statusCode <= 0 || statusCode >= 400) {
+                    list = failures;
+                }
             }
+            list.push({
+                event,
+                statusCode
+            });
         });
 
         return {

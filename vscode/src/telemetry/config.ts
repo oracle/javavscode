@@ -5,7 +5,7 @@
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
 
-	 https://www.apache.org/licenses/LICENSE-2.0
+   https://www.apache.org/licenses/LICENSE-2.0
 
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,18 +14,58 @@
   limitations under the License.
 */
 import { RetryConfig, TelemetryApi } from "./types";
+import * as path from 'path';
+import * as fs from 'fs';
+import { LOGGER } from "../logger";
 
-export const TELEMETRY_RETRY_CONFIG: RetryConfig = Object.freeze({
-    maxRetries: 6,
-    baseCapacity: 256,
-    baseTimer: 5 * 1000,
-    maxDelayMs: 100 * 1000,
-    backoffFactor: 2,
-    jitterFactor: 0.25
-});
+export class TelemetryConfiguration {
+  private static CONFIG_FILE_PATH = path.resolve(__dirname, "..", "..", "telemetryConfig.json");
 
-export const TELEMETRY_API: TelemetryApi = Object.freeze({
-    baseUrl: null,
-    baseEndpoint: "/vscode/java/sendTelemetry",
-    version: "/v1"
-});
+  private static instance: TelemetryConfiguration;
+  private retryConfig!: RetryConfig;
+  private apiConfig!: TelemetryApi;
+
+  public constructor() {
+    this.initialize();
+  }
+
+  public static getInstance(): TelemetryConfiguration {
+    if (!TelemetryConfiguration.instance) {
+      TelemetryConfiguration.instance = new TelemetryConfiguration();
+    }
+    return TelemetryConfiguration.instance;
+  }
+
+  private initialize(): void {
+    try {
+      const config = JSON.parse(fs.readFileSync(TelemetryConfiguration.CONFIG_FILE_PATH).toString());
+
+      this.retryConfig = Object.freeze({
+        maxRetries: config.telemetryRetryConfig.maxRetries,
+        baseCapacity: config.telemetryRetryConfig.baseCapacity,
+        baseTimer: config.telemetryRetryConfig.baseTimer,
+        maxDelayMs: config.telemetryRetryConfig.maxDelayMs,
+        backoffFactor: config.telemetryRetryConfig.backoffFactor,
+        jitterFactor: config.telemetryRetryConfig.jitterFactor
+      });
+
+      this.apiConfig = Object.freeze({
+        baseUrl: config.telemetryApi.baseUrl,
+        baseEndpoint: config.telemetryApi.baseEndpoint,
+        version: config.telemetryApi.version
+      });
+    } catch (error: any) {
+      LOGGER.error("Error occurred while setting up telemetry config");
+      LOGGER.error(error.message);
+    }
+  }
+
+  public getRetryConfig(): Readonly<RetryConfig> {
+    return this.retryConfig;
+  }
+
+  public getApiConfig(): Readonly<TelemetryApi> {
+    return this.apiConfig;
+  }
+
+}
