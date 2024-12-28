@@ -15,15 +15,16 @@
 */
 
 import { LOGGER } from "../../logger";
-import { TELEMETRY_RETRY_CONFIG } from "../config";
+import { TelemetryConfiguration } from "../config";
 import { BaseEvent } from "../events/baseEvent";
 import { TelemetryPostResponse } from "./postTelemetry";
 
 export class TelemetryRetry {
-    private timePeriod: number = TELEMETRY_RETRY_CONFIG.baseTimer;
+    private TELEMETRY_RETRY_CONFIG = TelemetryConfiguration.getInstance().getRetryConfig();
+    private timePeriod: number = this.TELEMETRY_RETRY_CONFIG?.baseTimer;
     private timeout?: NodeJS.Timeout | null;
     private numOfAttemptsWhenTimerHits: number = 1;
-    private queueCapacity: number = TELEMETRY_RETRY_CONFIG.baseCapacity;
+    private queueCapacity: number = this.TELEMETRY_RETRY_CONFIG?.baseCapacity;
     private numOfAttemptsWhenQueueIsFull: number = 1;
     private triggeredDueToQueueOverflow: boolean = false;
     private callbackHandler?: () => {};
@@ -45,12 +46,12 @@ export class TelemetryRetry {
 
     private resetTimerParameters = () => {
         this.numOfAttemptsWhenTimerHits = 1;
-        this.timePeriod = TELEMETRY_RETRY_CONFIG.baseTimer;
+        this.timePeriod = this.TELEMETRY_RETRY_CONFIG.baseTimer;
         this.clearTimer();
     }
 
     private increaseTimePeriod = (): void => {
-        if (this.numOfAttemptsWhenTimerHits <= TELEMETRY_RETRY_CONFIG.maxRetries) {
+        if (this.numOfAttemptsWhenTimerHits <= this.TELEMETRY_RETRY_CONFIG.maxRetries) {
             this.timePeriod = this.calculateDelay();
             this.numOfAttemptsWhenTimerHits++;
             return;
@@ -66,26 +67,26 @@ export class TelemetryRetry {
     }
 
     private calculateDelay = (): number => {
-        const baseDelay = TELEMETRY_RETRY_CONFIG.baseTimer *
-            Math.pow(TELEMETRY_RETRY_CONFIG.backoffFactor, this.numOfAttemptsWhenTimerHits);
+        const baseDelay = this.TELEMETRY_RETRY_CONFIG.baseTimer *
+            Math.pow(this.TELEMETRY_RETRY_CONFIG.backoffFactor, this.numOfAttemptsWhenTimerHits);
 
-        const cappedDelay = Math.min(baseDelay, TELEMETRY_RETRY_CONFIG.maxDelayMs);
+        const cappedDelay = Math.min(baseDelay, this.TELEMETRY_RETRY_CONFIG.maxDelayMs);
 
-        const jitterMultiplier = 1 + (Math.random() * 2 - 1) * TELEMETRY_RETRY_CONFIG.jitterFactor;
+        const jitterMultiplier = 1 + (Math.random() * 2 - 1) * this.TELEMETRY_RETRY_CONFIG.jitterFactor;
 
         return Math.floor(cappedDelay * jitterMultiplier);
     };
 
     private increaseQueueCapacity = (): void => {
-        if (this.numOfAttemptsWhenQueueIsFull < TELEMETRY_RETRY_CONFIG.maxRetries) {
-            this.queueCapacity = TELEMETRY_RETRY_CONFIG.baseCapacity *
-                Math.pow(TELEMETRY_RETRY_CONFIG.backoffFactor, this.numOfAttemptsWhenQueueIsFull);
+        if (this.numOfAttemptsWhenQueueIsFull < this.TELEMETRY_RETRY_CONFIG.maxRetries) {
+            this.queueCapacity = this.TELEMETRY_RETRY_CONFIG.baseCapacity *
+                Math.pow(this.TELEMETRY_RETRY_CONFIG.backoffFactor, this.numOfAttemptsWhenQueueIsFull);
         }
         throw new Error("Number of retries exceeded");
     }
 
     private resetQueueCapacity = (): void => {
-        this.queueCapacity = TELEMETRY_RETRY_CONFIG.baseCapacity;
+        this.queueCapacity = this.TELEMETRY_RETRY_CONFIG.baseCapacity;
         this.numOfAttemptsWhenQueueIsFull = 1;
         this.triggeredDueToQueueOverflow = false;
     }

@@ -62,7 +62,7 @@ export class NbLanguageClient extends LanguageClient {
                     'showHtmlPageSupport': true,
                     'wantsJavaSupport': true,
                     'wantsGroovySupport': false,
-                    'wantsTelemetryEnabled': Telemetry.isTelemetryFeatureAvailable,
+                    'wantsTelemetryEnabled': Telemetry.getIsTelemetryFeatureAvailable(),
                     'commandPrefix': extConstants.COMMAND_PREFIX,
                     'configurationPrefix': `${extConstants.COMMAND_PREFIX}.`,
                     'altConfigurationPrefix': `${extConstants.COMMAND_PREFIX}.`

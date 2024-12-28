@@ -29,7 +29,7 @@ export class ExtensionLogger {
 
     constructor(channelName: string) {
         this.outChannel = window.createOutputChannel(channelName);
-        this.isDebugLogEnabled = process.env['oracle.oracle-java.enable.debug-logs'] === "true";
+        this.isDebugLogEnabled = process.env['oracle_oracleJava_enable_debugLogs'] === "true";
     }
 
     public log(message: string): void {

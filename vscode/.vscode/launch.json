@@ -34,7 +34,7 @@
 			"preLaunchTask": "${defaultBuildTask}",
 			"env": {
 				"nbcode_userdir": "global",
-				"oracle.oracle-java.enable.debug-logs": "true"
+				"oracle_oracleJava_enable_debugLogs": "true"
 			}
 		},
 		{

@@ -18,21 +18,24 @@ import { ExtensionContextInfo } from "../extensionContextInfo";
 import { LOGGER } from "../logger";
 import { BaseEvent } from "./events/baseEvent";
 import { TelemetryReporter } from "./types";
-import { TELEMETRY_API } from "./config";
+import { TelemetryConfiguration } from "./config";
 
 export namespace Telemetry {
 
 	let telemetryManager: TelemetryManager;
-	
-	export const isTelemetryFeatureAvailable = TELEMETRY_API.baseUrl != null && TELEMETRY_API.baseUrl.trim().length;
-	
+
+	export const getIsTelemetryFeatureAvailable = (): boolean => {
+		const TELEMETRY_API = TelemetryConfiguration.getInstance()?.getApiConfig();
+		return TELEMETRY_API?.baseUrl != null && TELEMETRY_API?.baseUrl.trim().length > 0;
+	}
+
 	export const initializeTelemetry = (contextInfo: ExtensionContextInfo): TelemetryManager => {
 		if (!!telemetryManager) {
 			LOGGER.warn("Telemetry is already initialized");
 			return telemetryManager;
 		}
 		telemetryManager = new TelemetryManager(contextInfo);
-		if (isTelemetryFeatureAvailable) {
+		if (getIsTelemetryFeatureAvailable()) {
 			telemetryManager.initializeReporter();
 		}
 
@@ -40,7 +43,7 @@ export namespace Telemetry {
 	}
 
 	const enqueueEvent = (cbFunction: (reporter: TelemetryReporter) => void) => {
-		if (telemetryManager.isExtTelemetryEnabled() && isTelemetryFeatureAvailable) {
+		if (telemetryManager.isExtTelemetryEnabled() && getIsTelemetryFeatureAvailable()) {
 			const reporter = telemetryManager.getReporter();
 			if (reporter) {
 				cbFunction(reporter);
