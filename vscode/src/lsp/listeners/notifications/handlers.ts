@@ -25,6 +25,7 @@ import { LOGGER } from '../../../logger';
 import { globalState } from "../../../globalState";
 import { WorkspaceChangeData, WorkspaceChangeEvent } from "../../../telemetry/events/workspaceChange";
 import { Telemetry } from "../../../telemetry/telemetry";
+import { JdkFeatureEvent, JdkFeatureEventData } from "../../../telemetry/events/jdkFeature";
 
 const checkInstallNbJavac = (msg: string) => {
     const NO_JAVA_SUPPORT = "Cannot initialize Java support";
@@ -111,7 +112,7 @@ const textEditorDecorationDisposeHandler = (param: any) => {
 
 
 const telemetryEventHandler = (param: any) => {
-    if(WorkspaceChangeEvent.NAME === param?.name){
+    if (WorkspaceChangeEvent.NAME === param?.name) {
         const {projectInfo, numProjects, lspInitTimeTaken, projInitTimeTaken} = param?.properties;
         const eventData: WorkspaceChangeData = {
             projectInfo,
@@ -122,6 +123,17 @@ const telemetryEventHandler = (param: any) => {
         const workspaceChangeEvent: WorkspaceChangeEvent = new WorkspaceChangeEvent(eventData);
         Telemetry.sendTelemetry(workspaceChangeEvent);
         return;
+    }
+    if (JdkFeatureEvent.NAME === param?.name) {
+        const {javaVersion, names, jeps, isPreviewEnabled} = param?.properties;
+        const eventData: JdkFeatureEventData = {
+            jeps,
+            names,
+            javaVersion,
+            isPreviewEnabled
+        };
+        const jdkFeatureEvent: JdkFeatureEvent = new JdkFeatureEvent(eventData);
+        Telemetry.sendTelemetry(jdkFeatureEvent);
     }
     const ls = globalState.getListener(param);
     if (ls) {
