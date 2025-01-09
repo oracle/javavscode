@@ -108,9 +108,7 @@ export const clientInit = () => {
     const client = NbLanguageClient.build(connection, LOGGER);
 
     LOGGER.log('Language Client: Starting');
-    client.start().then(() => {
-        Telemetry.enqueueStartEvent();
-        
+    client.start().then(() => {        
         registerListenersAfterClientInit();
         registerNotificationListeners(client);
         registerRequestListeners(client);

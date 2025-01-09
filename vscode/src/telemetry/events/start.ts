@@ -59,6 +59,7 @@ export class ExtensionStartEvent extends BaseEvent<StartEventData> {
     }
 
     onSuccessPostEventCallback = async (): Promise<void> => {
+        LOGGER.debug(`Start event sent successfully`);
         this.addEventToCache();
     }
 
