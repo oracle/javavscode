@@ -13,6 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+import { LOGGER } from "../../logger";
+import { Telemetry } from "../telemetry";
 import { BaseEvent } from "./baseEvent";
 
 interface ProjectInfo {
@@ -30,6 +32,8 @@ export interface WorkspaceChangeData {
     projInitTimeTaken: number;
 }
 
+let workspaceChangeEventTimeout: NodeJS.Timeout | null = null;
+
 export class WorkspaceChangeEvent extends BaseEvent<WorkspaceChangeData> {
     public static readonly NAME = "workspaceChange";
     public static readonly ENDPOINT = "/workspaceChange";
@@ -37,4 +41,13 @@ export class WorkspaceChangeEvent extends BaseEvent<WorkspaceChangeData> {
     constructor(payload: WorkspaceChangeData) {
         super(WorkspaceChangeEvent.NAME, WorkspaceChangeEvent.ENDPOINT, payload);
     }
+
+    public onSuccessPostEventCallback = async (): Promise<void> => {
+        LOGGER.debug(`WorkspaceChange event sent successfully`);
+        if (workspaceChangeEventTimeout != null) {
+            clearTimeout(workspaceChangeEventTimeout);
+            workspaceChangeEventTimeout = null;
+        }
+        workspaceChangeEventTimeout = setTimeout(() => Telemetry.sendTelemetry(this), 60 * 60 * 24 * 1000);
+    };
 }

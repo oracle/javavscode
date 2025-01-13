@@ -69,6 +69,7 @@ export class TelemetryManager {
         }
         if (this.settings.isExtTelemetryEnabled) {
             this.telemetryRetryManager.startTimer();
+            this.reporter?.startEvent();
         }
     }
 };

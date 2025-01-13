@@ -55,10 +55,6 @@ export namespace Telemetry {
 		enqueueEvent((reporter) => reporter.addEventToQueue(event));
 	}
 
-	export const enqueueStartEvent = (): void => {
-		enqueueEvent((reporter) => reporter.startEvent());
-	}
-
 	export const enqueueCloseEvent = (): void => {
 		enqueueEvent((reporter) => reporter.closeEvent());
 	}
