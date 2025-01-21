@@ -1,5 +1,5 @@
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
-index d82646afb1..3d507b5fe3 100644
+index d82646afb1..b008279cc4 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
 @@ -21,6 +21,7 @@ package org.netbeans.modules.java.lsp.server.protocol;
@@ -10,7 +10,7 @@ index d82646afb1..3d507b5fe3 100644
  import java.math.BigInteger;
  import java.nio.charset.StandardCharsets;
  import java.security.MessageDigest;
-@@ -28,25 +29,27 @@ import java.security.NoSuchAlgorithmException;
+@@ -28,25 +29,29 @@ import java.security.NoSuchAlgorithmException;
  import java.util.ArrayList;
  import java.util.Collection;
  import java.util.Collections;
@@ -19,6 +19,8 @@ index d82646afb1..3d507b5fe3 100644
  import java.util.List;
  import java.util.Map;
 -import java.util.Set;
++import java.util.NavigableMap;
++import java.util.TreeMap;
  import java.util.WeakHashMap;
  import java.util.concurrent.Future;
 -import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,7 +44,7 @@ index d82646afb1..3d507b5fe3 100644
  import org.openide.util.Lookup;
  
  /**
-@@ -55,130 +58,171 @@ import org.openide.util.Lookup;
+@@ -55,130 +60,200 @@ import org.openide.util.Lookup;
   */
  public class LspServerTelemetryManager {
  
@@ -83,11 +85,11 @@ index d82646afb1..3d507b5fe3 100644
 +
 +        private static final LspServerTelemetryManager instance = new LspServerTelemetryManager();
 +    }
- 
++
 +    private final WeakHashMap<LanguageClient, WeakReference<Future<Void>>> clients = new WeakHashMap<>();
 +    private volatile boolean telemetryEnabled = false;
 +    private long lspServerIntializationTime;
-+
+ 
 +    public boolean isTelemetryEnabled() {
 +        return telemetryEnabled;
 +    }
@@ -175,22 +177,21 @@ index d82646afb1..3d507b5fe3 100644
          JsonArray prjProps = new JsonArray();
  
 -        Map<String, Project> mp = prjs.stream()
-+        Map<String, Project> mp = projects.stream()
-                 .collect(Collectors.toMap(project -> project.getProjectDirectory().getPath(), project -> project));
+-                .collect(Collectors.toMap(project -> project.getProjectDirectory().getPath(), project -> project));
++        NavigableMap<String, Project> mp = projects.stream()
++                .collect(Collectors.toMap(project -> project.getProjectDirectory().getPath(), project -> project, (p1, p2) -> p1, TreeMap<String, Project>::new));
  
          for (FileObject workspaceFolder : workspaceClientFolders) {
              try {
-                 JsonObject obj = new JsonObject();
+-                JsonObject obj = new JsonObject();
++                boolean noProjectFound = true;
                  String prjPath = workspaceFolder.getPath();
 -                String prjId = this.getPrjId(prjPath);
-+                String prjId = getPrjId(prjPath);
-                 obj.addProperty("id", prjId);
+-                obj.addProperty("id", prjId);
 -                
 -                // In future if different JDK is used for different project then this can be updated 
 -                obj.addProperty("javaVersion", System.getProperty("java.version"));
-+                String javaVersion = getProjectJavaVersion();
-+                obj.addProperty("javaVersion", javaVersion);
-
+-
 -                if (mp.containsKey(prjPath)) {
 -                    Project prj = mp.get(prjPath);
 -
@@ -202,31 +203,40 @@ index d82646afb1..3d507b5fe3 100644
 -
 -                    boolean isPreviewFlagEnabled = this.isEnablePreivew(prj.getProjectDirectory(), projectType);
 -                    obj.addProperty("enablePreview", isPreviewFlagEnabled);
-+                Project prj = mp.get(prjPath);
-+                FileObject projectDirectory;
-+                ProjectType projectType;
-+                if (prj == null) {
-+                    projectType = ProjectType.standalone;
-+                    projectDirectory = workspaceFolder;
-                 } else {
+-                } else {
 -                    obj.addProperty("buildTool", this.STANDALONE_PRJ);
 -                    obj.addProperty("javaVersion", System.getProperty("java.version"));
 -                    obj.addProperty("openedWithProblems", false);
 -
 -                    boolean isPreviewFlagEnabled = this.isEnablePreivew(workspaceFolder, this.STANDALONE_PRJ);
 -                    obj.addProperty("enablePreview", isPreviewFlagEnabled);
-+                    projectType = getProjectType(prj);
-+                    projectDirectory = prj.getProjectDirectory();
-+                    obj.addProperty("isOpenedWithProblems", ProjectProblems.isBroken(prj));
++                String prjPathWithSlash = null;
++                for (Map.Entry<String, Project> p : mp.tailMap(prjPath, true).entrySet()) {
++                    String projectPath = p.getKey();
++                    if (prjPathWithSlash == null) {
++                        if (prjPath.equals(projectPath)) {
++                            prjProps.add(createProjectInfo(prjPath, p.getValue(), workspaceFolder, client));
++                            noProjectFound = false;
++                            break;
++                        }
++                        prjPathWithSlash = prjPath + '/';                        
++                    }
++                    if (projectPath.startsWith(prjPathWithSlash)) {
++                        prjProps.add(createProjectInfo(p.getKey(), p.getValue(), workspaceFolder, client));
++                        noProjectFound = false;
++                        continue;
++                    }
++                    break;
                  }
-+                obj.addProperty("buildTool", projectType.name());
-+                boolean isPreviewFlagEnabled = isPreviewEnabled(projectDirectory, projectType, client);
-+                obj.addProperty("isPreviewEnabled", isPreviewFlagEnabled);
- 
-                 prjProps.add(obj);
- 
+-
+-                prjProps.add(obj);
+-
 -            } catch (NoSuchAlgorithmException ex) {
 -                Exceptions.printStackTrace(ex);
++                if (noProjectFound) {
++                    // No project found
++                    prjProps.add(createProjectInfo(prjPath, null, workspaceFolder, client));
++                }
 +            } catch (NoSuchAlgorithmException e) {
 +                LOG.log(Level.INFO, "NoSuchAlgorithmException while creating workspaceInfo event: {0}", e.getMessage());
 +            } catch (Exception e) {
@@ -236,25 +246,54 @@ index d82646afb1..3d507b5fe3 100644
  
 -        properties.add("prjsInfo", prjProps);
 +        properties.add("projectInfo", prjProps);
-+
-+        properties.addProperty("projInitTimeTaken", timeToOpenProjects);
-+        properties.addProperty("numProjects", workspaceClientFolders.size());
-+        properties.addProperty("lspInitTimeTaken", System.currentTimeMillis() - this.lspServerIntializationTime);
  
 -        properties.addProperty("timeToOpenPrjs", timeToOpenPrjs);
 -        properties.addProperty("numOfPrjsOpened", workspaceClientFolders.size());
 -        properties.addProperty("lspServerInitializationTime", System.currentTimeMillis() - this.lspServerIntiailizationTime);
-+        this.sendTelemetry(client, new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.WORKSPACE_INFO_EVT, properties));
-+    }
-
++        properties.addProperty("projInitTimeTaken", timeToOpenProjects);
++        properties.addProperty("numProjects", workspaceClientFolders.size());
++        properties.addProperty("lspInitTimeTaken", System.currentTimeMillis() - this.lspServerIntializationTime);
+ 
 -        this.sendTelemetry(client, new TelemetryEvent(MessageType.Info.toString(), this.WORKSPACE_INFO_EVT, properties));
-+    public boolean isPreviewEnabled(FileObject source, ProjectType prjType) {
-+        return isPreviewEnabled(source, prjType, null);
++        this.sendTelemetry(client, new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.WORKSPACE_INFO_EVT, properties));
      }
 -    
 -    private boolean isEnablePreivew(FileObject source, String prjType) {
 -        if (prjType.equals(this.STANDALONE_PRJ)) {
 -            NbCodeLanguageClient client = Lookup.getDefault().lookup(NbCodeLanguageClient.class);
++
++    private JsonObject createProjectInfo(String prjPath, Project prj, FileObject workspaceFolder, LanguageClient client) throws NoSuchAlgorithmException {
++        JsonObject obj = new JsonObject();
++        String prjId = getPrjId(prjPath);
++        obj.addProperty("id", prjId);
++        FileObject projectDirectory;
++        ProjectType projectType;
++        if (prj == null) {
++            projectType = ProjectType.standalone;
++            projectDirectory = workspaceFolder;
++        } else {
++            projectType = getProjectType(prj);
++            projectDirectory = prj.getProjectDirectory();
++            boolean projectHasProblems;
++            try {
++                projectHasProblems = ProjectProblems.isBroken(prj);
++            } catch (RuntimeException e) {
++                LOG.log(Level.INFO, "Exception while checking project problems for workspaceInfo event: {0}", e.getMessage());
++                projectHasProblems = true;
++            }
++            obj.addProperty("isOpenedWithProblems", projectHasProblems);
++        }
++        String javaVersion = getProjectJavaVersion();
++        obj.addProperty("javaVersion", javaVersion);
++        obj.addProperty("buildTool", projectType.name());
++        boolean isPreviewFlagEnabled = isPreviewEnabled(projectDirectory, projectType, client);
++        obj.addProperty("isPreviewEnabled", isPreviewFlagEnabled);
++        return obj;
++    }
++
++    public boolean isPreviewEnabled(FileObject source, ProjectType prjType) {
++        return isPreviewEnabled(source, prjType, null);
++    }
 +
 +    public boolean isPreviewEnabled(FileObject source, ProjectType prjType, LanguageClient languageClient) {
 +        if (prjType == ProjectType.standalone) {
@@ -292,7 +331,7 @@ index d82646afb1..3d507b5fe3 100644
      }
  
      private String getPrjId(String prjPath) throws NoSuchAlgorithmException {
-@@ -187,15 +231,50 @@ public class LspServerTelemetryManager {
+@@ -187,15 +262,50 @@ public class LspServerTelemetryManager {
  
          BigInteger number = new BigInteger(1, hash);
  
