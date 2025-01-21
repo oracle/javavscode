@@ -55,6 +55,7 @@ const extraLaunchOptions = [
     "--start-java-language-server=listen-hash:0",
     "--start-java-debug-adapter-server=listen-hash:0",
     "-J-DTopSecurityManager.disable=true",
+    "-J--add-exports=jdk.compiler/com.sun.tools.javac.resources=ALL-UNNAMED",
     "-J--enable-native-access=ALL-UNNAMED"
 ];
 
