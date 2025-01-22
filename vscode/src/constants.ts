@@ -33,7 +33,7 @@ export namespace jdkDownloaderConstants {
   export const ORACLE_JDK_DOWNLOAD_VERSIONS = ['23', '21'];
 
   export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-    "23": "https://download.java.net/java/GA/jdk23.0.1/c28985cbf10d4e648e4004050f8781aa/11/GPL/openjdk-23.0.1"
+    "23": "https://download.java.net/java/GA/jdk23.0.2/6da2a6609d6e406f85c491fcb119101b/7/GPL/openjdk-23.0.2"
   };
 }
 

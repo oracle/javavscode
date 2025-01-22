@@ -31,6 +31,7 @@
 * Suppressed JNI warning during language server startup [#338](https://github.com/oracle/javavscode/pull/338)
 * Dependency upgrades [#337](https://github.com/oracle/javavscode/pull/337)
 * Extension maintainance changes [#348](https://github.com/oracle/javavscode/pull/348) and [#349](https://github.com/oracle/javavscode/pull/349)
+* Updated JDK Downloader URLs for Jan25 CPUs [#365](https://github.com/oracle/javavscode/pull/365)
 
 ## Version 23.0.1
 ### What's Changed
