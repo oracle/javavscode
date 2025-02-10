@@ -63,6 +63,7 @@
             patches/8036-draft.diff
             patches/8038-draft.diff
             patches/mvn-sh.diff
+            patches/project-marker-jdk.diff
             patches/generate-dependencies.diff
             patches/rename-debugger.diff
             patches/remove-db.diff
@@ -109,7 +110,11 @@
         <mkdir dir="${lsp.build.dir}/etc" />
         <copy todir="${lsp.build.dir}/etc" file="script/etc/nbcode.conf" overwrite="true" />
         <copy todir="${lsp.build.dir}/etc" file="script/etc/nbcode.clusters" overwrite="true" />
-        <move file="${lsp.build.dir}/java/maven/bin/mvn" tofile="${lsp.build.dir}/java/maven/bin/mvn.sh" />
+        <move file="${lsp.build.dir}/extide/ant/bin/ant" tofile="${lsp.build.dir}/extide/ant/bin/ant.sh"/>
+        <move file="${lsp.build.dir}/extide/ant/bin/antRun" tofile="${lsp.build.dir}/extide/ant/bin/antRun.sh"/>
+        <move file="${lsp.build.dir}/java/maven/bin/mvn" tofile="${lsp.build.dir}/java/maven/bin/mvn.sh"/>
+        <move file="${lsp.build.dir}/java/maven/bin/mvnDebug" tofile="${lsp.build.dir}/java/maven/bin/mvnDebug.sh"/>
+        <move file="${lsp.build.dir}/java/maven/bin/mvnyjp" tofile="${lsp.build.dir}/java/maven/bin/mvnyjp.sh"/>
         <move file="${lsp.build.dir}/bin/nbcode" tofile="${lsp.build.dir}/bin/nbcode.sh" />
         <move file="${lsp.build.dir}/platform/lib/nbexec" tofile="${lsp.build.dir}/platform/lib/nbexec.sh" />
         <replace file="${lsp.build.dir}/bin/nbcode.sh" token="/platform*/lib/nbexec" value="/platform*/lib/nbexec.sh"/>
@@ -118,7 +123,11 @@
         <replace file="${lsp.build.dir}/platform/lib/nbexec64.dll" token="java.security.manager" value="no.java.secur.manager" encoding="ISO-8859-1"/>
         <chmod file="${lsp.build.dir}/bin/nbcode.sh" perm="u+x" />
         <chmod file="${lsp.build.dir}/platform/lib/nbexec.sh" perm="u+x"/>
-        <chmod file="${lsp.build.dir}/java/maven/bin/mvn.sh" perm="u+x" />
+        <chmod file="${lsp.build.dir}/extide/ant/bin/ant.sh" perm="u+x"/>
+        <chmod file="${lsp.build.dir}/extide/ant/bin/antRun.sh" perm="u+x"/>
+        <chmod file="${lsp.build.dir}/java/maven/bin/mvn.sh" perm="u+x"/>
+        <chmod file="${lsp.build.dir}/java/maven/bin/mvnDebug.sh" perm="u+x"/>
+        <chmod file="${lsp.build.dir}/java/maven/bin/mvnyjp.sh" perm="u+x"/>
     </target>
     <target name="add-extra-modules" depends="build-lsp-server,build-l10n-bundles" if="extra.modules">
         <ant dir="../../nbbuild" target="build-nbms" inheritall="false" inheritrefs="false">
@@ -238,14 +247,28 @@
             <arg value="-Dexec.mainClass=org.netbeans.prepare.bundles.PrepareBundles" />
             <arg value="-Dexec.args=${build.dir}/bundles ${nb_all}" />
         </exec>
- 
+
         <mkdir dir="${build.dir}/vsce" />
         <exec executable="npm${cmd.suffix}" failonerror="true" dir="${build.dir}/vsce">
             <arg value="install" />
             <arg value="--save" />
             <arg value="@vscode/vsce@2.19.0" />
         </exec>
-        
+
+        <move todir="${basedir}/vscode/node_modules" includeemptydirs="false">
+            <fileset dir="${basedir}/vscode/node_modules">
+                <include name="**/LICENSE"/>
+                <include name="**/NOTICE"/>
+            </fileset>
+            <mapper type="glob" from="*" to="*.txt"/>
+        </move>
+        <move todir="${basedir}/vscode/nbcode" includeemptydirs="false">
+            <fileset dir="${basedir}/vscode/nbcode">
+                <include name="**/LICENSE"/>
+                <include name="**/NOTICE"/>
+            </fileset>
+            <mapper type="glob" from="*" to="*.txt"/>
+        </move>
         <copy file="${basedir}/LICENSE.txt" todir="${basedir}/vscode" />
         <copy file="${basedir}/THIRD_PARTY_LICENSES.txt" todir="${basedir}/vscode" />
         <copy file="${basedir}/README.md" todir="${basedir}/vscode" />
