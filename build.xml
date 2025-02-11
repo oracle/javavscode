@@ -255,6 +255,14 @@
             <arg value="@vscode/vsce@2.19.0" />
         </exec>
 
+        <exec executable="patch" dir="${build.dir}/vsce/node_modules/@vscode/vsce/out" failifexecutionfails="false" failonerror="false">
+            <arg value="-p1"/>
+            <arg value="-z"/>
+            <arg value=".orig"/>
+            <arg value="-i"/>
+            <arg value="${basedir}/patches/vsce-package-ContentTypes.diff"/>
+        </exec>
+
         <move todir="${basedir}/vscode/node_modules" includeemptydirs="false">
             <fileset dir="${basedir}/vscode/node_modules">
                 <include name="**/LICENSE"/>
