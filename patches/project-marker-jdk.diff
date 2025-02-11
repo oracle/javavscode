@@ -1,0 +1,17 @@
+diff --git a/java/java.openjdk.project/licenseinfo.xml b/java/java.openjdk.project/licenseinfo.xml
+index a2c0157ee9..4cb7888b23 100644
+--- a/java/java.openjdk.project/licenseinfo.xml
++++ b/java/java.openjdk.project/licenseinfo.xml
+@@ -27,7 +27,7 @@
+         <file>src/org/netbeans/modules/java/openjdk/project/resources/jdk-project.png</file> <!-- copy of: java.j2seproject/src/org/netbeans/modules/java/j2seproject/ui/resources/j2seProject.png-->
+         <file>src/org/netbeans/modules/java/openjdk/project/resources/nativeFilesFolderOpened.gif</file> <!-- copy of: openide.loaders/src/org/openide/loaders/defaultFolderOpen.gif-->
+         <file>src/org/netbeans/modules/java/openjdk/project/resources/nativeFilesFolder.gif</file> <!-- copy of: openide.loaders/src/org/openide/loaders/defaultFolder.gif-->
+-        <file>release/patterns/project-marker-jdk</file>
++        <file>release/patterns/project-marker-jdk.txt</file>
+         <license ref="Apache-2.0-ASF" />
+         <comment type="COMMENT_UNSUPPORTED" />
+     </fileset>
+diff --git a/java/java.openjdk.project/release/patterns/project-marker-jdk b/java/java.openjdk.project/release/patterns/project-marker-jdk.txt
+similarity index 100%
+rename from java/java.openjdk.project/release/patterns/project-marker-jdk
+rename to java/java.openjdk.project/release/patterns/project-marker-jdk.txt

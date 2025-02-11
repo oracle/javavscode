@@ -13,3 +13,5 @@ coverage/**
 **/.nycrc.json
 esbuild.js
 images/*
+**/.lastModified
+**/.npmignore
