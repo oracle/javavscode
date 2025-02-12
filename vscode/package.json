@@ -783,7 +783,7 @@
 		"@vscode/codicons": "0.0.36",
 		"@vscode/test-electron": "^2.4.1",
 		"chai": "^4.5.0",
-		"esbuild": "^0.24.0",
+		"esbuild": "^0.25.0",
 		"glob": "^7.1.6",
 		"mocha": "^10.8.2",
 		"nyc": "^17.1.0",
