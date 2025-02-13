@@ -1,0 +1,14 @@
+diff --git a/package.js.orig b/package.js
+index 5bc5e0c..4aa4b79 100644
+--- a/package.js.orig
++++ b/package.js
+@@ -1088,7 +1088,8 @@ async function toContentTypes(files) {
+     }
+     const contentTypes = [];
+     for (const [extension, contentType] of mimetypes) {
+-        contentTypes.push(`<Default Extension="${extension}" ContentType="${contentType}"/>`);
++        const extn = (extension.startsWith('.') && extension.length > 1) ? extension.substring(1) : extension;
++        contentTypes.push(`<Default Extension="${extn}" ContentType="${contentType}"/>`);
+     }
+     return `<?xml version="1.0" encoding="utf-8"?>
+ <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">${contentTypes.join('')}</Types>
