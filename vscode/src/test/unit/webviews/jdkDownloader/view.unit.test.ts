@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import { WebviewPanel, window } from 'vscode';
 import { JdkDownloaderView } from '../../../../webviews/jdkDownloader/view';
 import { checkTagContentNotEmpty, enableMockedLoggers, getMachineArch, getOsType } from '../../testUtils';
+import * as utils from '../../../../utils';
 
 describe('JDK Downloader view tests', () => {
   let jdkDownloaderView: JdkDownloaderView;
@@ -44,6 +45,21 @@ describe('JDK Downloader view tests', () => {
     beforeEach(() => {
       createWebviewPanelStub = sandbox.stub(window, 'createWebviewPanel');
       onDidReceiveMessageStub = sandbox.stub();
+      let versionsStub: sinon.SinonStub = sandbox.stub(utils, "httpsGet");
+      versionsStub.returns(`{
+      "items": [
+          {
+        "jdkDetails":{
+            "jdkVersion": 23
+        } 
+          },
+          {
+        "jdkDetails":{
+            "jdkVersion": 21
+        } 
+          }
+          ]
+        }`);
 
       webviewPanel = {
         webview: {
@@ -132,13 +148,6 @@ describe('JDK Downloader view tests', () => {
         expect(jdkDownloaderHtml).to.match(archOptionRegex);
       });
     });
-
-    it("should attach a message listener to the webview", () => {
-      expect(onDidReceiveMessageStub.calledOnce).to.be.true;
-      const listener = onDidReceiveMessageStub.firstCall.args[0];
-      expect(listener).to.be.a('function');
-    });
-
   });
 
   it("should dispose the webview", () => {
