@@ -186,19 +186,20 @@ export class JdkDownloaderView {
             const availableVersions = await httpsGet(`${jdkDownloaderConstants.ORACLE_JDK_RELEASES_BASE_URL}?licenseType=NFTC&sortBy=jdkVersion&sortOrder=DESC`);
             if (isString(availableVersions)) {
                 const availableVersionsObj = JSON.parse(availableVersions);
-                const jdkVersions = availableVersionsObj?.items?.map((version: any) => version.jdkDetails.jdkVersion);
-                LOGGER.log(`Fetched Oracle JDK versions: ${jdkVersions}`);
+                if (availableVersionsObj?.items) {
+                    const jdkVersions = availableVersionsObj?.items?.map((version: any) => version.jdkDetails.jdkVersion);
+                    LOGGER.log(`Fetched Oracle JDK versions: ${jdkVersions}`);
 
-                return jdkVersions || [];
+                    return jdkVersions;
+                }
             }
             LOGGER.warn(`Response of Oracle JDK versions is not as expected`);
-
-            return [];
         } catch (error) {
             const msg = `Some error occurred while fetching Oracle JDK versions: ${isError(error) ? error.message : null}`;
-            throw new Error(msg);
+            LOGGER.warn(msg);
         }
-
+        
+        return jdkDownloaderConstants.ORACLE_JDK_FALLBACK_VESIONS;
     }
 
     private getJdkVersionsHtml = (jdkVersions: string[]) => {
