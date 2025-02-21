@@ -237,7 +237,11 @@ class RunConfigurationProvider implements vscode.DebugConfigurationProvider {
             if (vmArgs) {
                 if (!config.vmArgs) {
                     config.vmArgs = vmArgs;
+                } else if (Array.isArray(config.vmArgs)) {
+                    let cfg: string[] = config.vmArgs;
+                    cfg.push(vmArgs);
                 } else {
+                    // assume the config is a string
                     config.vmArgs = `${config.vmArgs} ${vmArgs}`;
                 }
             }

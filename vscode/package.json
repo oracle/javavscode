@@ -290,8 +290,13 @@
 							"vmArgs": {
 								"type": [
 									"string",
+									"array",
 									"null"
 								],
+								"items": {
+									"type": "string",
+									"description": "%jdk.debugger.configuration.vmArgs.items.description%"
+								},
 								"description": "%jdk.debugger.configuration.vmArgs.description%",
 								"default": null
 							},
