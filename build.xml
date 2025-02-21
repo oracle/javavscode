@@ -45,21 +45,7 @@
     <loadresource property="patch-files">
         <string>
             patches/6330.diff
-            patches/7491.diff
             patches/7610.diff
-            patches/7641.diff
-            patches/7654.diff
-            patches/7670.diff
-            patches/7699.diff
-            patches/7709.diff
-            patches/7722.diff
-            patches/7724.diff
-            patches/7733.diff
-            patches/7750.diff
-            patches/7910.diff
-            patches/7921.diff
-            patches/7923.diff
-            patches/7926.diff
             patches/8036-draft.diff
             patches/8038-draft.diff
             patches/mvn-sh.diff
@@ -69,7 +55,6 @@
             patches/remove-db.diff
             patches/nbjavac-not-required.diff
             patches/l10n-licence.diff
-            patches/no-security-manager-allow.diff
             patches/dev-dependency-licenses.diff
         </string>
         <filterchain>

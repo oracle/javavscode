@@ -27,18 +27,18 @@ index 91bf8e30db..6d9a77e63a 100644
      @Override
      public CompletableFuture<List<CompletionItem>> configurations(Supplier<CompletableFuture<Project>> projectSupplier) {
 diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
-index 4fce71a094..2b6362ce37 100644
+index 4c504f9f25..560aaee021 100644
 --- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
 +++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
-@@ -177,6 +177,7 @@ import org.netbeans.api.sendopts.CommandLine;
- import org.netbeans.junit.NbTestCase;
+@@ -178,6 +178,7 @@ import org.netbeans.junit.NbTestCase;
  import org.netbeans.modules.java.hints.infrastructure.JavaErrorProvider;
+ import static org.netbeans.modules.java.lsp.server.LspTestUtils.tripleSlashUri;
  import org.netbeans.modules.java.lsp.server.TestCodeLanguageClient;
 +import org.netbeans.modules.java.lsp.server.debugging.attach.AttachConfigurations;
  import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
  import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
-@@ -1223,7 +1224,7 @@ public class ServerTest extends NbTestCase {
+@@ -1224,7 +1225,7 @@ public class ServerTest extends NbTestCase {
      }
  
      private void checkAttachToPort(DebugConnector c) {
@@ -47,7 +47,7 @@ index 4fce71a094..2b6362ce37 100644
          List<String> arguments = c.getArguments();
          assertEquals(2, arguments.size());
          assertEquals("hostName", arguments.get(0));
-@@ -1232,7 +1233,7 @@ public class ServerTest extends NbTestCase {
+@@ -1233,7 +1234,7 @@ public class ServerTest extends NbTestCase {
      }
  
      private void checkAttachToProcess(DebugConnector c) {
