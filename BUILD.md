@@ -121,6 +121,10 @@ This configuration will enable you to debug both the extension’s TypeScript co
    ```json
    "jdk.serverVmOptions": ["-J-Dnetbeans.logger.console=true"]
    ```
+4. For further debugging you can set Log Level to FINEST by appending following argument to the array:
+   ```json
+   "jdk.serverVmOptions": ["-J-Dnetbeans.logger.console=true", "-J-Dorg.netbeans.modules.java.lsp.server.lsptrace.level=FINEST"]
+   ```
 
 Both options will enable logging from the NetBeans server in the VS Code Output Channel.
 

@@ -236,6 +236,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "%jdk.configuration.disableProjectSearchLimit.description%"
+				},
+				"jdk.completion.warning.time": {
+					"type": "integer",
+					"default": 10000,
+					"description": "%jdk.debugger.configuration.completion.warning.time.description%"
 				}
 			}
 		},
