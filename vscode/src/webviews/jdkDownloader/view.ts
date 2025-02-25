@@ -21,6 +21,7 @@ import { JdkDownloaderAction } from './action';
 import { downloaderCss } from './styles';
 import { l10n } from '../../localiser';
 import { LOGGER } from '../../logger';
+import { httpsGet, isError, isString } from '../../utils';
 
 export class JdkDownloaderView {
     public static readonly OPEN_JDK_LABEL = "OpenJDK";
@@ -31,8 +32,9 @@ export class JdkDownloaderView {
     private jdkDownloaderWebView?: WebviewPanel;
     private osType?: string;
     private machineArch?: string;
+    private oracleJdkVersions: string[] = [];
 
-    public createView = () => {
+    public createView = async () => {
         try {
             LOGGER.log("Creating JDK downloader webview");
             this.jdkDownloaderWebView = window.createWebviewPanel(
@@ -43,6 +45,7 @@ export class JdkDownloaderView {
                     enableScripts: true
                 }
             );
+            this.oracleJdkVersions = await this.getOracleJdkVersions();
             this.setDropdownOptions();
             this.jdkDownloaderWebView.webview.html = this.fetchJdkDownloadViewHtml();
             this.jdkDownloaderWebView.webview.onDidReceiveMessage(message => {
@@ -111,7 +114,7 @@ export class JdkDownloaderView {
                 <br />
                 <div class="jdk-version-dropdown">
                 <select id="oracleJDKVersionDropdown">
-                    ${this.getJdkVersionsHtml(jdkDownloaderConstants.ORACLE_JDK_DOWNLOAD_VERSIONS)}
+                    ${this.getJdkVersionsHtml(this.oracleJdkVersions)}
                 </select>
                 </div>
             </div>
@@ -177,7 +180,29 @@ export class JdkDownloaderView {
     `
     }
 
-    private getJdkVersionsHtml = (jdkVersions: String[]) => {
+    private getOracleJdkVersions = async (): Promise<string[]> => {
+        try {
+            LOGGER.log("Fetching Oracle JDK versions...");
+            const availableVersions = await httpsGet(`${jdkDownloaderConstants.ORACLE_JDK_RELEASES_BASE_URL}?licenseType=NFTC&sortBy=jdkVersion&sortOrder=DESC`);
+            if (isString(availableVersions)) {
+                const availableVersionsObj = JSON.parse(availableVersions);
+                if (availableVersionsObj?.items) {
+                    const jdkVersions = availableVersionsObj?.items?.map((version: any) => version.jdkDetails.jdkVersion);
+                    LOGGER.log(`Fetched Oracle JDK versions: ${jdkVersions}`);
+
+                    return jdkVersions;
+                }
+            }
+            LOGGER.warn(`Response of Oracle JDK versions is not as expected`);
+        } catch (error) {
+            const msg = `Some error occurred while fetching Oracle JDK versions: ${isError(error) ? error.message : null}`;
+            LOGGER.warn(msg);
+        }
+        
+        return jdkDownloaderConstants.ORACLE_JDK_FALLBACK_VESIONS;
+    }
+
+    private getJdkVersionsHtml = (jdkVersions: string[]) => {
         let htmlStr = "";
         jdkVersions.forEach((el: String, index: number) => {
             if (index === 0) {
