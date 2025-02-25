@@ -49,7 +49,7 @@ export class JdkDownloaderAction {
 
     public attachListener = async (message: any) => {
         const { command, id, jdkVersion, jdkOS, jdkArch, installType } = message;
-        if (command === JdkDownloaderView.DOWNLOAD_CMD_LABEL) {
+        if (command === JdkDownloaderView.DOWNLOAD_CMD) {
             LOGGER.log(`Request received for downloading ${id} version ${jdkVersion}`);
 
             this.jdkType = id;
@@ -160,10 +160,10 @@ export class JdkDownloaderAction {
     private generateDownloadUrl = (): string => {
         let baseDownloadUrl: string = '';
 
-        if (this.jdkType === JdkDownloaderView.OPEN_JDK_LABEL) {
+        if (this.jdkType === JdkDownloaderView.JDK_TYPE.openJdk) {
             baseDownloadUrl = `${jdkDownloaderConstants.OPEN_JDK_VERSION_DOWNLOAD_LINKS[`${this.jdkVersion}`]}_${this.osType!.toLowerCase()}-${this.machineArch}_bin`;
         }
-        else if (this.jdkType === JdkDownloaderView.ORACLE_JDK_LABEL) {
+        else if (this.jdkType === JdkDownloaderView.JDK_TYPE.oracleJdk) {
             baseDownloadUrl = `${jdkDownloaderConstants.ORACLE_JDK_BASE_DOWNLOAD_URL}/${this.jdkVersion}/latest/jdk-${this.jdkVersion}_${this.osType!.toLowerCase()}-${this.machineArch}_bin`;
         }
         const downloadUrl = this.osType === 'windows' ? `${baseDownloadUrl}.zip` : `${baseDownloadUrl}.tar.gz`;

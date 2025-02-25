@@ -3,6 +3,8 @@
   "jdk.downloader.html.details":"<p>使用此工具，您可以遵循 <a href='https://www.java.com/freeuselicense'>Oracle 免费条款和条件</a>下载最新的 Oracle Java SE JDK，或者依照 <a href='https://openjdk.org/legal/gplv2+ce.html'>GNU 公共许可证（包含 ClassPath 例外条款）</a>下载 Oracle OpenJDK 构建</p> <p>之后，它将代表您处理安装和配置。</p> <p>这样，您可以充分利用此扩展提供的所有功能。</p>",
   "jdk.downloader.button.label.oracleJdk": "下载 Oracle Java SE JDK",
   "jdk.downloader.label.or": "或",
+  "jdk.downloader.label.openJdk": "OpenJDK",
+  "jdk.downloader.label.oracleJdk": "Oracle JDK",
   "jdk.downloader.button.label.openJdk": "下载 Oracle OpenJDK",
   "jdk.downloader.button.label.selectJdkFromSystem": "从我的系统选择安装的 JDK",
   "jdk.downloader.label.selectOracleJdkVersion": "选择 Oracle Java SE 版本",

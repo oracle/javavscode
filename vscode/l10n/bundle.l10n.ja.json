@@ -3,6 +3,8 @@
   "jdk.downloader.html.details":"<p>このツールは、<a href='https://www.java.com/freeuselicense'>Oracle No-Fee Terms and Conditions</a>の最新のOracle Java SE JDKまたは、<a href='https://openjdk.org/legal/gplv2+ce.html'>クラスパス例外付きGNU Public License</a>に基づいたOracle OpenJDKビルドのいずれかをダウンロードできます</p> <p>次に、インストールおよび構成をかわりに処理します。</p> <p>これにより、この拡張によって提供されたすべての機能を最大限活用できます。</p>",
   "jdk.downloader.button.label.oracleJdk": "Oracle Java SE JDKのダウンロード",
   "jdk.downloader.label.or": "または",
+  "jdk.downloader.label.openJdk": "OpenJDK",
+  "jdk.downloader.label.oracleJdk": "Oracle JDK",
   "jdk.downloader.button.label.openJdk": "Oracle OpenJDKのダウンロード",
   "jdk.downloader.button.label.selectJdkFromSystem": "システムからインストール済JDKの選択",
   "jdk.downloader.label.selectOracleJdkVersion": "Oracle Java SEバージョンの選択",

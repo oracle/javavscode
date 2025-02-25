@@ -23,9 +23,14 @@ import { l10n } from '../../localiser';
 import { LOGGER } from '../../logger';
 
 export class JdkDownloaderView {
-    public static readonly OPEN_JDK_LABEL = "OpenJDK";
-    public static readonly ORACLE_JDK_LABEL = "Oracle JDK";
-    public static readonly DOWNLOAD_CMD_LABEL = 'downloadJDK';
+    public static readonly DOWNLOAD_CMD = 'downloadJDK';
+    public static readonly JDK_TYPE = {
+        oracleJdk: "oracleJdk",
+        openJdk: "openJdk",
+    }
+
+    private static readonly OPEN_JDK_LABEL = l10n.value("jdk.downloader.label.openJdk");
+    private static readonly ORACLE_JDK_LABEL = l10n.value("jdk.downloader.label.oracleJdk");
     private readonly jdkDownloaderTitle = l10n.value("jdk.downloader.heading");
 
     private jdkDownloaderWebView?: WebviewPanel;
@@ -222,7 +227,7 @@ export class JdkDownloaderView {
 
                 document.getElementById("addJDKPathManually")?.addEventListener('click', event => {
                     vscode.postMessage({
-                        command: "${JdkDownloaderView.DOWNLOAD_CMD_LABEL}",
+                        command: "${JdkDownloaderView.DOWNLOAD_CMD}",
                         installType: "${JdkDownloaderAction.MANUAL_INSTALLATION_TYPE}",
                     });
                 });
@@ -276,9 +281,9 @@ export class JdkDownloaderView {
 
                 const triggerJDKDownload = (e) => {
                     const { id } = e.target;
-                    const jdkType = id === openJdkButtonId+'DownloadButton' ? "${JdkDownloaderView.OPEN_JDK_LABEL}" : "${JdkDownloaderView.ORACLE_JDK_LABEL}";
+                    const jdkType = id === openJdkButtonId+'DownloadButton' ? "${JdkDownloaderView.JDK_TYPE.openJdk}" : "${JdkDownloaderView.JDK_TYPE.oracleJdk}";
                     vscode.postMessage({
-                        command: "${JdkDownloaderView.DOWNLOAD_CMD_LABEL}",
+                        command: "${JdkDownloaderView.DOWNLOAD_CMD}",
                         id: jdkType,
                         installType: "${JdkDownloaderAction.AUTO_INSTALLATION_TYPE}",
                         jdkVersion: document.getElementById(activeButton.id+'VersionDropdown').value,

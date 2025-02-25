@@ -3,6 +3,8 @@
   "jdk.downloader.html.details":"<p>This tool enables you to download either the latest Oracle Java SE JDK with <a href='https://www.java.com/freeuselicense'>Oracle No-Fee Terms and Conditions</a> or the Oracle OpenJDK builds under the <a href='https://openjdk.org/legal/gplv2+ce.html'>GNU Public License with ClassPath Exception</a></p> <p>It will then handle the installation and configuration on your behalf.</p> <p>This enables you to take full advantage of all the features offered by this extension.</p>",
   "jdk.downloader.button.label.oracleJdk": "Download Oracle Java SE JDK",
   "jdk.downloader.label.or": "or",
+  "jdk.downloader.label.openJdk": "OpenJDK",
+  "jdk.downloader.label.oracleJdk": "Oracle JDK",
   "jdk.downloader.button.label.openJdk": "Download Oracle OpenJDK",
   "jdk.downloader.button.label.selectJdkFromSystem": "Select installed JDK from my system",
   "jdk.downloader.label.selectOracleJdkVersion": "Select Oracle Java SE Version",
