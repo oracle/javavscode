@@ -562,3 +562,34 @@ index d7e1fec8f9..2ec5fa05e8 100644
 +
 +    }
  }
+diff --git a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
+index 536df96b0e..8428268f51 100644
+--- a/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
++++ b/nbbuild/misc/prepare-bundles/src/main/java/org/netbeans/prepare/bundles/PrepareBundles.java
+@@ -48,6 +48,9 @@ import java.util.regex.Pattern;
+ import java.util.stream.Collectors;
+ import java.util.stream.Stream;
+ import java.util.zip.ZipEntry;
++import java.security.MessageDigest;
++import java.nio.charset.StandardCharsets;
++import java.math.BigInteger;
+ 
+ /**
+  * Prepare bundles and license files for a group of node modules.
+@@ -143,7 +146,15 @@ public class PrepareBundles {
+             LicenseUses use = e.getValue();
+             String licenseName = knownLicenseTokens2LicenseKey.get(e.getKey());
+             if (licenseName == null) {
+-                licenseName = use.key + "-" + use.projects.stream().collect(Collectors.joining("-"));
++
++                String projectsString = use.projects.stream().collect(Collectors.joining("-"));
++                
++                MessageDigest digest = MessageDigest.getInstance("SHA-256");
++                byte[] hashBytes = digest.digest(projectsString.getBytes(StandardCharsets.UTF_8));
++                String shasum = String.format("%064x", new BigInteger(1, hashBytes));
++                
++                licenseName = use.key + "-" + shasum;
++
+                 try (OutputStream out = Files.newOutputStream(licensesDir.resolve(licenseName))) {
+                     out.write(use.licenseText.getBytes("UTF-8"));
+                 }
