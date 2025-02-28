@@ -34,6 +34,7 @@ import { ExtensionContextInfo } from './extensionContextInfo';
 import { ClientPromise } from './lsp/clientPromise';
 import { globalState } from './globalState';
 import { Telemetry } from './telemetry/telemetry';
+import { registerNotebooks } from './notebooks/register';
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
     const contextInfo = new ExtensionContextInfo(context);
@@ -47,6 +48,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
     registerDebugger(context);
     subscribeCommands(context);
     registerFileProviders(context);
+    registerNotebooks(context);
 
     launchConfigurations.updateLaunchConfig();
 
