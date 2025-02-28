@@ -50,7 +50,8 @@ export const extCommands = {
     attachDebuggerConnector: appendPrefixToCommand("java.attachDebugger.connector"),
     attachDebuggerConfigurations: appendPrefixToCommand("java.attachDebugger.configurations"),
     loadWorkspaceTests: appendPrefixToCommand("load.workspace.tests"),
-    projectDeleteEntry: appendPrefixToCommand("foundProjects.deleteEntry")
+    projectDeleteEntry: appendPrefixToCommand("foundProjects.deleteEntry"),
+    createNotebook: appendPrefixToCommand("new.notebook")
 }
 
 export const builtInCommands = {
@@ -83,5 +84,7 @@ export const nbCommands = {
     cleanWorkspace: appendPrefixToCommand('clean.workspace'),
     clearProjectCaches: appendPrefixToCommand('clear.project.caches'),
     javaProjectPackages: appendPrefixToCommand('java.get.project.packages'),
-    openStackTrace: appendPrefixToCommand('open.stacktrace')
+    openStackTrace: appendPrefixToCommand('open.stacktrace'),
+    executeNotebookCell: appendPrefixToCommand("jshell.execute.cell"),
+    notebookCleanup: appendPrefixToCommand("jdk.jshell.cleanup")
 }

@@ -17,12 +17,14 @@
 import { NbLanguageClient } from "../../nbLanguageClient"
 import { notificationOrRequestListenerType } from "../../types"
 import { requestListeners } from "./handlers"
+import { notebookListeners } from "./notebooks";
 import { terminalListeners } from "./terminal"
 
 
 const listeners: notificationOrRequestListenerType[] = [
   ...requestListeners,
-  ...terminalListeners
+  ...terminalListeners,
+  ...notebookListeners
 ];
 
 export const registerRequestListeners = (client: NbLanguageClient) => {

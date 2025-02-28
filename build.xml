@@ -79,6 +79,9 @@
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
+            patches/javavscode-375.diff
+	        patches/upgrade-lsp4j.diff
+	        patches/java-notebooks.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">

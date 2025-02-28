@@ -343,3 +343,11 @@ export namespace CloseOutputRequest {
 export namespace ResetOutputRequest {
     export const type = new ProtocolRequestType<string, void, void, void, void>('output/reset');
 }
+
+export interface NotebookCellContentRequestParams {
+    notebookUri: string;
+    cellUri: string;
+}
+export namespace NotebookCellContentRequest {
+    export const type = new ProtocolRequestType<NotebookCellContentRequestParams, void, void, void, void>('notebookDocument/cellContentRequest');
+}
