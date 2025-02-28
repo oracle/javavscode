@@ -40,11 +40,23 @@
 		"workspaceContains:pom.xml",
 		"workspaceContains:build.gradle",
 		"onDebug",
-		"onDebugDynamicConfigurations"
+		"onDebugDynamicConfigurations",
+		"onNotebook:ijnb-notebook"
 	],
 	"main": "./out/extension.js",
 	"l10n": "./l10n",
 	"contributes": {
+		"notebooks": [
+			{
+				"type": "ijnb-notebook",
+				"displayName": "IJNB Notebook",
+				"selector": [
+					{
+						"filenamePattern": "*.ijnb"
+					}
+				]
+			}
+		],
 		"languages": [
 			{
 				"id": "java",
