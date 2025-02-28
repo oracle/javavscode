@@ -1,0 +1,358 @@
+diff --git a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
+index ac22658fe54f..567481a37952 100644
+--- a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
++++ b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
+@@ -91,6 +91,10 @@ public static interface ItemFactory<T> {
+ 
+         T createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef);
+ 
++        default T createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean afterConstructorTypeParams, boolean smartType, int assignToVarOffset, boolean memberRef) {
++            return createExecutableItem(info, elem, type, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef);
++        }
++
+         T createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name);
+ 
+         T createOverrideMethodItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean implement);
+@@ -1866,7 +1870,7 @@ private void insideMemberSelect(Env env) throws IOException {
+                                 String typeName = controller.getElementUtilities().getElementName(el, true) + "." + prefix; //NOI18N
+                                 TypeMirror tm = controller.getTreeUtilities().parseType(typeName, env.getScope().getEnclosingClass());
+                                 if (tm != null && tm.getKind() == TypeKind.DECLARED) {
+-                                    addMembers(env, tm, ((DeclaredType) tm).asElement(), EnumSet.of(CONSTRUCTOR), null, inImport, insideNew, false, switchItemAdder);
++                                    addMembers(env, tm, ((DeclaredType) tm).asElement(), EnumSet.of(CONSTRUCTOR), null, inImport, insideNew, false, false, switchItemAdder);
+                                 }
+                             }
+                         }
+@@ -1901,7 +1905,7 @@ private void insideMemberSelect(Env env) throws IOException {
+                                     }
+                                 }
+                             }
+-                            addMembers(env, type, el, kinds, baseType, inImport, insideNew, false, switchItemAdder);
++                            addMembers(env, type, el, kinds, baseType, inImport, insideNew, false, false, switchItemAdder);
+                         }
+                         break;
+                     default:
+@@ -1914,7 +1918,7 @@ private void insideMemberSelect(Env env) throws IOException {
+                                 String typeName = controller.getElementUtilities().getElementName(el, true) + "." + prefix; //NOI18N
+                                 TypeMirror tm = controller.getTreeUtilities().parseType(typeName, env.getScope().getEnclosingClass());
+                                 if (tm != null && tm.getKind() == TypeKind.DECLARED) {
+-                                    addMembers(env, tm, ((DeclaredType) tm).asElement(), EnumSet.of(CONSTRUCTOR), null, inImport, insideNew, false, switchItemAdder);
++                                    addMembers(env, tm, ((DeclaredType) tm).asElement(), EnumSet.of(CONSTRUCTOR), null, inImport, insideNew, false, false, switchItemAdder);
+                                 }
+                             }
+                             if (exs != null && !exs.isEmpty()) {
+@@ -1939,7 +1943,7 @@ private void insideMemberSelect(Env env) throws IOException {
+                                     for (ElementHandle<TypeElement> teHandle : ci.getDeclaredTypes(el.getSimpleName().toString(), ClassIndex.NameKind.SIMPLE_NAME, EnumSet.allOf(ClassIndex.SearchScope.class))) {
+                                         TypeElement te = teHandle.resolve(controller);
+                                         if (te != null && trees.isAccessible(scope, te)) {
+-                                            addMembers(env, te.asType(), te, kinds, baseType, inImport, insideNew, true, switchItemAdder);
++                                            addMembers(env, te.asType(), te, kinds, baseType, inImport, insideNew, true, false, switchItemAdder);
+                                         }
+                                     }
+                                 }
+@@ -2215,7 +2219,7 @@ private void insideNewClass(Env env) throws IOException {
+                 case GTGTGT:
+                     controller = env.getController();
+                     TypeMirror tm = controller.getTrees().getTypeMirror(new TreePath(path, nc.getIdentifier()));
+-                    addMembers(env, tm, ((DeclaredType) tm).asElement(), EnumSet.of(CONSTRUCTOR), null, false, false, false);
++                    addMembers(env, tm, ((DeclaredType) tm).asElement(), EnumSet.of(CONSTRUCTOR), null, false, false, false, true, addSwitchItemDefault);
+                     break;
+             }
+         }
+@@ -4073,10 +4077,10 @@ public boolean accept(Element e, TypeMirror t) {
+     }
+ 
+     private void addMembers(final Env env, final TypeMirror type, final Element elem, final EnumSet<ElementKind> kinds, final DeclaredType baseType, final boolean inImport, final boolean insideNew, final boolean autoImport) throws IOException {
+-        addMembers(env, type, elem, kinds, baseType, inImport, insideNew, autoImport, addSwitchItemDefault);
++        addMembers(env, type, elem, kinds, baseType, inImport, insideNew, autoImport, false, addSwitchItemDefault);
+     }
+ 
+-    private void addMembers(final Env env, final TypeMirror type, final Element elem, final EnumSet<ElementKind> kinds, final DeclaredType baseType, final boolean inImport, final boolean insideNew, final boolean autoImport, AddSwitchRelatedItem addSwitchItem) throws IOException {
++    private void addMembers(final Env env, final TypeMirror type, final Element elem, final EnumSet<ElementKind> kinds, final DeclaredType baseType, final boolean inImport, final boolean insideNew, final boolean autoImport, final boolean afterConstructorTypeParams, AddSwitchRelatedItem addSwitchItem) throws IOException {
+         Set<? extends TypeMirror> smartTypes = getSmartTypes(env);
+         final TreePath path = env.getPath();
+         TypeMirror actualType = type;
+@@ -4220,7 +4224,7 @@ && isOfKindAndType(e.getEnclosingElement().asType(), e, kinds, baseType, scope,
+                     break;
+                 case CONSTRUCTOR:
+                     ExecutableType et = (ExecutableType) asMemberOf(e, actualType, types);
+-                    results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, autoImport ? env.getReferencesCount() : null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), inImport, false, isOfSmartType(env, actualType, smartTypes), env.assignToVarPos(), false));
++                    results.add(itemFactory.createExecutableItem(env.getController(), (ExecutableElement) e, et, anchorOffset, autoImport ? env.getReferencesCount() : null, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), inImport, false, afterConstructorTypeParams, isOfSmartType(env, actualType, smartTypes), env.assignToVarPos(), false));
+                     break;
+                 case METHOD:
+                     et = (ExecutableType) asMemberOf(e, actualType, types);
+diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
+index 09437294e148..4eb78d72617c 100644
+--- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
++++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
+@@ -482,17 +482,22 @@ public Completion createVariableItem(CompilationInfo info, String varName, int s
+ 
+         @Override
+         public Completion createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
+-            return createExecutableItem(info, elem, type, null, null, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef);
++            return createExecutableItem(info, elem, type, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, false, smartType, assignToVarOffset, memberRef);
++        }
++
++        @Override
++        public Completion createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean afterConstructorTypeParams, boolean smartType, int assignToVarOffset, boolean memberRef) {
++            return createExecutableItem(info, elem, type, null, null, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, afterConstructorTypeParams, smartType, assignToVarOffset, memberRef);
+         }
+ 
+         @Override
+         public Completion createTypeCastableExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
+-            return createExecutableItem(info, elem, type, null, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef);
++            return createExecutableItem(info, elem, type, null, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, false, smartType, assignToVarOffset, memberRef);
+         }
+ 
+         @Override
+         public Completion createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name) {
+-            return createExecutableItem(info, elem, type, name, null, substitutionOffset, null, false, isDeprecated, false, false, false, -1, false);
++            return createExecutableItem(info, elem, type, name, null, substitutionOffset, null, false, isDeprecated, false, false, false, false, -1, false);
+         }
+ 
+         @Override
+@@ -1054,14 +1059,16 @@ private Completion createTypeItem(CompilationInfo info, String prefix, ElementHa
+             return builder.build();
+         }
+ 
+-        private Completion createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, String name, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
++        private Completion createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, String name, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean afterConstructorTypeParams, boolean smartType, int assignToVarOffset, boolean memberRef) {
+             String simpleName = name != null ? name : (elem.getKind() == ElementKind.METHOD ? elem : elem.getEnclosingElement()).getSimpleName().toString();
+             Iterator<? extends VariableElement> it = elem.getParameters().iterator();
+             Iterator<? extends TypeMirror> tIt = type.getParameterTypes().iterator();
+             StringBuilder labelDetail = new StringBuilder();
+             StringBuilder insertText = new StringBuilder();
+             StringBuilder sortParams = new StringBuilder();
+-            insertText.append(simpleName);
++            if (!afterConstructorTypeParams) {
++                insertText.append(simpleName);
++            }
+             labelDetail.append("(");
+             CodeStyle cs = CodeStyle.getDefault(doc);
+             if (!inImport && !memberRef) {
+diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java
+index 09945ede0eaa..6c16e6df828d 100644
+--- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java
++++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItem.java
+@@ -191,12 +191,12 @@ public static JavaCompletionItem createVariableItem(CompilationInfo info, String
+         return new VariableItem(info, null, varName, substitutionOffset, newVarName, smartType, -1);
+     }
+ 
+-    public static JavaCompletionItem createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef, WhiteListQuery.WhiteList whiteList) {
++    public static JavaCompletionItem createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean afterConstructorTypeParams, boolean smartType, int assignToVarOffset, boolean memberRef, WhiteListQuery.WhiteList whiteList) {
+         switch (elem.getKind()) {
+             case METHOD:
+                 return new MethodItem(info, elem, type, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, whiteList);
+             case CONSTRUCTOR:
+-                return new ConstructorItem(info, elem, type, substitutionOffset, isDeprecated, smartType, null, whiteList);
++                return new ConstructorItem(info, elem, type, substitutionOffset, isDeprecated, afterConstructorTypeParams, smartType, null, whiteList);
+             default:
+                 throw new IllegalArgumentException("kind=" + elem.getKind());
+         }
+@@ -204,7 +204,7 @@ public static JavaCompletionItem createExecutableItem(CompilationInfo info, Exec
+ 
+     public static JavaCompletionItem createThisOrSuperConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, String name, WhiteListQuery.WhiteList whiteList) {
+         if (elem.getKind() == ElementKind.CONSTRUCTOR) {
+-            return new ConstructorItem(info, elem, type, substitutionOffset, isDeprecated, false, name, whiteList);
++            return new ConstructorItem(info, elem, type, substitutionOffset, isDeprecated, false, false, name, whiteList);
+         }
+         throw new IllegalArgumentException("kind=" + elem.getKind());
+     }
+@@ -2489,6 +2489,7 @@ static class ConstructorItem extends WhiteListJavaCompletionItem<ExecutableEleme
+         private boolean isDeprecated;
+         private boolean smartType;
+         private String simpleName;
++        private String insertPrefix;
+         protected Set<Modifier> modifiers;
+         private List<ParamDesc> params;
+         private boolean isAbstract;
+@@ -2497,11 +2498,12 @@ static class ConstructorItem extends WhiteListJavaCompletionItem<ExecutableEleme
+         private String sortText;
+         private String leftText;
+ 
+-        private ConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, boolean smartType, String name, WhiteListQuery.WhiteList whiteList) {
++        private ConstructorItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean isDeprecated, boolean afterConstructorTypeParams, boolean smartType, String name, WhiteListQuery.WhiteList whiteList) {
+             super(substitutionOffset, ElementHandle.create(elem), whiteList);
+             this.isDeprecated = isDeprecated;
+             this.smartType = smartType;
+             this.simpleName = name != null ? name : elem.getEnclosingElement().getSimpleName().toString();
++            this.insertPrefix = !afterConstructorTypeParams ? simpleName : "";
+             this.insertName = name != null;
+             this.modifiers = elem.getModifiers();
+             this.params = new ArrayList<ParamDesc>();
+@@ -2551,7 +2553,7 @@ public CharSequence getSortText() {
+ 
+         @Override
+         public CharSequence getInsertPrefix() {
+-            return simpleName;
++            return insertPrefix;
+         }
+ 
+         @Override
+diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItemFactory.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItemFactory.java
+index ac08274cb7e4..3078d30455a7 100644
+--- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItemFactory.java
++++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionItemFactory.java
+@@ -109,12 +109,17 @@ public JavaCompletionItem createVariableItem(CompilationInfo info, String varNam
+ 
+     @Override
+     public JavaCompletionItem createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
+-        return JavaCompletionItem.createExecutableItem(info, elem, type, null, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, whiteList);
++        return createExecutableItem(info, elem, type, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, false, smartType, assignToVarOffset, memberRef);
++    }
++
++    @Override
++    public JavaCompletionItem createExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean afterConstructorTypeParams, boolean smartType, int assignToVarOffset, boolean memberRef) {
++        return JavaCompletionItem.createExecutableItem(info, elem, type, null, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, afterConstructorTypeParams, smartType, assignToVarOffset, memberRef, whiteList);
+     }
+ 
+     @Override
+     public JavaCompletionItem createTypeCastableExecutableItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, TypeMirror castType, int substitutionOffset, ReferencesCount referencesCount, boolean isInherited, boolean isDeprecated, boolean inImport, boolean addSemicolon, boolean smartType, int assignToVarOffset, boolean memberRef) {
+-        return JavaCompletionItem.createExecutableItem(info, elem, type, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, smartType, assignToVarOffset, memberRef, whiteList);
++        return JavaCompletionItem.createExecutableItem(info, elem, type, castType, substitutionOffset, referencesCount, isInherited, isDeprecated, inImport, addSemicolon, false, smartType, assignToVarOffset, memberRef, whiteList);
+     }
+ 
+     @Override
+diff --git a/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionItem.java b/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionItem.java
+index 22151927877c..9f35779388b7 100644
+--- a/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionItem.java
++++ b/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionItem.java
+@@ -212,7 +212,7 @@ public CompletionItem createNameItem(String name, int startOffset) {
+         @Override
+         public CompletionItem createJavadocExecutableItem(CompilationInfo info, ExecutableElement e, ExecutableType et, int startOffset, boolean isInherited, boolean isDeprecated) {
+             CompletionItem delegate = JavaCompletionItem.createExecutableItem(
+-                    info, e, et, null, startOffset, null, isInherited, isDeprecated, false, false, false, -1, false, null);
++                    info, e, et, null, startOffset, null, isInherited, isDeprecated, false, false, false, false, -1, false, null);
+             return new JavadocExecutableItem(delegate, e, startOffset);
+         }
+ 
+diff --git a/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/JavaCompletionCollectorTest.java b/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/JavaCompletionCollectorTest.java
+index d6e3d5669e65..bc1e4bdb87cf 100644
+--- a/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/JavaCompletionCollectorTest.java
++++ b/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/JavaCompletionCollectorTest.java
+@@ -19,7 +19,9 @@
+ package org.netbeans.modules.editor.java;
+ 
+ import java.util.ArrayList;
++import java.util.HashSet;
+ import java.util.List;
++import java.util.Set;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.stream.Collectors;
+ import javax.swing.text.Document;
+@@ -32,6 +34,7 @@
+ import org.netbeans.api.java.source.TestUtilities;
+ import org.netbeans.api.lsp.Completion;
+ import org.netbeans.api.lsp.Completion.Context;
++import org.netbeans.api.lsp.Completion.TextFormat;
+ import org.netbeans.api.lsp.Completion.TriggerKind;
+ import org.netbeans.api.lsp.TextEdit;
+ import org.netbeans.junit.NbTestCase;
+@@ -194,6 +197,108 @@ public class EEE {
+         assertTrue(found.get());
+     }
+ 
++    public void testNewWithTypeParameters() throws Exception {
++        Set<String> found = new HashSet<>();
++
++        runJavaCollector(List.of(new FileDescription("test/Test.java",
++                                                     """
++                                                     package test;
++                                                     import java.util.*;
++                                                     public class Test {
++                                                         public void test() {
++                                                             Map<Object, Object> m = new HashMap<>|
++                                                         }
++                                                     }
++                                                     """)),
++                         completions -> {
++                             for (Completion completion : completions) {
++                                 if ("HashMap".equals(completion.getLabel())) {
++                                     if ("()".equals(completion.getLabelDetail())) {
++                                         assertNull(completion.getTextEdit());
++                                         assertNull(completion.getAdditionalTextEdits());
++                                         assertEquals("()", completion.getInsertText());
++                                         found.add("()");
++                                     } else if (completion.getLabelDetail().contains("float")) {
++                                         assertNull(completion.getTextEdit());
++                                         assertNull(completion.getAdditionalTextEdits());
++                                         assertEquals(TextFormat.Snippet, completion.getInsertTextFormat());
++                                         String insert = completion.getInsertText();
++                                         assertNotNull(insert);
++                                         insert = insert.replaceFirst(":[^<>}]+\\}", ":<param1>\\}");
++                                         insert = insert.replaceFirst(":[^<>}]+\\}", ":<param2>\\}");
++                                         assertEquals("(${1:<param1>}, ${2:<param2>})$0", insert);
++                                         found.add("(int, float)");
++                                     }
++                                 }
++                             }
++                         });
++        assertEquals(Set.of("()", "(int, float)"), found);
++    }
++
++    public void testNewWithoutTypeParameters() throws Exception {
++        Set<String> found = new HashSet<>();
++
++        runJavaCollector(List.of(new FileDescription("test/Test.java",
++                                                     """
++                                                     package test;
++                                                     import java.util.*;
++                                                     public class Test {
++                                                         public void test() {
++                                                             Map<Object, Object> m = new HashMap|
++                                                         }
++                                                     }
++                                                     """)),
++                         completions -> {
++                             for (Completion completion : completions) {
++                                 if ("HashMap".equals(completion.getLabel())) {
++                                     if ("()".equals(completion.getLabelDetail())) {
++                                         assertNull(completion.getTextEdit());
++                                         assertNull(completion.getAdditionalTextEdits());
++                                         assertEquals("HashMap()", completion.getInsertText());
++                                         found.add("()");
++                                     } else if (completion.getLabelDetail().contains("float")) {
++                                         assertNull(completion.getTextEdit());
++                                         assertNull(completion.getAdditionalTextEdits());
++                                         assertEquals(TextFormat.Snippet, completion.getInsertTextFormat());
++                                         String insert = completion.getInsertText();
++                                         assertNotNull(insert);
++                                         insert = insert.replaceFirst(":[^<>}]+\\}", ":<param1>\\}");
++                                         insert = insert.replaceFirst(":[^<>}]+\\}", ":<param2>\\}");
++                                         assertEquals("HashMap(${1:<param1>}, ${2:<param2>})$0", insert);
++                                         found.add("(int, float)");
++                                     }
++                                 }
++                             }
++                         });
++        assertEquals(Set.of("()", "(int, float)"), found);
++    }
++
++    public void testAfterDot() throws Exception {
++        Set<String> found = new HashSet<>();
++
++        runJavaCollector(List.of(new FileDescription("test/Test.java",
++                                                     """
++                                                     package test;
++                                                     import java.util.*;
++                                                     public class Test {
++                                                         public static Map<Object, Object> test() {
++                                                             Map<Object, Object> m = Test.|
++                                                         }
++                                                     }
++                                                     """)),
++                         completions -> {
++                             for (Completion completion : completions) {
++                                 if ("test".equals(completion.getLabel())) {
++                                     assertNull(completion.getTextEdit());
++                                     assertNull(completion.getAdditionalTextEdits());
++                                     assertEquals("test()", completion.getInsertText());
++                                     found.add(completion.getLabelDetail());
++                                 }
++                             }
++                         });
++        assertEquals(Set.of("()"), found);
++    }
++
+     private void runJavaCollector(List<FileDescription> files, Validator<List<Completion>> validator) throws Exception {
+         SourceUtilsTestUtil.prepareTest(new String[]{"org/netbeans/modules/java/editor/resources/layer.xml"}, new Object[]{new MIMEResolverImpl(), new MIMEDataProvider()});
+ 
