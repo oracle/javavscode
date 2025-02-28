@@ -1,9 +1,8 @@
-import { workspace } from "vscode";
-import { ExtensionContextInfo } from "../extensionContextInfo";
+import { ExtensionContext, workspace } from "vscode";
 import { IJNBKernel, IJNBNotebookSerializer } from "./impl";
 
-export const registerNotebooks = (context: ExtensionContextInfo) => {
-    context.getExtensionContext().subscriptions.push(
+export const registerNotebooks = (context: ExtensionContext) => {
+    context.subscriptions.push(
         workspace.registerNotebookSerializer(
             'ijnb-notebook',
             new IJNBNotebookSerializer()),
