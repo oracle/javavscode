@@ -208,8 +208,38 @@
         </ant>
     </target>
 
-
-
+    <target name="setup-vsce">
+        <mkdir dir="${build.dir}/vsce" />
+        <exec executable="npm${cmd.suffix}" failonerror="true" dir="${build.dir}/vsce">
+            <arg value="install" />
+            <arg value="--save" />
+            <arg value="@vscode/vsce@2.19.0" />
+        </exec>
+        <antcall target="apply-vsce-patch" inheritAll="true" />
+    </target>
+    <target name="check-vsce-patch-status">
+        <exec executable="patch" dir="${build.dir}/vsce/node_modules/@vscode/vsce/out" failifexecutionfails="false" failonerror="false" resultproperty="vsce-patch-status">
+            <arg value="-p1"/>
+            <arg value="--check"/>
+            <arg value="--force"/>
+            <arg value="-z"/>
+            <arg value=".orig"/>
+            <arg value="-i"/>
+            <arg value="${basedir}/patches/vsce-package-ContentTypes.diff"/>
+        </exec>
+        <condition property="vsce.patch.toBeApplied" value="true" >
+            <equals arg1="${vsce-patch-status}" arg2="0" />
+        </condition>
+    </target>
+    <target name="apply-vsce-patch" if="vsce.patch.toBeApplied" depends="check-vsce-patch-status">
+        <exec executable="patch" dir="${build.dir}/vsce/node_modules/@vscode/vsce/out" failifexecutionfails="false" failonerror="false" resultproperty="vsce-patch-status">
+            <arg value="-p1"/>
+            <arg value="-z"/>
+            <arg value=".orig"/>
+            <arg value="-i"/>
+            <arg value="${basedir}/patches/vsce-package-ContentTypes.diff"/>
+        </exec>
+    </target>
 
     <target name="build-vscode-ext" depends="add-extra-modules" description="Build the Visual Studio Code extension.">
         <taskdef name="gitbranchhash" classname="org.netbeans.nbbuild.GitBranchHash" classpath="${nbantext.jar}" />
@@ -248,21 +278,7 @@
             <arg value="-Dexec.args=${build.dir}/bundles ${nb_all}" />
         </exec>
 
-        <mkdir dir="${build.dir}/vsce" />
-        <exec executable="npm${cmd.suffix}" failonerror="true" dir="${build.dir}/vsce">
-            <arg value="install" />
-            <arg value="--save" />
-            <arg value="@vscode/vsce@2.19.0" />
-        </exec>
-
-        <exec executable="patch" dir="${build.dir}/vsce/node_modules/@vscode/vsce/out" failifexecutionfails="false" failonerror="false">
-            <arg value="-p1"/>
-            <arg value="-z"/>
-            <arg value=".orig"/>
-            <arg value="-i"/>
-            <arg value="${basedir}/patches/vsce-package-ContentTypes.diff"/>
-        </exec>
-
+        <antcall target="setup-vsce" inheritAll="true" />
         <move todir="${basedir}/vscode/node_modules" includeemptydirs="false">
             <fileset dir="${basedir}/vscode/node_modules">
                 <include name="**/LICENSE"/>
