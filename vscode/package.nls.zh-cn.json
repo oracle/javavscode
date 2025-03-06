@@ -50,7 +50,7 @@
     "jdk.debugger.configuration.classPaths.description": "用于启动 JVM 的类路径。",
     "jdk.debugger.configuration.console.description": "用于启动程序的指定控制台。",
     "jdk.debugger.configuration.args.description": "所执行类的参数",
-    "jdk.debugger.configuration.vmArgs.items.description": "Single argument to the Java VM",
+    "jdk.debugger.configuration.vmArgs.items.description": "Single argument for the Java VM",
     "jdk.debugger.configuration.vmArgs.description": "Java VM 的参数",
     "jdk.debugger.configuration.cwd.description": "程序执行的工作目录",
     "jdk.debugger.configuration.env.description": "程序执行的环境变量",

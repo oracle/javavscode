@@ -50,7 +50,7 @@
     "jdk.debugger.configuration.classPaths.description": "The classpaths for launching the JVM.",
     "jdk.debugger.configuration.console.description": "The specified console to launch the program.",
     "jdk.debugger.configuration.args.description": "Arguments for the executed class",
-    "jdk.debugger.configuration.vmArgs.items.description": "Single argument to the Java VM",
+    "jdk.debugger.configuration.vmArgs.items.description": "Single argument for the Java VM",
     "jdk.debugger.configuration.vmArgs.description": "Arguments for the Java VM",
     "jdk.debugger.configuration.cwd.description": "Working directory for the program execution",
     "jdk.debugger.configuration.env.description": "Environment variables for the program execution",
