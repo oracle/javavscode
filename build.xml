@@ -213,7 +213,7 @@
     <target name="check-vsce-patch-status">
         <exec executable="patch" dir="${build.dir}/vsce/node_modules/@vscode/vsce/out" failifexecutionfails="false" failonerror="false" resultproperty="vsce-patch-status">
             <arg value="-p1"/>
-            <arg value="--check"/>
+            <arg value="--dry-run"/>
             <arg value="--force"/>
             <arg value="-z"/>
             <arg value=".orig"/>
