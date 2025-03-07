@@ -48,6 +48,14 @@
             patches/7610.diff
             patches/8036-draft.diff
             patches/8038-draft.diff
+            patches/8210.diff
+            patches/8237.diff
+            patches/8242.diff
+            patches/8245.diff
+            patches/8255.diff
+            patches/8260.diff
+            patches/8280.diff
+            patches/8289.diff
             patches/mvn-sh.diff
             patches/project-marker-jdk.diff
             patches/generate-dependencies.diff

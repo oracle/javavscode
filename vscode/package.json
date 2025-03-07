@@ -265,7 +265,7 @@
 						"properties": {
 							"mainClass": {
 								"type": "string",
-								"description": "%jdk.debugger.configuration.mainClass.description%",
+								"markdownDescription": "%jdk.debugger.configuration.mainClass.markdownDescription%",
 								"default": "${file}"
 							},
 							"classPaths": {

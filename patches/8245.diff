@@ -1,0 +1,212 @@
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/builder/TreeFactory.java b/java/java.source.base/src/org/netbeans/modules/java/source/builder/TreeFactory.java
+index abb39db21f52..ab76a3d05889 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/builder/TreeFactory.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/builder/TreeFactory.java
+@@ -1811,15 +1811,17 @@ public DeprecatedTree Deprecated(List<? extends DocTree> text) {
+     }
+     
+     public DocCommentTree DocComment(List<? extends DocTree> fullBody, List<? extends DocTree> tags) {
+-        DCDocComment temp = docMake.at(NOPOS).newDocCommentTree(fullBody, tags);
+-        return DocComment(temp.getFirstSentence(), temp.getBody(), temp.getBlockTags());
++        return DocComment(HTML_JAVADOC_COMMENT, fullBody, tags);
+     }
+ 
+     public DocCommentTree MarkdownDocComment(List<? extends DocTree> fullBody, List<? extends DocTree> tags) {
+-        DCDocComment temp = docMake.at(NOPOS).newDocCommentTree(fullBody, tags);
+-        return MarkdownDocComment(temp.getFirstSentence(), temp.getBody(), temp.getBlockTags());
++        return DocComment(MARKDOWN_JAVADOC_COMMENT, fullBody, tags);
+     }
+     
++    private DocCommentTree DocComment(Comment comment, List<? extends DocTree> fullBody, List<? extends DocTree> tags) {
++        return docMake.at(NOPOS).newDocCommentTree(comment, fullBody, tags, Collections.emptyList(), Collections.emptyList());
++    }
++
+     public DocTree Snippet(List<? extends DocTree> attributes, TextTree text){
+         try {
+             return (DocTree) docMake.getClass().getMethod("newSnippetTree", List.class, TextTree.class).invoke(docMake.at(NOPOS), attributes, text);
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java b/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java
+index 037eb8251775..8b77849102a8 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java
+@@ -45,6 +45,7 @@
+ import com.sun.tools.javac.tree.DCTree.DCLink;
+ import com.sun.tools.javac.tree.DCTree.DCLiteral;
+ import com.sun.tools.javac.tree.DCTree.DCParam;
++import com.sun.tools.javac.tree.DCTree.DCRawText;
+ import com.sun.tools.javac.tree.DCTree.DCReference;
+ import com.sun.tools.javac.tree.DCTree.DCReturn;
+ import com.sun.tools.javac.tree.DCTree.DCSee;
+@@ -4722,6 +4723,9 @@ private int diffDocTree(DCDocComment doc, DCTree oldT, DCTree newT, int[] elemen
+             case TEXT:
+                 localpointer = diffText(doc, (DCText)oldT, (DCText)newT, elementBounds);
+                 break;
++            case MARKDOWN:
++                localpointer = diffRawText(doc, (DCRawText)oldT, (DCRawText)newT, elementBounds);
++                break;
+             case AUTHOR:
+                 localpointer = diffAuthor(doc, (DCAuthor)oldT, (DCAuthor)newT, elementBounds);
+                 break;
+@@ -4944,6 +4948,15 @@ private int diffText(DCDocComment doc, DCText oldT, DCText newT, int[] elementBo
+         return elementBounds[1];
+     }
+     
++    private int diffRawText(DCDocComment doc, DCTree.DCRawText oldT, DCTree.DCRawText newT, int[] elementBounds) {
++        if(oldT.code.equals(newT.code)) {
++            copyTo(elementBounds[0], elementBounds[1]);
++        } else {
++            printer.print(newT.code);
++        }
++        return elementBounds[1];
++    }
++
+     private int diffAuthor(DCDocComment doc, DCAuthor oldT, DCAuthor newT, int[] elementBounds) {
+         int localpointer = oldT.name.isEmpty()? elementBounds[1] : getOldPos(oldT.name.get(0), doc);
+         copyTo(elementBounds[0], localpointer);
+diff --git a/java/java.source.base/test/unit/src/org/netbeans/api/java/source/gen/RewriteInCommentTest.java b/java/java.source.base/test/unit/src/org/netbeans/api/java/source/gen/RewriteInCommentTest.java
+index 5c3ce2e65646..5effccaf023d 100644
+--- a/java/java.source.base/test/unit/src/org/netbeans/api/java/source/gen/RewriteInCommentTest.java
++++ b/java/java.source.base/test/unit/src/org/netbeans/api/java/source/gen/RewriteInCommentTest.java
+@@ -18,6 +18,13 @@
+  */
+ package org.netbeans.api.java.source.gen;
+ 
++import com.sun.source.doctree.DocCommentTree;
++import com.sun.source.doctree.LinkTree;
++import com.sun.source.doctree.RawTextTree;
++import com.sun.source.doctree.ReferenceTree;
++import com.sun.source.util.DocTreePath;
++import com.sun.source.util.DocTreePathScanner;
++import com.sun.source.util.TreePath;
+ import java.io.File;
+ import java.io.IOException;
+ import org.netbeans.api.java.source.ModificationResult;
+@@ -134,7 +141,128 @@ public void run(WorkingCopy copy) throws Exception {
+ 
+         assertEquals(code.replace("test", "foo"), mr.getResultingSource(fo));
+     }
+-    
++
++    public void testDoNotBreakFormatting() throws Exception {
++        File f = new File(getWorkDir(), "TestClass.java");
++        String code = """
++                      package foo;
++                      /**
++                       * First line.
++                       * Test {@link #test}.
++                       */
++                      public class TestClass{
++                      }
++                      """;
++        TestUtilities.copyStringToFile(f, code);
++        FileObject fo = FileUtil.toFileObject(f);
++        JavaSource javaSource = JavaSource.forFileObject(fo);
++        ModificationResult mr = javaSource.runModificationTask(new Task<WorkingCopy>() {
++
++            public void run(WorkingCopy copy) throws Exception {
++                copy.toPhase(Phase.RESOLVED);
++
++                TreePath topLevelClass = new TreePath(new TreePath(copy.getCompilationUnit()),
++                                                      copy.getCompilationUnit().getTypeDecls().get(0));
++                DocCommentTree docComment = copy.getDocTrees().getDocCommentTree(topLevelClass);
++
++                new DocTreePathScanner<>() {
++                    @Override
++                    public Object visitReference(ReferenceTree rt, Object p) {
++                        copy.rewrite(topLevelClass.getLeaf(), rt, copy.getTreeMaker().Reference(null, "newName", null));
++                        return null;
++                    }
++
++                    @Override
++                    public Object visitLink(LinkTree lt, Object p) {
++                        return super.visitLink(lt, p);
++                    }
++                }.scan(new DocTreePath(topLevelClass, docComment), null);
++            }
++        });
++
++        assertEquals(code.replace("test", "newName"), mr.getResultingSource(fo));
++    }
++
++    public void testDoNotBreakFormattingMarkdown() throws Exception {
++        File f = new File(getWorkDir(), "TestClass.java");
++        String code = """
++                      package foo;
++
++                      /// First line.
++                      /// Test {@link #test}.
++                      public class TestClass{
++                      }
++                      """;
++        TestUtilities.copyStringToFile(f, code);
++        FileObject fo = FileUtil.toFileObject(f);
++        JavaSource javaSource = JavaSource.forFileObject(fo);
++        ModificationResult mr = javaSource.runModificationTask(new Task<WorkingCopy>() {
++
++            public void run(WorkingCopy copy) throws Exception {
++                copy.toPhase(Phase.RESOLVED);
++
++                TreePath topLevelClass = new TreePath(new TreePath(copy.getCompilationUnit()),
++                                                      copy.getCompilationUnit().getTypeDecls().get(0));
++                DocCommentTree docComment = copy.getDocTrees().getDocCommentTree(topLevelClass);
++
++                new DocTreePathScanner<>() {
++                    @Override
++                    public Object visitReference(ReferenceTree rt, Object p) {
++                        copy.rewrite(topLevelClass.getLeaf(), rt, copy.getTreeMaker().Reference(null, "newName", null));
++                        return null;
++                    }
++
++                    @Override
++                    public Object visitLink(LinkTree lt, Object p) {
++                        return super.visitLink(lt, p);
++                    }
++                }.scan(new DocTreePath(topLevelClass, docComment), null);
++            }
++        });
++
++        assertEquals(code.replace("test", "newName"), mr.getResultingSource(fo));
++    }
++
++    public void testMarkdownChangeText() throws Exception {
++        File f = new File(getWorkDir(), "TestClass.java");
++        String code = """
++                      package foo;
++
++                      /// First line.
++                      /// Second line.
++                      public class TestClass{
++                      }
++                      """;
++        TestUtilities.copyStringToFile(f, code);
++        FileObject fo = FileUtil.toFileObject(f);
++        JavaSource javaSource = JavaSource.forFileObject(fo);
++        ModificationResult mr = javaSource.runModificationTask(new Task<WorkingCopy>() {
++
++            public void run(WorkingCopy copy) throws Exception {
++                copy.toPhase(Phase.RESOLVED);
++
++                TreePath topLevelClass = new TreePath(new TreePath(copy.getCompilationUnit()),
++                                                      copy.getCompilationUnit().getTypeDecls().get(0));
++                DocCommentTree docComment = copy.getDocTrees().getDocCommentTree(topLevelClass);
++
++                new DocTreePathScanner<>() {
++                    @Override
++                    public Object visitDocComment(DocCommentTree dct, Object p) {
++                        //XXX: need to translate full body, as the split body has different split of the text trees, and the differ uses fullbody:
++                        return scan(dct.getFullBody(), p);
++                    }
++                    @Override
++                    public Object visitRawText(RawTextTree text, Object p) {
++                        copy.rewrite(topLevelClass.getLeaf(), text, copy.getTreeMaker().RawText(text.getContent().replace("line", "nueText")));
++                        return null;
++                    }
++                }.scan(new DocTreePath(topLevelClass, docComment), null);
++            }
++        });
++
++        assertEquals(code.replace("line", "nueText"), mr.getResultingSource(fo));
++    }
++
+     String getGoldenPckg() {
+         return "";
+     }

@@ -1,0 +1,117 @@
+diff --git a/java/java.file.launcher/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProvider.java b/java/java.file.launcher/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProvider.java
+index ff0d0ea144..aef5606fb4 100644
+--- a/java/java.file.launcher/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProvider.java
++++ b/java/java.file.launcher/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProvider.java
+@@ -30,6 +30,7 @@ import java.util.Collections;
+ import java.util.EnumSet;
+ import java.util.HashSet;
+ import java.util.List;
++import java.util.Locale;
+ import java.util.Map;
+ import java.util.Objects;
+ import java.util.Set;
+@@ -87,6 +88,7 @@ public class MultiSourceRootProvider implements ClassPathProvider {
+     private static final Set<String> MODULAR_DIRECTORY_OPTIONS = new HashSet<>(Arrays.asList(
+         "--module-path", "-p"
+     ));
++    private static final Set<String> CLASSPATH_OPTIONS = Set.of("--class-path", "-cp", "-classpath");
+ 
+     //TODO: the cache will probably be never cleared, as the ClassPath/value refers to the key(?)
+     private Map<FileObject, ClassPath> file2SourceCP = new WeakHashMap<>();
+@@ -341,6 +343,19 @@ public class MultiSourceRootProvider implements ClassPathProvider {
+ 
+                 if (optionKeys.contains(currentOption)) {
+                     for (String piece : parsed.get(i + 1).split(File.pathSeparator)) {
++                        boolean hasStar = false;
++                        boolean isClassPath = CLASSPATH_OPTIONS.contains(currentOption);
++
++                        if (isClassPath && piece.endsWith("*") && piece.length() > 1) {
++                            char sep = piece.charAt(piece.length() - 2);
++
++                            if (sep == File.separatorChar ||
++                                sep == '/') {
++                                hasStar = true;
++                                piece = piece.substring(0, piece.length() - 2);
++                            }
++                        }
++
+                         File pieceFile = new File(piece);
+ 
+                         if (!pieceFile.isAbsolute()) {
+@@ -367,6 +382,23 @@ public class MultiSourceRootProvider implements ClassPathProvider {
+                             } else {
+                                 expandedPaths = Collections.emptyList();
+                             }
++                        } else if (hasStar && isClassPath) {
++                            if (!toRemoveFSListeners.remove(f.getAbsolutePath()) &&
++                                addedFSListeners.add(f.getAbsolutePath())) {
++                                FileUtil.addFileChangeListener(this, f);
++                            }
++
++                            File[] children = f.listFiles();
++
++                            if (children != null) {
++                                expandedPaths = Arrays.stream(children)
++                                                      .filter(c -> c.getName()
++                                                                    .toLowerCase(Locale.ROOT)
++                                                                    .endsWith(".jar"))
++                                                      .toList();
++                            } else {
++                                expandedPaths = Collections.emptyList();
++                            }
+                         } else {
+                             expandedPaths = Arrays.asList(f);
+                         }
+diff --git a/java/java.file.launcher/test/unit/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProviderTest.java b/java/java.file.launcher/test/unit/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProviderTest.java
+index c89798daad..0e98a5958f 100644
+--- a/java/java.file.launcher/test/unit/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProviderTest.java
++++ b/java/java.file.launcher/test/unit/src/org/netbeans/modules/java/file/launcher/queries/MultiSourceRootProviderTest.java
+@@ -310,6 +310,48 @@ public class MultiSourceRootProviderTest extends NbTestCase {
+         assertSame(cp, provider.findClassPath(FileUtil.toFileObject(packDir), ClassPath.SOURCE));
+     }
+ 
++    public void testExpandClassPath() throws Exception {
++        FileObject wd = FileUtil.toFileObject(getWorkDir());
++        FileObject test = FileUtil.createData(wd, "src/pack/Test1.java");
++        FileObject libsDir = FileUtil.createFolder(wd, "libs");
++        FileObject lib1Jar = FileUtil.createData(libsDir, "lib1.jar");
++        FileObject lib2Jar = FileUtil.createData(libsDir, "lib2.jar");
++        FileObject lib3Dir = FileUtil.createFolder(libsDir, "lib3");
++        FileObject lib4Zip = FileUtil.createData(libsDir, "lib4.zip");
++
++        TestUtilities.copyStringToFile(test, "package pack;");
++
++        testResult.setOptions("--class-path " + FileUtil.getRelativePath(wd, libsDir) + "/*");
++        testResult.setWorkDirectory(FileUtil.toFileObject(getWorkDir()).toURI());
++
++        MultiSourceRootProvider provider = new MultiSourceRootProvider();
++        ClassPath compileCP = provider.findClassPath(test, ClassPath.COMPILE);
++
++        assertEquals(new HashSet<>(Arrays.asList(FileUtil.getArchiveRoot(lib1Jar),
++                                                 FileUtil.getArchiveRoot(lib2Jar))),
++                     new HashSet<>(Arrays.asList(compileCP.getRoots())));
++
++        lib4Zip.delete();
++
++        assertEquals(new HashSet<>(Arrays.asList(FileUtil.getArchiveRoot(lib1Jar),
++                                                 FileUtil.getArchiveRoot(lib2Jar))),
++                     new HashSet<>(Arrays.asList(compileCP.getRoots())));
++
++        FileObject lib5Jar = FileUtil.createData(libsDir, "lib5.jar");
++
++        assertEquals(new HashSet<>(Arrays.asList(FileUtil.getArchiveRoot(lib1Jar),
++                                                 FileUtil.getArchiveRoot(lib2Jar),
++                                                 FileUtil.getArchiveRoot(lib5Jar))),
++                     new HashSet<>(Arrays.asList(compileCP.getRoots())));
++
++        lib1Jar.delete();
++
++        assertEquals(new HashSet<>(Arrays.asList(FileUtil.getArchiveRoot(lib2Jar),
++                                                 FileUtil.getArchiveRoot(lib5Jar))),
++                     new HashSet<>(Arrays.asList(compileCP.getRoots())));
++
++    }
++
+     @Override
+     protected void setUp() throws Exception {
+         super.setUp();

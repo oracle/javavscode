@@ -46,7 +46,7 @@
     "jdk.configuration.runConfig.cwd.description": "工作目录",
     "jdk.configuration.disableNbJavac.description": "高级选项：禁用 nb-javac 库，将使用来自所选 JDK 的 javac。所选 JDK 必须至少为 JDK 23。",
     "jdk.configuration.disableProjectSearchLimit.description": "高级选项：禁用在包含项目信息的文件夹中搜索的限制。",
-    "jdk.debugger.configuration.mainClass.description": "程序主类的绝对路径。",
+    "jdk.debugger.configuration.mainClass.markdownDescription": "Main class specification. Supported formats:\n - an absolute path\n - a path relative to any of the workspace folders\n - a fully qualified name of a class.",
     "jdk.debugger.configuration.classPaths.description": "用于启动 JVM 的类路径。",
     "jdk.debugger.configuration.console.description": "用于启动程序的指定控制台。",
     "jdk.debugger.configuration.args.description": "所执行类的参数",
