@@ -66,7 +66,7 @@ const runDebug = async (noDebug: boolean, testRun: boolean, uri: any, methodName
         }
         debugConfig['testRun'] = testRun;
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(docUri);
-        if (project) {
+        if (project || testRun) {
             debugConfig['projectFile'] = docUri.toString();
             debugConfig['project'] = true;
         } else {

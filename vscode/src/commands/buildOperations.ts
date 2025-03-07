@@ -19,21 +19,58 @@ import { l10n } from "../localiser";
 import { extCommands, nbCommands } from "./commands";
 import { ICommand } from "./types";
 import { wrapCommandWithProgress, wrapProjectActionWithProgress } from "./utils";
+import { workspace } from "vscode";
+import * as fs from 'fs';
+
+const saveFilesInWorkspaceBeforeBuild = async (callbackFn: Function) => {
+    const docsTosave: Thenable<boolean>[] = workspace.textDocuments.
+        filter(d => fs.existsSync(d.uri.fsPath)).
+        map(d => d.save());
+    await Promise.all(docsTosave);
+
+    return callbackFn();
+}
 
 const compileWorkspaceHandler = () => {
-    return wrapCommandWithProgress(nbCommands.buildWorkspace, l10n.value('jdk.extension.command.progress.compilingWorkSpace'), LOGGER.getOutputChannel());
+    const complileFunction = () =>
+        wrapCommandWithProgress(nbCommands.buildWorkspace,
+            l10n.value('jdk.extension.command.progress.compilingWorkSpace'),
+            LOGGER.getOutputChannel()
+        );
+
+    return saveFilesInWorkspaceBeforeBuild(complileFunction);
 }
 
 const cleanWorkspaceHandler = () => {
-    return wrapCommandWithProgress(nbCommands.cleanWorkspace,l10n.value('jdk.extension.command.progress.cleaningWorkSpace'), LOGGER.getOutputChannel());
+    const cleanFunction = () => wrapCommandWithProgress(
+        nbCommands.cleanWorkspace,
+        l10n.value('jdk.extension.command.progress.cleaningWorkSpace'),
+        LOGGER.getOutputChannel()
+    );
+
+    return saveFilesInWorkspaceBeforeBuild(cleanFunction);
 }
 
 const compileProjectHandler = (args: any) => {
-    wrapProjectActionWithProgress('build', undefined, l10n.value('jdk.extension.command.progress.compilingProject'), LOGGER.getOutputChannel(), args);
+    const compileProjectFunction = () =>
+        wrapProjectActionWithProgress('build',
+            undefined, l10n.value('jdk.extension.command.progress.compilingProject'),
+            LOGGER.getOutputChannel(),
+            args
+        );
+
+    saveFilesInWorkspaceBeforeBuild(compileProjectFunction);
 }
 
 const cleanProjectHandler = (args: any) => {
-    wrapProjectActionWithProgress('clean', undefined, l10n.value('jdk.extension.command.progress.cleaningProject'), LOGGER.getOutputChannel(), args);
+    const cleanProjectHandler = () => wrapProjectActionWithProgress('clean',
+        undefined,
+        l10n.value('jdk.extension.command.progress.cleaningProject'),
+        LOGGER.getOutputChannel(),
+        args
+    );
+
+    saveFilesInWorkspaceBeforeBuild(cleanProjectHandler);
 }
 
 
@@ -44,10 +81,10 @@ export const registerBuildOperationCommands: ICommand[] = [
     }, {
         command: extCommands.cleanWorkspace,
         handler: cleanWorkspaceHandler
-    },{
+    }, {
         command: extCommands.compileProject,
         handler: compileProjectHandler
-    },{
+    }, {
         command: extCommands.cleanProject,
         handler: cleanProjectHandler
     }
