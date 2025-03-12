@@ -1,0 +1,12 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ErrorsNotifier.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ErrorsNotifier.java
+index c79de141f6..4bef234b0e 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ErrorsNotifier.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ErrorsNotifier.java
+@@ -50,6 +50,7 @@ public final class ErrorsNotifier {
+     }
+ 
+     public void notifyErrors(URL root) {
++        if (true) return ; //disable the error notification for now
+         List<LspServerState> toRemove = new ArrayList<>();
+         List<LspServerState> toProcess = new ArrayList<>();
+         synchronized (servers) {
