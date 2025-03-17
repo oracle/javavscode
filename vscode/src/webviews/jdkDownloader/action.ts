@@ -36,7 +36,7 @@ export class JdkDownloaderAction {
     private readonly DOWNLOAD_DIR = path.join(__dirname, 'jdk_downloads');
     private startTimer: number | null = null;
 
-    private jdkType?: string;
+    private jdkType!: string;
     private jdkVersion?: string;
     private osType?: string;
     private machineArch?: string;
@@ -132,7 +132,7 @@ export class JdkDownloaderAction {
 
     private jdkInstallationManager = async () => {
         const startingInstallationMessage = l10n.value("jdk.downloader.message.downloadingAndCompletingSetup", {
-            jdkType: this.jdkType,
+            jdkType:  JdkDownloaderView.getJdkLabel(this.jdkType),
             jdkVersion: this.jdkVersion
         });
 
@@ -144,7 +144,7 @@ export class JdkDownloaderAction {
         }
         await this.downloadAndVerify();
         const downloadSuccessLabel = l10n.value("jdk.downloader.message.downloadCompleted", {
-            jdkType: this.jdkType,
+            jdkType: JdkDownloaderView.getJdkLabel(this.jdkType),
             jdkVersion: this.jdkVersion,
             osType: this.osType
         });
@@ -187,7 +187,7 @@ export class JdkDownloaderAction {
 
     private downloadAndVerify = async (): Promise<void> => {
         const message = l10n.value("jdk.downloader.message.downloadProgressBar", {
-            jdkType: this.jdkType,
+            jdkType: JdkDownloaderView.getJdkLabel(this.jdkType),
             jdkVersion: this.jdkVersion
         });
         await downloadFileWithProgressBar(this.downloadUrl!, this.downloadFilePath!, message);
@@ -196,7 +196,7 @@ export class JdkDownloaderAction {
         const doesMatch = await this.checksumMatch();
         if (!doesMatch) {
             const checksumMatchFailedLabel = l10n.value("jdk.downloader.message.downloadFailed", {
-                jdkType: this.jdkType,
+                jdkType: JdkDownloaderView.getJdkLabel(this.jdkType),
                 jdkVersion: this.jdkVersion,
                 osType: this.osType
             });
@@ -230,7 +230,7 @@ export class JdkDownloaderAction {
         } catch (err) {
             LOGGER.error(`Error while extracting JDK: ${(err as Error).message}`);
             throw new Error(l10n.value("jdk.downloader.error_message.extractionError", {
-                jdkType: this.jdkType,
+                jdkType: JdkDownloaderView.getJdkLabel(this.jdkType),
                 jdkVersion: this.jdkVersion
             }));
         }
@@ -250,11 +250,11 @@ export class JdkDownloaderAction {
         const tempDirectoryPath = path.join(this.DOWNLOAD_DIR, matchingJdkDir[0]);
 
         // If directory with same name is present in the user selected download location then ask user if they want to delete it or not? 
-        const newDirName = `${this.jdkType!.split(' ').join('_')}-${this.jdkVersion}`;
+        const newDirName = `${this.jdkType.split(' ').join('_')}-${this.jdkVersion}`;
         const newDirectoryPath = await this.handleJdkPaths(newDirName, this.installationPath!, this.osType!);
         if (newDirectoryPath === null) {
             throw new Error(l10n.value('jdk.downloader.error_message.jdkNewDirectoryIssueCannotInstall', {
-                jdkType: this.jdkType,
+                jdkType: JdkDownloaderView.getJdkLabel(this.jdkType),
                 jdkVersion: this.jdkVersion,
                 newDirName
             }));
@@ -278,7 +278,7 @@ export class JdkDownloaderAction {
     private installationCleanup = (tempDirPath: string, newDirPath: string) => {
         const currentTime = getCurrentUTCDateInSeconds();
         const downloadTelemetryEvent: JdkDownloadEventData = {
-            vendor: this.jdkType!,
+            vendor: this.jdkType,
             version: this.jdkVersion!,
             os: this.osType!,
             arch: this.machineArch!,
