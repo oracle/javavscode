@@ -34,7 +34,7 @@ export namespace jdkDownloaderConstants {
   export const ORACLE_JDK_FALLBACK_VESIONS = ['24', '21'];
   
   export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-    "23": "https://download.java.net/java/GA/jdk23.0.2/6da2a6609d6e406f85c491fcb119101b/7/GPL/openjdk-23.0.2"
+    "24": "https://download.java.net/java/GA/jdk24/1f9ff9062db4449d8ca828c504ffae90/36/GPL/openjdk-24"
   };  
 }
 
