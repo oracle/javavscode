@@ -26,11 +26,15 @@ export class JdkDownloaderView {
     public static readonly DOWNLOAD_CMD = 'downloadJDK';
     public static readonly JDK_TYPE = {
         oracleJdk: "oracleJdk",
-        openJdk: "openJdk",
+        openJdk: "openJdk"
     }
 
-    private static readonly OPEN_JDK_LABEL = l10n.value("jdk.downloader.label.openJdk");
-    private static readonly ORACLE_JDK_LABEL = l10n.value("jdk.downloader.label.oracleJdk");
+    public static getJdkLabel = (id: string): string => {
+        const key = "jdk.downloader.label." + id;
+        const label = l10n.value(key);
+        return label !== key ? label : id;
+    }
+
     private readonly jdkDownloaderTitle = l10n.value("jdk.downloader.heading");
 
     private jdkDownloaderWebView?: WebviewPanel;
