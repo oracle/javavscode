@@ -24,7 +24,7 @@ import { l10n } from '../localiser';
 import { StreamDebugAdapter } from './streamDebugAdapter';
 import { extCommands, nbCommands } from '../commands/commands';
 import { argumentsNode, environmentVariablesNode, vmOptionsNode, workingDirectoryNode } from '../views/runConfiguration';
-import { initializeRunConfiguration } from '../utils';
+import { initializeRunConfiguration, parseArguments } from '../utils';
 import { globalState } from '../globalState';
 
 export function registerDebugger(context: ExtensionContext): void {
@@ -237,7 +237,13 @@ class RunConfigurationProvider implements vscode.DebugConfigurationProvider {
             if (vmArgs) {
                 if (!config.vmArgs) {
                     config.vmArgs = vmArgs;
+                } else if (Array.isArray(config.vmArgs)) {
+                    let cfg: string[] = config.vmArgs;
+
+                    const result = parseArguments(vmArgs);
+                    cfg.push(...result);
                 } else {
+                    // assume the config is a string
                     config.vmArgs = `${config.vmArgs} ${vmArgs}`;
                 }
             }

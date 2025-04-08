@@ -17,9 +17,16 @@
 import { NbLanguageClient } from "../../nbLanguageClient"
 import { notificationOrRequestListenerType } from "../../types"
 import { requestListeners } from "./handlers"
+import { terminalListeners } from "./terminal"
+
+
+const listeners: notificationOrRequestListenerType[] = [
+  ...requestListeners,
+  ...terminalListeners
+];
 
 export const registerRequestListeners = (client: NbLanguageClient) => {
-    requestListeners.forEach((listener: notificationOrRequestListenerType) => {
+    listeners.forEach((listener: notificationOrRequestListenerType) => {
         const { type, handler } = listener;
         client.onRequest(type, handler);
     })

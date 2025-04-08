@@ -413,26 +413,26 @@ index 9134992f5f..f070fec320 100644
          if (caps == null) {
              caps = new ClientCapabilities();
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
-index 203cb9e7bc..b729ba0ef8 100644
+index 13cbcdd628..4b02a84c8b 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
-@@ -160,7 +160,6 @@ import org.openide.util.lookup.ProxyLookup;
-  */
- public final class Server {
-     private static final Logger LOG = Logger.getLogger(Server.class.getName());
+@@ -164,7 +164,6 @@ public final class Server {
+      * Special logger that logs LSP in/out messages.
+      */
+     private static final Logger LSP_LOG = Logger.getLogger("org.netbeans.modules.java.lsp.server.lsptrace"); // NOI18N
 -    private static final LspServerTelemetryManager LSP_SERVER_TELEMETRY = new LspServerTelemetryManager();
+     private static final ErrorsNotifier ERR_NOTIFIER = new ErrorsNotifier();
      
      private Server() {
-     }
-@@ -183,7 +182,6 @@ public final class Server {
+@@ -188,7 +187,6 @@ public final class Server {
          ((LanguageClientAware) server).connect(remote);
          msgProcessor.attachClient(server.client);
          Future<Void> runningServer = serverLauncher.startListening();
--        LSP_SERVER_TELEMETRY.connect(server.client, runningServer);        
+-        LSP_SERVER_TELEMETRY.connect(server.client, runningServer);
+         ERR_NOTIFIER.connect(server, runningServer);
          return new NbLspServer(server, runningServer);
      }
-     
-@@ -773,7 +771,7 @@ public final class Server {
+@@ -793,7 +791,7 @@ public final class Server {
                      }
                      f.complete(candidateMapping);
                      List<FileObject> workspaceClientFolders = workspaceService.getClientWorkspaceFolders();
@@ -441,7 +441,7 @@ index 203cb9e7bc..b729ba0ef8 100644
                      LOG.log(Level.INFO, "{0} projects opened in {1}ms", new Object[] { prjsRequested.length, (System.currentTimeMillis() - t) });
                  } else {
                      LOG.log(Level.FINER, "{0}: Collecting projects to prime from: {1}", new Object[]{id, Arrays.asList(additionalProjects)});
-@@ -930,6 +928,9 @@ public final class Server {
+@@ -953,6 +951,9 @@ public final class Server {
          public CompletableFuture<InitializeResult> initialize(InitializeParams init) {
              NbCodeClientCapabilities capa = NbCodeClientCapabilities.get(init);
              client.setClientCaps(capa);
@@ -451,19 +451,20 @@ index 203cb9e7bc..b729ba0ef8 100644
              hackConfigureGroovySupport(capa);
              hackNoReuseOfOutputsForAntProjects();
              List<FileObject> projectCandidates = new ArrayList<>();
-@@ -1405,13 +1406,13 @@ public final class Server {
+@@ -1452,13 +1453,13 @@ public final class Server {
  
          @Override
          public synchronized boolean scanStarted(Context context) {
--           LSP_SERVER_TELEMETRY.sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LSP_SERVER_TELEMETRY.SCAN_START_EVT, "nbls.scanStarted")); 
-+           LspServerTelemetryManager.getInstance().sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.SCAN_START_EVT, "nbls.scanStarted")); 
- 	   return true;
+-            LSP_SERVER_TELEMETRY.sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LSP_SERVER_TELEMETRY.SCAN_START_EVT, "nbls.scanStarted")); 
+-	    return true;
++            LspServerTelemetryManager.getInstance().sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.SCAN_START_EVT, "nbls.scanStarted"));
++	        return true;
          }
  
          @Override
          public synchronized void scanFinished(Context context) {
--        LSP_SERVER_TELEMETRY.sendTelemetry(new TelemetryEvent(MessageType.Info.toString(),LSP_SERVER_TELEMETRY.SCAN_END_EVT,"nbls.scanFinished"));
+-            LSP_SERVER_TELEMETRY.sendTelemetry(new TelemetryEvent(MessageType.Info.toString(),LSP_SERVER_TELEMETRY.SCAN_END_EVT,"nbls.scanFinished"));
 +            LspServerTelemetryManager.getInstance().sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.SCAN_END_EVT,"nbls.scanFinished"));
+             ERR_NOTIFIER.notifyErrors(context.getRootURI());
          }
  
-         @Override

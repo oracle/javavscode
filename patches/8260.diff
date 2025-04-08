@@ -1,0 +1,549 @@
+diff --git a/java/java.openjdk.project/nbproject/project.properties b/java/java.openjdk.project/nbproject/project.properties
+index 9e592633d479..a785a66d13dd 100644
+--- a/java/java.openjdk.project/nbproject/project.properties
++++ b/java/java.openjdk.project/nbproject/project.properties
+@@ -16,7 +16,7 @@
+ # specific language governing permissions and limitations
+ # under the License.
+ #
+-javac.source=1.8
++javac.release=17
+ javac.compilerargs=-Xlint -Xlint:-serial
+ cp.extra=${tools.jar}
+ requires.nb.javac=true
+diff --git a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/common/ShortcutUtils.java b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/common/ShortcutUtils.java
+index fa2842cf88d6..2194ccb4b2fd 100644
+--- a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/common/ShortcutUtils.java
++++ b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/common/ShortcutUtils.java
+@@ -89,6 +89,10 @@ public boolean shouldUseCustomTest(String repoName, String pathInRepo) {
+     }
+ 
+     private boolean matches(String repoName, String pathInRepo, String key) {
++        if (pathInRepo == null) {
++            return false;
++        }
++
+         String include = null;
+         String exclude = null;
+         try {
+diff --git a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/jtreg/ClassPathProviderImpl.java b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/jtreg/ClassPathProviderImpl.java
+index 31e95ffdc6fa..5772df63938c 100644
+--- a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/jtreg/ClassPathProviderImpl.java
++++ b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/jtreg/ClassPathProviderImpl.java
+@@ -36,7 +36,10 @@
+ import java.util.regex.Pattern;
+ 
+ import org.netbeans.api.java.classpath.ClassPath;
++import org.netbeans.api.java.lexer.JavaTokenId;
+ import org.netbeans.api.java.source.JavaSource;
++import org.netbeans.api.lexer.TokenHierarchy;
++import org.netbeans.api.lexer.TokenSequence;
+ import org.netbeans.api.project.libraries.Library;
+ import org.netbeans.api.project.libraries.LibraryManager;
+ import org.netbeans.api.queries.FileEncodingQuery;
+@@ -142,31 +145,27 @@ public ClassPath findClassPath(FileObject file, String type) {
+         } else {
+             if (file.isFolder()) return null;
+ 
+-            roots.add(file.getParent());
+-            try (Reader r = new InputStreamReader(file.getInputStream(), FileEncodingQuery.getEncoding(file))) {
+-                StringBuilder content = new StringBuilder();
+-                int read;
+-
+-                while ((read = r.read()) != (-1)) {
+-                    content.append((char) read);
+-                }
++           String content = getFileContent(file);
+ 
++            try {
+                 Pattern library = Pattern.compile("@library (.*)\n");
+                 Matcher m = library.matcher(content.toString());
+ 
+                 if (m.find()) {
+                     List<FileObject> libDirs = new ArrayList<>();
+-                    try (InputStream in = testRootFile.getInputStream()) {
+-                        Properties p = new Properties();
+-                        p.load(in);
+-                        String externalLibRoots = p.getProperty("external.lib.roots");
+-                        if (externalLibRoots != null) {
+-                            for (String extLib : externalLibRoots.split("\\s+")) {
+-                                FileObject libDir = BuildUtils.getFileObject(testRoot, extLib);
+-
+-                                if (libDir != null) {
+-                                    libDirs.add(libDir);
+-                                }
++                    Properties p = new Properties();
++                    if (testRootFile != null) {
++                        try (InputStream in = testRootFile.getInputStream()) {
++                            p.load(in);
++                        }
++                    }
++                    String externalLibRoots = p.getProperty("external.lib.roots");
++                    if (externalLibRoots != null) {
++                        for (String extLib : externalLibRoots.split("\\s+")) {
++                            FileObject libDir = BuildUtils.getFileObject(testRoot, extLib);
++
++                            if (libDir != null) {
++                                libDirs.add(libDir);
+                             }
+                         }
+                     }
+@@ -185,6 +184,20 @@ public ClassPath findClassPath(FileObject file, String type) {
+             } catch (IOException ex) {
+                 Exceptions.printStackTrace(ex);
+             }
++
++            String pckge = "";
++
++            pckge = packageClause(content);
++
++            FileObject packageDir = file.getParent();
++
++            if (!pckge.isEmpty()) {
++                for (String s : pckge.split("\\.")) {
++                    packageDir = packageDir.getParent();
++                }
++            }
++
++            roots.add(packageDir);
+         }
+ 
+         //XXX:
+@@ -203,6 +216,44 @@ private FileObject resolve(FileObject file, FileObject root, String spec) {
+         }
+     }
+ 
++    private String getFileContent(FileObject file) {
++        try (Reader r = new InputStreamReader(file.getInputStream(), FileEncodingQuery.getEncoding(file))) {
++            StringBuilder contentBuilder = new StringBuilder();
++            int read;
++
++            while ((read = r.read()) != (-1)) {
++                contentBuilder.append((char) read);
++            }
++
++            return contentBuilder.toString();
++        } catch (IOException ex) {
++            Exceptions.printStackTrace(ex);
++            return "";
++        }
++    }
++
++    private String packageClause(String fileContent) {
++        TokenSequence<JavaTokenId> ts =
++                TokenHierarchy.create(fileContent, JavaTokenId.language())
++                              .tokenSequence(JavaTokenId.language());
++        while (ts.moveNext()) {
++            if (ts.token().id() == JavaTokenId.PACKAGE) {
++                StringBuilder pckge = new StringBuilder();
++
++                while (ts.moveNext()) {
++                    switch (ts.token().id()) {
++                        case IDENTIFIER, DOT -> pckge.append(ts.token().text());
++                        case BLOCK_COMMENT, JAVADOC_COMMENT, WHITESPACE,
++                             JAVADOC_COMMENT_LINE_RUN, LINE_COMMENT -> {}
++                        default -> {return pckge.toString();}
++                    }
++                }
++            }
++        }
++
++        return "";
++    }
++
+     private void initializeUsagesQuery(FileObject root) {
+         try {
+             ClassLoader cl = JavaSource.class.getClassLoader();
+diff --git a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/jtreg/TestRootDescription.java b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/jtreg/TestRootDescription.java
+index 20a0a812e6c4..9356af3fc860 100644
+--- a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/jtreg/TestRootDescription.java
++++ b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/jtreg/TestRootDescription.java
+@@ -46,6 +46,11 @@ public static TestRootDescription findRootDescriptionFor(FileObject file) {
+             if (testRoot != null) {
+                 return new TestRootDescription(testProperties, search, testRoot);
+             }
++
++            if (search.getNameExt().equals("lib") && search.getFileObject("../jdk/TEST.ROOT") != null) {
++                return new TestRootDescription(null, search, null);
++            }
++
+             search = search.getParent();
+         }
+ 
+diff --git a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/JDKProject.java b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/JDKProject.java
+index 4e98d449e2e9..3a4596293bf6 100644
+--- a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/JDKProject.java
++++ b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/JDKProject.java
+@@ -197,10 +197,11 @@ public JDKProject(FileObject projectDir, @NullAllowed ModuleRepository moduleRep
+                 roots.clear();
+                 roots.addAll(newRoots);
+             }
+-            String testRoots = moduleRepository.moduleTests(currentModule.name);
+ 
+-            if (testRoots != null) {
+-                addRoots(RootKind.TEST_SOURCES, Arrays.asList(Pair.<String, String>of(testRoots, null)));
++            List<String> testRoots = moduleRepository.moduleTests(currentModule.name);
++
++            for (String testRoot : testRoots) {
++                addRoots(RootKind.TEST_SOURCES, Arrays.asList(Pair.<String, String>of(testRoot, null)));
+             }
+ 
+         }
+diff --git a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/ModuleDescription.java b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/ModuleDescription.java
+index 0a9cd27ca0de..edc24316b705 100644
+--- a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/ModuleDescription.java
++++ b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/ModuleDescription.java
+@@ -411,20 +411,45 @@ private boolean validate(FileObject repo, FileObject project) {
+             return true;
+         }
+ 
+-        public String moduleTests(String moduleName) {
+-            String open = explicitOpen ? "open/" : "";
+-            //TODO? for now, tests are assigned to java.base, java.compiler and java.xml, depending on the location of the tests:
+-            switch (moduleName) {
+-                case "java.base":
+-                    return consolidatedRepository ? "${jdkRoot}/" + open + "test/jdk/" : "${jdkRoot}/jdk/test/";
+-                case "java.compiler":
+-                    return consolidatedRepository ? "${jdkRoot}/test/" + open + "langtools/" : "${jdkRoot}/langtools/test/";
+-                case "java.xml":
+-                    return consolidatedRepository ? "${jdkRoot}/test/" + open + "jaxp/" : "${jdkRoot}/jaxp/test/";
+-                case "jdk.scripting.nashorn":
+-                    return consolidatedRepository ? "${jdkRoot}/test/" + open + "nashorn/" : "${jdkRoot}/nashorn/test/";
++        public List<String> moduleTests(String moduleName) {
++            if (!consolidatedRepository) {
++                switch (moduleName) {
++                    case "java.base":
++                        return List.of("${jdkRoot}/jdk/test/");
++                    case "java.compiler":
++                        return List.of("${jdkRoot}/langtools/test/");
++                    case "java.xml":
++                        return List.of("${jdkRoot}/jaxp/test/");
++                    case "jdk.scripting.nashorn":
++                        return List.of("${jdkRoot}/nashorn/test/");
++                }
++                return List.of();
+             }
+-            return null;
++
++            List<String> result = new ArrayList<>();
++
++            for (String dir : explicitOpen ? new String[] {"open/", "closed/"}
++                                           : new String[] {""}) {
++                //TODO? for now, tests are assigned to java.base, java.compiler and java.xml, depending on the location of the tests:
++                switch (moduleName) {
++                    case "java.base":
++                        result.add("${jdkRoot}/" + dir + "test/jdk/");
++                        result.add("${jdkRoot}/" + dir + "test/hotspot/");
++                        result.add("${jdkRoot}/" + dir + "test/lib/");
++                        break;
++                    case "java.compiler":
++                        result.add("${jdkRoot}/" + dir + "test/langtools/");
++                        break;
++                    case "java.xml":
++                        result.add("${jdkRoot}/" + dir + "test/jaxp/");
++                        break;
++                    case "jdk.scripting.nashorn":
++                        result.add("${jdkRoot}/" + dir + "test/nashorn/");
++                        break;
++                }
++            }
++
++            return result;
+         }
+ 
+         public Collection<String> allDependencies(ModuleDescription module) {
+diff --git a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/SourcesImpl.java b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/SourcesImpl.java
+index a8b617ddae21..c9abc8655831 100644
+--- a/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/SourcesImpl.java
++++ b/java/java.openjdk.project/src/org/netbeans/modules/java/openjdk/project/SourcesImpl.java
+@@ -63,9 +63,12 @@ public class SourcesImpl implements Sources, FileChangeListener, ChangeListener
+     public static final String SOURCES_TYPE_JDK_PROJECT_TESTS = "jdk-project-sources-tests";
+     public static final String SOURCES_TYPE_JDK_PROJECT_NATIVE = "jdk-project-sources-native";
+ 
++    @SuppressWarnings("this-escape")
+     private final ChangeSupport cs = new ChangeSupport(this);
+     private final JDKProject project;
+-    private final Map<Root, SourceGroup> root2SourceGroup = new HashMap<Root, SourceGroup>();
++    private final Map<Root, SourceGroup> root2SourceGroup = new HashMap<>();
++    private final Map<String, List<SourceGroup>> key2SourceGroups = new HashMap<>();
++    private final Set<File> seen = new HashSet<>();
+ 
+     public SourcesImpl(JDKProject project) {
+         this.project = project;
+@@ -75,48 +78,83 @@ public SourcesImpl(JDKProject project) {
+         }
+     }
+ 
+-    private boolean initialized;
+-    private final Map<String, List<SourceGroup>> key2SourceGroups = new HashMap<>();
++    private int changeCount = 0;
++    private int changeCountForCurrentValues = -1;
+     
+     @Override
+-    public synchronized SourceGroup[] getSourceGroups(String type) {
+-        if (!initialized) {
+-            recompute();
+-            initialized = true;
+-        }
+-        
+-        List<SourceGroup> groups = key2SourceGroups.get(type);
+-        if (groups != null)
+-            return groups.toArray(new SourceGroup[0]);
++    public SourceGroup[] getSourceGroups(String type) {
++        while (true) {
++            int currentChangeCount;
++            Map<Root, SourceGroup> root2SourceGroupsCopy;
+ 
+-        return new SourceGroup[0];
++            synchronized (this) {
++                currentChangeCount = changeCount;
++
++                if (changeCountForCurrentValues == currentChangeCount) {
++                    return key2SourceGroups.getOrDefault(type, List.of())
++                                           .toArray(SourceGroup[]::new);
++                }
++
++                root2SourceGroupsCopy = new HashMap<>(root2SourceGroup);
++            }
++
++            RecomputeResult recomputed = recompute(project, root2SourceGroupsCopy);
++
++            synchronized (this) {
++                if (currentChangeCount == changeCount) {
++                    //no intervening change, apply results:
++                    root2SourceGroup.clear();
++                    root2SourceGroup.putAll(recomputed.root2SourceGroup());
++                    key2SourceGroups.clear();
++                    key2SourceGroups.putAll(recomputed.key2SourceGroups());
++
++                    Set<File> added = new HashSet<>(recomputed.seen());
++                    added.removeAll(seen);
++                    Set<File> removed = new HashSet<>(seen);
++                    removed.removeAll(recomputed.seen());
++
++                    for (File a : added) {
++                        FileUtil.addFileChangeListener(this, a);
++                        seen.add(a);
++                        FileOwnerQuery.markExternalOwner(Utilities.toURI(a), null, FileOwnerQuery.EXTERNAL_ALGORITHM_TRANSIENT);
++                        FileOwnerQuery.markExternalOwner(Utilities.toURI(a), project, FileOwnerQuery.EXTERNAL_ALGORITHM_TRANSIENT);
++                    }
++                    for (File r : removed) {
++                        FileUtil.removeFileChangeListener(this, r);
++                        seen.remove(r);
++                        FileOwnerQuery.markExternalOwner(Utilities.toURI(r), null, FileOwnerQuery.EXTERNAL_ALGORITHM_TRANSIENT);
++                    }
++
++                    changeCountForCurrentValues = currentChangeCount;
++                    return key2SourceGroups.getOrDefault(type, List.of())
++                                           .toArray(SourceGroup[]::new);
++                }
++            }
++        }
+     }
+ 
+-    private final Set<File> seen = new HashSet<>();
+     
+-    private synchronized void recompute() {
+-        key2SourceGroups.clear();
++    private static RecomputeResult recompute(JDKProject project, Map<Root, SourceGroup> root2SourceGroup) {
++        Map<String, List<SourceGroup>> key2SourceGroups = new HashMap<>();
++        Set<File> seen = new HashSet<>();
+ 
+         for (SourceGroup sg : GenericSources.genericOnly(project).getSourceGroups(TYPE_GENERIC)) {
+-            addSourceGroup(TYPE_GENERIC, sg);
++            addSourceGroup(key2SourceGroups, TYPE_GENERIC, sg);
+         }
+ 
+-        Set<File> newFiles = new HashSet<>();
+         for (Root root : project.getRoots()) {
+             URL srcURL = root.getLocation();
+ 
+             if ("file".equals(srcURL.getProtocol())) {
+                 try {
+-                    newFiles.add(Utilities.toFile(srcURL.toURI()));
++                    seen.add(Utilities.toFile(srcURL.toURI()));
+                 } catch (URISyntaxException ex) {
+                     Exceptions.printStackTrace(ex);
+                 }
+             }
+ 
+             FileObject src = URLMapper.findFileObject(srcURL);
+-            if (src == null) {
+-                root2SourceGroup.remove(root);
+-            } else {
++            if (src != null) {
+                 SourceGroup sg = root2SourceGroup.get(root);
+ 
+                 if (sg == null) {
+@@ -126,41 +164,27 @@ private synchronized void recompute() {
+                 }
+ 
+                 if (root.kind == RootKind.NATIVE_SOURCES) {
+-                    addSourceGroup(SOURCES_TYPE_JDK_PROJECT_NATIVE, sg);
++                    addSourceGroup(key2SourceGroups, SOURCES_TYPE_JDK_PROJECT_NATIVE, sg);
+                 } else {
+-                    addSourceGroup(JavaProjectConstants.SOURCES_TYPE_JAVA, sg);
++                    addSourceGroup(key2SourceGroups, JavaProjectConstants.SOURCES_TYPE_JAVA, sg);
+                 }
+ 
+                 if (root.kind == RootKind.TEST_SOURCES) {
+-                    addSourceGroup(SOURCES_TYPE_JDK_PROJECT_TESTS, sg);
++                    addSourceGroup(key2SourceGroups, SOURCES_TYPE_JDK_PROJECT_TESTS, sg);
+                 }
+ 
+-                addSourceGroup(SOURCES_TYPE_JDK_PROJECT, sg);
++                addSourceGroup(key2SourceGroups, SOURCES_TYPE_JDK_PROJECT, sg);
+ 
+                 if (!FileUtil.isParentOf(project.getProjectDirectory(), src)) {
+-                    addSourceGroup(TYPE_GENERIC, GenericSources.group(project, src, root.displayName, root.displayName, null, null));
++                    addSourceGroup(key2SourceGroups, TYPE_GENERIC, GenericSources.group(project, src, root.displayName, root.displayName, null, null));
+                 }
+             }
+         }
+-        Set<File> added = new HashSet<>(newFiles);
+-        added.removeAll(seen);
+-        Set<File> removed = new HashSet<>(seen);
+-        removed.removeAll(newFiles);
+-        for (File a : added) {
+-            FileUtil.addFileChangeListener(this, a);
+-            seen.add(a);
+-            FileOwnerQuery.markExternalOwner(Utilities.toURI(a), null, FileOwnerQuery.EXTERNAL_ALGORITHM_TRANSIENT);
+-            FileOwnerQuery.markExternalOwner(Utilities.toURI(a), project, FileOwnerQuery.EXTERNAL_ALGORITHM_TRANSIENT);
+-        }
+-        for (File r : removed) {
+-            FileUtil.removeFileChangeListener(this, r);
+-            seen.remove(r);
+-            FileOwnerQuery.markExternalOwner(Utilities.toURI(r), null, FileOwnerQuery.EXTERNAL_ALGORITHM_TRANSIENT);
+-        }
+-        cs.fireChange();
++
++        return new RecomputeResult(root2SourceGroup, key2SourceGroups, seen);
+     }
+ 
+-    private void addSourceGroup(String type, SourceGroup sg) {
++    private static void addSourceGroup(Map<String, List<SourceGroup>> key2SourceGroups, String type, SourceGroup sg) {
+         List<SourceGroup> groups = key2SourceGroups.get(type);
+ 
+         if (groups == null) {
+@@ -170,6 +194,7 @@ private void addSourceGroup(String type, SourceGroup sg) {
+         groups.add(sg);
+     }
+ 
++    private record RecomputeResult(Map<Root, SourceGroup> root2SourceGroup, Map<String, List<SourceGroup>> key2SourceGroups, Set<File> seen) {}
+     @Override public void addChangeListener(ChangeListener listener) {
+         cs.addChangeListener(listener);
+     }
+@@ -180,7 +205,7 @@ private void addSourceGroup(String type, SourceGroup sg) {
+ 
+     @Override
+     public void fileFolderCreated(FileEvent fe) {
+-        recompute();
++        changed();
+     }
+ 
+     @Override
+@@ -191,12 +216,12 @@ public void fileChanged(FileEvent fe) { }
+ 
+     @Override
+     public void fileDeleted(FileEvent fe) {
+-        recompute();
++        changed();
+     }
+ 
+     @Override
+     public void fileRenamed(FileRenameEvent fe) {
+-        recompute();
++        changed();
+     }
+ 
+     @Override
+@@ -204,7 +229,14 @@ public void fileAttributeChanged(FileAttributeEvent fe) { }
+ 
+     @Override
+     public void stateChanged(ChangeEvent e) {
+-        recompute();
++        changed();
++    }
++
++    private void changed() {
++        synchronized (this) {
++            changeCount++;
++        }
++        cs.fireChange();
+     }
+ 
+     private static final class SourceGroupImpl implements SourceGroup {
+diff --git a/java/java.openjdk.project/test/unit/src/org/netbeans/modules/java/openjdk/jtreg/ClassPathProviderImplTest.java b/java/java.openjdk.project/test/unit/src/org/netbeans/modules/java/openjdk/jtreg/ClassPathProviderImplTest.java
+index 6ca6924302de..88c26c37ae01 100644
+--- a/java/java.openjdk.project/test/unit/src/org/netbeans/modules/java/openjdk/jtreg/ClassPathProviderImplTest.java
++++ b/java/java.openjdk.project/test/unit/src/org/netbeans/modules/java/openjdk/jtreg/ClassPathProviderImplTest.java
+@@ -20,6 +20,7 @@
+ 
+ import java.io.File;
+ import java.io.IOException;
++import java.io.OutputStream;
+ import java.io.OutputStreamWriter;
+ import java.io.Writer;
+ import java.util.Arrays;
+@@ -121,15 +122,59 @@ public void testExternalLibRoots() throws Exception {
+                             new HashSet<>(Arrays.asList(sourceCP.getRoots())));
+     }
+ 
++    public void testInPackage() throws Exception {
++        File workDir = getWorkDir();
++
++        FileUtil.createFolder(new File(workDir, "src/share/classes"));
++        FileObject testRoot = createData("test/TEST.ROOT", "");
++        FileObject testFile = FileUtil.createData(new File(workDir, "test/feature/pack/Test.java"));
++        writeContent(testFile,
++                     """
++                     /* package wrong.package.clause; */
++                     @Ann("package another.wrong.package.clause")
++                     package /**/ //
++                     feature.
++                     pack;
++                     """);
++        ClassPath sourceCP = new ClassPathProviderImpl().findClassPath(testFile, ClassPath.SOURCE);
++
++        Assert.assertArrayEquals(new FileObject[] {testFile.getParent().getParent().getParent()},
++                                 sourceCP.getRoots());
++    }
++
++    public void testInFolder() throws Exception {
++        File workDir = getWorkDir();
++
++        FileUtil.createFolder(new File(workDir, "src/share/classes"));
++        FileObject testRoot = createData("test/jdk/TEST.ROOT", "");
++        FileObject testFile = FileUtil.createData(new File(workDir, "test/lib/feature/pack/Test.java"));
++        writeContent(testFile,
++                     """
++                     /* package wrong.package.clause; */
++                     @Ann("package another.wrong.package.clause")
++                     package /**/ //
++                     feature.
++                     pack;
++                     """);
++        ClassPath sourceCP = new ClassPathProviderImpl().findClassPath(testFile, ClassPath.SOURCE);
++
++        Assert.assertArrayEquals(new FileObject[] {testFile.getParent().getParent().getParent()},
++                                 sourceCP.getRoots());
++    }
++
+     private FileObject createData(String relPath, String content) throws IOException {
+         File workDir = getWorkDir();
+         FileObject file = FileUtil.createData(new File(workDir, relPath));
+ 
++        writeContent(file, content);
++
++        return file;
++    }
++
++    private void writeContent(FileObject file, String content) throws IOException {
+         try (Writer w = new OutputStreamWriter(file.getOutputStream())) {
+             w.write(content);
+         }
+-
+-        return file;
+     }
+ 
+ }
