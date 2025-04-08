@@ -99,6 +99,10 @@ export class TelemetryRetry {
         return false;
     }
 
+    private isEventRetryable = (statusCode: number): boolean => {
+        return statusCode <= 0 || statusCode > 500 || statusCode == 429;
+    }
+
     public eventsToBeEnqueuedAgain = (eventResponses: TelemetryPostResponse): BaseEvent<any>[] => {
         eventResponses.success.forEach(res => {
             res.event.onSuccessPostEventCallback();
@@ -110,7 +114,7 @@ export class TelemetryRetry {
         } else {
             const eventsToBeEnqueuedAgain: BaseEvent<any>[] = [];
             eventResponses.failures.forEach((eventRes) => {
-                if (eventRes.statusCode <= 0 || eventRes.statusCode > 500)
+                if (this.isEventRetryable(eventRes.statusCode))
                     eventsToBeEnqueuedAgain.push(eventRes.event);
             });
 
