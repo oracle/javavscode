@@ -245,9 +245,10 @@
 				"jdk.telemetry.enabled": {
 					"type": "boolean",
 					"description": "%jdk.configuration.telemetry.enabled.description%",
+					"markdownDescription": "%jdk.configuration.telemetry.enabled.markdownDescription%",
 					"default": false,
 					"tags": [
-           		 		"telemetry"
+                        "telemetry"
           			]
 				}
 			}

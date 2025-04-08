@@ -96,5 +96,5 @@
   "jdk.workspace.new.prompt": "Input the directory path where the new file will be generated",
   "jdk.extension.utils.error_message.failedHttpsRequest": "Failed to get {url} ({statusCode})",
   "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} not enabled",
-  "jdk.telemetry.consent": "Do you want to enable telemetry for {extensionName} extension? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled."
+  "jdk.telemetry.consent": "Allow anonymous telemetry data to be reported to Oracle? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled."
 }
