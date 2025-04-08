@@ -302,3 +302,41 @@ export async function initializeRunConfiguration(): Promise<boolean> {
 	}
 	return false;
 }
+
+const isQuotes = (c: string): boolean => {
+	return c === "'" || c === '"';
+}
+
+export const parseArguments = (input: string): string[] => {
+	const result: string[] = [];
+	let current = "";
+	if (input.search(/['"]/) < 0) return input.split(/\s+/);
+	for (let i = 0; i < input.length; i++) {
+		const char = input[i];
+		if (char === " ") {
+			result.push(current);
+			current = "";
+		} else if (isQuotes(char)) {
+			const quoteType = char;
+			current += char;
+			i++;
+			let f = true;
+			while (i < input.length && f) {
+				current += input[i];
+				const isEscapingSomethingElse = (i > 1 && input[i - 1] == "\\" && input[i - 2] == "\\");
+				if (input[i] === quoteType && input[i - 1] != "\\" && !isEscapingSomethingElse)
+					f = false;
+				else
+					i++;
+			}
+		} else {
+			current += char;
+		}
+	}
+	if (current) {
+		result.push(current);
+	}
+
+	return result;
+}
+

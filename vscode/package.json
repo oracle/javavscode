@@ -237,6 +237,11 @@
 					"default": false,
 					"description": "%jdk.configuration.disableProjectSearchLimit.description%"
 				},
+				"jdk.completion.warning.time": {
+					"type": "integer",
+					"default": 10000,
+					"description": "%jdk.debugger.configuration.completion.warning.time.description%"
+				},
 				"jdk.telemetry.enabled": {
 					"type": "boolean",
 					"description": "%jdk.configuration.telemetry.enabled.description%",
@@ -265,7 +270,7 @@
 						"properties": {
 							"mainClass": {
 								"type": "string",
-								"description": "%jdk.debugger.configuration.mainClass.description%",
+								"markdownDescription": "%jdk.debugger.configuration.mainClass.markdownDescription%",
 								"default": "${file}"
 							},
 							"classPaths": {
@@ -295,8 +300,13 @@
 							"vmArgs": {
 								"type": [
 									"string",
+									"array",
 									"null"
 								],
+								"items": {
+									"type": "string",
+									"description": "%jdk.debugger.configuration.vmArgs.items.description%"
+								},
 								"description": "%jdk.debugger.configuration.vmArgs.description%",
 								"default": null
 							},
@@ -788,7 +798,7 @@
 		"@vscode/codicons": "0.0.36",
 		"@vscode/test-electron": "^2.4.1",
 		"chai": "^4.5.0",
-		"esbuild": "^0.24.0",
+		"esbuild": "^0.25.0",
 		"glob": "^7.1.6",
 		"mocha": "^10.8.2",
 		"nyc": "^17.1.0",

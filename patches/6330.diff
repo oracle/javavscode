@@ -1,5 +1,5 @@
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/ConnectionSpec.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/ConnectionSpec.java
-index 9ab389564c..9b7c044c81 100644
+index bb8a4e8183..b9662fe6cd 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/ConnectionSpec.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/ConnectionSpec.java
 @@ -25,7 +25,7 @@ import java.io.OutputStream;
@@ -86,11 +86,10 @@ index 9ab389564c..9b7c044c81 100644
                          } catch (IOException ex) {
                              if (isClosed(server)) {
                                  break;
-@@ -129,26 +152,54 @@ final class ConnectionSpec implements Closeable {
-                 }
+@@ -130,25 +153,53 @@ final class ConnectionSpec implements Closeable {
              };
              listeningThread.start();
--            out.write((prefix + " listening at port " + localPort).getBytes());
+             out.write((prefix + " listening at port " + localPort + "\n").getBytes());
 +            StringBuilder message = new StringBuilder();
 +            message.append(prefix).append(" listening at port ").append(localPort);
 +            if (hash) {
@@ -128,7 +127,6 @@ index 9ab389564c..9b7c044c81 100644
 +                    if (hashContent != null) {
 +                        for (char c : hashContent) {
 +                            byte b = (byte) in.read();
-+
 +                            if (b != c) {
 +                                IOException toThrow = new IOException("Hash validation failed!");
 +                                try {
@@ -146,10 +144,10 @@ index 9ab389564c..9b7c044c81 100644
                      connectionObject.getRunningFuture().get();
                  } catch (IOException | InterruptedException | ExecutionException ex) {
 diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/ConnectionSpecTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/ConnectionSpecTest.java
-index 1035cf9bc8..55c0488d03 100644
+index f538c953f6..728228c63c 100644
 --- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/ConnectionSpecTest.java
 +++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/ConnectionSpecTest.java
-@@ -118,7 +118,7 @@ public class ConnectionSpecTest {
+@@ -118,10 +118,12 @@ public class ConnectionSpecTest {
              ByteArrayInputStream in = new ByteArrayInputStream(bytes);
              ByteArrayOutputStream os = new ByteArrayOutputStream();
              conn.prepare("Pipe server", in, os, new LspSession(), ConnectionSpecTest::setCopy, ConnectionSpecTest::copy);
@@ -157,4 +155,10 @@ index 1035cf9bc8..55c0488d03 100644
 +            String reply = os.toString("UTF-8").replaceAll("\n$", "");
              String exp = "Pipe server listening at port ";
              assertTrue(reply, reply.startsWith(exp));
-             int port = Integer.parseInt(reply.substring(exp.length()));
+-            int port = Integer.parseInt(reply.substring(exp.length(), reply.indexOf('\n', exp.length())));
++            int nextLineIdx = reply.indexOf('\n', exp.length());
++            if (nextLineIdx < 0) nextLineIdx = reply.length();
++            int port = Integer.parseInt(reply.substring(exp.length(), nextLineIdx));
+             assertTrue("port is specified: " + port, port >= 1024);
+             try (ConnectionSpec second = ConnectionSpec.parse("connect:" + port)) {
+                 second.prepare("Pipe client", in, os, new LspSession(), ConnectionSpecTest::setCopy, ConnectionSpecTest::copy);

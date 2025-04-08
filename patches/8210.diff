@@ -1,0 +1,435 @@
+diff --git a/java/java.editor/nbproject/project.xml b/java/java.editor/nbproject/project.xml
+index 0b5a6e5d585a..7c09e3513d2a 100644
+--- a/java/java.editor/nbproject/project.xml
++++ b/java/java.editor/nbproject/project.xml
+@@ -558,6 +558,10 @@
+                         <compile-dependency/>
+                         <test/>
+                     </test-dependency>
++                    <test-dependency>
++                        <code-name-base>org.netbeans.modules.lexer.nbbridge</code-name-base>
++                        <compile-dependency/>
++                    </test-dependency>
+                     <test-dependency>
+                         <code-name-base>org.netbeans.modules.masterfs</code-name-base>
+                         <recursive/>
+diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
+index bddc6dbc8e8c..09437294e148 100644
+--- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
++++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
+@@ -221,26 +221,35 @@ public static Completion.Kind elementKind2CompletionItemKind(ElementKind kind) {
+         }
+     }
+ 
+-    public static Supplier<List<TextEdit>> addImport(Document doc, int offset, ElementHandle<?> handle) {
++    public static Supplier<List<TextEdit>> addImportAndInjectPackageIfNeeded(Document doc, int offset, ElementHandle<?> handle) {
+         return () -> {
+-            AtomicReference<String> pkg = new AtomicReference<>();
+-            List<TextEdit> textEdits = modify2TextEdits(JavaSource.forDocument(doc), copy -> {
+-                copy.toPhase(JavaSource.Phase.RESOLVED);
+-                String fqn = SourceUtils.resolveImport(copy, copy.getTreeUtilities().pathFor(offset), handle.getQualifiedName());
+-                if (fqn != null) {
+-                    int idx = fqn.lastIndexOf('.');
+-                    if (idx >= 0) {
+-                        pkg.set(fqn.substring(0, idx + 1));
+-                    }
+-                }
+-            });
+-            if (textEdits.isEmpty() && pkg.get() != null) {
+-                textEdits.add(new TextEdit(offset, offset, pkg.get()));
++            ResolvedImport resolved = addImport(doc, offset, handle);
++            List<TextEdit> edits;
++            String insertName = resolved.insertName();
++            int dotIdx = insertName.lastIndexOf('.');
++            if (dotIdx >= 0) {
++                edits = new ArrayList<>(resolved.importEdits().size() + 1);
++                edits.addAll(resolved.importEdits());
++                edits.add(new TextEdit(offset, offset, insertName.substring(0, dotIdx + 1)));
++            } else {
++                edits = resolved.importEdits();
+             }
+-            return textEdits;
++            return edits;
+         };
+     }
+ 
++    public static ResolvedImport addImport(Document doc, int offset, ElementHandle<?> handle) {
++        AtomicReference<String> insertName = new AtomicReference<>();
++        List<TextEdit> textEdits = modify2TextEdits(JavaSource.forDocument(doc), copy -> {
++            copy.toPhase(JavaSource.Phase.RESOLVED);
++            insertName.set(SourceUtils.resolveImport(copy, copy.getTreeUtilities().pathFor(offset), handle.getQualifiedName()));
++        });
++
++        return new ResolvedImport(textEdits, insertName.get());
++    }
++
++    public record ResolvedImport(List<TextEdit> importEdits, String insertName) {}
++
+     public static boolean isOfKind(Element e, EnumSet<ElementKind> kinds) {
+         if (kinds.contains(e.getKind())) {
+             return true;
+@@ -666,24 +675,19 @@ public Completion createAttributeValueItem(CompilationInfo info, String value, S
+ 
+         @Override
+         public Completion createStaticMemberItem(CompilationInfo info, DeclaredType type, Element memberElem, TypeMirror memberType, boolean multipleVersions, int substitutionOffset, boolean isDeprecated, boolean addSemicolon, boolean smartType) {
+-            //TODO: prefer static imports (but would be much slower?)
+-            //TODO: should be resolveImport instead of addImports:
+-            Map<Element, TextEdit> imports = (Map<Element, TextEdit>) info.getCachedValue(KEY_IMPORT_TEXT_EDITS);
++            Map<Element, ResolvedImport> imports = (Map<Element, ResolvedImport>) info.getCachedValue(KEY_IMPORT_TEXT_EDITS);
+             if (imports == null) {
+                 info.putCachedValue(KEY_IMPORT_TEXT_EDITS, imports = new HashMap<>(), CompilationInfo.CacheClearPolicy.ON_TASK_END);
+             }
+-            TextEdit currentClassImport = imports.computeIfAbsent(type.asElement(), toImport -> {
+-                List<TextEdit> textEdits = modify2TextEdits(JavaSource.forFileObject(info.getFileObject()), wc -> {
+-                    wc.toPhase(JavaSource.Phase.ELEMENTS_RESOLVED);
+-                    wc.rewrite(info.getCompilationUnit(), GeneratorUtilities.get(wc).addImports(wc.getCompilationUnit(), new HashSet<>(Arrays.asList(toImport))));
+-                });
+-                return textEdits.isEmpty() ? null : textEdits.get(0);
++            ResolvedImport currentClassImport = imports.computeIfAbsent(type.asElement(), toImport -> {
++                return addImport(doc, offset, ElementHandle.create(toImport));
+             });
+             String label = type.asElement().getSimpleName() + "." + memberElem.getSimpleName();
+             String sortText = memberElem.getSimpleName().toString();
+             String memberTypeName;
+             StringBuilder labelDetail = new StringBuilder();
+-            StringBuilder insertText = new StringBuilder(label);
++            StringBuilder insertText = new StringBuilder();
++            insertText.append(currentClassImport.insertName()).append(".").append(memberElem.getSimpleName());
+             boolean asTemplate = false;
+             if (memberElem.getKind().isField()) {
+                 memberTypeName = Utilities.getTypeName(info, memberType, false).toString();
+@@ -740,12 +744,12 @@ public Completion createStaticMemberItem(CompilationInfo info, DeclaredType type
+                     .labelDescription(memberTypeName)
+                     .insertText(insertText.toString())
+                     .insertTextFormat(asTemplate ? Completion.TextFormat.Snippet : Completion.TextFormat.PlainText)
+-                    .sortText(String.format("%04d%s", (memberElem.getKind().isField() ? 720 : 750) + (smartType ? 1000 : 0), sortText));
++                    .sortText(String.format("%04d%s", (memberElem.getKind().isField() ? 720 : 750) + (smartType ? 0: 1000), sortText));
+             if (labelDetail.length() > 0) {
+                 builder.labelDetail(labelDetail.toString());
+             }
+-            if (currentClassImport != null) {
+-                builder.additionalTextEdits(Collections.singletonList(currentClassImport));
++            if (!currentClassImport.importEdits().isEmpty()) {
++                builder.additionalTextEdits(currentClassImport.importEdits());
+             }
+             ElementHandle<Element> handle = SUPPORTED_ELEMENT_KINDS.contains(memberElem.getKind().name()) ? ElementHandle.create(memberElem) : null;
+             if (handle != null) {
+@@ -1041,7 +1045,7 @@ private Completion createTypeItem(CompilationInfo info, String prefix, ElementHa
+             if (handle != null) {
+                 builder.documentation(getDocumentation(doc, off, handle));
+                 if (!addSimpleName && !inImport) {
+-                    builder.additionalTextEdits(addImport(doc, off, handle));
++                    builder.additionalTextEdits(addImportAndInjectPackageIfNeeded(doc, off, handle));
+                 }
+             }
+             if (isDeprecated) {
+diff --git a/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionCollector.java b/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionCollector.java
+index 0289b2dcb13f..f7955ef64cf0 100644
+--- a/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionCollector.java
++++ b/java/java.editor/src/org/netbeans/modules/java/editor/javadoc/JavadocCompletionCollector.java
+@@ -276,7 +276,7 @@ private Completion createTypeItem(ElementHandle<TypeElement> handle, TypeElement
+             }
+             if (handle != null) {
+                 builder.documentation(JavaCompletionCollector.getDocumentation(doc, offset, handle));
+-                builder.additionalTextEdits(JavaCompletionCollector.addImport(doc, offset, handle));
++                builder.additionalTextEdits(JavaCompletionCollector.addImportAndInjectPackageIfNeeded(doc, offset, handle));
+             }
+             if (isDeprecated) {
+                 builder.addTag(Completion.Tag.Deprecated);
+diff --git a/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/JavaCompletionCollectorTest.java b/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/JavaCompletionCollectorTest.java
+new file mode 100644
+index 000000000000..d6e3d5669e65
+--- /dev/null
++++ b/java/java.editor/test/unit/src/org/netbeans/modules/editor/java/JavaCompletionCollectorTest.java
+@@ -0,0 +1,291 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.editor.java;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.concurrent.atomic.AtomicBoolean;
++import java.util.stream.Collectors;
++import javax.swing.text.Document;
++import static junit.framework.TestCase.assertNotNull;
++import static junit.framework.TestCase.assertTrue;
++import org.netbeans.api.editor.mimelookup.MimePath;
++import org.netbeans.api.java.lexer.JavaTokenId;
++import org.netbeans.api.java.source.JavaSource;
++import org.netbeans.api.java.source.SourceUtilsTestUtil;
++import org.netbeans.api.java.source.TestUtilities;
++import org.netbeans.api.lsp.Completion;
++import org.netbeans.api.lsp.Completion.Context;
++import org.netbeans.api.lsp.Completion.TriggerKind;
++import org.netbeans.api.lsp.TextEdit;
++import org.netbeans.junit.NbTestCase;
++import org.netbeans.spi.editor.mimelookup.MimeDataProvider;
++import org.openide.cookies.EditorCookie;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
++import org.openide.filesystems.MIMEResolver;
++import org.openide.util.Lookup;
++import org.openide.util.lookup.Lookups;
++
++public class JavaCompletionCollectorTest extends NbTestCase {
++
++    public JavaCompletionCollectorTest(String name) {
++        super(name);
++    }
++
++    public void testStaticMembersAndImports() throws Exception {
++        AtomicBoolean found = new AtomicBoolean();
++        runJavaCollector(List.of(new FileDescription("test/Test.java",
++                                                     """
++                                                     package test;
++                                                     public class Test {
++                                                         public void test() {
++                                                             if (call(|)) {
++                                                             }
++                                                         }
++                                                         private boolean call(test.other.E e) {
++                                                             return false;
++                                                         }
++                                                     }
++                                                     """),
++                                 new FileDescription("test/other/E.java",
++                                                     """
++                                                     package test.other;
++                                                     public enum E {
++                                                         A, B, C;
++                                                     }
++                                                     """)),
++                         completions -> {
++                             for (Completion completion : completions) {
++                                 if (completion.getLabel().equals("E.A")) {
++                                     assertEquals("14-14:\\nimport test.other.E;\\n\\n",
++                                                  completion.getAdditionalTextEdits()
++                                                            .get()
++                                                            .stream()
++                                                            .map(JavaCompletionCollectorTest::textEdit2String)
++                                                            .collect(Collectors.joining(", ")));
++                                     assertEquals("E.A",
++                                                  completion.getInsertText());
++                                     found.set(true);
++                                 }
++                             }
++                         });
++        assertTrue(found.get());
++    }
++
++    public void testStaticMembersAndNoImports() throws Exception {
++        AtomicBoolean found = new AtomicBoolean();
++        runJavaCollector(List.of(new FileDescription("test/Test.java",
++                                                     """
++                                                     package test;
++                                                     public class Test {
++                                                         public void test() {
++                                                             if (call(|)) {
++                                                             }
++                                                         }
++                                                         private boolean call(Outter.E e) {
++                                                             return false;
++                                                         }
++                                                     }
++                                                     class Outter {
++                                                         public enum E {
++                                                             A, B, C;
++                                                         }
++                                                     }
++                                                     """)),
++                         completions -> {
++                             for (Completion completion : completions) {
++                                 if (completion.getLabel().equals("E.A")) {
++                                     assertNull(completion.getAdditionalTextEdits());
++                                     assertEquals("Outter.E.A",
++                                                  completion.getInsertText());
++                                     found.set(true);
++                                 }
++                             }
++                         });
++        assertTrue(found.get());
++    }
++
++    public void testTypeFromIndex1() throws Exception {
++        AtomicBoolean found = new AtomicBoolean();
++        runJavaCollector(List.of(new FileDescription("test/Test.java",
++                                                     """
++                                                     package test;
++                                                     public class Test {
++                                                         public void test() {
++                                                             EEE|
++                                                         }
++                                                     }
++                                                     """),
++                                 new FileDescription("test/other/EEE.java",
++                                                     """
++                                                     package test.other;
++                                                     public class EEE {
++                                                     }
++                                                     """)),
++                         completions -> {
++                             for (Completion completion : completions) {
++                                 if (completion.getLabel().equals("EEE")) {
++                                     assertEquals("14-14:\\nimport test.other.EEE;\\n\\n",
++                                                  completion.getAdditionalTextEdits()
++                                                            .get()
++                                                            .stream()
++                                                            .map(JavaCompletionCollectorTest::textEdit2String)
++                                                            .collect(Collectors.joining(", ")));
++                                     assertEquals("EEE",
++                                                  completion.getInsertText());
++                                     found.set(true);
++                                 }
++                             }
++                         });
++        assertTrue(found.get());
++    }
++
++    public void testTypeFromIndex2() throws Exception {
++        AtomicBoolean found = new AtomicBoolean();
++        runJavaCollector(List.of(new FileDescription("test/Test.java",
++                                                     """
++                                                     package test;
++                                                     public class Test {
++                                                         public void test() {
++                                                             EEE|
++                                                         }
++                                                         interface EEE {}
++                                                     }
++                                                     """),
++                                 new FileDescription("test/other/EEE.java",
++                                                     """
++                                                     package test.other;
++                                                     public class EEE {
++                                                     }
++                                                     """)),
++                         completions -> {
++                             for (Completion completion : completions) {
++                                 if (completion.getLabel().equals("EEE") &&
++                                     completion.getKind() == Completion.Kind.Class) {
++                                     assertEquals("67-67:test.other.",
++                                                  completion.getAdditionalTextEdits()
++                                                            .get()
++                                                            .stream()
++                                                            .map(JavaCompletionCollectorTest::textEdit2String)
++                                                            .collect(Collectors.joining(", ")));
++                                     assertEquals("EEE",
++                                                  completion.getInsertText());
++                                     found.set(true);
++                                 }
++                             }
++                         });
++        assertTrue(found.get());
++    }
++
++    private void runJavaCollector(List<FileDescription> files, Validator<List<Completion>> validator) throws Exception {
++        SourceUtilsTestUtil.prepareTest(new String[]{"org/netbeans/modules/java/editor/resources/layer.xml"}, new Object[]{new MIMEResolverImpl(), new MIMEDataProvider()});
++
++        FileObject scratch = SourceUtilsTestUtil.makeScratchDir(this);
++        FileObject cache = scratch.createFolder("cache");
++        FileObject src = scratch.createFolder("src");
++        FileObject mainFile = null;
++        int caretPosition = -1;
++
++        for (FileDescription testFile : files) {
++            FileObject testFO = FileUtil.createData(src, testFile.fileName);
++            String code = testFile.code;
++
++            if (mainFile == null) {
++                mainFile = testFO;
++                caretPosition = code.indexOf('|');
++
++                assertTrue(caretPosition >= 0);
++
++                code = code.substring(0, caretPosition) + code.substring(caretPosition + 1);
++            }
++
++            TestUtilities.copyStringToFile(testFO, code);
++        }
++
++        assertNotNull(mainFile);
++
++        if (sourceLevel != null) {
++            SourceUtilsTestUtil.setSourceLevel(mainFile, sourceLevel);
++        }
++
++        SourceUtilsTestUtil.prepareTest(src, FileUtil.createFolder(scratch, "test-build"), cache);
++        SourceUtilsTestUtil.compileRecursively(src);
++
++        EditorCookie ec = mainFile.getLookup().lookup(EditorCookie.class);
++        Document doc = ec.openDocument();
++        JavaCompletionCollector collector = new JavaCompletionCollector();
++        Context ctx = new Context(TriggerKind.Invoked, null);
++        List<Completion> completions = new ArrayList<>();
++
++        JavaSource.forDocument(doc).runUserActionTask(cc -> {
++            cc.toPhase(JavaSource.Phase.RESOLVED);
++        }, true);
++        collector.collectCompletions(doc, caretPosition, ctx, completions::add);
++        validator.validate(completions);
++    }
++
++    private static String textEdit2String(TextEdit te) {
++        return te.getStartOffset() + "-" + te.getEndOffset() + ":" + te.getNewText().replace("\n", "\\n");
++    }
++
++    private String sourceLevel;
++
++    private final void setSourceLevel(String sourceLevel) {
++        this.sourceLevel = sourceLevel;
++    }
++
++    interface Validator<T> {
++        public void validate(T t) throws Exception;
++    }
++
++    static class MIMEResolverImpl extends MIMEResolver {
++
++        public String findMIMEType(FileObject fo) {
++            if ("java".equals(fo.getExt())) {
++                return "text/x-java";
++            } else {
++                return null;
++            }
++        }
++    }
++
++    static class MIMEDataProvider implements MimeDataProvider {
++
++        @Override
++        public Lookup getLookup(MimePath mimePath) {
++            if ("text/x-java".equals(mimePath.getPath())) {
++                return Lookups.fixed(JavaTokenId.language());
++            }
++            return null;
++        }
++
++    }
++
++    private static final class FileDescription {
++
++        final String fileName;
++        final String code;
++
++        public FileDescription(String fileName, String code) {
++            this.fileName = fileName;
++            this.code = code;
++        }
++    }
++}

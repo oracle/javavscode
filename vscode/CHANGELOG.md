@@ -22,6 +22,25 @@
     under the License.
 
 -->
+## Version 24.0.0
+
+#### Enhancements
+* [JAVAVSCODE-36,335] Allow relative paths and class names as 'mainClass' setting in launch.json [netbeans/#8280](https://github.com/apache/netbeans/pull/8280)
+* [JAVAVSCODE-317,336] Support similar style as Java CLI for providing classpath in the vmOptions configuration [netbeans/#8289](https://github.com/apache/netbeans/pull/8289)
+* Upgrade to NB-25 [#382](https://github.com/oracle/javavscode/pull/382) & [#383](https://github.com/oracle/javavscode/pull/383)
+    * Full JDK 24 support
+    * Support for vmArgs in array form as well
+    * Performance improvements
+    * And more ...
+
+#### Bug Fixes
+* Fixed constructor autocomplete not getting generated [netbeans/#8242](https://github.com/apache/netbeans/pull/8242)
+
+#### Other Changes
+* Dynamically fetch Oracle JDK versions available for download [#376](https://github.com/oracle/javavscode/pull/376)
+* Updated OpenJDK Downloader URLs for JDK 24 release [#390](https://github.com/oracle/javavscode/pull/390)
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v23.1.0...v24.0.0
 
 ## Version 23.1.0
 ### What's Changed
@@ -32,6 +51,8 @@
 * Dependency upgrades [#337](https://github.com/oracle/javavscode/pull/337)
 * Extension maintainance changes [#348](https://github.com/oracle/javavscode/pull/348) and [#349](https://github.com/oracle/javavscode/pull/349)
 * Updated JDK Downloader URLs for Jan25 CPUs [#365](https://github.com/oracle/javavscode/pull/365)
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v23.0.1...v23.1.0
 
 ## Version 23.0.1
 ### What's Changed
