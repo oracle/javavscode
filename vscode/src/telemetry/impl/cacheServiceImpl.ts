@@ -32,6 +32,7 @@ class CacheServiceImpl implements CacheService {
         try {
             const vscGlobalState = globalState.getExtensionContextInfo().getVscGlobalState();
             vscGlobalState.update(key, value);
+            LOGGER.debug(`Updating key: ${key} to ${value}`);
             return true;
         } catch (err) {
             LOGGER.error(`Error while storing ${key} in cache: ${(err as Error).message}`);

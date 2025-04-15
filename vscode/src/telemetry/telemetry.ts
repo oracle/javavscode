@@ -43,7 +43,7 @@ export namespace Telemetry {
 	}
 
 	const enqueueEvent = (cbFunction: (reporter: TelemetryReporter) => void) => {
-		if (telemetryManager.isExtTelemetryEnabled() && getIsTelemetryFeatureAvailable()) {
+		if (telemetryManager.isTelemetryEnabled() && getIsTelemetryFeatureAvailable()) {
 			const reporter = telemetryManager.getReporter();
 			if (reporter) {
 				cbFunction(reporter);

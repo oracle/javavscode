@@ -46,7 +46,6 @@ export class TelemetryReporterImpl implements TelemetryReporter {
     }
 
     public closeEvent = (): void => {
-
         const extensionCloseEvent = ExtensionCloseEvent.builder(this.activationTime);
         this.addEventToQueue(extensionCloseEvent);
 
@@ -59,6 +58,10 @@ export class TelemetryReporterImpl implements TelemetryReporter {
             this.queue.enqueue(event);
             if (this.retryManager.isQueueOverflow(this.queue.size())) {
                 LOGGER.debug(`Send triggered to queue size overflow`);
+                if(this.retryManager.IsMaxRetryReached()){
+                    LOGGER.debug('Decreasing size of the queue');
+                    this.queue.decreaseSizeOnMaxOverflow();
+                }
                 this.sendEvents();
             }
         }
@@ -81,9 +84,9 @@ export class TelemetryReporterImpl implements TelemetryReporter {
 
             LOGGER.debug(`Number of events successfully sent: ${response.success.length}`);
             LOGGER.debug(`Number of events failed to send: ${response.failures.length}`);
-            this.handlePostTelemetryResponse(response);
+            const isResetRetryParams = this.handlePostTelemetryResponse(response);
 
-            this.retryManager.startTimer();
+            this.retryManager.startTimer(isResetRetryParams);
         } catch (err: any) {
             this.disableReporter = true;
             LOGGER.debug(`Error while sending telemetry: ${isError(err) ? err.message : err}`);
@@ -98,11 +101,13 @@ export class TelemetryReporterImpl implements TelemetryReporter {
         return [...removedJdkFeatureEvents, ...concatedEvents];
     }
 
-    private handlePostTelemetryResponse = (response: TelemetryPostResponse) => {
+    private handlePostTelemetryResponse = (response: TelemetryPostResponse): boolean => {
         const eventsToBeEnqueued = this.retryManager.eventsToBeEnqueuedAgain(response);
 
         this.queue.concatQueue(eventsToBeEnqueued);
 
         LOGGER.debug(`Number of failed events enqueuing again: ${eventsToBeEnqueued.length}`);
+
+        return eventsToBeEnqueued.length === 0;
     }
 }

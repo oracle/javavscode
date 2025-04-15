@@ -15,7 +15,7 @@
 */
 import { BaseEvent } from "../events/baseEvent";
 
-export class TelemetryEventQueue { 
+export class TelemetryEventQueue {
   private events: BaseEvent<any>[] = [];
 
   public enqueue = (e: BaseEvent<any>): void => {
@@ -34,5 +34,20 @@ export class TelemetryEventQueue {
     const queue = [...this.events];
     this.events = [];
     return queue;
+  }
+
+  public decreaseSizeOnMaxOverflow = () => {
+    const seen = new Set<string>();
+    const newQueueStart = Math.floor(this.size() / 2);
+    
+    const secondHalf = this.events.slice(newQueueStart);
+    
+    const uniqueEvents = secondHalf.filter(event => {
+      if (seen.has(event.NAME)) return false;
+      seen.add(event.NAME);
+      return true;
+    });
+    
+    this.events = [...uniqueEvents, ...secondHalf];
   }
 }

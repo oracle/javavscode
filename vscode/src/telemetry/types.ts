@@ -14,6 +14,7 @@
   limitations under the License.
 */
 import { BaseEvent } from "./events/baseEvent";
+import { Disposable } from "vscode";
 
 export interface TelemetryReporter {
     startEvent(): void;
@@ -48,4 +49,15 @@ export interface TelemetryApi {
     baseUrl: string | null;
     baseEndpoint: string;
     version: string;
+}
+
+export interface TelemetryConfigMetadata {
+    consentSchemaVersion: string;
+}
+
+export interface TelemetryPreference {
+  getIsTelemetryEnabled(): boolean;
+  onChangeTelemetrySetting(cb: () => void): Disposable;
+  updateTelemetryConfig?(value: boolean): void;
+  isTelemetrySettingSet?: () => boolean;
 }

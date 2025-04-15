@@ -14,7 +14,7 @@
   limitations under the License.
 */
 import { window } from "vscode";
-import { TelemetryPrefs } from "./impl/telemetryPrefs";
+import { TelemetrySettings } from "./impl/telemetryPrefs";
 import { TelemetryEventQueue } from "./impl/telemetryEventQueue";
 import { TelemetryReporterImpl } from "./impl/telemetryReporterImpl";
 import { TelemetryReporter } from "./types";
@@ -25,24 +25,27 @@ import { TelemetryRetry } from "./impl/telemetryRetry";
 
 export class TelemetryManager {
     private extensionContextInfo: ExtensionContextInfo;
-    private settings: TelemetryPrefs = new TelemetryPrefs();
+    private settings: TelemetrySettings;
     private reporter?: TelemetryReporter;
     private telemetryRetryManager: TelemetryRetry = new TelemetryRetry()
 
     constructor(extensionContextInfo: ExtensionContextInfo) {
         this.extensionContextInfo = extensionContextInfo;
+        this.settings = new TelemetrySettings(extensionContextInfo, 
+            this.onTelemetryEnable, 
+            this.onTelemetryDisable,
+            this.openTelemetryDialog);
     }
 
-    public isExtTelemetryEnabled = (): boolean => {
-        return this.settings.isExtTelemetryEnabled;
+    public isTelemetryEnabled = (): boolean => {
+        return this.settings.getIsTelemetryEnabled();
     }
 
     public initializeReporter = (): void => {
         const queue = new TelemetryEventQueue();
-        this.extensionContextInfo.pushSubscription(this.settings.onDidChangeTelemetryEnabled());
         this.reporter = new TelemetryReporterImpl(queue, this.telemetryRetryManager);
 
-        this.openTelemetryDialog();
+        this.isTelemetryEnabled() ? this.onTelemetryEnable() : this.openTelemetryDialog();
     }
 
     public getReporter = (): TelemetryReporter | null => {
@@ -50,7 +53,7 @@ export class TelemetryManager {
     }
 
     private openTelemetryDialog = async () => {
-        if (!this.settings.isExtTelemetryConfigured() && !this.settings.didUserDisableVscodeTelemetry()) {
+        if (this.settings?.isConsentPopupToBeTriggered()) {
             LOGGER.log('Telemetry not enabled yet');
 
             const yesLabel = l10n.value("jdk.downloader.message.confirmation.yes");
@@ -62,14 +65,19 @@ export class TelemetryManager {
                 return;
             }
 
-            this.settings.updateTelemetryEnabledConfig(enable === yesLabel);
-            if (enable === yesLabel) {
-                LOGGER.log("Telemetry is now enabled");
-            }
+            this.settings.updateTelemetrySetting(enable === yesLabel);
         }
-        if (this.settings.isExtTelemetryEnabled) {
-            this.telemetryRetryManager.startTimer();
-            this.reporter?.startEvent();
-        }
+    }
+
+    private onTelemetryEnable = () => {
+        LOGGER.log("Telemetry is now enabled");
+        this.telemetryRetryManager.startTimer();
+        this.reporter?.startEvent();
+    }
+
+    private onTelemetryDisable = () => {
+        // Remaining: Check what needs to be done when disabled
+        LOGGER.log("Telemetry is now disabled");
+        this.telemetryRetryManager.clearTimer();
     }
 };
