@@ -1,4 +1,8 @@
 import * as vscode from 'vscode';
+import { LanguageClient } from 'vscode-languageclient/node';
+import { isNbCommandRegistered } from '../commands/utils';
+import { nbCommands } from '../commands/commands';
+import { globalState } from '../globalState';
 
 export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
   async deserializeNotebook(content: Uint8Array, _token: vscode.CancellationToken): Promise<vscode.NotebookData> {
@@ -56,12 +60,58 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
       }
 
       const cellContent = cell.source.join('');
-
-      return new vscode.NotebookCellData(
+      const cellData = new vscode.NotebookCellData(
         cell.cell_type === 'code' ? vscode.NotebookCellKind.Code : vscode.NotebookCellKind.Markup,
         cellContent,
         cell.cell_type === 'code' ? 'java' : 'markdown'
       );
+
+      if (cell.outputs && Array.isArray(cell.outputs)) {
+        const outputs: vscode.NotebookCellOutput[] = [];
+
+        for (const output of cell.outputs) {
+          if (output.output_type === 'display_data' || output.output_type === 'execute_result') {
+            const items: vscode.NotebookCellOutputItem[] = [];
+
+            if (output.data && output.data['text/plain']) {
+              const text = Array.isArray(output.data['text/plain'])
+                ? output.data['text/plain'].join('\n')
+                : output.data['text/plain'];
+              items.push(vscode.NotebookCellOutputItem.text(text));
+            }
+
+            if (items.length > 0) {
+              outputs.push(new vscode.NotebookCellOutput(items, output.metadata));
+            }
+          } else if (output.output_type === 'stream') {
+            const text = Array.isArray(output.text) ? output.text.join('') : output.text;
+            outputs.push(new vscode.NotebookCellOutput([
+              vscode.NotebookCellOutputItem.text(text)
+            ]));
+          } else if (output.output_type === 'error') {
+            outputs.push(new vscode.NotebookCellOutput([
+              vscode.NotebookCellOutputItem.error({
+                name: output.ename || 'Error',
+                message: output.evalue || 'Unknown error',
+                stack: output.traceback ? output.traceback.join('\n') : undefined
+              })
+            ]));
+          }
+        }
+
+        if (outputs.length > 0) {
+          cellData.outputs = outputs;
+        }
+      }
+
+      if (cell.execution_count !== null && cell.execution_count !== undefined) {
+        cellData.executionSummary = {
+          executionOrder: cell.execution_count,
+          success: true
+        };
+      }
+
+      return cellData;
     });
 
     return new vscode.NotebookData(cells);
@@ -69,16 +119,56 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
 
   async serializeNotebook(data: vscode.NotebookData, _token: vscode.CancellationToken): Promise<Uint8Array> {
     const notebook = {
-      cells: data.cells.map(cell => ({
-        cell_type: cell.kind === vscode.NotebookCellKind.Code ? 'code' : 'markdown',
-        source: [cell.value],
-        metadata: {
-          ...cell.metadata,
-          language: cell.languageId
-        },
-        execution_count: null,
-        outputs: cell.outputs
-      })),
+      cells: data.cells.map(cell => {
+        const cellData: any = {
+          cell_type: cell.kind === vscode.NotebookCellKind.Code ? 'code' : 'markdown',
+          source: [cell.value],
+          metadata: {
+            ...cell.metadata,
+            language: cell.languageId
+          },
+          execution_count: cell.executionSummary?.executionOrder ?? null,
+          outputs: []
+        };
+
+        if (cell.outputs && cell.outputs.length > 0) {
+          cellData.outputs = cell.outputs.map(output => {
+            const items = output.items;
+
+            const errorItem = items.find(item => item.mime === 'application/vnd.code.notebook.error');
+            if (errorItem) {
+              const errorData = JSON.parse(Buffer.from(errorItem.data).toString());
+              return {
+                output_type: 'error',
+                ename: errorData.name,
+                evalue: errorData.message,
+                traceback: errorData.stack ? [errorData.stack] : []
+              };
+            }
+
+            const textItem = items.find(item => item.mime === 'text/plain');
+            if (textItem) {
+              return {
+                output_type: 'execute_result',
+                data: {
+                  'text/plain': Buffer.from(textItem.data).toString()
+                },
+                metadata: output.metadata,
+                execution_count: cell.executionSummary?.executionOrder ?? null
+              };
+            }
+
+            return {
+              output_type: 'execute_result',
+              data: {},
+              metadata: output.metadata,
+              execution_count: cell.executionSummary?.executionOrder ?? null
+            };
+          });
+        }
+
+        return cellData;
+      }),
       metadata: {
         language_info: {
           name: 'java'
@@ -109,19 +199,20 @@ export class IJNBKernel implements vscode.Disposable {
     this.controller.supportedLanguages = ['markdown', 'java'];
     this.controller.supportsExecutionOrder = true;
     this.controller.executeHandler = this.executeCell.bind(this);
-    
-    // Listen for notebook close events to clean up resources
+
     vscode.workspace.onDidCloseNotebookDocument(this.onNotebookClosed.bind(this));
   }
 
   dispose() {
     this.controller.dispose();
   }
-  
-  private onNotebookClosed(notebook: vscode.NotebookDocument): void {
-    // Clean up JShell instance when notebook is closed
+
+  private async onNotebookClosed(notebook: vscode.NotebookDocument): Promise<void> {
     try {
-      vscode.commands.executeCommand("jdk.jshell.cleanup", notebook.uri.toString());
+      await globalState.getClientPromise().client;
+      if (await isNbCommandRegistered(nbCommands.notebookCleanup)) {
+        vscode.commands.executeCommand(nbCommands.notebookCleanup, notebook.uri.toString());
+      }
     } catch (err) {
       console.error(`Error cleaning up JShell for notebook: ${err}`);
     }
@@ -129,8 +220,7 @@ export class IJNBKernel implements vscode.Disposable {
 
   private async executeCell(cells: vscode.NotebookCell[], notebook: vscode.NotebookDocument, _controller: vscode.NotebookController): Promise<void> {
     console.log("Starting execution for cells:", cells);
-    
-    // Use notebook URI as the unique identifier
+
     const notebookId = notebook.uri.toString();
 
     for (let cell of cells) {
@@ -151,27 +241,30 @@ export class IJNBKernel implements vscode.Disposable {
             ])
           ]);
         } else {
-          const response: string[] = await vscode.commands.executeCommand(
-            "jdk.jshell.execute.cell", 
-            cellContent, 
-            notebookId
-          );
-          
-          console.log("Response:", response);
-          const outputContent = response.join('\n');
-          await execution.replaceOutput([
-            new vscode.NotebookCellOutput([
-              vscode.NotebookCellOutputItem.text(outputContent)
-            ])
-          ]);
+          await globalState.getClientPromise().client;
+          if (await isNbCommandRegistered(nbCommands.executeNotebookCell)) {
+            const response: string[] = await vscode.commands.executeCommand(
+              nbCommands.executeNotebookCell,
+              cellContent,
+              notebookId
+            );
+
+            console.log("Response:", response);
+            const outputContent = response.join('\n');
+            await execution.replaceOutput([
+              new vscode.NotebookCellOutput([
+                vscode.NotebookCellOutputItem.text(outputContent)
+              ])
+            ]);
+          } else {
+            throw new Error("Notebook not supported");
+          }
         }
 
         execution.end(true, Date.now());
-
       } catch (err) {
         console.error(`Error executing cell: ${err}`);
-        
-        // Show error in cell output
+
         await execution.replaceOutput([
           new vscode.NotebookCellOutput([
             vscode.NotebookCellOutputItem.error({
@@ -180,7 +273,7 @@ export class IJNBKernel implements vscode.Disposable {
             })
           ])
         ]);
-        
+
         execution.end(false, Date.now());
       }
     }

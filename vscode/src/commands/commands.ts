@@ -84,5 +84,7 @@ export const nbCommands = {
     cleanWorkspace: appendPrefixToCommand('clean.workspace'),
     clearProjectCaches: appendPrefixToCommand('clear.project.caches'),
     javaProjectPackages: appendPrefixToCommand('java.get.project.packages'),
-    openStackTrace: appendPrefixToCommand('open.stacktrace')
+    openStackTrace: appendPrefixToCommand('open.stacktrace'),
+    executeNotebookCell: appendPrefixToCommand("jshell.execute.cell"),
+    notebookCleanup: appendPrefixToCommand("jdk.jshell.cleanup")
 }
