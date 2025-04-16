@@ -57,7 +57,7 @@ export class TelemetryRetry {
     }
 
     private increaseTimePeriod = (): void => {
-        if (this.numOfAttemptsWhenTimerHits <= this.TELEMETRY_RETRY_CONFIG.maxRetries) {
+        if (this.numOfAttemptsWhenTimerHits < this.TELEMETRY_RETRY_CONFIG.maxRetries) {
             this.timePeriod = this.calculateDelay();
             this.numOfAttemptsWhenTimerHits++;
             return;
@@ -91,9 +91,8 @@ export class TelemetryRetry {
         LOGGER.debug("Keeping queue capacity same as max retries exceeded");
     }
 
-    public IsMaxRetryReached = (): boolean => 
-        this.numOfAttemptsWhenQueueIsFull >= this.TELEMETRY_RETRY_CONFIG.maxRetries || 
-        this.numOfAttemptsWhenTimerHits > this.TELEMETRY_RETRY_CONFIG.maxRetries
+    public IsQueueMaxCapacityReached = (): boolean => 
+        this.numOfAttemptsWhenQueueIsFull > this.TELEMETRY_RETRY_CONFIG.maxRetries;
 
     private resetQueueCapacity = (): void => {
         LOGGER.debug("Resetting queue capacity to default");

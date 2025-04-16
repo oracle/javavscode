@@ -27,8 +27,9 @@ import { PostTelemetry, TelemetryPostResponse } from "./postTelemetry";
 
 export class TelemetryReporterImpl implements TelemetryReporter {
     private activationTime: number = getCurrentUTCDateInSeconds();
-    private disableReporter: boolean = false;
     private postTelemetry: PostTelemetry = new PostTelemetry();
+    private onCloseEventState: { status: boolean, numOfRetries: number } = { status: false, numOfRetries: 0 };
+    private readonly MAX_RETRY_ON_CLOSE = 5;
 
     constructor(
         private queue: TelemetryEventQueue,
@@ -38,14 +39,22 @@ export class TelemetryReporterImpl implements TelemetryReporter {
     }
 
     public startEvent = (): void => {
+        this.resetOnCloseEventState();
+        this.retryManager.startTimer();
+
         const extensionStartEvent = ExtensionStartEvent.builder();
-        if(extensionStartEvent != null){
+        if (extensionStartEvent != null) {
             this.addEventToQueue(extensionStartEvent);
             LOGGER.debug(`Start event enqueued: ${extensionStartEvent.getPayload}`);
-        } 
+        }
     }
 
     public closeEvent = (): void => {
+        this.onCloseEventState = {
+            status: true,
+            numOfRetries: 0
+        };
+
         const extensionCloseEvent = ExtensionCloseEvent.builder(this.activationTime);
         this.addEventToQueue(extensionCloseEvent);
 
@@ -54,22 +63,46 @@ export class TelemetryReporterImpl implements TelemetryReporter {
     }
 
     public addEventToQueue = (event: BaseEvent<any>): void => {
-        if (!this.disableReporter) {
-            this.queue.enqueue(event);
-            if (this.retryManager.isQueueOverflow(this.queue.size())) {
-                LOGGER.debug(`Send triggered to queue size overflow`);
-                if(this.retryManager.IsMaxRetryReached()){
-                    LOGGER.debug('Decreasing size of the queue');
-                    this.queue.decreaseSizeOnMaxOverflow();
-                }
-                this.sendEvents();
+        this.resetOnCloseEventState();
+
+        this.queue.enqueue(event);
+        if (this.retryManager.isQueueOverflow(this.queue.size())) {
+            LOGGER.debug(`Send triggered to queue size overflow`);
+            if (this.retryManager.IsQueueMaxCapacityReached()) {
+                LOGGER.debug('Decreasing size of the queue as max capacity reached');
+                this.queue.decreaseSizeOnMaxOverflow();
+            }
+            this.sendEvents();
+        }
+    }
+
+    private resetOnCloseEventState = () => {
+        this.onCloseEventState = {
+            status: false,
+            numOfRetries: 0
+        };
+    }
+
+    private increaseRetryCountOrDisableRetry = () => {
+        if (this.onCloseEventState.status) {
+            if (this.onCloseEventState.numOfRetries < this.MAX_RETRY_ON_CLOSE && this.queue.size()) {
+                LOGGER.debug("Telemetry disabled state: Increasing retry count");
+                this.onCloseEventState.numOfRetries++;
+            } else {
+                LOGGER.debug(`Telemetry disabled state: ${this.queue.size() ? 'Max retries reached': 'queue is empty'}, resetting timer`);
+                this.retryManager.clearTimer();
+                this.queue.flush();
+                this.onCloseEventState = {
+                    status: false,
+                    numOfRetries: 0
+                };
             }
         }
     }
 
     private sendEvents = async (): Promise<void> => {
         try {
-            if(!this.queue.size()){
+            if (!this.queue.size()) {
                 LOGGER.debug(`Queue is empty nothing to send`);
                 return;
             }
@@ -84,20 +117,21 @@ export class TelemetryReporterImpl implements TelemetryReporter {
 
             LOGGER.debug(`Number of events successfully sent: ${response.success.length}`);
             LOGGER.debug(`Number of events failed to send: ${response.failures.length}`);
-            const isResetRetryParams = this.handlePostTelemetryResponse(response);
+            const isAllEventsSuccess = this.handlePostTelemetryResponse(response);
 
-            this.retryManager.startTimer(isResetRetryParams);
+            this.retryManager.startTimer(isAllEventsSuccess);
+
+            this.increaseRetryCountOrDisableRetry();
         } catch (err: any) {
-            this.disableReporter = true;
             LOGGER.debug(`Error while sending telemetry: ${isError(err) ? err.message : err}`);
         }
     }
-    
+
     private transformEvents = (events: BaseEvent<any>[]): BaseEvent<any>[] => {
         const jdkFeatureEvents = events.filter(event => event.NAME === JdkFeatureEvent.NAME);
         const concatedEvents = JdkFeatureEvent.concatEvents(jdkFeatureEvents);
         const removedJdkFeatureEvents = events.filter(event => event.NAME !== JdkFeatureEvent.NAME);
-        
+
         return [...removedJdkFeatureEvents, ...concatedEvents];
     }
 

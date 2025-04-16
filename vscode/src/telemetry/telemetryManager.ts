@@ -71,13 +71,11 @@ export class TelemetryManager {
 
     private onTelemetryEnable = () => {
         LOGGER.log("Telemetry is now enabled");
-        this.telemetryRetryManager.startTimer();
         this.reporter?.startEvent();
     }
 
     private onTelemetryDisable = () => {
-        // Remaining: Check what needs to be done when disabled
         LOGGER.log("Telemetry is now disabled");
-        this.telemetryRetryManager.clearTimer();
+        this.reporter?.closeEvent();
     }
 };
