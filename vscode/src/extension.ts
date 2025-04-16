@@ -19,8 +19,6 @@
  * under the License.
  */
 
-'use strict';
-
 import { ExtensionContext } from 'vscode';
 import * as launchConfigurations from './launchConfigurations';
 import { extConstants } from './constants';

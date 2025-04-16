@@ -1,14 +1,5 @@
 import * as vscode from 'vscode';
 
-interface IJNBCell {
-  type: 'code' | 'markdown';
-  content: string;
-}
-
-interface IJNBNotebook {
-  cells: IJNBCell[];
-}
-
 export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
   async deserializeNotebook(content: Uint8Array, _token: vscode.CancellationToken): Promise<vscode.NotebookData> {
     let notebook: any;
@@ -76,18 +67,17 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
     return new vscode.NotebookData(cells);
   }
 
-
   async serializeNotebook(data: vscode.NotebookData, _token: vscode.CancellationToken): Promise<Uint8Array> {
     const notebook = {
       cells: data.cells.map(cell => ({
         cell_type: cell.kind === vscode.NotebookCellKind.Code ? 'code' : 'markdown',
-        source: cell.value.split('\n').map(line => line + '\n'),
+        source: [cell.value],
         metadata: {
           ...cell.metadata,
           language: cell.languageId
         },
         execution_count: null,
-        outputs: []
+        outputs: cell.outputs
       })),
       metadata: {
         language_info: {
@@ -101,7 +91,6 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
 
     return this.encoder.encode(JSON.stringify(notebook, null, 2));
   }
-
 
   private readonly decoder = new TextDecoder();
   private readonly encoder = new TextEncoder();
@@ -120,14 +109,29 @@ export class IJNBKernel implements vscode.Disposable {
     this.controller.supportedLanguages = ['markdown', 'java'];
     this.controller.supportsExecutionOrder = true;
     this.controller.executeHandler = this.executeCell.bind(this);
+    
+    // Listen for notebook close events to clean up resources
+    vscode.workspace.onDidCloseNotebookDocument(this.onNotebookClosed.bind(this));
   }
 
   dispose() {
     this.controller.dispose();
   }
+  
+  private onNotebookClosed(notebook: vscode.NotebookDocument): void {
+    // Clean up JShell instance when notebook is closed
+    try {
+      vscode.commands.executeCommand("jdk.jshell.cleanup", notebook.uri.toString());
+    } catch (err) {
+      console.error(`Error cleaning up JShell for notebook: ${err}`);
+    }
+  }
 
-  private async executeCell(cells: vscode.NotebookCell[], _notebook: vscode.NotebookDocument, _controller: vscode.NotebookController): Promise<void> {
+  private async executeCell(cells: vscode.NotebookCell[], notebook: vscode.NotebookDocument, _controller: vscode.NotebookController): Promise<void> {
     console.log("Starting execution for cells:", cells);
+    
+    // Use notebook URI as the unique identifier
+    const notebookId = notebook.uri.toString();
 
     for (let cell of cells) {
       console.log("Executing cell:", cell.document.getText());
@@ -147,8 +151,13 @@ export class IJNBKernel implements vscode.Disposable {
             ])
           ]);
         } else {
-          const response: string[] = await vscode.commands.executeCommand("jdk.jshell.execute.cell", `{${cellContent}}`);
-          console.log(response);
+          const response: string[] = await vscode.commands.executeCommand(
+            "jdk.jshell.execute.cell", 
+            cellContent, 
+            notebookId
+          );
+          
+          console.log("Response:", response);
           const outputContent = response.join('\n');
           await execution.replaceOutput([
             new vscode.NotebookCellOutput([
@@ -161,6 +170,17 @@ export class IJNBKernel implements vscode.Disposable {
 
       } catch (err) {
         console.error(`Error executing cell: ${err}`);
+        
+        // Show error in cell output
+        await execution.replaceOutput([
+          new vscode.NotebookCellOutput([
+            vscode.NotebookCellOutputItem.error({
+              name: 'Execution Error',
+              message: `${err}`
+            })
+          ])
+        ]);
+        
         execution.end(false, Date.now());
       }
     }
