@@ -58,7 +58,7 @@ suite("Extension gradle tests", function () {
       dumpJava();
       throw error;
     }
-  }).timeout(120*1000);
+  });
 
   // Check if clean workspace command is excuted succesfully
   test("Clean workspace - Gradle", async () => {
@@ -71,5 +71,5 @@ suite("Extension gradle tests", function () {
       !fs.existsSync(mainClass),
       "Class created by compilation: " + mainClass
     );
-  }).timeout(60000);
+  });
 });
