@@ -1,9 +1,134 @@
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JavaEvaluator.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JavaEvaluator.java
 new file mode 100644
-index 0000000000..f34d9c676e
+index 0000000000..5cc620b23a
 --- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JavaEvaluator.java
-@@ -0,0 +1,142 @@
+@@ -0,0 +1,119 @@
++package org.netbeans.modules.java.lsp.server.protocol;
++
++import jdk.jshell.JShell;
++import jdk.jshell.SnippetEvent;
++import com.google.gson.JsonPrimitive;
++import java.io.ByteArrayOutputStream;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Set;
++import java.util.HashSet;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import jdk.jshell.SourceCodeAnalysis;
++import org.netbeans.spi.lsp.CommandProvider;
++import org.openide.util.lookup.ServiceProvider;
++
++@ServiceProvider(service = CommandProvider.class)
++public class JavaEvaluator implements CommandProvider {
++    private static final String NBLS_JSHELL_EXEC = "nbls.jshell.execute.cell";
++    private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(NBLS_JSHELL_EXEC));
++
++    @Override
++    public Set<String> getCommands() {
++        return COMMANDS;
++    }
++
++    @Override
++    public CompletableFuture<Object> runCommand(String command, List arguments) {
++        switch (command) {
++            case NBLS_JSHELL_EXEC: {
++                String sourceCode = ((JsonPrimitive) arguments.get(0)).getAsString();
++                // Get notebook ID from arguments, or default if not provided
++                String notebookId = arguments.size() > 1 ? ((JsonPrimitive) arguments.get(1)).getAsString() : "default";
++                return evaluate(sourceCode, notebookId).thenApply(results -> results);
++            }
++            default:
++                throw new UnsupportedOperationException("Command not supported: " + command);
++        }
++    }
++
++    public CompletableFuture<List<String>> evaluate(String snippet, String notebookId) {
++        JShell jshell = JshellCache.getInstance().getOrCreateJShell(notebookId);
++        ByteArrayOutputStream outputStream = JshellCache.getInstance().getOutputStreamById(notebookId);
++        ByteArrayOutputStream errorStream = JshellCache.getInstance().getErrorStreamById(notebookId);
++
++        List<String> results = new ArrayList<>();
++        try {
++            String snippetToEval = snippet.trim();
++            if (!snippetToEval.endsWith(";") && !snippetToEval.endsWith("}")) {
++                snippetToEval += ";";
++            }
++
++            String codeLeftToEval = snippet;
++            while (codeLeftToEval.length() != 0) {
++
++                SourceCodeAnalysis.CompletionInfo info = jshell.sourceCodeAnalysis().analyzeCompletion(codeLeftToEval);
++                boolean isComplete = info.completeness().isComplete();
++                if (isComplete) {
++
++                    List<SnippetEvent> snippetEvents = jshell.eval(info.source());
++
++                    for (SnippetEvent event : snippetEvents) {
++                        flushStreams(results, outputStream, errorStream);
++
++                        if (event.exception() != null) {
++                            results.add(event.exception().getMessage());
++                        } else if (event.value() != null) {
++                            results.add(event.value());
++                        }
++
++                        jshell.diagnostics(event.snippet())
++                                .forEach(diag -> results.add(diag.getMessage(null)));
++
++                        flushStreams(results, outputStream, errorStream);
++                    }
++
++                    flushStreams(results, outputStream, errorStream);
++
++                }
++
++                codeLeftToEval = info.remaining();
++            }
++
++        } catch (Exception e) {
++            results.add("Evaluation error: " + e.getMessage());
++        }
++
++        return CompletableFuture.completedFuture(results);
++    }
++
++    private void flushStreams(List<String> results, ByteArrayOutputStream outputStream, ByteArrayOutputStream errorStream) {
++        String output = outputStream.toString().trim();
++        if (!output.isEmpty()) {
++            results.add(output);
++            outputStream.reset();
++        }
++
++        String error = errorStream.toString().trim();
++        if (!error.isEmpty()) {
++            results.add(error);
++            errorStream.reset();
++        }
++    }
++
++//    public void closeJShell(String notebookId) {
++//        JShell jshell = jshellMap.remove(notebookId);
++//        if (jshell != null) {
++//            jshell.close();
++//        }
++//        outputStreamMap.remove(notebookId);
++//        errorStreamMap.remove(notebookId);
++//    }
++//
++//    public void closeAllJShells() {
++//        for (String notebookId : new ArrayList<>(jshellMap.keySet())) {
++//            closeJShell(notebookId);
++//        }
++//    }
++}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JshellCache.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JshellCache.java
+new file mode 100644
+index 0000000000..6ac5be1950
+--- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JshellCache.java
+@@ -0,0 +1,94 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -24,125 +149,77 @@ index 0000000000..f34d9c676e
 + */
 +package org.netbeans.modules.java.lsp.server.protocol;
 +
-+import jdk.jshell.JShell;
-+import jdk.jshell.SnippetEvent;
-+import com.google.gson.JsonPrimitive;
 +import java.io.ByteArrayOutputStream;
 +import java.io.PrintStream;
-+import java.util.ArrayList;
-+import java.util.Arrays;
-+import java.util.Set;
-+import java.util.HashSet;
 +import java.util.List;
-+import java.util.concurrent.CompletableFuture;
-+import org.netbeans.spi.lsp.CommandProvider;
-+import org.openide.util.lookup.ServiceProvider;
++import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
++import jdk.jshell.JShell;
 +
-+@ServiceProvider(service = CommandProvider.class)
-+public class JavaEvaluator implements CommandProvider {
++/**
++ * Singleton class for managing JShell instances per notebook.
++ */
++public class JshellCache {
 +
-+    private JShell jshell = null;
-+    private ByteArrayOutputStream outputStream;
-+    private ByteArrayOutputStream errorStream;
-+    private static final String NBLS_JSHELL_EXEC = "nbls.jshell.execute.cell";
-+    private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(NBLS_JSHELL_EXEC));
++    private static final JshellCache INSTANCE = new JshellCache();
 +
-+    public JavaEvaluator() {
-+        try {
-+            this.outputStream = new ByteArrayOutputStream();
-+            this.errorStream = new ByteArrayOutputStream();
-+            PrintStream outPrintStream = new PrintStream(this.outputStream, true);
-+            PrintStream errPrintStream = new PrintStream(this.errorStream, true);
-+
-+            String javaVersion = System.getProperty("java.version");
-+
-+            String majorVersion = javaVersion.split("\\.")[0];
-+
-+            String[] options = {"--enable-preview", "--source", majorVersion};
-+
-+            this.jshell = JShell.builder()
-+                    .out(outPrintStream)
-+                    .err(errPrintStream)
-+                    .compilerOptions(options)
-+                    .build();
-+            // Import common packages
-+            List.of("java.io", "java.math", "java.net", "java.nio", "java.nio.file",
-+                    "java.text", "java.time", "java.util", "java.util.function",
-+                    "java.util.concurrent", "java.util.stream")
-+                    .forEach(pkg -> this.jshell.eval("import " + pkg + ".*;\n"));
-+
-+            // Static imports
-+            List.of("java.lang.Math", "java.lang.System", "java.util.stream.Collectors")
-+                    .forEach(cls -> this.jshell.eval("import static " + cls + ".*;\n"));
-+        } catch (Exception e) {
-+            e.printStackTrace();
-+        }
++    public static JshellCache getInstance() {
++        return INSTANCE;
 +    }
 +
-+    @Override
-+    public Set<String> getCommands() {
-+        return COMMANDS;
++    private final Map<String, JShell> jshellMap = new ConcurrentHashMap<>();
++    private final Map<String, ByteArrayOutputStream> outputStreamMap = new ConcurrentHashMap<>();
++    private final Map<String, ByteArrayOutputStream> errorStreamMap = new ConcurrentHashMap<>();
++
++    private JshellCache() {
++        // private constructor to enforce singleton
 +    }
 +
-+    @Override
-+    public CompletableFuture<Object> runCommand(String command, List<Object> arguments) {
-+        switch (command) {
-+            case NBLS_JSHELL_EXEC: {
-+                String sourceCode = ((JsonPrimitive) arguments.get(0)).getAsString();
-+                return evaluate(sourceCode).thenApply(results -> results);
++    public JShell getOrCreateJShell(String notebookId) {
++        return jshellMap.computeIfAbsent(notebookId, id -> {
++            try {
++                ByteArrayOutputStream outStream = new ByteArrayOutputStream();
++                ByteArrayOutputStream errStream = new ByteArrayOutputStream();
++                outputStreamMap.put(id, outStream);
++                errorStreamMap.put(id, errStream);
++
++                PrintStream outPrintStream = new PrintStream(outStream, true);
++                PrintStream errPrintStream = new PrintStream(errStream, true);
++
++                String javaVersion = System.getProperty("java.version");
++                String majorVersion = javaVersion.split("\\.")[0];
++                String[] options = {"--enable-preview", "--source", majorVersion};
++
++                JShell shell = JShell.builder()
++                        .out(outPrintStream)
++                        .err(errPrintStream)
++                        .compilerOptions(options)
++                        .build();
++
++                // Import common packages
++                List.of("java.io", "java.math", "java.net", "java.nio", "java.nio.file",
++                        "java.text", "java.time", "java.util", "java.util.function",
++                        "java.util.concurrent", "java.util.stream")
++                        .forEach(pkg -> shell.eval("import " + pkg + ".*;\n"));
++
++                // Static imports
++                List.of("java.lang.Math", "java.lang.System", "java.util.stream.Collectors")
++                        .forEach(cls -> shell.eval("import static " + cls + ".*;\n"));
++
++                return shell;
++            } catch (Exception e) {
++                e.printStackTrace();
++                return null;
 +            }
-+            default:
-+                throw new UnsupportedOperationException("Command not supported: " + command);
-+        }
++        });
 +    }
-+
-+    public CompletableFuture<List<String>> evaluate(String snippet) {
-+        List<String> results = new ArrayList<>();
-+        try {
-+            List<SnippetEvent> snippetEvents = jshell.eval(snippet + ";");
-+
-+            for (SnippetEvent event : snippetEvents) {
-+                flushStreams(results);
-+
-+                if (event.exception() != null) {
-+                    results.add(event.exception().getMessage());
-+                } else if (event.value() != null) {
-+                    results.add(event.value());
-+                }
-+
-+                jshell.diagnostics(event.snippet())
-+                        .forEach(diag -> results.add(diag.getMessage(null)));
-+
-+                flushStreams(results);
-+            }
-+
-+            flushStreams(results);
-+
-+        } catch (Exception e) {
-+            results.add("Evaluation error: " + e.getMessage());
-+        }
-+
-+        return CompletableFuture.completedFuture(results);
++    
++    public ByteArrayOutputStream getOutputStreamById(String notebookId){
++        return outputStreamMap.get(notebookId);
 +    }
-+
-+    private void flushStreams(List<String> results) {
-+        String output = this.outputStream.toString().trim();
-+        if (!output.isEmpty()) {
-+            results.add(output);
-+            this.outputStream.reset();
-+        }
-+
-+        String error = errorStream.toString().trim();
-+        if (!error.isEmpty()) {
-+            results.add(error);
-+            this.errorStream.reset();
-+        }
++    
++    public ByteArrayOutputStream getErrorStreamById(String notebookId){
++        return errorStreamMap.get(notebookId);
 +    }
-+
-+    public void closeJShell() {
-+        if (jshell != null) {
-+            jshell.close();
-+            jshell = null;
-+        }
-+    }
++    
 +}
