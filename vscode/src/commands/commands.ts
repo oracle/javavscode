@@ -50,7 +50,8 @@ export const extCommands = {
     attachDebuggerConnector: appendPrefixToCommand("java.attachDebugger.connector"),
     attachDebuggerConfigurations: appendPrefixToCommand("java.attachDebugger.configurations"),
     loadWorkspaceTests: appendPrefixToCommand("load.workspace.tests"),
-    projectDeleteEntry: appendPrefixToCommand("foundProjects.deleteEntry")
+    projectDeleteEntry: appendPrefixToCommand("foundProjects.deleteEntry"),
+    createNotebook: appendPrefixToCommand("new.notebook")
 }
 
 export const builtInCommands = {

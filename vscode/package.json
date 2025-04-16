@@ -553,6 +553,12 @@
 			{
 				"command": "jdk.delete.cache",
 				"title": "%jdk.delete.cache%"
+			},
+			{
+				"command": "jdk.new.notebook",
+				"title": "Create New Notebook...",
+				"category": "Java",
+				"icon": "$(new-file)"
 			}
 		],
 		"keybindings": [
