@@ -27,7 +27,7 @@ export interface TelemetryReporter {
 export interface CacheService {
     get(key: string): string | undefined;
 
-    put(key: string, value: string): boolean;
+    put(key: string, value: string): Promise<boolean>;
 }
 
 export interface TelemetryEventQueue {

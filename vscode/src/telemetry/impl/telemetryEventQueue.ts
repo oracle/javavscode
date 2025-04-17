@@ -13,6 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+import { LOGGER } from "../../logger";
 import { BaseEvent } from "../events/baseEvent";
 
 export class TelemetryEventQueue {
@@ -36,18 +37,25 @@ export class TelemetryEventQueue {
     return queue;
   }
 
-  public decreaseSizeOnMaxOverflow = () => {
-    const seen = new Set<string>();
-    const newQueueStart = Math.floor(this.size() / 2);
-    
-    const secondHalf = this.events.slice(newQueueStart);
-    
-    const uniqueEvents = secondHalf.filter(event => {
-      if (seen.has(event.NAME)) return false;
-      seen.add(event.NAME);
-      return true;
-    });
-    
-    this.events = [...uniqueEvents, ...secondHalf];
+  public decreaseSizeOnMaxOverflow = (maxNumberOfEventsToBeKept: number) => {
+    const excess = this.size() - maxNumberOfEventsToBeKept;
+  
+    if (excess > 0) {
+      LOGGER.debug('Decreasing size of the queue as max capacity reached');
+  
+      const seen = new Set<string>();
+      const deduplicated = [];
+  
+      for (let i = 0; i < excess; i++) {
+        const event = this.events[i];
+        if (!seen.has(event.NAME)) {
+          deduplicated.push(event);
+          seen.add(event.NAME);
+        }
+      }
+  
+      this.events = [...deduplicated, ...this.events.slice(excess)];
+    }
   }
+  
 }

@@ -62,7 +62,7 @@ export class TelemetryRetry {
             this.numOfAttemptsWhenTimerHits++;
             return;
         }
-        LOGGER.debug("Keeping timer same as max retries exceeded");
+        LOGGER.debug("Keeping timer same as max capactiy reached");
     }
 
     public clearTimer = (): void => {
@@ -88,11 +88,12 @@ export class TelemetryRetry {
             this.queueCapacity = this.TELEMETRY_RETRY_CONFIG.baseCapacity *
                 Math.pow(this.TELEMETRY_RETRY_CONFIG.backoffFactor, this.numOfAttemptsWhenQueueIsFull);
         }
-        LOGGER.debug("Keeping queue capacity same as max retries exceeded");
+        LOGGER.debug("Keeping queue capacity same as max capacity reached");
     }
 
-    public IsQueueMaxCapacityReached = (): boolean => 
-        this.numOfAttemptsWhenQueueIsFull > this.TELEMETRY_RETRY_CONFIG.maxRetries;
+    public getNumberOfEventsToBeDropped = (): number =>
+        this.numOfAttemptsWhenQueueIsFull >= this.TELEMETRY_RETRY_CONFIG.maxRetries ? 
+            this.queueCapacity/2 : 0;
 
     private resetQueueCapacity = (): void => {
         LOGGER.debug("Resetting queue capacity to default");

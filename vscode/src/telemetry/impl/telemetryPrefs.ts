@@ -20,7 +20,7 @@ import { appendPrefixToCommand } from "../../utils";
 import { ExtensionContextInfo } from "../../extensionContextInfo";
 import { TelemetryPreference } from "../types";
 import { cacheService } from "./cacheServiceImpl";
-import { TELEMETRY_CONSENT_POPUP_TIME_KEY, TELEMETRY_CONSENT_VERSION_SCHEMA_KEY, TELEMETRY_SETTING_VALUE_KEY } from "../constants";
+import { TELEMETRY_CONSENT_RESPONSE_TIME_KEY, TELEMETRY_CONSENT_VERSION_SCHEMA_KEY, TELEMETRY_SETTING_VALUE_KEY } from "../constants";
 import { TelemetryConfiguration } from "../config";
 import { LOGGER } from "../../logger";
 
@@ -37,17 +37,11 @@ export class TelemetrySettings {
 
     this.extensionPrefs = new ExtensionTelemetryPreference();
     this.vscodePrefs = new VscodeTelemetryPreference();
-
-    extensionContext.pushSubscription(
-      this.extensionPrefs.onChangeTelemetrySetting(this.onChangeTelemetrySettingCallback)
-    );
-    extensionContext.pushSubscription(
-      this.vscodePrefs.onChangeTelemetrySetting(this.onChangeTelemetrySettingCallback)
-    );
-
+    extensionContext.pushSubscription(this.extensionPrefs.onChangeTelemetrySetting(this.onChangeTelemetrySettingCallback));
+    extensionContext.pushSubscription(this.vscodePrefs.onChangeTelemetrySetting(this.onChangeTelemetrySettingCallback));
+    
     this.isTelemetryEnabled = this.checkTelemetryStatus();
-    this.updateGlobalState();
-    this.checkConsentVersion();
+    this.syncTelemetrySettingGlobalState();
   }
 
   private checkTelemetryStatus = (): boolean => this.extensionPrefs.getIsTelemetryEnabled() && this.vscodePrefs.getIsTelemetryEnabled();
@@ -56,14 +50,16 @@ export class TelemetrySettings {
     const newTelemetryStatus = this.checkTelemetryStatus();
     if (newTelemetryStatus !== this.isTelemetryEnabled) {
       this.isTelemetryEnabled = newTelemetryStatus;
-      cacheService.put(TELEMETRY_SETTING_VALUE_KEY, newTelemetryStatus.toString());
+      this.updateGlobalStates();
 
       if (newTelemetryStatus) {
         this.onTelemetryEnableCallback();
       } else {
         this.onTelemetryDisableCallback();
       }
-    } else if (this.vscodePrefs.getIsTelemetryEnabled() && !this.extensionPrefs.isTelemetrySettingSet()) {
+    } else if (this.vscodePrefs.getIsTelemetryEnabled() 
+      && !this.extensionPrefs.isTelemetrySettingSet()
+      && !cacheService.get(TELEMETRY_CONSENT_RESPONSE_TIME_KEY)) {
       this.triggerPopup();
     }
   }
@@ -74,38 +70,38 @@ export class TelemetrySettings {
     const isExtensionSettingSet = this.extensionPrefs.isTelemetrySettingSet();
     const isVscodeSettingEnabled = this.vscodePrefs.getIsTelemetryEnabled();
 
-    const showPopup = !isExtensionSettingSet && isVscodeSettingEnabled;
-
-    if (showPopup) {
-      cacheService.put(TELEMETRY_CONSENT_POPUP_TIME_KEY, Date.now().toString());
-    }
-
-    return showPopup;
+    return !isExtensionSettingSet && isVscodeSettingEnabled;
   }
 
   public updateTelemetrySetting = (value: boolean | undefined): void => {
     this.extensionPrefs.updateTelemetryConfig(value);
   }
 
-  private updateGlobalState(): void {
-    const cachedValue = cacheService.get(TELEMETRY_SETTING_VALUE_KEY);
+  private syncTelemetrySettingGlobalState (): void {
+    const cachedSettingValue = cacheService.get(TELEMETRY_SETTING_VALUE_KEY);
+    const cachedConsentSchemaVersion = cacheService.get(TELEMETRY_CONSENT_VERSION_SCHEMA_KEY);
 
-    if (this.isTelemetryEnabled.toString() !== cachedValue) {
-      cacheService.put(TELEMETRY_SETTING_VALUE_KEY, this.isTelemetryEnabled.toString());
+    if (this.isTelemetryEnabled.toString() !== cachedSettingValue) {
+      this.updateGlobalStates();
     }
+    this.checkConsentVersionSchemaGlobalState(cachedConsentSchemaVersion);
   }
 
-  private checkConsentVersion(): void {
-    const cachedVersion = cacheService.get(TELEMETRY_CONSENT_VERSION_SCHEMA_KEY);
-    const currentVersion = TelemetryConfiguration.getInstance().getTelemetryConfigMetadata()?.consentSchemaVersion;
+  private updateGlobalStates(): void {
+    cacheService.put(TELEMETRY_CONSENT_RESPONSE_TIME_KEY, Date.now().toString());
+    cacheService.put(TELEMETRY_CONSENT_VERSION_SCHEMA_KEY, TelemetryConfiguration.getInstance().getTelemetryConfigMetadata()?.consentSchemaVersion);
+    cacheService.put(TELEMETRY_SETTING_VALUE_KEY, this.isTelemetryEnabled.toString());
+  }
 
-    if (cachedVersion !== currentVersion) {
-      cacheService.put(TELEMETRY_CONSENT_VERSION_SCHEMA_KEY, currentVersion);
-      LOGGER.debug("Removing telemetry config from user settings");
-      if (this.extensionPrefs.isTelemetrySettingSet()) {
+  private checkConsentVersionSchemaGlobalState(consentSchemaVersion: string | undefined): void {
+    if (this.extensionPrefs.isTelemetrySettingSet()) {
+      const currentExtConsentSchemaVersion = TelemetryConfiguration.getInstance().getTelemetryConfigMetadata()?.consentSchemaVersion;
+
+      if (consentSchemaVersion !== currentExtConsentSchemaVersion) {
+        LOGGER.debug("Removing telemetry config from user settings due to consent schema version change");
+        this.isTelemetryEnabled = false;
         this.updateTelemetrySetting(undefined);
       }
-      this.isTelemetryEnabled = false;
     }
   }
 }
@@ -156,9 +152,6 @@ class VscodeTelemetryPreference implements TelemetryPreference {
     callback();
   });
 }
-
-// Question:
-// When consent version is changed, we have to show popup to all the users or only those who had accepted earlier?
 
 // Test cases:
 // 1. User accepts consent and VSCode telemetry is set to 'all'. Output: enabled telemetry

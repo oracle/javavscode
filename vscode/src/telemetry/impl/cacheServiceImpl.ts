@@ -28,10 +28,10 @@ class CacheServiceImpl implements CacheService {
         }
     }
 
-    public put = (key: string, value: string): boolean => {
+    public put = async (key: string, value: string): Promise<boolean> => {
         try {
             const vscGlobalState = globalState.getExtensionContextInfo().getVscGlobalState();
-            vscGlobalState.update(key, value);
+            await vscGlobalState.update(key, value);
             LOGGER.debug(`Updating key: ${key} to ${value}`);
             return true;
         } catch (err) {

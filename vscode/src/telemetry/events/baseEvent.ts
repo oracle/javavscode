@@ -42,7 +42,7 @@ export abstract class BaseEvent<T> {
     get getPayload(): T & BaseEventPayload {
         return this._payload;
     }
-    
+
     get getData(): T {
         return this._data;
     }
@@ -58,8 +58,8 @@ export abstract class BaseEvent<T> {
     protected addEventToCache = (): void => {
         const dataString = JSON.stringify(this.getData);
         const calculatedHashVal = getHashCode(dataString);
-        const isAdded = cacheService.put(this.NAME, calculatedHashVal);
- 
-        LOGGER.debug(`${this.NAME} added in cache ${isAdded ? "Successfully" : "Unsucessfully"}`);
+        cacheService.put(this.NAME, calculatedHashVal).then((isAdded: boolean) => {
+            LOGGER.debug(`${this.NAME} added in cache ${isAdded ? "Successfully" : "Unsucessfully"}`);
+        });
     }
 }

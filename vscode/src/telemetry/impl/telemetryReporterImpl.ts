@@ -39,7 +39,7 @@ export class TelemetryReporterImpl implements TelemetryReporter {
     }
 
     public startEvent = (): void => {
-        this.resetOnCloseEventState();
+        this.setOnCloseEventState();
         this.retryManager.startTimer();
 
         const extensionStartEvent = ExtensionStartEvent.builder();
@@ -50,11 +50,6 @@ export class TelemetryReporterImpl implements TelemetryReporter {
     }
 
     public closeEvent = (): void => {
-        this.onCloseEventState = {
-            status: true,
-            numOfRetries: 0
-        };
-
         const extensionCloseEvent = ExtensionCloseEvent.builder(this.activationTime);
         this.addEventToQueue(extensionCloseEvent);
 
@@ -63,42 +58,49 @@ export class TelemetryReporterImpl implements TelemetryReporter {
     }
 
     public addEventToQueue = (event: BaseEvent<any>): void => {
-        this.resetOnCloseEventState();
+        this.setOnCloseEventState(event);
 
         this.queue.enqueue(event);
         if (this.retryManager.isQueueOverflow(this.queue.size())) {
             LOGGER.debug(`Send triggered to queue size overflow`);
-            if (this.retryManager.IsQueueMaxCapacityReached()) {
-                LOGGER.debug('Decreasing size of the queue as max capacity reached');
-                this.queue.decreaseSizeOnMaxOverflow();
-            }
+            const numOfeventsToBeDropped = this.retryManager.getNumberOfEventsToBeDropped();
             this.sendEvents();
+            if (numOfeventsToBeDropped) {
+                this.queue.decreaseSizeOnMaxOverflow(numOfeventsToBeDropped);
+            }
         }
     }
 
-    private resetOnCloseEventState = () => {
-        this.onCloseEventState = {
-            status: false,
-            numOfRetries: 0
-        };
+    private setOnCloseEventState = (event?: BaseEvent<any>) => {
+        if (event?.NAME === ExtensionCloseEvent.NAME) {
+            this.onCloseEventState = {
+                status: true,
+                numOfRetries: 0
+            };
+        } else {
+            this.onCloseEventState = {
+                status: false,
+                numOfRetries: 0
+            };
+        }
     }
 
     private increaseRetryCountOrDisableRetry = () => {
-        if (this.onCloseEventState.status) {
-            if (this.onCloseEventState.numOfRetries < this.MAX_RETRY_ON_CLOSE && this.queue.size()) {
-                LOGGER.debug("Telemetry disabled state: Increasing retry count");
-                this.onCloseEventState.numOfRetries++;
-            } else {
-                LOGGER.debug(`Telemetry disabled state: ${this.queue.size() ? 'Max retries reached': 'queue is empty'}, resetting timer`);
-                this.retryManager.clearTimer();
-                this.queue.flush();
-                this.onCloseEventState = {
-                    status: false,
-                    numOfRetries: 0
-                };
-            }
+        if (!this.onCloseEventState.status) return;
+
+        const queueEmpty = this.queue.size() === 0;
+        const retriesExceeded = this.onCloseEventState.numOfRetries >= this.MAX_RETRY_ON_CLOSE;
+
+        if (queueEmpty || retriesExceeded) {
+            LOGGER.debug(`Telemetry disabled state: ${queueEmpty ? 'Queue is empty' : 'Max retries reached'}, clearing timer`);
+            this.retryManager.clearTimer();
+            this.queue.flush();
+            this.setOnCloseEventState();
+        } else {
+            LOGGER.debug("Telemetry disabled state: Increasing retry count");
+            this.onCloseEventState.numOfRetries++;
         }
-    }
+    };
 
     private sendEvents = async (): Promise<void> => {
         try {
