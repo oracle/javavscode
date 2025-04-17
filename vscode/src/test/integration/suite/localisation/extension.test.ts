@@ -45,7 +45,7 @@ suite("Extension localisation tests", function () {
             assert.ok(matchKeys(enBundlePath, langBundlePath), `Keys of ${DEFAULT_BUNDLE_FILE_NAME} and  bundle.l10n.${lang}.json don't match`);
             assert.ok(matchValuesTemplate(enBundlePath, langBundlePath), `Value templates don't match for of the keys of ${DEFAULT_BUNDLE_FILE_NAME} and  bundle.l10n.${lang}.json `);
         }
-    }).timeout(60000);
+    });
 
     test("Consistency of keys across package.nls.lang.json files for supported languages", async () => {
         const extension = extensions.getExtension(EXTENSION_NAME);
@@ -57,7 +57,7 @@ suite("Extension localisation tests", function () {
             assert.ok(fs.existsSync(langPackagePath), `package.nls.${lang}.json doesn't exists`);
             assert.ok(matchKeys(enPackagePath, langPackagePath), `Keys of ${DEFAULT_PACKAGE_FILE_NAME} and  package.nls.${lang}.json don't match`);
         }
-    }).timeout(60000);
+    });
 
     // Check localisable fields being appropriately localised for the contributes defined in package.json
     test("Localisable fields in package.json localised properly ", async () => {
@@ -74,7 +74,7 @@ suite("Extension localisation tests", function () {
         assert.ok(checkViewsLocalisation(contributes.views, validKeys), "Error some views is not localized");
         assert.ok(checkDebuggersLocalisation(contributes.debuggers, validKeys), "Error some debugger labels not localized");
         assert.ok(checkConfigurationLocalisation(contributes.configuration, validKeys), "Error some configuration labels not localized");
-    }).timeout(60000);
+    });
 
 
     // Check if l10n.value is called with a valid key and the placeholder map has all the keys as required in the string template 
@@ -86,6 +86,6 @@ suite("Extension localisation tests", function () {
         assert(enBundlePath, `${DEFAULT_BUNDLE_FILE_NAME} not found`);
         const validKeyValues = JSON.parse(fs.readFileSync(enBundlePath, 'utf8'));
         assert(checkL10nUsageInFiles(path.join(extension.extensionPath, "out"), ignoredDirEntriesNames, validKeyValues) === 0, "Some files have invalid localisation keys used. Check the logs or error messages");
-    }).timeout(60000);
+    });
 
 });

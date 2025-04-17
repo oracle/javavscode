@@ -35,5 +35,5 @@ suite('Explorer Test Suite', () => {
         const lvp = await myExplorer.createViewProvider(await awaitClient(), 'foundProjects');
         const firstLevelChildren = await (lvp.getChildren() as Thenable<any[]>);
         assert.strictEqual(firstLevelChildren.length, 0, "No child under the root");
-    }).timeout(60000);
+    });
 });

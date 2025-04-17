@@ -303,7 +303,7 @@ export function runTestSuite(folder: string): Promise<void> {
 	const mocha = new Mocha({
 		ui: 'tdd',
 		color: true,
-		timeout: 10*1000*60
+		timeout: '10m'
 	});
 
 	const testsRoot = path.resolve(folder);
