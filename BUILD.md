@@ -2,7 +2,7 @@
 
 <!--
 
-    Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2023-2025 Oracle and/or its affiliates.
 
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
