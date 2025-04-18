@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024, Oracle and/or its affiliates.
+  Copyright (c) 2024-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { RetryConfig, TelemetryApi } from "./types";
+import { RetryConfig, TelemetryApi, TelemetryConfigMetadata } from "./types";
 import * as path from 'path';
 import * as fs from 'fs';
 import { LOGGER } from "../logger";
@@ -24,6 +24,7 @@ export class TelemetryConfiguration {
   private static instance: TelemetryConfiguration;
   private retryConfig!: RetryConfig;
   private apiConfig!: TelemetryApi;
+  private metadata!: TelemetryConfigMetadata;
 
   public constructor() {
     this.initialize();
@@ -54,6 +55,11 @@ export class TelemetryConfiguration {
         baseEndpoint: config.telemetryApi.baseEndpoint,
         version: config.telemetryApi.version
       });
+
+      this.metadata = Object.freeze({
+        consentSchemaVersion: config.metadata.consentSchemaVersion
+      });
+
     } catch (error: any) {
       LOGGER.error("Error occurred while setting up telemetry config");
       LOGGER.error(error.message);
@@ -68,4 +74,7 @@ export class TelemetryConfiguration {
     return this.apiConfig;
   }
 
+  public getTelemetryConfigMetadata(): Readonly<TelemetryConfigMetadata> {
+    return this.metadata;
+  }
 }

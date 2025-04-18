@@ -5,7 +5,7 @@
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
 
-     https://www.apache.org/licenses/LICENSE-2.0
+   https://www.apache.org/licenses/LICENSE-2.0
 
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,9 +13,6 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { env } from "vscode";
-
-export class AnonymousIdManager {
-    public static readonly machineId: string = env.machineId;
-    public static readonly sessionId: string = env.sessionId;
-}
+export const TELEMETRY_CONSENT_VERSION_SCHEMA_KEY = "telemetryConsentSchemaVersion";
+export const TELEMETRY_CONSENT_RESPONSE_TIME_KEY = "telemetryConsentResponseTime";
+export const TELEMETRY_SETTING_VALUE_KEY = "telemetrySettingValue";

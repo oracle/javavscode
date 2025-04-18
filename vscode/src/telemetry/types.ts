@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024, Oracle and/or its affiliates.
+  Copyright (c) 2024-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
   limitations under the License.
 */
 import { BaseEvent } from "./events/baseEvent";
+import { Disposable } from "vscode";
 
 export interface TelemetryReporter {
     startEvent(): void;
@@ -26,7 +27,7 @@ export interface TelemetryReporter {
 export interface CacheService {
     get(key: string): string | undefined;
 
-    put(key: string, value: string): boolean;
+    put(key: string, value: string): Promise<boolean>;
 }
 
 export interface TelemetryEventQueue {
@@ -48,4 +49,15 @@ export interface TelemetryApi {
     baseUrl: string | null;
     baseEndpoint: string;
     version: string;
+}
+
+export interface TelemetryConfigMetadata {
+    consentSchemaVersion: string;
+}
+
+export interface TelemetryPreference {
+  getIsTelemetryEnabled(): boolean;
+  onChangeTelemetrySetting(cb: () => void): Disposable;
+  updateTelemetryConfig?(value: boolean): void;
+  isTelemetrySettingSet?: () => boolean;
 }
