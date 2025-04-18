@@ -91,9 +91,9 @@ export class TelemetryRetry {
         LOGGER.debug("Keeping queue capacity same as max capacity reached");
     }
 
-    public getNumberOfEventsToBeDropped = (): number =>
+    public getNumberOfEventsToBeRetained = (): number =>
         this.numOfAttemptsWhenQueueIsFull >= this.TELEMETRY_RETRY_CONFIG.maxRetries ? 
-            this.queueCapacity/2 : 0;
+            this.queueCapacity/2 : -1;
 
     private resetQueueCapacity = (): void => {
         LOGGER.debug("Resetting queue capacity to default");

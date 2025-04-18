@@ -37,8 +37,8 @@ export class TelemetryEventQueue {
     return queue;
   }
 
-  public decreaseSizeOnMaxOverflow = (maxNumberOfEventsToBeKept: number) => {
-    const excess = this.size() - maxNumberOfEventsToBeKept;
+  public adjustQueueSize = (maxNumOfEventsToRetain: number) => {
+    const excess = this.size() - maxNumOfEventsToRetain;
   
     if (excess > 0) {
       LOGGER.debug('Decreasing size of the queue as max capacity reached');

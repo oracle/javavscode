@@ -63,10 +63,10 @@ export class TelemetryReporterImpl implements TelemetryReporter {
         this.queue.enqueue(event);
         if (this.retryManager.isQueueOverflow(this.queue.size())) {
             LOGGER.debug(`Send triggered to queue size overflow`);
-            const numOfeventsToBeDropped = this.retryManager.getNumberOfEventsToBeDropped();
+            const numOfEventsToBeRetained = this.retryManager.getNumberOfEventsToBeRetained();
             this.sendEvents();
-            if (numOfeventsToBeDropped) {
-                this.queue.decreaseSizeOnMaxOverflow(numOfeventsToBeDropped);
+            if (numOfEventsToBeRetained !== -1) {
+                this.queue.adjustQueueSize(numOfEventsToBeRetained);
             }
         }
     }
