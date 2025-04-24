@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024, Oracle and/or its affiliates.
+  Copyright (c) 2024-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -27,8 +27,9 @@ import { PostTelemetry, TelemetryPostResponse } from "./postTelemetry";
 
 export class TelemetryReporterImpl implements TelemetryReporter {
     private activationTime: number = getCurrentUTCDateInSeconds();
-    private disableReporter: boolean = false;
     private postTelemetry: PostTelemetry = new PostTelemetry();
+    private onCloseEventState: { status: boolean, numOfRetries: number } = { status: false, numOfRetries: 0 };
+    private readonly MAX_RETRY_ON_CLOSE = 5;
 
     constructor(
         private queue: TelemetryEventQueue,
@@ -38,15 +39,17 @@ export class TelemetryReporterImpl implements TelemetryReporter {
     }
 
     public startEvent = (): void => {
+        this.setOnCloseEventState();
+        this.retryManager.startTimer();
+
         const extensionStartEvent = ExtensionStartEvent.builder();
-        if(extensionStartEvent != null){
+        if (extensionStartEvent != null) {
             this.addEventToQueue(extensionStartEvent);
             LOGGER.debug(`Start event enqueued: ${extensionStartEvent.getPayload}`);
-        } 
+        }
     }
 
     public closeEvent = (): void => {
-
         const extensionCloseEvent = ExtensionCloseEvent.builder(this.activationTime);
         this.addEventToQueue(extensionCloseEvent);
 
@@ -55,18 +58,53 @@ export class TelemetryReporterImpl implements TelemetryReporter {
     }
 
     public addEventToQueue = (event: BaseEvent<any>): void => {
-        if (!this.disableReporter) {
-            this.queue.enqueue(event);
-            if (this.retryManager.isQueueOverflow(this.queue.size())) {
-                LOGGER.debug(`Send triggered to queue size overflow`);
-                this.sendEvents();
+        this.setOnCloseEventState(event);
+
+        this.queue.enqueue(event);
+        if (this.retryManager.isQueueOverflow(this.queue.size())) {
+            LOGGER.debug(`Send triggered to queue size overflow`);
+            const numOfEventsToBeRetained = this.retryManager.getNumberOfEventsToBeRetained();
+            this.sendEvents();
+            if (numOfEventsToBeRetained !== -1) {
+                this.queue.adjustQueueSize(numOfEventsToBeRetained);
             }
         }
     }
 
+    private setOnCloseEventState = (event?: BaseEvent<any>) => {
+        if (event?.NAME === ExtensionCloseEvent.NAME) {
+            this.onCloseEventState = {
+                status: true,
+                numOfRetries: 0
+            };
+        } else {
+            this.onCloseEventState = {
+                status: false,
+                numOfRetries: 0
+            };
+        }
+    }
+
+    private increaseRetryCountOrDisableRetry = () => {
+        if (!this.onCloseEventState.status) return;
+
+        const queueEmpty = this.queue.size() === 0;
+        const retriesExceeded = this.onCloseEventState.numOfRetries >= this.MAX_RETRY_ON_CLOSE;
+
+        if (queueEmpty || retriesExceeded) {
+            LOGGER.debug(`Telemetry disabled state: ${queueEmpty ? 'Queue is empty' : 'Max retries reached'}, clearing timer`);
+            this.retryManager.clearTimer();
+            this.queue.flush();
+            this.setOnCloseEventState();
+        } else {
+            LOGGER.debug("Telemetry disabled state: Increasing retry count");
+            this.onCloseEventState.numOfRetries++;
+        }
+    };
+
     private sendEvents = async (): Promise<void> => {
         try {
-            if(!this.queue.size()){
+            if (!this.queue.size()) {
                 LOGGER.debug(`Queue is empty nothing to send`);
                 return;
             }
@@ -81,28 +119,31 @@ export class TelemetryReporterImpl implements TelemetryReporter {
 
             LOGGER.debug(`Number of events successfully sent: ${response.success.length}`);
             LOGGER.debug(`Number of events failed to send: ${response.failures.length}`);
-            this.handlePostTelemetryResponse(response);
+            const isAllEventsSuccess = this.handlePostTelemetryResponse(response);
 
-            this.retryManager.startTimer();
+            this.retryManager.startTimer(isAllEventsSuccess);
+
+            this.increaseRetryCountOrDisableRetry();
         } catch (err: any) {
-            this.disableReporter = true;
             LOGGER.debug(`Error while sending telemetry: ${isError(err) ? err.message : err}`);
         }
     }
-    
+
     private transformEvents = (events: BaseEvent<any>[]): BaseEvent<any>[] => {
         const jdkFeatureEvents = events.filter(event => event.NAME === JdkFeatureEvent.NAME);
         const concatedEvents = JdkFeatureEvent.concatEvents(jdkFeatureEvents);
         const removedJdkFeatureEvents = events.filter(event => event.NAME !== JdkFeatureEvent.NAME);
-        
+
         return [...removedJdkFeatureEvents, ...concatedEvents];
     }
 
-    private handlePostTelemetryResponse = (response: TelemetryPostResponse) => {
+    private handlePostTelemetryResponse = (response: TelemetryPostResponse): boolean => {
         const eventsToBeEnqueued = this.retryManager.eventsToBeEnqueuedAgain(response);
 
         this.queue.concatQueue(eventsToBeEnqueued);
 
         LOGGER.debug(`Number of failed events enqueuing again: ${eventsToBeEnqueued.length}`);
+
+        return eventsToBeEnqueued.length === 0;
     }
 }

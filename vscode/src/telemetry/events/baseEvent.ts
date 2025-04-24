@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024, Oracle and/or its affiliates.
+  Copyright (c) 2024-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ export abstract class BaseEvent<T> {
     get getPayload(): T & BaseEventPayload {
         return this._payload;
     }
-    
+
     get getData(): T {
         return this._data;
     }
@@ -58,8 +58,8 @@ export abstract class BaseEvent<T> {
     protected addEventToCache = (): void => {
         const dataString = JSON.stringify(this.getData);
         const calculatedHashVal = getHashCode(dataString);
-        const isAdded = cacheService.put(this.NAME, calculatedHashVal);
- 
-        LOGGER.debug(`${this.NAME} added in cache ${isAdded ? "Successfully" : "Unsucessfully"}`);
+        cacheService.put(this.NAME, calculatedHashVal).then((isAdded: boolean) => {
+            LOGGER.debug(`${this.NAME} added in cache ${isAdded ? "Successfully" : "Unsucessfully"}`);
+        });
     }
 }

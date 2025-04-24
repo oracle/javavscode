@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024, Oracle and/or its affiliates.
+  Copyright (c) 2024-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ export class TelemetryRetry {
         this.callbackHandler = callbackHandler;
     }
 
-    public startTimer = (): void => {
+    public startTimer = (resetParameters: boolean = true): void => {
         if (!this.callbackHandler) {
             LOGGER.debug("Callback handler is not set for telemetry retry mechanism");
             return;
@@ -41,22 +41,28 @@ export class TelemetryRetry {
         if (this.timeout) {
             LOGGER.debug("Overriding current timeout");
         }
+        if(resetParameters){
+            this.resetTimerParameters();
+            this.resetQueueCapacity();
+        }
         this.timeout = setInterval(this.callbackHandler, this.timePeriod);
     }
 
     private resetTimerParameters = () => {
+        LOGGER.debug("Resetting time period to default");
+        
         this.numOfAttemptsWhenTimerHits = 1;
         this.timePeriod = this.TELEMETRY_RETRY_CONFIG.baseTimer;
         this.clearTimer();
     }
 
     private increaseTimePeriod = (): void => {
-        if (this.numOfAttemptsWhenTimerHits <= this.TELEMETRY_RETRY_CONFIG.maxRetries) {
+        if (this.numOfAttemptsWhenTimerHits < this.TELEMETRY_RETRY_CONFIG.maxRetries) {
             this.timePeriod = this.calculateDelay();
             this.numOfAttemptsWhenTimerHits++;
             return;
         }
-        throw new Error("Number of retries exceeded");
+        LOGGER.debug("Keeping timer same as max capactiy reached");
     }
 
     public clearTimer = (): void => {
@@ -82,10 +88,16 @@ export class TelemetryRetry {
             this.queueCapacity = this.TELEMETRY_RETRY_CONFIG.baseCapacity *
                 Math.pow(this.TELEMETRY_RETRY_CONFIG.backoffFactor, this.numOfAttemptsWhenQueueIsFull);
         }
-        throw new Error("Number of retries exceeded");
+        LOGGER.debug("Keeping queue capacity same as max capacity reached");
     }
 
+    public getNumberOfEventsToBeRetained = (): number =>
+        this.numOfAttemptsWhenQueueIsFull >= this.TELEMETRY_RETRY_CONFIG.maxRetries ? 
+            this.queueCapacity/2 : -1;
+
     private resetQueueCapacity = (): void => {
+        LOGGER.debug("Resetting queue capacity to default");
+
         this.queueCapacity = this.TELEMETRY_RETRY_CONFIG.baseCapacity;
         this.numOfAttemptsWhenQueueIsFull = 1;
         this.triggeredDueToQueueOverflow = false;
@@ -108,10 +120,7 @@ export class TelemetryRetry {
             res.event.onSuccessPostEventCallback();
         });
 
-        if (eventResponses.failures.length === 0) {
-            this.resetQueueCapacity();
-            this.resetTimerParameters();
-        } else {
+        if (eventResponses.failures.length) {
             const eventsToBeEnqueuedAgain: BaseEvent<any>[] = [];
             eventResponses.failures.forEach((eventRes) => {
                 if (this.isEventRetryable(eventRes.statusCode))
@@ -119,6 +128,7 @@ export class TelemetryRetry {
             });
 
             if (eventsToBeEnqueuedAgain.length) {
+                
                 this.triggeredDueToQueueOverflow ?
                     this.increaseQueueCapacity() :
                     this.increaseTimePeriod();

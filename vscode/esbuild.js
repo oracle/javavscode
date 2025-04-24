@@ -57,6 +57,9 @@ const createTelemetryConfig = () => {
       baseUrl: null,
       baseEndpoint: "/vscode/java/sendTelemetry",
       version: "/v1"
+    },
+    metadata: {
+      consentSchemaVersion: "v1"
     }
   }
 
@@ -73,6 +76,9 @@ const createTelemetryConfig = () => {
       baseUrl: process.env.TELEMETRY_API_BASE_URL,
       baseEndpoint: process.env.TELEMETRY_API_ENDPOINT,
       version: process.env.TELEMETRY_API_VERSION
+    }, 
+    metadata: {
+      consentSchemaVersion: process.env.CONSENT_SCHEMA_VERSION
     }
   });
 

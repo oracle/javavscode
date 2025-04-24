@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024, Oracle and/or its affiliates.
+  Copyright (c) 2024-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -28,10 +28,11 @@ class CacheServiceImpl implements CacheService {
         }
     }
 
-    public put = (key: string, value: string): boolean => {
+    public put = async (key: string, value: string): Promise<boolean> => {
         try {
             const vscGlobalState = globalState.getExtensionContextInfo().getVscGlobalState();
-            vscGlobalState.update(key, value);
+            await vscGlobalState.update(key, value);
+            LOGGER.debug(`Updating key: ${key} to ${value}`);
             return true;
         } catch (err) {
             LOGGER.error(`Error while storing ${key} in cache: ${(err as Error).message}`);

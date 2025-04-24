@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024, Oracle and/or its affiliates.
+  Copyright (c) 2024-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+import { LOGGER } from "../../logger";
 import { BaseEvent } from "../events/baseEvent";
 
-export class TelemetryEventQueue { 
+export class TelemetryEventQueue {
   private events: BaseEvent<any>[] = [];
 
   public enqueue = (e: BaseEvent<any>): void => {
@@ -35,4 +36,26 @@ export class TelemetryEventQueue {
     this.events = [];
     return queue;
   }
+
+  public adjustQueueSize = (maxNumOfEventsToRetain: number) => {
+    const excess = this.size() - maxNumOfEventsToRetain;
+  
+    if (excess > 0) {
+      LOGGER.debug('Decreasing size of the queue as max capacity reached');
+  
+      const seen = new Set<string>();
+      const deduplicated = [];
+  
+      for (let i = 0; i < excess; i++) {
+        const event = this.events[i];
+        if (!seen.has(event.NAME)) {
+          deduplicated.push(event);
+          seen.add(event.NAME);
+        }
+      }
+  
+      this.events = [...deduplicated, ...this.events.slice(excess)];
+    }
+  }
+  
 }
