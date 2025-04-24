@@ -1,5 +1,6 @@
 build/
 .DS_STORE
+.vscode/
 .idea/
 *.iml
 /nbcode/l10n/locale_ja/release/

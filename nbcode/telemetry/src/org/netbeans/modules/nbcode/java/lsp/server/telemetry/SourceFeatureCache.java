@@ -61,8 +61,7 @@ class SourceFeatureCache {
     }
 
     private static class Singleton {
-
-        private static final int CACHE_EXPIRY = Math.max(0, NbPreferences.forModule(JavaLangFeaturesTelemetryProvider.class).node(JavaLangFeaturesTelemetryProvider.PREFERENCES_NODE).getInt(JavaLangFeaturesTelemetryProvider.PREFERENCES_KEY_CACHE_EXPIRY, 3_600_000)); // 1 hour
+        private static final int CACHE_EXPIRY = Math.max(0, NbPreferences.forModule(JavaLangFeaturesTelemetryProvider.class).node(JavaLangFeaturesTelemetryProvider.PREFERENCES_NODE).getInt(JavaLangFeaturesTelemetryProvider.PREFERENCES_KEY_CACHE_EXPIRY, 12 * 3_600_000)); // 12 hours
         private static final ConcurrentHashMap<String, SourceFeatureCacheEntry> cachedSourceFeatures = new ConcurrentHashMap<>();
     }
 
@@ -77,8 +76,12 @@ class SourceFeatureCache {
     public static boolean add(String sourceName, Set<String> features) {
         final Set<String> newFeatures = Collections.unmodifiableSet(features);
         final SourceFeatureCacheEntry entry = getCachedSourceFeatures().compute(sourceName,
-                (name, cache) -> cache != null && cache.getFeaturesUsed().containsAll(newFeatures) ? cache
-                : new SourceFeatureCacheEntry(System.currentTimeMillis(), newFeatures, cache));
+                (name, cache) -> {
+                    if (cache != null && cache.getFeaturesUsed().containsAll(newFeatures)) return cache;
+                    if (cache != null) features.addAll(cache.getFeaturesUsed());
+                    return new SourceFeatureCacheEntry(System.currentTimeMillis(), newFeatures, cache);
+                }
+        );
 
         boolean added = newFeatures == entry.getFeaturesUsed();
         if (!added) {
