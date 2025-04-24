@@ -66,6 +66,7 @@
             patches/nbjavac-not-required.diff
             patches/l10n-licence.diff
             patches/dev-dependency-licenses.diff
+            patches/change-method-parameters-refactoring-qualified-names.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
