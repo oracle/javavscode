@@ -1,29 +1,34 @@
-diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JavaEvaluator.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JavaEvaluator.java
-new file mode 100644
-index 0000000000..5cc620b23a
 --- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JavaEvaluator.java
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,158 @@
 +package org.netbeans.modules.java.lsp.server.protocol;
 +
 +import jdk.jshell.JShell;
 +import jdk.jshell.SnippetEvent;
 +import com.google.gson.JsonPrimitive;
++import java.io.ByteArrayInputStream;
 +import java.io.ByteArrayOutputStream;
++import java.io.IOException;
++import java.net.URLConnection;
 +import java.util.ArrayList;
 +import java.util.Arrays;
 +import java.util.Set;
 +import java.util.HashSet;
 +import java.util.List;
 +import java.util.concurrent.CompletableFuture;
++import java.util.regex.Matcher;
++import java.util.regex.Pattern;
 +import jdk.jshell.SourceCodeAnalysis;
 +import org.netbeans.spi.lsp.CommandProvider;
 +import org.openide.util.lookup.ServiceProvider;
 +
 +@ServiceProvider(service = CommandProvider.class)
 +public class JavaEvaluator implements CommandProvider {
-+    private static final String NBLS_JSHELL_EXEC = "nbls.jshell.execute.cell";
-+    private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(NBLS_JSHELL_EXEC));
++
++    private static final String NBLS_JSHELL_EXEC = "nbls.jshell.execute.cell";    
++    private static final String NBLS_JSHELL_CLOSE = "nbls.jshell.cleanup";
++
++    private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(NBLS_JSHELL_EXEC, NBLS_JSHELL_CLOSE));
 +
 +    @Override
 +    public Set<String> getCommands() {
@@ -32,103 +37,133 @@ index 0000000000..5cc620b23a
 +
 +    @Override
 +    public CompletableFuture<Object> runCommand(String command, List arguments) {
-+        switch (command) {
-+            case NBLS_JSHELL_EXEC: {
-+                String sourceCode = ((JsonPrimitive) arguments.get(0)).getAsString();
-+                // Get notebook ID from arguments, or default if not provided
-+                String notebookId = arguments.size() > 1 ? ((JsonPrimitive) arguments.get(1)).getAsString() : "default";
-+                return evaluate(sourceCode, notebookId).thenApply(results -> results);
-+            }
-+            default:
-+                throw new UnsupportedOperationException("Command not supported: " + command);
++        if (NBLS_JSHELL_EXEC.equals(command)) {
++            String sourceCode = ((JsonPrimitive) arguments.get(0)).getAsString();
++            String notebookId = arguments.size() > 1
++                    ? ((JsonPrimitive) arguments.get(1)).getAsString()
++                    : "default";
++            String classpath = arguments.size() > 2
++                    ? ((JsonPrimitive) arguments.get(2)).getAsString()
++                    : null;
++            return evaluate(sourceCode, notebookId, classpath).thenApply(results -> results);
++        } else if(NBLS_JSHELL_CLOSE.equals(command)){
++            String notebookId = ((JsonPrimitive) arguments.get(0)).getAsString();
++            JshellCache.getInstance().closeJshellById(notebookId);
++            
++            return new CompletableFuture<>();
 +        }
++        throw new UnsupportedOperationException("Command not supported: " + command);
 +    }
 +
-+    public CompletableFuture<List<String>> evaluate(String snippet, String notebookId) {
-+        JShell jshell = JshellCache.getInstance().getOrCreateJShell(notebookId);
++    public CompletableFuture<List<EvalResult>> evaluate(String snippet, String notebookId, String classpath) {
++        JShell jshell = JshellCache.getInstance().getOrCreateJShell(notebookId, classpath);
 +        ByteArrayOutputStream outputStream = JshellCache.getInstance().getOutputStreamById(notebookId);
 +        ByteArrayOutputStream errorStream = JshellCache.getInstance().getErrorStreamById(notebookId);
 +
-+        List<String> results = new ArrayList<>();
++        List<EvalResult> results = new ArrayList<>();
 +        try {
-+            String snippetToEval = snippet.trim();
-+            if (!snippetToEval.endsWith(";") && !snippetToEval.endsWith("}")) {
-+                snippetToEval += ";";
-+            }
-+
-+            String codeLeftToEval = snippet;
-+            while (codeLeftToEval.length() != 0) {
-+
++            String codeLeftToEval = snippet.trim();
++            while (!codeLeftToEval.isEmpty()) {
 +                SourceCodeAnalysis.CompletionInfo info = jshell.sourceCodeAnalysis().analyzeCompletion(codeLeftToEval);
-+                boolean isComplete = info.completeness().isComplete();
-+                if (isComplete) {
-+
-+                    List<SnippetEvent> snippetEvents = jshell.eval(info.source());
-+
-+                    for (SnippetEvent event : snippetEvents) {
++                if (info.completeness().isComplete()) {
++                    for (SnippetEvent event : jshell.eval(info.source())) {
 +                        flushStreams(results, outputStream, errorStream);
 +
 +                        if (event.exception() != null) {
-+                            results.add(event.exception().getMessage());
++                            results.add(new EvalResult(event.exception().getMessage(), "text/plain"));
 +                        } else if (event.value() != null) {
-+                            results.add(event.value());
++                            byte[] valBytes = event.value().getBytes();
++                            results.add(new EvalResult(event.value(), detectMime(valBytes)));
 +                        }
 +
-+                        jshell.diagnostics(event.snippet())
-+                                .forEach(diag -> results.add(diag.getMessage(null)));
++                        jshell.diagnostics(event.snippet()).forEach(diag
++                                -> results.add(new EvalResult(diag.getMessage(null), "text/plain"))
++                        );
 +
 +                        flushStreams(results, outputStream, errorStream);
 +                    }
-+
 +                    flushStreams(results, outputStream, errorStream);
-+
 +                }
-+
 +                codeLeftToEval = info.remaining();
 +            }
-+
 +        } catch (Exception e) {
-+            results.add("Evaluation error: " + e.getMessage());
++            results.add(new EvalResult(("Evaluation error: " + e.getMessage()), "text/plain"));
 +        }
-+
 +        return CompletableFuture.completedFuture(results);
 +    }
 +
-+    private void flushStreams(List<String> results, ByteArrayOutputStream outputStream, ByteArrayOutputStream errorStream) {
-+        String output = outputStream.toString().trim();
-+        if (!output.isEmpty()) {
-+            results.add(output);
-+            outputStream.reset();
++    private void flushStreams(List<EvalResult> results, ByteArrayOutputStream out, ByteArrayOutputStream err) {
++        if (out.size() > 0) {
++            if (out.toString().startsWith("$$IMAGE")) {
++                int idx = out.toString().indexOf("{");
++                if (idx != -1) {
++                    EvalResult evalResult = parseBase64AndMimeType(out.toString().substring(idx));
++                    if (evalResult != null) {
++                        results.add(evalResult);
++                    }
++                }
++            } else {
++                results.add(new EvalResult(out.toString(), detectMime(out)));
++            }
++            out.reset();
 +        }
-+
-+        String error = errorStream.toString().trim();
-+        if (!error.isEmpty()) {
-+            results.add(error);
-+            errorStream.reset();
++        if (err.size() > 0) {
++            results.add(new EvalResult(err.toString(), detectMime(err)));
++            err.reset();
 +        }
 +    }
 +
-+//    public void closeJShell(String notebookId) {
-+//        JShell jshell = jshellMap.remove(notebookId);
-+//        if (jshell != null) {
-+//            jshell.close();
-+//        }
-+//        outputStreamMap.remove(notebookId);
-+//        errorStreamMap.remove(notebookId);
-+//    }
-+//
-+//    public void closeAllJShells() {
-+//        for (String notebookId : new ArrayList<>(jshellMap.keySet())) {
-+//            closeJShell(notebookId);
-+//        }
-+//    }
++    private String detectMime(byte[] data) {
++        try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
++            String detected = URLConnection.guessContentTypeFromStream(in);
++            return detected != null ? detected : "text/plain";
++        } catch (IOException ex) {
++            return "application/octet-stream";
++        }
++    }
++
++    private String detectMime(ByteArrayOutputStream data) {
++        return detectMime(data.toByteArray());
++    }
++
++    public static class EvalResult {
++
++        private final String data;
++        private final String mimeType;
++
++        public EvalResult(String rawData, String mimeType) {
++            this.data = rawData;
++            this.mimeType = mimeType;
++        }
++
++        public String getData() {
++            return data;
++        }
++
++        public String getMimeType() {
++            return mimeType;
++        }
++    }
++
++    public static EvalResult parseBase64AndMimeType(String input) {
++        Pattern pattern = Pattern.compile("\\{base64=([^,]+), mimeType=([^}]+)\\}");
++        Matcher matcher = pattern.matcher(input);
++
++        if (matcher.find()) {
++            String base64Content = matcher.group(1);
++            String mimeType = matcher.group(2);
++
++            return new EvalResult(base64Content, mimeType);
++        }
++
++        return null;
++    }
 +}
-diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JshellCache.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JshellCache.java
-new file mode 100644
-index 0000000000..6ac5be1950
+# This patch file was generated by NetBeans IDE
+# It uses platform neutral UTF-8 encoding and \n newlines.
 --- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/JshellCache.java
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,184 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -149,12 +184,23 @@ index 0000000000..6ac5be1950
 + */
 +package org.netbeans.modules.java.lsp.server.protocol;
 +
++import com.google.gson.JsonPrimitive;
 +import java.io.ByteArrayOutputStream;
 +import java.io.PrintStream;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.Paths;
++import java.util.Collections;
 +import java.util.List;
 +import java.util.Map;
 +import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.atomic.AtomicReference;
 +import jdk.jshell.JShell;
++import jdk.jshell.SnippetEvent;
++import jdk.jshell.SourceCodeAnalysis;
++import org.eclipse.lsp4j.ConfigurationItem;
++import org.eclipse.lsp4j.ConfigurationParams;
++import org.openide.util.Lookup;
 +
 +/**
 + * Singleton class for managing JShell instances per notebook.
@@ -175,8 +221,8 @@ index 0000000000..6ac5be1950
 +        // private constructor to enforce singleton
 +    }
 +
-+    public JShell getOrCreateJShell(String notebookId) {
-+        return jshellMap.computeIfAbsent(notebookId, id -> {
++    public JShell getOrCreateJShell(String notebookId, String classpath) {
++        return jshellMap.computeIfAbsent(notebookId, (String id) -> {
 +            try {
 +                ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 +                ByteArrayOutputStream errStream = new ByteArrayOutputStream();
@@ -187,14 +233,29 @@ index 0000000000..6ac5be1950
 +                PrintStream errPrintStream = new PrintStream(errStream, true);
 +
 +                String javaVersion = System.getProperty("java.version");
-+                String majorVersion = javaVersion.split("\\.")[0];
-+                String[] options = {"--enable-preview", "--source", majorVersion};
 +
-+                JShell shell = JShell.builder()
-+                        .out(outPrintStream)
-+                        .err(errPrintStream)
-+                        .compilerOptions(options)
-+                        .build();
++                String majorVersion = javaVersion.split("\\.")[0];
++//                String javaFxJarsPath = "/Users/atalati/Downloads/javafx-sdk-21.0.7/lib/javafx.controls.jar:/Users/atalati/Downloads/javafx-sdk-21.0.7/lib/javafx.graphics.jar:/Users/atalati/Downloads/javafx-sdk-21.0.7/lib/javafx.base.jar:/Users/atalati/Downloads/javafx-sdk-21.0.7/lib/javafx.swt.jar:/Users/atalati/Downloads/javafx-sdk-21.0.7/lib/javafx.media.jar:/Users/atalati/Downloads/javafx-sdk-21.0.7/lib/javafx.fxml.jar:/Users/atalati/Downloads/javafx-sdk-21.0.7/lib/javafx.web.jar:/Users/atalati/Downloads/javafx-sdk-21.0.7/lib/javafx.swing.jar:/Users/atalati/Downloads/jCharts-0.7.5/jCharts-0.7.5.jar:/Users/atalati/Downloads/jCharts-0.7.5/lib/batik-awt-util.jar:/Users/atalati/Downloads/jCharts-0.7.5/lib/batik-dom.jar:/Users/atalati/Downloads/jCharts-0.7.5/lib/batik-svggen.jar:/Users/atalati/Downloads/jCharts-0.7.5/lib/batik-util.jar:/Users/atalati/Downloads/jCharts-0.7.5/lib/batik-xml.jar";
++
++                JShell shell;
++                if (classpath == null || classpath.isEmpty()) {
++                    String[] options = new String[]{"--enable-preview", "--source", majorVersion};
++                    shell = JShell.builder()
++                            .out(outPrintStream)
++                            .err(errPrintStream)
++                            .compilerOptions(options)
++                            .build();
++
++                } else {
++                    String[] options = new String[]{"--enable-preview", "--source", majorVersion, "--class-path", classpath};
++                    String[] remoteOptions = new String[]{"--class-path", classpath};
++                    shell = JShell.builder()
++                            .out(outPrintStream)
++                            .err(errPrintStream)
++                            .compilerOptions(options)
++                            .remoteVMOptions(remoteOptions)
++                            .build();
++                }
 +
 +                // Import common packages
 +                List.of("java.io", "java.math", "java.net", "java.nio", "java.nio.file",
@@ -206,6 +267,25 @@ index 0000000000..6ac5be1950
 +                List.of("java.lang.Math", "java.lang.System", "java.util.stream.Collectors")
 +                        .forEach(cls -> shell.eval("import static " + cls + ".*;\n"));
 +
++                String codeLeftToEval = initJshellScript;
++                while (!codeLeftToEval.isEmpty()) {
++                    SourceCodeAnalysis.CompletionInfo info = shell.sourceCodeAnalysis().analyzeCompletion(codeLeftToEval);
++                    if (info.completeness().isComplete()) {
++                        for (SnippetEvent event : shell.eval(info.source())) {
++                            if (event.exception() != null) {
++                                System.err.println(event.exception().getMessage());
++                            } else if (event.value() != null) {
++                                System.out.println(event.value());
++                            }
++
++                            shell.diagnostics(event.snippet()).forEach(diag
++                                    -> System.out.println(diag.getMessage(null)));
++
++                        }
++                    }
++                    codeLeftToEval = info.remaining();
++                }
++
 +                return shell;
 +            } catch (Exception e) {
 +                e.printStackTrace();
@@ -213,13 +293,58 @@ index 0000000000..6ac5be1950
 +            }
 +        });
 +    }
-+    
-+    public ByteArrayOutputStream getOutputStreamById(String notebookId){
++
++    public ByteArrayOutputStream getOutputStreamById(String notebookId) {
 +        return outputStreamMap.get(notebookId);
 +    }
-+    
-+    public ByteArrayOutputStream getErrorStreamById(String notebookId){
++
++    public ByteArrayOutputStream getErrorStreamById(String notebookId) {
 +        return errorStreamMap.get(notebookId);
 +    }
-+    
++
++    public void closeJshellById(String notebookId) {
++        JShell jshell = jshellMap.remove(notebookId);
++        if (jshell != null) {
++            jshell.close();
++        }
++        outputStreamMap.remove(notebookId);
++        errorStreamMap.remove(notebookId);
++    }
++
++    String initJshellScript = "import java.io.ByteArrayOutputStream;\n"
++            + "import java.io.OutputStream;\n"
++            + "import java.util.Base64;\n"
++            + "import java.util.Map;\n"
++            + "import java.util.HashMap;\n"
++            + "import java.io.InputStream;\n"
++            + "import java.io.ByteArrayInputStream;\n"
++            + "import javax.imageio.ImageIO;\n"
++            + "\n"
++            + "String convertToBase64(ByteArrayOutputStream outStream) {\n"
++            + "    return Base64.getEncoder().encodeToString(outStream.toByteArray());\n"
++            + "}\n"
++            + "\n"
++            + "String detectMimeType(ByteArrayOutputStream outStream) {\n"
++            + "    try {\n"
++            + "        InputStream is = new ByteArrayInputStream(outStream.toByteArray());\n"
++            + "        String formatName = ImageIO.getImageReaders(ImageIO.createImageInputStream(is)).next().getFormatName().toLowerCase();\n"
++            + "        return switch (formatName) {\n"
++            + "            case \"png\" -> \"image/png\";\n"
++            + "            case \"jpeg\", \"jpg\" -> \"image/jpeg\";\n"
++            + "            case \"gif\" -> \"image/gif\";\n"
++            + "            default -> \"application/octet-stream\";\n"
++            + "        };\n"
++            + "    } catch (Exception e) {\n"
++            + "        return \"application/octet-stream\";\n"
++            + "    }\n"
++            + "}\n"
++            + "\n"
++            + "void showAsImage(ByteArrayOutputStream outStream) {\n"
++            + "    Map<String, String> result = new HashMap<>();\n"
++            + "    result.put(\"base64\", convertToBase64(outStream));\n"
++            + "    result.put(\"mimeType\", detectMimeType(outStream));\n"
++            + "    System.out.println(\"$$IMAGE\");\n"
++            + "    System.out.println(result);\n"
++            + "}\n"
++            + "";
 +}

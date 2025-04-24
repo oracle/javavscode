@@ -3,6 +3,8 @@ import { LanguageClient } from 'vscode-languageclient/node';
 import { isNbCommandRegistered } from '../commands/utils';
 import { nbCommands } from '../commands/commands';
 import { globalState } from '../globalState';
+import { getConfigurationValue } from '../configurations/handlers';
+import { configKeys } from '../configurations/configuration';
 
 export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
   async deserializeNotebook(content: Uint8Array, _token: vscode.CancellationToken): Promise<vscode.NotebookData> {
@@ -73,11 +75,27 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
           if (output.output_type === 'display_data' || output.output_type === 'execute_result') {
             const items: vscode.NotebookCellOutputItem[] = [];
 
-            if (output.data && output.data['text/plain']) {
-              const text = Array.isArray(output.data['text/plain'])
-                ? output.data['text/plain'].join('\n')
-                : output.data['text/plain'];
-              items.push(vscode.NotebookCellOutputItem.text(text));
+            if (output.data) {
+              // Handle text/plain
+              if (output.data['text/plain']) {
+                const text = Array.isArray(output.data['text/plain'])
+                  ? output.data['text/plain'].join('\n')
+                  : output.data['text/plain'];
+                items.push(vscode.NotebookCellOutputItem.text(text, 'text/plain'));
+              }
+
+              // Handle image formats
+              for (const mimeType in output.data) {
+                if (mimeType.startsWith('image/')) {
+                  const base64Data = Array.isArray(output.data[mimeType])
+                    ? output.data[mimeType].join('')
+                    : output.data[mimeType];
+                  
+                  // Convert base64 string to Uint8Array
+                  const imageData = this.base64ToUint8Array(base64Data);
+                  items.push(new vscode.NotebookCellOutputItem(imageData, mimeType));
+                }
+              }
             }
 
             if (items.length > 0) {
@@ -133,37 +151,37 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
 
         if (cell.outputs && cell.outputs.length > 0) {
           cellData.outputs = cell.outputs.map(output => {
-            const items = output.items;
-
-            const errorItem = items.find(item => item.mime === 'application/vnd.code.notebook.error');
-            if (errorItem) {
-              const errorData = JSON.parse(Buffer.from(errorItem.data).toString());
-              return {
-                output_type: 'error',
-                ename: errorData.name,
-                evalue: errorData.message,
-                traceback: errorData.stack ? [errorData.stack] : []
-              };
-            }
-
-            const textItem = items.find(item => item.mime === 'text/plain');
-            if (textItem) {
-              return {
-                output_type: 'execute_result',
-                data: {
-                  'text/plain': Buffer.from(textItem.data).toString()
-                },
-                metadata: output.metadata,
-                execution_count: cell.executionSummary?.executionOrder ?? null
-              };
-            }
-
-            return {
+            const outputData: any = {
               output_type: 'execute_result',
               data: {},
               metadata: output.metadata,
               execution_count: cell.executionSummary?.executionOrder ?? null
             };
+
+            for (const item of output.items) {
+              const errorItem = item.mime === 'application/vnd.code.notebook.error';
+              if (errorItem) {
+                const errorData = JSON.parse(Buffer.from(item.data).toString());
+                return {
+                  output_type: 'error',
+                  ename: errorData.name,
+                  evalue: errorData.message,
+                  traceback: errorData.stack ? [errorData.stack] : []
+                };
+              }
+
+              // Handle text items
+              if (item.mime === 'text/plain') {
+                outputData.data['text/plain'] = Buffer.from(item.data).toString();
+              }
+              // Handle image items
+              else if (item.mime.startsWith('image/')) {
+                // Convert binary data to base64 string for storage
+                outputData.data[item.mime] = this.uint8ArrayToBase64(item.data);
+              }
+            }
+
+            return outputData;
           });
         }
 
@@ -184,6 +202,22 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
 
   private readonly decoder = new TextDecoder();
   private readonly encoder = new TextEncoder();
+
+  private base64ToUint8Array(base64: string): Uint8Array {
+    if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
+      return Buffer.from(base64, 'base64');
+    } else {
+      return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    }
+  }
+
+  private uint8ArrayToBase64(data: Uint8Array): string {
+    if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
+      return Buffer.from(data).toString('base64');
+    } else {
+      return btoa(String.fromCharCode.apply(null, Array.from(data)));
+    }
+  }
 }
 
 export class IJNBKernel implements vscode.Disposable {
@@ -211,7 +245,7 @@ export class IJNBKernel implements vscode.Disposable {
     try {
       await globalState.getClientPromise().client;
       if (await isNbCommandRegistered(nbCommands.notebookCleanup)) {
-        vscode.commands.executeCommand(nbCommands.notebookCleanup, notebook.uri.toString());
+        await vscode.commands.executeCommand(nbCommands.notebookCleanup, notebook.uri.toString());
       }
     } catch (err) {
       console.error(`Error cleaning up JShell for notebook: ${err}`);
@@ -222,6 +256,7 @@ export class IJNBKernel implements vscode.Disposable {
     console.log("Starting execution for cells:", cells);
 
     const notebookId = notebook.uri.toString();
+    const classpath = getConfigurationValue(configKeys.notebookClasspath);
 
     for (let cell of cells) {
       console.log("Executing cell:", cell.document.getText());
@@ -243,18 +278,32 @@ export class IJNBKernel implements vscode.Disposable {
         } else {
           await globalState.getClientPromise().client;
           if (await isNbCommandRegistered(nbCommands.executeNotebookCell)) {
-            const response: string[] = await vscode.commands.executeCommand(
+            const response: { data: string, mimeType: string }[] = await vscode.commands.executeCommand(
               nbCommands.executeNotebookCell,
               cellContent,
-              notebookId
+              notebookId,
+              classpath || null
             );
 
             console.log("Response:", response);
-            const outputContent = response.join('\n');
+            const outputMap: Map<string, string[]> = new Map<string, string[]>();
+            response.forEach((el) => {
+              if (!outputMap.has(el.mimeType)) {
+                outputMap.set(el.mimeType, [el.data]);
+              } else {
+                outputMap.set(el.mimeType, [...outputMap.get(el.mimeType)!, el.data]);
+              }
+            });
+            const output: vscode.NotebookCellOutputItem[] = [];
+            for (const [mimeType, value] of outputMap) {
+              if (mimeType.startsWith('image')) {
+                output.push(createNotebookCellOutput(value[0], mimeType));
+              } else {
+                output.push(createNotebookCellOutput(value.join("\n"), mimeType));
+              }
+            }
             await execution.replaceOutput([
-              new vscode.NotebookCellOutput([
-                vscode.NotebookCellOutputItem.text(outputContent)
-              ])
+              new vscode.NotebookCellOutput(output.length ? output : [vscode.NotebookCellOutputItem.text('')])
             ]);
           } else {
             throw new Error("Notebook not supported");
@@ -277,5 +326,20 @@ export class IJNBKernel implements vscode.Disposable {
         execution.end(false, Date.now());
       }
     }
+  }
+}
+
+const createNotebookCellOutput = (data: string, mimeType: string): vscode.NotebookCellOutputItem => {
+  if (mimeType.startsWith('image')) {
+    return new vscode.NotebookCellOutputItem(base64ToUint8Array(data), mimeType);
+  }
+  return vscode.NotebookCellOutputItem.text(data, mimeType);
+}
+
+export function base64ToUint8Array(base64: string): Uint8Array {
+  if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
+    return Buffer.from(base64, 'base64');
+  } else {
+    return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
   }
 }
