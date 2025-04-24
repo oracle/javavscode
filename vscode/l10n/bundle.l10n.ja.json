@@ -63,7 +63,7 @@
   "jdk.extension.lspServer.message.noJdkFound": "JDKが見つかりません!",
   "jdk.extension.lspServer.label.downloadAndSetup": "JDKをダウンロードして自動的に設定",
   "jdk.extension.lspServer.error_message": "初期化中にエラーが発生しました {reason}",
-  "jdk.extension.nbjavac.message.supportedVersionRequired": "サポートされているバージョンのjavacが必要です。nb-javacライブラリを有効にするか、JDK 23+を使用してください",
+  "jdk.extension.nbjavac.message.supportedVersionRequired": "サポートされているバージョンのjavacが必要です。nb-javacライブラリを有効にするか、JDK 24+を使用してください",
   "jdk.extension.nbjavac.label.enableNbjavac": "nb-javacライブラリの有効化",
   "jdk.extension.nbjavac.label.openSettings": "設定を開く",
   "jdk.extension.javaSupport.label.installGpl": "GPLv2+CPExコードのインストール",

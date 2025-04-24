@@ -44,7 +44,7 @@
     "jdk.configuration.serverVmOptions.description": "Java言語サーバーの起動に使用されるその他のVM引数を指定します",
     "jdk.configuration.runConfig.env.description": "環境変数",
     "jdk.configuration.runConfig.cwd.description": "作業ディレクトリ",
-    "jdk.configuration.disableNbJavac.description": "拡張オプション: nb-javacライブラリを無効化すると、選択したJDKからのjavacが使用されます。選択したJDKは少なくともJDK 23である必要があります。",
+    "jdk.configuration.disableNbJavac.description": "拡張オプション: nb-javacライブラリを無効化すると、選択したJDKからのjavacが使用されます。選択したJDKは少なくともJDK 24である必要があります。",
     "jdk.configuration.disableProjectSearchLimit.description": "拡張オプション: プロジェクト情報が含まれているフォルダの検索に対する制限を無効化します。",
     "jdk.debugger.configuration.mainClass.markdownDescription": "Main class specification. Supported formats:\n - an absolute path\n - a path relative to any of the workspace folders\n - a fully qualified name of a class.",
     "jdk.debugger.configuration.classPaths.description": "JVMの起動のためのクラスパス。",
