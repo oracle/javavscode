@@ -39,6 +39,7 @@ export const extCommands = {
     projectRun: appendPrefixToCommand('project.run'),
     projectDebug: appendPrefixToCommand('project.debug'),
     projectTest: appendPrefixToCommand('project.test'),
+    projectTestDebug: appendPrefixToCommand('project.test.debug'),
     packageTest: appendPrefixToCommand('package.test'),
     openStackTrace: appendPrefixToCommand('open.stacktrace'),
     workspaceSymbols: appendPrefixToCommand('workspace.symbols'),

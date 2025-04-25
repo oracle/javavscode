@@ -41,6 +41,9 @@ const projectDebug = async (node: any, launchConfiguration? : string) => {
 const projectTest = async (node: any, launchConfiguration? : string) => {
     return runDebug(true, true, getContextUri(node)?.toString() || '',  undefined, launchConfiguration, true);
 }
+const projectTestDebug = async (node: any, launchConfiguration? : string) => {
+    return runDebug(false, true, getContextUri(node)?.toString() || '',  undefined, launchConfiguration, true);
+}
 const packageTest = async (uri: any, launchConfiguration? : string) => {
     await runDebug(true, true, uri, undefined, launchConfiguration);
 }
@@ -144,6 +147,9 @@ export const registerDebugCommands: ICommand[] = [
     }, {
         command: extCommands.projectTest,
         handler: projectTest
+    }, {
+        command: extCommands.projectTestDebug,
+        handler: projectTestDebug
     }, {
         command: extCommands.packageTest,
         handler: packageTest
