@@ -57,6 +57,7 @@
             patches/8280.diff
             patches/8289.diff
             patches/7893-draft.diff
+            patches/8442-draft.diff
             patches/disable-error-notification.diff
             patches/mvn-sh.diff
             patches/project-marker-jdk.diff

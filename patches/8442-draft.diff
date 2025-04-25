@@ -1,0 +1,13 @@
+diff --git a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/RefactoringUtils.java b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/RefactoringUtils.java
+index ae5f7fd6f8..db0dadefb1 100644
+--- a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/RefactoringUtils.java
++++ b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/RefactoringUtils.java
+@@ -305,7 +305,7 @@ public class RefactoringUtils {
+     public static boolean isOnSourceClasspath(FileObject fo) {
+         Project pr = FileOwnerQuery.getOwner(fo);
+         if (pr == null) {
+-            return false;
++            return SourceLauncher.isSourceLauncherFile(fo);
+         }
+ 
+         //workaround for 143542
