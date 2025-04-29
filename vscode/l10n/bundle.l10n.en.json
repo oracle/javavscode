@@ -63,7 +63,7 @@
   "jdk.extension.lspServer.message.noJdkFound": "No JDK found!",
   "jdk.extension.lspServer.label.downloadAndSetup": "Download JDK and setup automatically",
   "jdk.extension.lspServer.error_message": "Error initializing {reason}",
-  "jdk.extension.nbjavac.message.supportedVersionRequired": "Supported version of javac needed. Please either enable the nb-javac library, or use JDK 23+",
+  "jdk.extension.nbjavac.message.supportedVersionRequired": "Supported version of javac needed. Please either enable the nb-javac library, or use JDK 24+",
   "jdk.extension.nbjavac.label.enableNbjavac": "Enable the nb-javac library",
   "jdk.extension.nbjavac.label.openSettings": "Open settings",
   "jdk.extension.javaSupport.label.installGpl": "Install GPLv2+CPEx code",
