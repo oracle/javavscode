@@ -69,7 +69,7 @@ export class NbTestAdapter {
                         this.set(item, 'enqueued');
                         const idx = item.id.indexOf(':');
                         if (!cancellation.isCancellationRequested) {
-                            await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? extCommands.debugSingle : extCommands.runSingle, item.uri.toString(), idx < 0 ? undefined : item.id.slice(idx + 1));
+                            await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? extCommands.debugTest : extCommands.runTest, item.uri.toString(), idx < 0 ? undefined : item.id.slice(idx + 1));
                         }
                     }
                 }
@@ -77,7 +77,7 @@ export class NbTestAdapter {
                 this.testController.items.forEach(item => this.set(item, 'enqueued'));
                 for (let workspaceFolder of workspace.workspaceFolders || []) {
                     if (!cancellation.isCancellationRequested) {
-                        await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? extCommands.debugTest : extCommands.runTest, workspaceFolder.uri.toString());
+                        await commands.executeCommand(request.profile?.kind === TestRunProfileKind.Debug ? extCommands.projectTestDebug : extCommands.projectTest, workspaceFolder.uri.toString());
                     }
                 }
             }
