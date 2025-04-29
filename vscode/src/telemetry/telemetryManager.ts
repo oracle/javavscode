@@ -58,7 +58,7 @@ export class TelemetryManager {
 
             const yesLabel = l10n.value("jdk.downloader.message.confirmation.yes");
             const noLabel = l10n.value("jdk.downloader.message.confirmation.no");
-            const telemetryLabel = l10n.value("jdk.telemetry.consent", { extensionName: this.extensionContextInfo.getPackageJson().name });
+            const telemetryLabel = l10n.value("jdk.telemetry.consent");
 
             const enable = await window.showInformationMessage(telemetryLabel, yesLabel, noLabel);
             if (enable == undefined) {
