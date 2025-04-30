@@ -44,7 +44,7 @@
     "jdk.configuration.serverVmOptions.description": "指定用于启动 Java Language Server 的额外 VM 参数",
     "jdk.configuration.runConfig.env.description": "环境变量",
     "jdk.configuration.runConfig.cwd.description": "工作目录",
-    "jdk.configuration.disableNbJavac.description": "高级选项：禁用 nb-javac 库，将使用来自所选 JDK 的 javac。所选 JDK 必须至少为 JDK 23。",
+    "jdk.configuration.disableNbJavac.description": "高级选项：禁用 nb-javac 库，将使用来自所选 JDK 的 javac。所选 JDK 必须至少为 JDK 24。",
     "jdk.configuration.disableProjectSearchLimit.description": "高级选项：禁用在包含项目信息的文件夹中搜索的限制。",
     "jdk.configuration.telemetry.enabled.description": "Allow the Oracle Java extension for Visual Studio Code (\"JVSCE\") to collect and send anonymous technical data commonly known as \"telemetry data\" to Oracle to help improve the Java platform. No personal information nor source code is collected. You may refer to the data collection and privacy policy for JVSCE at https://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.md",
     "jdk.configuration.telemetry.enabled.markdownDescription": "Allow the Oracle Java extension for Visual Studio Code (\"*JVSCE*\") to collect and send anonymous technical data commonly known as \"*telemetry data*\" to Oracle to help improve the Java platform. No personal information nor source code is collected. You may refer to the data collection and privacy policy for JVSCE at [TELEMETRY.md](https://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.md)",

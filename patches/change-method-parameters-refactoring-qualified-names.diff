@@ -1,0 +1,140 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java
+index ecba2107a2..f5239a57b7 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java
+@@ -19,6 +19,7 @@
+ package org.netbeans.modules.java.lsp.server.refactoring;
+ 
+ import com.google.gson.Gson;
++import com.sun.source.tree.MethodTree;
+ import com.sun.source.tree.Tree;
+ import com.sun.source.util.TreePath;
+ import com.sun.source.util.Trees;
+@@ -197,10 +198,11 @@ public final class ChangeMethodParametersRefactoring extends CodeRefactoring {
+         ParameterUI[] params = new ParameterUI[method.getParameters().size()];
+         for (int i = 0; i < method.getParameters().size(); i++) {
+             VariableElement param = method.getParameters().get(i);
+-            ChangeParametersRefactoring.ParameterInfo info = new ChangeParametersRefactoring.ParameterInfo(i, param.getSimpleName().toString(), Utilities.getTypeName(ci, param.asType(), true).toString(), null);
++            ChangeParametersRefactoring.ParameterInfo info = ChangeParametersRefactoring.ParameterInfo.create(ci, param);
+             params[i] = new ParameterUI(info.getType(), info.getName());
+             params[i].assignInfo(info);
+         }
++        MethodTree methodTree = ci.getTrees().getTree(method);
+         Modifier mod;
+         if (method.getModifiers().contains(javax.lang.model.element.Modifier.PUBLIC)) {
+             mod = Modifier.PUBLIC;
+@@ -213,7 +215,7 @@ public final class ChangeMethodParametersRefactoring extends CodeRefactoring {
+         }
+         ChangeMethodParameterUI model = new ChangeMethodParameterUI();
+         model.withName(method.getSimpleName().toString())
+-                .withReturnType(Utilities.getTypeName(ci, method.getReturnType(), true).toString())
++                .withReturnType(methodTree.getReturnType().toString())
+                 .withSelectedModifier(mod)
+                 .withIsStatic(method.getModifiers().contains(javax.lang.model.element.Modifier.STATIC))
+                 .withParameters(params)
+diff --git a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/api/ChangeParametersRefactoring.java b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/api/ChangeParametersRefactoring.java
+index a09c737efe..840203c4dd 100644
+--- a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/api/ChangeParametersRefactoring.java
++++ b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/api/ChangeParametersRefactoring.java
+@@ -18,10 +18,14 @@
+  */
+ package org.netbeans.modules.refactoring.java.api;
+ 
++import com.sun.source.tree.VariableTree;
+ import java.util.Set;
++import javax.lang.model.element.ExecutableElement;
+ import javax.lang.model.element.Modifier;
++import javax.lang.model.element.VariableElement;
+ import org.netbeans.api.annotations.common.CheckForNull;
+ import org.netbeans.api.annotations.common.NullAllowed;
++import org.netbeans.api.java.source.CompilationInfo;
+ import org.netbeans.api.java.source.TreePathHandle;
+ import org.netbeans.modules.refactoring.api.AbstractRefactoring;
+ import org.openide.util.lookup.Lookups;
+@@ -199,6 +203,19 @@ public final class ChangeParametersRefactoring extends AbstractRefactoring {
+      * Parameter can be added, changed or moved to another position.
+      */
+     public static final class ParameterInfo {
++        public static ParameterInfo create(CompilationInfo info, VariableElement parameter) {
++            VariableTree parTree = (VariableTree) info.getTrees().getTree(parameter);
++            ExecutableElement method = (ExecutableElement) parameter.getEnclosingElement();
++            String typeRepresentation;
++            int index = method.getParameters().indexOf(parameter);
++            if (method.isVarArgs() && index == method.getParameters().size() - 1) {
++                typeRepresentation = parTree.getType().toString().replace("[]", "..."); // NOI18N
++            } else {
++                typeRepresentation = parTree.getType().toString();
++            }
++            return new ChangeParametersRefactoring.ParameterInfo(index, parameter.getSimpleName().toString(), typeRepresentation, null);
++        }
++
+         int origIndex;
+         String name;
+         String type;
+diff --git a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/IntroduceParameterPlugin.java b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/IntroduceParameterPlugin.java
+index 140b029030..01dd960595 100644
+--- a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/IntroduceParameterPlugin.java
++++ b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/IntroduceParameterPlugin.java
+@@ -497,14 +497,8 @@ public class IntroduceParameterPlugin extends JavaRefactoringPlugin {
+                 paramTable = new ChangeParametersRefactoring.ParameterInfo[parameters.size() + 1];
+                 for (int originalIndex = 0; originalIndex < parameters.size(); originalIndex++) {
+                     VariableElement param = parameters.get(originalIndex);
+-                    VariableTree parTree = (VariableTree) info.getTrees().getTree(param);
+-                    String typeRepresentation;
+-                    if (method.isVarArgs() && originalIndex == parameters.size()-1) {
+-                        typeRepresentation = parTree.getType().toString().replace("[]", "..."); // NOI18N
+-                    } else {
+-                        typeRepresentation = parTree.getType().toString();
+-                    }
+-                    paramTable[originalIndex] = new ChangeParametersRefactoring.ParameterInfo(originalIndex, param.getSimpleName().toString(), typeRepresentation, null);
++
++                    paramTable[originalIndex] = ChangeParametersRefactoring.ParameterInfo.create(info, param);
+                 }
+                 index = paramTable.length - 1;
+                 if (method.isVarArgs()) {
+diff --git a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/ui/ChangeParametersPanel.java b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/ui/ChangeParametersPanel.java
+index 2669bc1240..935097f9b9 100644
+--- a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/ui/ChangeParametersPanel.java
++++ b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/ui/ChangeParametersPanel.java
+@@ -179,6 +179,7 @@ public class ChangeParametersPanel extends JPanel implements CustomRefactoringPa
+                     try {
+                         info.toPhase(org.netbeans.api.java.source.JavaSource.Phase.RESOLVED);
+                         ExecutableElement e = (ExecutableElement) refactoredObj.resolveElement(info);
++                        MethodTree methodTree = (MethodTree) refactoredObj.resolve(info).getLeaf();
+                         isConstructor = e.getKind() == ElementKind.CONSTRUCTOR;
+                         TreePath enclosingClass = JavaRefactoringUtils.findEnclosingClass(info, refactoredObj.resolve(info), true, true, true, true, true);
+                         TreePathHandle tph = TreePathHandle.create(enclosingClass, info);
+@@ -187,10 +188,9 @@ public class ChangeParametersPanel extends JPanel implements CustomRefactoringPa
+                                 enclosingElement.getSimpleName().toString() :
+                                 e.getSimpleName().toString());
+                         final FileObject fileObject = refactoredObj.getFileObject();
+-                        final String returnType = e.getReturnType().toString();
++                        final String returnType = methodTree.getReturnType().toString();
+                         final long[] returnSpan = {-1, -1};
+                         if(!isConstructor) {
+-                            MethodTree methodTree = (MethodTree) refactoredObj.resolve(info).getLeaf();
+                             final long methodStart = info.getTreeUtilities().findNameSpan(methodTree)[0];
+                             Tree tree = methodTree.getReturnType();
+                             returnSpan[0] = tree == null ? methodStart -1 : info.getTrees().getSourcePositions().getStartPosition(info.getCompilationUnit(), tree);
+@@ -764,19 +764,13 @@ public class ChangeParametersPanel extends JPanel implements CustomRefactoringPa
+         List<? extends VariableElement> pars = method.getParameters();
+         int originalIndex = 0;
+         for (VariableElement par : pars) {
+-            VariableTree parTree = (VariableTree) info.getTrees().getTree(par);
+-            String typeRepresentation;
+-            if (method.isVarArgs() && originalIndex == pars.size() - 1) {
+-                typeRepresentation = getTypeStringRepresentation(parTree).replace("[]", "..."); // NOI18N
+-            } else {
+-                typeRepresentation = getTypeStringRepresentation(parTree);
+-            }
++            ParameterInfo paramInfo = ParameterInfo.create(info, par);
+             LocalVarScanner scan = new LocalVarScanner(info, null);
+             scan.scan(path, par);
+             Boolean removable = !scan.hasRefernces();
+             // Used to check if var was user in overridden/overriding methods
+ //            if (model.getRowCount()<=originalIndex) {
+-            newModel.add(new Object[]{typeRepresentation, par.toString(), "", originalIndex, removable});
++            newModel.add(new Object[]{paramInfo.getType(), paramInfo.getName(), "", originalIndex, removable});
+ //            } else {
+ //                removable = Boolean.valueOf(model.isRemovable(originalIndex) && removable.booleanValue());
+ //                ((Vector) model.getDataVector().get(originalIndex)).set(4, removable);

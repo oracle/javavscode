@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023-2025, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -58,7 +58,7 @@ suite("Extension gradle tests", function () {
       dumpJava();
       throw error;
     }
-  }).timeout(120*1000);
+  });
 
   // Check if clean workspace command is excuted succesfully
   test("Clean workspace - Gradle", async () => {
@@ -71,5 +71,5 @@ suite("Extension gradle tests", function () {
       !fs.existsSync(mainClass),
       "Class created by compilation: " + mainClass
     );
-  }).timeout(60000);
+  });
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023-2025, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,7 +23,7 @@
 
 import * as assert from "assert";
 import * as fs from "fs";
-import * as glob from 'glob';
+import { glob } from 'glob';
 import * as Mocha from 'mocha';
 import * as path from "path";
 import { promisify } from "util";
@@ -303,33 +303,31 @@ export function runTestSuite(folder: string): Promise<void> {
 	const mocha = new Mocha({
 		ui: 'tdd',
 		color: true,
-		timeout: 10*1000*60
+		timeout: '10m'
 	});
 
 	const testsRoot = path.resolve(folder);
 
-	return new Promise((c, e) => {
-		glob('**/**.test.js', { cwd: testsRoot }, (err, files) => {
-			if (err) {
-				return e(err);
-			}
-			// Add files to the test suite
-			files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
+	return new Promise(async (c, e) => {
+		try {
+			const testFilePaths = await glob('**/**.test.js', { cwd: testsRoot })
+			
+			const sortedTestFilePaths = testFilePaths.sort((a, b) => {
+				return path.basename(a).localeCompare(path.basename(b));
+			});
 
-			try {
-				// Run the mocha test
-				mocha.run(failures => {
-					if (failures > 0) {
-						e(new Error(`${failures} tests failed.`));
-					} else {
-						c();
-					}
-				});
-			} catch (err) {
-				console.error(err);
-				e(err);
-			}
-		});
+			sortedTestFilePaths.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
+			mocha.run(failures => {
+				if (failures > 0) {
+					e(new Error(`${failures} tests failed.`));
+				} else {
+					c();
+				}
+			});
+		} catch (error) {
+			console.error(error);
+			e(error);
+		}
 	});
 }
 

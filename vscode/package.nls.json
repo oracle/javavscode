@@ -44,7 +44,7 @@
     "jdk.configuration.serverVmOptions.description": "Specifies extra VM arguments used to launch the Java Language Server",
     "jdk.configuration.runConfig.env.description": "Environment variables",
     "jdk.configuration.runConfig.cwd.description": "Working directory",
-    "jdk.configuration.disableNbJavac.description": "Advanced option: disable nb-javac library, javac from the selected JDK will be used. The selected JDK must be at least JDK 23.",
+    "jdk.configuration.disableNbJavac.description": "Advanced option: disable nb-javac library, javac from the selected JDK will be used. The selected JDK must be at least JDK 24.",
     "jdk.configuration.disableProjectSearchLimit.description": "Advanced option: disable limits on searching in containing folders for project information.",
     "jdk.configuration.telemetry.enabled.description": "Allow the Oracle Java extension for Visual Studio Code (\"JVSCE\") to collect and send anonymous technical data commonly known as \"telemetry data\" to Oracle to help improve the Java platform. No personal information nor source code is collected. You may refer to the data collection and privacy policy for JVSCE at https://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.md",
     "jdk.configuration.telemetry.enabled.markdownDescription": "Allow the Oracle Java extension for Visual Studio Code (\"*JVSCE*\") to collect and send anonymous technical data commonly known as \"*telemetry data*\" to Oracle to help improve the Java platform. No personal information nor source code is collected. You may refer to the data collection and privacy policy for JVSCE at [TELEMETRY.md](https://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.md).",

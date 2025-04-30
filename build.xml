@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2023, Oracle and/or its affiliates.
+    Copyright (c) 2023-2025, Oracle and/or its affiliates.
 
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -56,6 +56,9 @@
             patches/8260.diff
             patches/8280.diff
             patches/8289.diff
+            patches/7893-draft.diff
+            patches/8442-draft.diff
+            patches/8460-draft.diff
             patches/disable-error-notification.diff
             patches/mvn-sh.diff
             patches/project-marker-jdk.diff
@@ -66,6 +69,7 @@
             patches/l10n-licence.diff
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
+            patches/change-method-parameters-refactoring-qualified-names.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">

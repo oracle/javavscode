@@ -44,7 +44,7 @@
     "jdk.configuration.serverVmOptions.description": "Java言語サーバーの起動に使用されるその他のVM引数を指定します",
     "jdk.configuration.runConfig.env.description": "環境変数",
     "jdk.configuration.runConfig.cwd.description": "作業ディレクトリ",
-    "jdk.configuration.disableNbJavac.description": "拡張オプション: nb-javacライブラリを無効化すると、選択したJDKからのjavacが使用されます。選択したJDKは少なくともJDK 23である必要があります。",
+    "jdk.configuration.disableNbJavac.description": "拡張オプション: nb-javacライブラリを無効化すると、選択したJDKからのjavacが使用されます。選択したJDKは少なくともJDK 24である必要があります。",
     "jdk.configuration.disableProjectSearchLimit.description": "拡張オプション: プロジェクト情報が含まれているフォルダの検索に対する制限を無効化します。",
     "jdk.configuration.telemetry.enabled.description": "Allow the Oracle Java extension for Visual Studio Code (\"JVSCE\") to collect and send anonymous technical data commonly known as \"telemetry data\" to Oracle to help improve the Java platform. No personal information nor source code is collected. You may refer to the data collection and privacy policy for JVSCE at https://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.md",
     "jdk.configuration.telemetry.enabled.markdownDescription": "Allow the Oracle Java extension for Visual Studio Code (\"*JVSCE*\") to collect and send anonymous technical data commonly known as \"*telemetry data*\" to Oracle to help improve the Java platform. No personal information nor source code is collected. You may refer to the data collection and privacy policy for JVSCE at [TELEMETRY.md](https://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.md).",

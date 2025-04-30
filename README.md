@@ -1,5 +1,5 @@
 <!--
-    Copyright (c) 2023, Oracle and/or its affiliates.
+    Copyright (c) 2023-2025, Oracle and/or its affiliates.
 
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -210,7 +210,7 @@ Please consult the [security guide](https://github.com/oracle/javavscode/blob/ma
 
 ## License
 
-Copyright (c) 2024 Oracle and/or its affiliates.
+Copyright (c) 2023-2025 Oracle and/or its affiliates.
 
 Oracle Java Platform Extension for Visual Studio Code is licensed under [Apache 2.0 License](https://github.com/oracle/javavscode/blob/main/LICENSE.txt). 
 The [THIRD_PARTY_LICENSES](./THIRD_PARTY_LICENSES.txt) file contains third party notices and licenses.

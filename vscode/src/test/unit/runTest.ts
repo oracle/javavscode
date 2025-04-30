@@ -27,36 +27,31 @@ const mocha = new Mocha({
 
 
 const testRunner = async (modules: string[] = []) => {
-    return new Promise<void>((c, e) => {
-        glob('**/**.unit.test.js', { cwd: __dirname }, (err, files) => {
-            if (err) {
-                return e(err);
-            }
-            // Add files to the test suite
-            files.forEach(f => {
+    return new Promise<void>(async (c, e) => {
+        try {
+            const unitTestFilePaths = await glob('**/**.unit.test.js', { cwd: __dirname })
+            
+            unitTestFilePaths.forEach(f => {
                 if (!modules.length) {
                     mocha.addFile(path.resolve(__dirname, f));
                 } else if (modules.includes(f.split('.')[0])) {
                     mocha.addFile(path.resolve(__dirname, f));
                 }
             });
-
-            try {
-                // Run the mocha test
-                mocha.run(failures => {
-                    if (failures > 0) {
-                        e(new Error(`${failures} tests failed.`));
-                    } else {
-                        c();
-                    }
-                });
-            } catch (err) {
-                console.error(err);
-                e(err);
-            }
-        });
+            mocha.run(failures => {
+                if (failures > 0) {
+                    e(new Error(`${failures} tests failed.`));
+                } else {
+                    c();
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            e(error);
+        }
     });
 }
+
 try {
     const args = process.argv.slice(2);
     if (args.length) {
