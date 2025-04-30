@@ -64,6 +64,7 @@
     "jdk.debugger.configuration.attach.listen.description": "Listen for the debuggee to attach",
     "jdk.debugger.configuration.attach.timeout.description": "Timeout while waiting to attach",
     "jdk.debugger.configuration.completion.warning.time.description": "When code completion takes longer than this specified time (in milliseconds), there will be a warning produced (-1 to disable)",
+    "jdk.configuration.java.completion.commit.chars": "Specifies the characters that trigger accepting a code completion suggestion. For example, to accept suggestions when typing a dot (.), set this to [\".\"]",
     "jdk.initialConfigurations.launchJavaApp.name": "Launch Java App",
     "jdk.configurationSnippets.name": "Launch Java App",
     "jdk.configurationSnippets.label": "Java+: Launch Java Application",

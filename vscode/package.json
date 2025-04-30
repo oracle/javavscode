@@ -250,6 +250,11 @@
 					"tags": [
                         "telemetry"
           			]
+				},
+				"jdk.java.completion.commit.chars": {
+					"type": "array",
+					"default": [],
+					"description": "%jdk.configuration.java.completion.commit.chars%"
 				}
 			}
 		},
