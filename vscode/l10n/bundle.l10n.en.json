@@ -3,6 +3,8 @@
   "jdk.downloader.html.details":"<p>This tool enables you to download either the latest Oracle Java SE JDK with <a href='https://www.java.com/freeuselicense'>Oracle No-Fee Terms and Conditions</a> or the Oracle OpenJDK builds under the <a href='https://openjdk.org/legal/gplv2+ce.html'>GNU Public License with ClassPath Exception</a></p> <p>It will then handle the installation and configuration on your behalf.</p> <p>This enables you to take full advantage of all the features offered by this extension.</p>",
   "jdk.downloader.button.label.oracleJdk": "Download Oracle Java SE JDK",
   "jdk.downloader.label.or": "or",
+  "jdk.downloader.label.openJdk": "OpenJDK",
+  "jdk.downloader.label.oracleJdk": "Oracle JDK",
   "jdk.downloader.button.label.openJdk": "Download Oracle OpenJDK",
   "jdk.downloader.button.label.selectJdkFromSystem": "Select installed JDK from my system",
   "jdk.downloader.label.selectOracleJdkVersion": "Select Oracle Java SE Version",
@@ -93,5 +95,6 @@
   "jdk.extension.debugger.error_msg.debugAdapterNotInitialized":"Oracle Java SE Debug Server Adapter not yet initialized. Please wait for a while and try again.",
   "jdk.workspace.new.prompt": "Input the directory path where the new file will be generated",
   "jdk.extension.utils.error_message.failedHttpsRequest": "Failed to get {url} ({statusCode})",
-  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} not enabled"
+  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} not enabled",
+  "jdk.telemetry.consent": "Allow anonymous telemetry data to be reported to Oracle? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled."
 }

@@ -241,6 +241,15 @@
 					"type": "integer",
 					"default": 10000,
 					"description": "%jdk.debugger.configuration.completion.warning.time.description%"
+				},
+				"jdk.telemetry.enabled": {
+					"type": "boolean",
+					"description": "%jdk.configuration.telemetry.enabled.description%",
+					"markdownDescription": "%jdk.configuration.telemetry.enabled.markdownDescription%",
+					"default": false,
+					"tags": [
+                        "telemetry"
+          			]
 				}
 			}
 		},

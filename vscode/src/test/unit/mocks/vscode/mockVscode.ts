@@ -17,6 +17,7 @@
 import * as vscode from 'vscode';
 import { URI } from './uri';
 import { mockWindowNamespace } from './namespaces/window';
+import { mockEnvNamespace } from './namespaces/env';
 import { mockedEnums } from './vscodeHostedTypes';
 
 type VSCode = typeof vscode;
@@ -29,6 +30,7 @@ const mockedVscodeClassesAndTypes = () => {
 
 const mockNamespaces = () => {
     mockWindowNamespace(mockedVSCode);
+    mockEnvNamespace(mockedVSCode);
 }
 
 export const initMockedVSCode = () => {

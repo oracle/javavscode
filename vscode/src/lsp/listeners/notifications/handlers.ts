@@ -23,6 +23,9 @@ import { configKeys } from "../../../configurations/configuration";
 import { builtInCommands } from "../../../commands/commands";
 import { LOGGER } from '../../../logger';
 import { globalState } from "../../../globalState";
+import { WorkspaceChangeData, WorkspaceChangeEvent } from "../../../telemetry/events/workspaceChange";
+import { Telemetry } from "../../../telemetry/telemetry";
+import { JdkFeatureEvent, JdkFeatureEventData } from "../../../telemetry/events/jdkFeature";
 
 const checkInstallNbJavac = (msg: string) => {
     const NO_JAVA_SUPPORT = "Cannot initialize Java support";
@@ -42,8 +45,8 @@ const checkInstallNbJavac = (msg: string) => {
     }
 }
 
-const showStatusBarMessageHandler = (params : ShowStatusMessageParams) => {
-    let decorated : string = params.message;
+const showStatusBarMessageHandler = (params: ShowStatusMessageParams) => {
+    let decorated: string = params.message;
     let defTimeout;
 
     switch (params.type) {
@@ -98,7 +101,7 @@ const textEditorDecorationDisposeHandler = (param: any) => {
     if (decorationType) {
         globalState.removeDecoration(param);
         decorationType.dispose();
-        
+
         globalState.getDecorationParamsByUri().forEach((value, key) => {
             if (value.key == param) {
                 globalState.removeDecorationParams(key);
@@ -109,6 +112,30 @@ const textEditorDecorationDisposeHandler = (param: any) => {
 
 
 const telemetryEventHandler = (param: any) => {
+    if (WorkspaceChangeEvent.NAME === param?.name) {
+        const { projectInfo, numProjects, lspInitTimeTaken, projInitTimeTaken } = param?.properties;
+        const eventData: WorkspaceChangeData = {
+            projectInfo,
+            numProjects,
+            lspInitTimeTaken,
+            projInitTimeTaken
+        };
+        const workspaceChangeEvent: WorkspaceChangeEvent = new WorkspaceChangeEvent(eventData);
+        Telemetry.sendTelemetry(workspaceChangeEvent);
+        return;
+    }
+    if (JdkFeatureEvent.NAME === param?.name) {
+        const { javaVersion, names, jeps, isPreviewEnabled } = param?.properties;
+        const eventData: JdkFeatureEventData = {
+            jeps,
+            names,
+            javaVersion,
+            isPreviewEnabled
+        };
+        const jdkFeatureEvent: JdkFeatureEvent = new JdkFeatureEvent(eventData);
+        Telemetry.sendTelemetry(jdkFeatureEvent);
+        return;
+    }
     const ls = globalState.getListener(param);
     if (ls) {
         for (const listener of ls) {
@@ -117,7 +144,7 @@ const telemetryEventHandler = (param: any) => {
     }
 }
 
-export const notificationListeners : notificationOrRequestListenerType[] = [{
+export const notificationListeners: notificationOrRequestListenerType[] = [{
     type: StatusMessageRequest.type,
     handler: showStatusBarMessageHandler
 }, {
@@ -126,13 +153,13 @@ export const notificationListeners : notificationOrRequestListenerType[] = [{
 }, {
     type: TestProgressNotification.type,
     handler: testProgressHandler
-},{
+}, {
     type: TextEditorDecorationSetNotification.type,
     handler: textEditorSetDecorationHandler
-},{
+}, {
     type: TextEditorDecorationDisposeNotification.type,
     handler: textEditorDecorationDisposeHandler
-},{
+}, {
     type: TelemetryEventNotification.type,
     handler: telemetryEventHandler
 }];

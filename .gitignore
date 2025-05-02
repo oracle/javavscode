@@ -1,8 +1,10 @@
 build/
 .DS_STORE
+.vscode/
 .idea/
 *.iml
 /nbcode/l10n/locale_ja/release/
 /nbcode/l10n/locale_zh_CN/release/
 /nbcode/l10n/locale_ja/nbproject/private/
 /nbcode/l10n/locale_zh_CN/nbproject/private/
+telemetryConfig.json

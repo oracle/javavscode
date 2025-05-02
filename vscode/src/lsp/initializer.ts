@@ -28,6 +28,7 @@ import { registerNotificationListeners } from "./listeners/notifications/registe
 import { registerRequestListeners } from "./listeners/requests/register";
 import { createViews } from "../views/initializer";
 import { globalState } from "../globalState";
+import { Telemetry } from "../telemetry/telemetry";
 
 const establishConnection = () => new Promise<StreamInfo>((resolve, reject) => {
     const nbProcessManager = globalState.getNbProcessManager();
@@ -107,9 +108,7 @@ export const clientInit = () => {
     const client = NbLanguageClient.build(connection, LOGGER);
 
     LOGGER.log('Language Client: Starting');
-    client.start().then(() => {
-
-
+    client.start().then(() => {        
         registerListenersAfterClientInit();
         registerNotificationListeners(client);
         registerRequestListeners(client);

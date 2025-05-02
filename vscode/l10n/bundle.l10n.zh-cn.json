@@ -3,6 +3,8 @@
   "jdk.downloader.html.details":"<p>使用此工具，您可以遵循 <a href='https://www.java.com/freeuselicense'>Oracle 免费条款和条件</a>下载最新的 Oracle Java SE JDK，或者依照 <a href='https://openjdk.org/legal/gplv2+ce.html'>GNU 公共许可证（包含 ClassPath 例外条款）</a>下载 Oracle OpenJDK 构建</p> <p>之后，它将代表您处理安装和配置。</p> <p>这样，您可以充分利用此扩展提供的所有功能。</p>",
   "jdk.downloader.button.label.oracleJdk": "下载 Oracle Java SE JDK",
   "jdk.downloader.label.or": "或",
+  "jdk.downloader.label.openJdk": "OpenJDK",
+  "jdk.downloader.label.oracleJdk": "Oracle JDK",
   "jdk.downloader.button.label.openJdk": "下载 Oracle OpenJDK",
   "jdk.downloader.button.label.selectJdkFromSystem": "从我的系统选择安装的 JDK",
   "jdk.downloader.label.selectOracleJdkVersion": "选择 Oracle Java SE 版本",
@@ -93,5 +95,6 @@
   "jdk.extension.debugger.error_msg.debugAdapterNotInitialized":"Oracle Java SE 调试服务器适配器尚未初始化。请稍候，然后重试。",
   "jdk.workspace.new.prompt": "输入生成新文件的目录路径",
   "jdk.extension.utils.error_message.failedHttpsRequest": "无法获取 {url} ({statusCode})",
-  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} 未启用"
+  "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} 未启用",
+  "jdk.telemetry.consent": "Allow anonymous telemetry data to be reported to Oracle? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled."
 }

@@ -20,13 +20,16 @@ enum LogLevel {
     INFO = 'INFO',
     WARN = 'WARN',
     ERROR = 'ERROR',
+    DEBUG = 'DEBUG',
 }
 
 export class ExtensionLogger {
     private outChannel: OutputChannel;
+    private isDebugLogEnabled: boolean;
 
     constructor(channelName: string) {
         this.outChannel = window.createOutputChannel(channelName);
+        this.isDebugLogEnabled = process.env['oracle_oracleJava_enable_debugLogs'] === "true";
     }
 
     public log(message: string): void {
@@ -42,6 +45,13 @@ export class ExtensionLogger {
     public error(message: string): void {
         const formattedMessage = `[${LogLevel.ERROR}]: ${message}`;
         this.printLog(formattedMessage);
+    }
+
+    public debug(message: string): void {
+        if(this.isDebugLogEnabled){
+            const formattedMessage = `[${LogLevel.DEBUG}]: ${message}`;
+            this.printLog(formattedMessage);
+        }
     }
 
     public logNoNL(message: string): void {
