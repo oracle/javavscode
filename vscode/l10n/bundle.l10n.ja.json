@@ -47,7 +47,7 @@
   "jdk.extension.fileSelector.label.testFilesOrSourceFiles": "互いに関連付けられているテスト・ファイルまたはソース・ファイル",
   "jdk.extension.fileSelector.label.noFileSelected": "ファイルが選択されていません",
   "jdk.extension.fileSelector.label.noTestFound": "テストまたはテスト済のクラスが見つかりません",
-  "jdk.extension.cache.message.confirmToDeleteCache": "このワークスペースのキャッシュを削除しますか。",
+  "jdk.extension.cache.message.confirmToDeleteCache": "このワークスペースのキャッシュを削除してウィンドウをリロードしますか。",
   "jdk.extension.cache.label.confirmation.yes":"はい",
   "jdk.extension.cache.label.confirmation.cancel":"取消",
   "jdk.extension.cache.message.cacheCleared":"このワークスペースのキャッシュは正常に消去されました",
@@ -96,5 +96,5 @@
   "jdk.workspace.new.prompt": "新しいファイルを生成するディレクトリのパスを入力してください",
   "jdk.extension.utils.error_message.failedHttpsRequest": "{url}の取得に失敗しました({statusCode})",
   "jdk.extension.error_msg.notEnabled": "{SERVER_NAME}が有効化されていません",
-  "jdk.telemetry.consent": "Allow anonymous telemetry data to be reported to Oracle? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled."
+  "jdk.telemetry.consent": "匿名テレメトリ・データをOracleにレポートすることを許可しますか。jdk.telemetry.enabledの設定からいつでもオプトアウトまたはオプトインできます。"
 }

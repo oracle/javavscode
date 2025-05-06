@@ -47,7 +47,7 @@
   "jdk.extension.fileSelector.label.testFilesOrSourceFiles": "相互关联的测试文件或源文件",
   "jdk.extension.fileSelector.label.noFileSelected": "未选择任何文件",
   "jdk.extension.fileSelector.label.noTestFound": "找不到测试或测试的类",
-  "jdk.extension.cache.message.confirmToDeleteCache": "是否确实要删除此工作区的高速缓存？",
+  "jdk.extension.cache.message.confirmToDeleteCache": "是否确实要删除此工作区的高速缓存并重新加载窗口？",
   "jdk.extension.cache.label.confirmation.yes":"是",
   "jdk.extension.cache.label.confirmation.cancel":"取消",
   "jdk.extension.cache.message.cacheCleared":"已成功清除此工作区的高速缓存",
@@ -96,5 +96,5 @@
   "jdk.workspace.new.prompt": "输入生成新文件的目录路径",
   "jdk.extension.utils.error_message.failedHttpsRequest": "无法获取 {url} ({statusCode})",
   "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} 未启用",
-  "jdk.telemetry.consent": "Allow anonymous telemetry data to be reported to Oracle? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled."
+  "jdk.telemetry.consent": "是否允许向 Oracle 报告匿名遥测数据？您随时可以通过 jdk.telemetry.enabled 对应的设置选择退出或加入。"
 }
