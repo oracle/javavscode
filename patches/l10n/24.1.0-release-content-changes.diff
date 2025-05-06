@@ -1,0 +1,54 @@
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+index 8a85dd0a6..80ec09ec8 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+@@ -32,7 +32,7 @@ CTL_TemplateUI_SelectGroup=\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u30FB\u30BF\u30A
+ CTL_TemplateUI_SelectName=\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306E\u540D\u524D\u3002
+ CTL_TemplateUI_SelectPackageName=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u30D1\u30C3\u30B1\u30FC\u30B8\u540D\u3002
+ CTL_TemplateUI_SelectPackageNameSuggestion=org.yourcompany.yourproject
+-CTL_TemplateUI_SelectProjectTarget=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u30FB\u30C7\u30A3\u30EC\u30AF\u30C8\u30EA\u306E\u6307\u5B9A
++CTL_TemplateUI_SelectProjectTarget=\u65B0\u898F\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u30FB\u30C7\u30A3\u30EC\u30AF\u30C8\u30EA\u306E\u6307\u5B9A
+ CTL_TemplateUI_SelectTarget=\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306E\u914D\u7F6E\u5148\u3002
+ CTL_TemplateUI_SelectTemplate=\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u306E\u9078\u629E
+ DN_ConstructorAlreadyExists=\u6307\u5B9A\u306E\u30B3\u30F3\u30B9\u30C8\u30E9\u30AF\u30BF\u306F\u3059\u3067\u306B\u5B58\u5728\u3057\u307E\u3059
+@@ -75,8 +75,12 @@ DN_SelectType=\u958B\u304F\u30BF\u30A4\u30D7\u306E\u9078\u629E
+ DN_SurroundWith={0}\u3067\u56F2\u3080
+ DN_SurroundWithAll=\u56F2\u3080...
+ ERR_ExistingPath={0}\u306F\u3059\u3067\u306B\u5B58\u5728\u3057\u307E\u3059
+-ERR_InvalidPath={0}\u306F\u6709\u52B9\u306A\u30D5\u30A9\u30EB\u30C0\u3067\u306F\u3042\u308A\u307E\u305B\u3093
++ERR_InvalidNewPath={0}\u306F\u6709\u52B9\u306A\u30D1\u30B9\u3067\u306F\u306A\u3044\u304B\u3001\u8AAD\u53D6\u308A\u5C02\u7528\u3067\u3059
++ERR_InvalidObjectName={0}\u306F\u6709\u52B9\u306A\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u540D\u3067\u306F\u3042\u308A\u307E\u305B\u3093
++ERR_InvalidPackageName={0}\u306F\u6709\u52B9\u306A\u30D1\u30C3\u30B1\u30FC\u30B8\u540D\u3067\u306F\u3042\u308A\u307E\u305B\u3093
++ERR_InvalidPath={0}\u306F\u6709\u52B9\u306A\u30D5\u30A9\u30EB\u30C0\u3067\u306F\u306A\u3044\u304B\u3001\u8AAD\u53D6\u308A\u5C02\u7528\u3067\u3059
+ LBL_LaunchJavaConfig=Java\u306E\u8D77\u52D5: {0}
++INFO_LongCodeCompletion={0}\u3088\u308A\u3082\u9577\u3044\u6642\u9593\u3092\u8981\u3057\u3066\u3044\u308B\u5B8C\u4E86\u3092\u5206\u6790\u3057\u307E\u3059\u3002\u30B5\u30F3\u30D7\u30E9\u30FB\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u306F\u6B21\u306B\u4FDD\u5B58\u3055\u308C\u3066\u3044\u307E\u3059: {1}
+ LBL_LaunchJavaConfig_desc={0}\u3092\u4F7F\u7528\u3057\u3066Java\u30A2\u30D7\u30EA\u30B1\u30FC\u30B7\u30E7\u30F3\u3092\u8D77\u52D5\u3057\u307E\u3059\u3002
+ MSG_ProjectFolderInitializationComplete=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
+ MSG_ProjectFolderInitializationComplete2={0}\u304A\u3088\u3073{1}\u306E\u4ED6\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+index 3b060015d..afed6a3ba 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+@@ -32,7 +32,7 @@ CTL_TemplateUI_SelectGroup=\u9009\u62E9\u6A21\u677F\u7C7B\u578B
+ CTL_TemplateUI_SelectName=\u5BF9\u8C61\u7684\u540D\u79F0\uFF1F
+ CTL_TemplateUI_SelectPackageName=\u9879\u76EE\u7684\u7A0B\u5E8F\u5305\u540D\u79F0\uFF1F
+ CTL_TemplateUI_SelectPackageNameSuggestion=org.yourcompany.yourproject
+-CTL_TemplateUI_SelectProjectTarget=\u6307\u5B9A\u9879\u76EE\u76EE\u5F55
++CTL_TemplateUI_SelectProjectTarget=\u6307\u5B9A\u65B0\u7684\u9879\u76EE\u76EE\u5F55
+ CTL_TemplateUI_SelectTarget=\u5C06\u5BF9\u8C61\u653E\u7F6E\u5728\u4F55\u5904\uFF1F
+ CTL_TemplateUI_SelectTemplate=\u9009\u62E9\u6A21\u677F
+ DN_ConstructorAlreadyExists=\u7ED9\u5B9A\u7684\u6784\u9020\u51FD\u6570\u5DF2\u5B58\u5728
+@@ -75,8 +75,12 @@ DN_SelectType=\u9009\u62E9\u8981\u6253\u5F00\u7684\u7C7B\u578B
+ DN_SurroundWith=\u7531 {0} \u5305\u542B
+ DN_SurroundWithAll=\u5305\u542B\u65B9\u5F0F...
+ ERR_ExistingPath={0} \u5DF2\u5B58\u5728
+-ERR_InvalidPath={0} \u4E0D\u662F\u6709\u6548\u6587\u4EF6\u5939
++ERR_InvalidNewPath={0} \u4E0D\u662F\u6709\u6548\u8DEF\u5F84\u6216\u662F\u53EA\u8BFB\u8DEF\u5F84
++ERR_InvalidObjectName={0} \u4E0D\u662F\u6709\u6548\u7684\u5BF9\u8C61\u540D\u79F0
++ERR_InvalidPackageName={0} \u4E0D\u662F\u6709\u6548\u7684\u7A0B\u5E8F\u5305\u540D\u79F0
++ERR_InvalidPath={0} \u4E0D\u662F\u6709\u6548\u6587\u4EF6\u5939\u6216\u662F\u53EA\u8BFB\u6587\u4EF6\u5939
+ LBL_LaunchJavaConfig=\u542F\u52A8 Java\uFF1A{0}
++INFO_LongCodeCompletion=\u5206\u6790\u5B8C\u6210\u6240\u7528\u65F6\u95F4\u8D85\u8FC7 {0}\u3002\u4E00\u4E2A\u91C7\u6837\u5668\u5FEB\u7167\u5DF2\u4FDD\u5B58\u5230\uFF1A{1}
+ LBL_LaunchJavaConfig_desc=\u4F7F\u7528 {0} \u542F\u52A8 Java \u5E94\u7528\u7A0B\u5E8F\u3002
+ MSG_ProjectFolderInitializationComplete=\u5DF2\u5B8C\u6210\u9879\u76EE {0} \u7684\u521D\u59CB\u5316
+ MSG_ProjectFolderInitializationComplete2=\u5DF2\u5B8C\u6210 {0} \u548C {1} \u4E2A\u5176\u4ED6\u9879\u76EE\u7684\u521D\u59CB\u5316

@@ -1,0 +1,80 @@
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+index 80ec09ec8..aaad0135f 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+@@ -18,10 +18,6 @@ OpenIDE-Module-Name=Java LSP Server
+ OpenIDE-Module-Display-Category=Java
+ OpenIDE-Module-Short-Description=Java LSP Server
+ 
+-LBL_Run={0} \u3092\u5B9F\u884C
+-LBL_Debug={0} \u3092\u30C7\u30D0\u30C3\u30B0
+-LBL_RunWith={0} \u3092\u6307\u5B9A\u3057\u3066 {1} \u3092\u5B9F\u884C
+-LBL_DebugWith={0} \u3092\u6307\u5B9A\u3057\u3066 {1} \u3092\u30C7\u30D0\u30C3\u30B0
+ LBL_TestMethod={0} \u3092\u30C6\u30B9\u30C8
+ LBL_ProfileMethod={0} \u3092\u30D7\u30ED\u30D5\u30A1\u30A4\u30EA\u30F3\u30B0
+ LBL_Clean=\u6D88\u53BB
+@@ -82,6 +78,10 @@ ERR_InvalidPath={0}\u306F\u6709\u52B9\u306A\u30D5\u30A9\u30EB\u30C0\u3067\u306F\
+ LBL_LaunchJavaConfig=Java\u306E\u8D77\u52D5: {0}
+ INFO_LongCodeCompletion={0}\u3088\u308A\u3082\u9577\u3044\u6642\u9593\u3092\u8981\u3057\u3066\u3044\u308B\u5B8C\u4E86\u3092\u5206\u6790\u3057\u307E\u3059\u3002\u30B5\u30F3\u30D7\u30E9\u30FB\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u306F\u6B21\u306B\u4FDD\u5B58\u3055\u308C\u3066\u3044\u307E\u3059: {1}
+ LBL_LaunchJavaConfig_desc={0}\u3092\u4F7F\u7528\u3057\u3066Java\u30A2\u30D7\u30EA\u30B1\u30FC\u30B7\u30E7\u30F3\u3092\u8D77\u52D5\u3057\u307E\u3059\u3002
++LBL_Run={0} \u3092\u5B9F\u884C
++LBL_Debug={0} \u3092\u30C7\u30D0\u30C3\u30B0
++LBL_RunWith={1} \u3092\u6307\u5B9A\u3057\u3066 {0} \u3092\u5B9F\u884C
++LBL_DebugWith={1} \u3092\u6307\u5B9A\u3057\u3066 {0} \u3092\u30C7\u30D0\u30C3\u30B0
+ MSG_ProjectFolderInitializationComplete=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
+ MSG_ProjectFolderInitializationComplete2={0}\u304A\u3088\u3073{1}\u306E\u4ED6\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
+ PROMPT_AskOpenProject=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u3059\u3079\u3066\u306E\u6A5F\u80FD\u3092\u6709\u52B9\u306B\u3059\u308B\u306B\u306F\u3001\u8A00\u8A9E\u30B5\u30FC\u30D0\u30FC\u306B\u3088\u3063\u3066\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u304C\u958B\u304B\u308C\u3001\u521D\u671F\u5316\u3055\u308C\u3066\u3044\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002\u7D9A\u884C\u3057\u307E\u3059\u304B\u3002
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+index afed6a3ba..1e5a70edb 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+@@ -18,10 +18,6 @@ OpenIDE-Module-Name=Java LSP Server
+ OpenIDE-Module-Display-Category=Java
+ OpenIDE-Module-Short-Description=Java LSP Server
+ 
+-LBL_Run=\u8FD0\u884C {0}
+-LBL_Debug=\u8C03\u8BD5 {0},
+-LBL_RunWith=\u4F7F\u7528 {0} \u8FD0\u884C {1}
+-LBL_DebugWith=\u4F7F\u7528 {0} \u8C03\u8BD5 {1}
+ LBL_TestMethod=\u6D4B\u8BD5 {0}
+ LBL_ProfileMethod=\u6982\u8981\u5206\u6790 {0}
+ LBL_Clean=\u6E05\u9664
+@@ -49,8 +45,8 @@ DN_GenerateHashCode=\u751F\u6210 hashCode()...
+ DN_GenerateImplementMethod=\u751F\u6210\u5B9E\u65BD\u65B9\u6CD5...
+ DN_GenerateLogger=\u751F\u6210\u65E5\u5FD7\u8BB0\u5F55\u7A0B\u5E8F...
+ DN_GenerateOverrideMethod=\u751F\u6210\u8986\u76D6\u65B9\u6CD5...
+-DN_GenerateSetterFor=\u751F\u6210 "{0}" \u7684 \u4E8C\u4F20\u624B
+-DN_GenerateSetters=\u751F\u6210 \u4E8C\u4F20\u624B...
++DN_GenerateSetterFor=\u751F\u6210 "{0}" \u7684\u4E8C\u4F20\u624B
++DN_GenerateSetters=\u751F\u6210\u4E8C\u4F20\u624B...
+ DN_GenerateTestClass=\u751F\u6210\u6D4B\u8BD5...
+ DN_GenerateToString=\u751F\u6210 toString()...
+ DN_NoTypeFound=\u5728\u6253\u5F00\u7684\u9879\u76EE\u4E2D\u672A\u627E\u5230\u7C7B\u578B
+@@ -62,13 +58,13 @@ DN_SelectDelegateMethods=\u9009\u62E9\u8981\u751F\u6210\u59D4\u6258\u7684\u65B9\
+ DN_SelectEquals=\u9009\u62E9\u8981\u5305\u542B\u5728 equals() \u4E2D\u7684\u5B57\u6BB5
+ DN_SelectEqualsHashCode=\u9009\u62E9\u8981\u5305\u542B\u5728 equals() \u548C hashCode() \u4E2D\u7684\u5B57\u6BB5
+ DN_SelectFramework=\u9009\u62E9\u8981\u4F7F\u7528\u7684\u6D4B\u8BD5\u6846\u67B6
+-DN_SelectGetters=\u9009\u62E9\u8981\u751F\u6210 \u5438\u6C14\u5242 \u7684\u5B57\u6BB5
+-DN_SelectGettersSetters=\u9009\u62E9\u8981\u751F\u6210 \u5438\u6C14\u5242 \u548C \u4E8C\u4F20\u624B \u7684\u5B57\u6BB5
++DN_SelectGetters=\u9009\u62E9\u8981\u751F\u6210\u5438\u6C14\u5242\u7684\u5B57\u6BB5
++DN_SelectGettersSetters=\u9009\u62E9\u8981\u751F\u6210\u5438\u6C14\u5242\u548C\u4E8C\u4F20\u624B\u7684\u5B57\u6BB5
+ DN_SelectHashCode=\u9009\u62E9\u8981\u5305\u542B\u5728 hashCode() \u4E2D\u7684\u5B57\u6BB5
+ DN_SelectImplementMethod=\u9009\u62E9\u8981\u5B9E\u73B0\u7684\u65B9\u6CD5
+ DN_SelectLoggerName=\u65E5\u5FD7\u8BB0\u5F55\u7A0B\u5E8F\u5B57\u6BB5\u540D\u79F0
+ DN_SelectOverrideMethod=\u9009\u62E9\u8981\u8986\u76D6\u7684\u65B9\u6CD5
+-DN_SelectSetters=\u9009\u62E9\u8981\u751F\u6210 \u4E8C\u4F20\u624B \u7684\u5B57\u6BB5
++DN_SelectSetters=\u9009\u62E9\u8981\u751F\u6210\u4E8C\u4F20\u624B\u7684\u5B57\u6BB5
+ DN_SelectSuperConstructor=\u9009\u62E9\u8D85\u7EA7\u6784\u9020\u51FD\u6570
+ DN_SelectToString=\u9009\u62E9\u8981\u5305\u542B\u5728 toString() \u4E2D\u7684\u5B57\u6BB5
+ DN_SelectType=\u9009\u62E9\u8981\u6253\u5F00\u7684\u7C7B\u578B
+@@ -82,6 +78,10 @@ ERR_InvalidPath={0} \u4E0D\u662F\u6709\u6548\u6587\u4EF6\u5939\u6216\u662F\u53EA
+ LBL_LaunchJavaConfig=\u542F\u52A8 Java\uFF1A{0}
+ INFO_LongCodeCompletion=\u5206\u6790\u5B8C\u6210\u6240\u7528\u65F6\u95F4\u8D85\u8FC7 {0}\u3002\u4E00\u4E2A\u91C7\u6837\u5668\u5FEB\u7167\u5DF2\u4FDD\u5B58\u5230\uFF1A{1}
+ LBL_LaunchJavaConfig_desc=\u4F7F\u7528 {0} \u542F\u52A8 Java \u5E94\u7528\u7A0B\u5E8F\u3002
++LBL_Run=\u8FD0\u884C {0}
++LBL_Debug=\u8C03\u8BD5 {0}
++LBL_RunWith=\u4F7F\u7528 {1} \u8FD0\u884C {0}
++LBL_DebugWith=\u4F7F\u7528 {1} \u8C03\u8BD5 {0}
+ MSG_ProjectFolderInitializationComplete=\u5DF2\u5B8C\u6210\u9879\u76EE {0} \u7684\u521D\u59CB\u5316
+ MSG_ProjectFolderInitializationComplete2=\u5DF2\u5B8C\u6210 {0} \u548C {1} \u4E2A\u5176\u4ED6\u9879\u76EE\u7684\u521D\u59CB\u5316
+ PROMPT_AskOpenProject=\u8981\u542F\u7528\u9879\u76EE {0} \u7684\u6240\u6709\u529F\u80FD\uFF0C\u5E94\u4F7F\u7528 Language Server \u6253\u5F00\u5E76\u521D\u59CB\u5316\u6B64\u9879\u76EE\u3002\u662F\u5426\u8981\u7EE7\u7EED\uFF1F

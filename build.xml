@@ -35,6 +35,8 @@
         <string>
             patches/l10n/filter-enabled-clusters-disabled-modules-code-cleanup.diff
             patches/l10n/adding-java.lsp.server-ja-and-zh_CN.diff
+            patches/l10n/24.1.0-release-content-changes.diff
+            patches/l10n/24.1.0-previous-issues-fix.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
