@@ -1,19 +1,19 @@
 # About Oracle Java Platform Extension for Visual Studio Code use of Telemetry
 ## First Your Privacy and Anonymity
 
-During startup, close or usage of the Oracle Java Platform extension for Visual Studio Code (hereafter referred to as "JVSCE"), Oracle does not collect or track any personally identifiable information (such as names or email addresses) about you or your source code, or associate your usage of  JVSCE with personally identifiable data.
+During startup, a close event (defined below) or usage of the Oracle Java Platform extension for Visual Studio Code (hereafter referred to as "JVSCE"), Oracle does not collect or track any personally identifiable information (such as names or email addresses) about you or your source code, or associate your usage of JVSCE with personally identifiable data.
 
-If  you choose to enable telemetry collection in JVSCE, we will collect a limited set of information that is not personally identifiable. It is anonymous technical data commonly known as "telemetry". An element-by-element description of what is collected and how it helps us, [is listed below](#specifics-about-java-extension-usage-metrics).
+If you choose to enable telemetry collection in JVSCE, we will collect a limited set of information that is not personally identifiable. It is anonymous technical data commonly known as "telemetry". An element-by-element description of what is collected and how it helps us, [is listed below](#specifics-about-java-extension-usage-metrics).
 
 We do not transmit your source code nor the contents of the files you edit with Visual Studio Code.
 
 ## We Collect this Data to Measure Our Own Performance, Diagnose Problems, and Improve Your Experience
-The purpose of the telemetry transmitted to Oracle during the JVSCE startup, close, or usage, is to find any technical problems or anomalies that occur, so we can understand and correct them; as well as, to understand the usage of Java versions and language features, so we can help improve the platform. It's similar to a car mechanic's practice of plugging into your engine's diagnostic port to identify performance issues (not to identify the car's owner!). The issues we identify could be anything from slow performance or missing platforms for JDK builds to adoption of popular Java language capabilities. Your source code, privacy and anonymity are not compromised by our collecting this telemetry. The information thus collected helps to improve the extension experience and the Java platform.
+The purpose of the telemetry transmitted to Oracle during the JVSCE startup, close, or usage, is to find any technical problems or anomalies that occur, so we can understand and correct them; as well as, to understand the usage of Java versions and language features, so we can help improve the platform. It's similar to a car mechanic's practice of plugging into your engine's diagnostic port to identify performance issues (not to identify the car's owner!). The issues we identify could be anything from slow performance or missing platforms for JDK builds to adoption of popular Java language capabilities. Your source code, privacy and anonymity are not compromised by our collecting this telemetry. The information thus collected helps to improve the JVSCE extension experience and the Java platform.
 
 ## If You Would Like to Enable or Disable the Collection of this Data
-If you have not already made a choice for this setting, the extension might request that you enable Telemetry via a notification pop-up at the time of activation of the extension.  
+If you have not already made a choice for this setting, the JVSCE extension might request that you enable Telemetry via a notification pop-up at the time of activation of the extension.
 
-If you wish to enable or disable the collection and transmission of the telemetry, you may do so from VS Code Settings &rarr; [jdk.telemetry.enabled](vscode://settings/jdk.telemetry.enabled).  
+If you wish to enable or disable the collection and transmission of the telemetry, you may do so from VS Code Settings &rarr; [jdk.telemetry.enabled](vscode://settings/jdk.telemetry.enabled).
 
 No information is sent to Oracle prior to you enabling Telemetry. 
 
@@ -41,7 +41,7 @@ The following types of messages may be sent if users have consented to telemetry
     - When a JDK is downloaded and installed using JVSCE, a "JDK Download" event is sent.
     - This contains information about the Java version downloaded.
 5. JDK Feature
-    - A "JDK Feature" event is sent when certain Java language features, such as `records`, `switch-expressions`, `pattern-matching` etc., or, functionality introduced in [JEPs](https://openjdk.org/jeps/0), is used while editing a Java file.
+    - A "JDK Feature" event is sent when certain Java language features, such as `records`, `switch-expressions`, `pattern-matching`, etc., or functionality introduced in [JEPs](https://openjdk.org/jeps/0) is used while editing a Java file.
     - This contains information about the Java version in use and the feature names or JEP numbers used. 
 
 ## WHAT Information is Sent to Oracle?
