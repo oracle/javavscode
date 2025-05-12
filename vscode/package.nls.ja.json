@@ -48,6 +48,7 @@
     "jdk.configuration.disableProjectSearchLimit.description": "拡張オプション: プロジェクト情報が含まれているフォルダの検索に対する制限を無効化します。",
     "jdk.configuration.telemetry.enabled.description": "Javaプラットフォームの改善を支援するために、Oracle Java extension for Visual Studio Code (\"JVSCE\")での、匿名テクニカル・データ(一般的に\"テレメトリ・データ\"と呼ばれる)の収集およびOracleへの送信を許可します。個人情報およびソース・コードは収集されません。JVSCEのデータ収集およびプライバシ・ポリシーはhttps://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.mdを参照してください",
     "jdk.configuration.telemetry.enabled.markdownDescription": "Javaプラットフォームの改善を支援するために、Oracle Java extension for Visual Studio Code (\"*JVSCE*\")での、匿名テクニカル・データ(一般的に\"*テレメトリ・データ*\"と呼ばれる)の収集およびOracleへの送信を許可します。個人情報およびソース・コードは収集されません。JVSCEのデータ収集およびプライバシ・ポリシーは[TELEMETRY.md](https://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.md)を参照してください。",
+    "jdk.debugger.configuration.mainClass.description": "プログラムのメイン・クラスへの絶対パス。",
     "jdk.debugger.configuration.mainClass.markdownDescription": "メイン・クラス仕様。サポートされているフォーマット:\n - 絶対パス\n - 任意のワークスペース・フォルダからの相対パス\n - クラスの完全修飾名。",
     "jdk.debugger.configuration.classPaths.description": "JVMの起動のためのクラスパス。",
     "jdk.debugger.configuration.console.description": "プログラムを起動する指定されたコンソール。",
