@@ -65,7 +65,7 @@
     "jdk.debugger.configuration.attach.listen.description": "监听要附加的被调试程序",
     "jdk.debugger.configuration.attach.timeout.description": "等待附加操作时的超时",
     "jdk.debugger.configuration.completion.warning.time.description": "当代码完成所用时间超过此指定时间（毫秒）时，将生成警告（-1 表示禁用）",
-    "jdk.configuration.java.completion.commit.chars": "Specifies the characters that trigger accepting a code completion suggestion. For example, to accept suggestions when typing a dot (.), set this to [\".\"]",
+    "jdk.configuration.java.completion.commit.chars": "指定用于触发接受代码补全建议的字符。例如，要在键入点 (.) 时接受建议，请将该字符设为 [\".\"]",
     "jdk.initialConfigurations.launchJavaApp.name": "启动 Java 应用程序",
     "jdk.configurationSnippets.name": "启动 Java 应用程序",
     "jdk.configurationSnippets.label": "Java+：启动 Java 应用程序",
