@@ -22,7 +22,32 @@
     under the License.
 
 -->
+## Version 24.1.0
+### What's Changed
+
+#### Enhancements
+* User-input validation while creating a new project/file [#405](https://github.com/oracle/javavscode/pull/405)
+* Support refactoring in single-source files [#411](https://github.com/oracle/javavscode/pull/408)
+* User configuration for setting up code completion selection character [#418](https://github.com/oracle/javavscode/pull/418)
+
+#### Bug Fixes
+* Method parameter refactoring UI fix [#408](https://github.com/oracle/javavscode/pull/408)
+* Improved control on execution launch commands	[#413](https://github.com/oracle/javavscode/pull/413),[#416](https://github.com/oracle/javavscode/pull/416)
+* Class cast exception while opening pom.xml file fixed [#414](https://github.com/oracle/javavscode/pull/414)
+
+#### Other Changes
+* Upgraded dev dependencies and removed unused dependencies [#322](https://github.com/oracle/javavscode/pull/322), [#412](https://github.com/oracle/javavscode/pull/412)
+* Telemetry release	[#417](https://github.com/oracle/javavscode/pull/417)
+* Fixed label and id issue in JDK downloader [#379](https://github.com/oracle/javavscode/pull/379), [#389](https://github.com/oracle/javavscode/pull/389)
+* Updated OpenJDK CPU release download url [#400](https://github.com/oracle/javavscode/pull/400)
+* copyright headers maintenance [#404](https://github.com/oracle/javavscode/pull/404)
+* Updated messages for the minimum version of JDK to 24 for disabling nb-javac [#410](https://github.com/oracle/javavscode/pull/410)
+* Translation of additional localisable content [#419](https://github.com/oracle/javavscode/pull/419), [#422](https://github.com/oracle/javavscode/pull/422)
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v24.0.0...v24.1.0
+
 ## Version 24.0.0
+### What's Changed
 
 #### Enhancements
 * [JAVAVSCODE-36,335] Allow relative paths and class names as 'mainClass' setting in launch.json [netbeans/#8280](https://github.com/apache/netbeans/pull/8280)
