@@ -28,7 +28,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as myExplorer from '../../../../views/projects';
 import { CodeAction, commands, extensions, Selection, Uri, window, workspace, TreeItem } from 'vscode';
-import { assertWorkspace, awaitClient, dumpJava, findClusters, getFilePaths, openFile, prepareProject, replaceCode } from '../../testutils';
+import { addSleepIfWindowsPlatform, assertWorkspace, awaitClient, dumpJava, findClusters, getFilePaths, openFile, prepareProject, replaceCode } from '../../testutils';
 import { FORMATTED_POM_XML, SAMPLE_CODE_FORMAT_DOCUMENT, SAMPLE_CODE_SORT_IMPORTS, SAMPLE_CODE_UNUSED_IMPORTS } from '../../constants';
 import { extCommands } from '../../../../commands/commands';
 
@@ -124,7 +124,7 @@ suite('Extension Test Suite', function () {
   test("Sort imports", async () => {
     const editor = await openFile(filePaths.sortImports);
     await replaceCode(editor, SAMPLE_CODE_SORT_IMPORTS);
-
+    await addSleepIfWindowsPlatform();
     const isSaved = await editor.document.save();
     assert.ok(isSaved, "document cannot be saved");
 
@@ -139,7 +139,7 @@ suite('Extension Test Suite', function () {
   test("Remove unused imports", async () => {
     const editor = await openFile(filePaths.unusedImports);
     await replaceCode(editor, SAMPLE_CODE_UNUSED_IMPORTS);
-
+    await addSleepIfWindowsPlatform();
     const isSaved = await editor.document.save();
     assert.ok(isSaved, "document cannot be saved");
 

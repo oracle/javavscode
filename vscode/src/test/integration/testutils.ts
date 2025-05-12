@@ -23,6 +23,7 @@
 
 import * as assert from "assert";
 import * as fs from "fs";
+import * as os from "os";
 import { glob } from 'glob';
 import * as Mocha from 'mocha';
 import * as path from "path";
@@ -625,4 +626,11 @@ function isLocalizedObj(obj: any, localisableFields: any, id: string, category: 
         }
     }
     return localized;
+}
+
+export const addSleepIfWindowsPlatform = async (): Promise<void> => {
+	if (os.type().includes("Windows")) {
+		const timeoutEnv = parseInt(process.env['oracle_oracleJava_windows_sleep_timeout'] || "30000");
+		await new Promise<void>(r => setTimeout(() => r(), timeoutEnv));
+	}
 }
