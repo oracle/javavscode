@@ -413,7 +413,7 @@ index 9134992f5f..f070fec320 100644
          if (caps == null) {
              caps = new ClientCapabilities();
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
-index 13cbcdd628..4b02a84c8b 100644
+index 13cbcdd628..747d151600 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
 @@ -164,7 +164,6 @@ public final class Server {
@@ -445,7 +445,7 @@ index 13cbcdd628..4b02a84c8b 100644
          public CompletableFuture<InitializeResult> initialize(InitializeParams init) {
              NbCodeClientCapabilities capa = NbCodeClientCapabilities.get(init);
              client.setClientCaps(capa);
-+            if (capa.wantsTelemetryEnabled()) {
++            if (capa != null && capa.wantsTelemetryEnabled()) {
 +                LspServerTelemetryManager.getInstance().connect(client, lspSession.getLspServer().getRunningFuture());
 +            }
              hackConfigureGroovySupport(capa);
