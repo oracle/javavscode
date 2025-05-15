@@ -26,7 +26,7 @@ export namespace Telemetry {
 
 	export const getIsTelemetryFeatureAvailable = (): boolean => {
 		const TELEMETRY_API = TelemetryConfiguration.getInstance()?.getApiConfig();
-		return TELEMETRY_API?.baseUrl != null && TELEMETRY_API?.baseUrl.trim().length > 0;
+		return TELEMETRY_API?.baseUrl != null && TELEMETRY_API?.baseUrl.trim().length > 0 && (TELEMETRY_API?.baseUrl.trim().startsWith("https://") || process.env['oracle_oracleJava_allow_httpTelemetryServer'] === "true");
 	}
 
 	export const initializeTelemetry = (contextInfo: ExtensionContextInfo): TelemetryManager => {

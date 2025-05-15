@@ -196,7 +196,7 @@ export class JdkDownloaderView {
             if (isString(availableVersions)) {
                 const availableVersionsObj = JSON.parse(availableVersions);
                 if (availableVersionsObj?.items) {
-                    const jdkVersions = availableVersionsObj?.items?.map((version: any) => version.jdkDetails.jdkVersion);
+                    const jdkVersions = availableVersionsObj?.items?.map((version: any) => String(version.jdkDetails.jdkVersion).replace(/[^a-zA-Z0-9_.+-]/g,""));
                     LOGGER.log(`Fetched Oracle JDK versions: ${jdkVersions}`);
 
                     return jdkVersions;
