@@ -41,7 +41,8 @@
 		"workspaceContains:build.gradle",
 		"onDebug",
 		"onDebugDynamicConfigurations",
-		"onNotebook:ijnb-notebook"
+		"onNotebook:ijnb-notebook",
+		"onNotebook:jupyter-notebook"
 	],
 	"main": "./out/extension.js",
 	"l10n": "./l10n",
