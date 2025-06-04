@@ -1,0 +1,135 @@
+diff --git a/ide/editor.document/src/org/netbeans/api/editor/document/LineDocumentUtils.java b/ide/editor.document/src/org/netbeans/api/editor/document/LineDocumentUtils.java
+index 5fb34c754a..247dda8b82 100644
+--- a/ide/editor.document/src/org/netbeans/api/editor/document/LineDocumentUtils.java
++++ b/ide/editor.document/src/org/netbeans/api/editor/document/LineDocumentUtils.java
+@@ -30,7 +30,6 @@ import org.netbeans.lib.editor.util.swing.DocumentUtilities;
+ import org.netbeans.modules.editor.document.DocumentServices;
+ import org.netbeans.modules.editor.document.TextSearchUtils;
+ import org.netbeans.modules.editor.document.implspi.CharClassifier;
+-import org.netbeans.modules.editor.lib2.AcceptorFactory;
+ import org.netbeans.spi.editor.document.DocumentFactory;
+ import org.openide.util.Lookup;
+ 
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/save/Reformatter.java b/java/java.source.base/src/org/netbeans/modules/java/source/save/Reformatter.java
+index 0e44783168..3202b2ac97 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/save/Reformatter.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/save/Reformatter.java
+@@ -2565,7 +2565,36 @@ public class Reformatter implements ReformatTask {
+             StatementTree elseStat = node.getElseStatement();
+             CodeStyle.BracesGenerationStyle redundantIfBraces = cs.redundantIfBraces();
+             int eoln = findNewlineAfterStatement(node);
+-            if ((elseStat != null && redundantIfBraces == CodeStyle.BracesGenerationStyle.ELIMINATE && danglingElseChecker.hasDanglingElse(node.getThenStatement())) ||
++            Boolean hasErrThenStatement = node.getThenStatement() instanceof ExpressionStatementTree thenStatement
++                                          && thenStatement.getExpression() instanceof ErroneousTree;
++            if (hasErrThenStatement) {
++                if (getCurrentPath().getParentPath().getLeaf() instanceof BlockTree parentStTree) {
++                    boolean isPreviousIfTree = false;
++                    int endPositionOfErrThenStatement = endPos;
++                    for (StatementTree statement : parentStTree.getStatements()) {
++                        if (isPreviousIfTree) {
++                            int startPositionOfNextErrorStatement = (int) sp.getStartPosition(getCurrentPath().getCompilationUnit(), statement);
++                            endPositionOfErrThenStatement = startPositionOfNextErrorStatement;
++                            break;
++                        } else if (statement == node) {
++                            isPreviousIfTree = true;
++                            endPositionOfErrThenStatement = (int) sp.getEndPosition(getCurrentPath().getCompilationUnit(), parentStTree) - 1;
++                        }
++
++                    }
++                    if (isPreviousIfTree) {
++                        while (tokens.offset() <= endPositionOfErrThenStatement && endPositionOfErrThenStatement != -1) {
++                            tokens.moveNext();
++                        }
++                        tokens.movePrevious();
++                        if (endPositionOfErrThenStatement != -1) {
++                            endPos = endPositionOfErrThenStatement;
++                        }
++                    }
++                }
++            }
++            
++            if (hasErrThenStatement || (elseStat != null && redundantIfBraces == CodeStyle.BracesGenerationStyle.ELIMINATE && danglingElseChecker.hasDanglingElse(node.getThenStatement())) ||
+                     (redundantIfBraces == CodeStyle.BracesGenerationStyle.GENERATE && (startOffset > sp.getStartPosition(root, node) || endOffset < eoln || node.getCondition().getKind() == Tree.Kind.ERRONEOUS))) {
+                 redundantIfBraces = CodeStyle.BracesGenerationStyle.LEAVE_ALONE;
+             }
+diff --git a/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/save/FormatingTest.java b/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/save/FormatingTest.java
+index 8797b9111b..d5962a9ba3 100644
+--- a/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/save/FormatingTest.java
++++ b/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/save/FormatingTest.java
+@@ -1556,6 +1556,76 @@ public class FormatingTest extends NbTestCase {
+         preferences.putBoolean("specialElseIf", false);
+         reformat(doc, content, golden);
+         preferences.putBoolean("specialElseIf", true);
++        
++       content = """
++                  package hierbas.del.litoral;
++                  class Test extends Integer implements Runnable, Serializable{
++                  public void run(){
++                     if ("foo".contains("bar"))))) )))  {
++                                System.out.println("bar");
++                    }
++                  }
++                  }
++                 """;
++        golden = """
++                 package hierbas.del.litoral;
++                 
++                 class Test extends Integer implements Runnable, Serializable {
++                 
++                     public void run() {
++                         if ("foo".contains("bar"))))) )))  {
++                             System.out.println("bar");
++                         }
++                     }
++                 }
++                 """;
++       reformat(doc, content, golden);
++       
++       content = """
++                  package hierbas.del.litoral;
++                  class Test extends Integer implements Runnable, Serializable{
++                  public void run(){
++                     if ("foo".contains("bar"))))) ))) 
++                  }
++                  }
++                 """;
++        golden = """
++                 package hierbas.del.litoral;
++                 
++                 class Test extends Integer implements Runnable, Serializable {
++                 
++                     public void run() {
++                         if ("foo".contains("bar"))))) )))
++                     }
++                 }
++                 """;
++       reformat(doc, content, golden);
++       
++       content = """
++                  package hierbas.del.litoral;
++                  class Test extends Integer implements Runnable, Serializable{
++                  public void run(){
++                     if ("foo".contains("bar"))))) ))) 
++                 else {
++                       System.out.println("bar2")
++                    }
++                  }
++                  }
++                 """;
++        golden = """
++                 package hierbas.del.litoral;
++                 
++                 class Test extends Integer implements Runnable, Serializable {
++                 
++                     public void run() {
++                         if ("foo".contains("bar"))))) )))
++                 else {
++                                     System.out.println("bar2")
++                                 }
++                     }
++                 }
++                 """;
++       reformat(doc, content, golden);
+     }
+ 
+     public void testWhile() throws Exception {
