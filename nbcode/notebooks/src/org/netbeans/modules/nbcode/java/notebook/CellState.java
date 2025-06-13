@@ -63,13 +63,14 @@ public class CellState {
     }
 
     public void setContent(String newContent, int newVersion) {
+        String normalizedContent = NotebookUtils.normalizeLineEndings(newContent);
         VersionAwareCotent currentContent = content.get();
 
         if (currentContent.getVersion() != newVersion - 1) {
             throw new IllegalStateException("Version mismatch: expected " + (newVersion - 1) + ", got " + currentContent.getVersion());
         }
 
-        VersionAwareCotent newVersionContent = new VersionAwareCotent(newContent, newVersion);
+        VersionAwareCotent newVersionContent = new VersionAwareCotent(normalizedContent, newVersion);
 
         if (!content.compareAndSet(currentContent, newVersionContent)) {
             throw new IllegalStateException("Concurrent modification detected. Version expected: " + (newVersion - 1) + ", current: " + content.get().getVersion());

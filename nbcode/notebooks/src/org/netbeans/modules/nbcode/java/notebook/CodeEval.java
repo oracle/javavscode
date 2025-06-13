@@ -67,10 +67,10 @@ public class CodeEval {
         try {
             List<SnippetEvent> events = jshell.eval(code);
             events.forEach(event -> {
-                if(event.value() != null && !event.value().isEmpty()){
+                if (event.value() != null && !event.value().isEmpty()) {
                     results.add(ResultEval.text(event.value()));
                 }
-                if(event.exception() != null){
+                if (event.exception() != null) {
                     results.add(ResultEval.text(event.exception().getMessage()));
                 }
             });

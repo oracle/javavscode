@@ -49,48 +49,48 @@ public class NotebookUtils {
 
         return normalized.toString();
     }
-    
+
     public static int getOffset(String content, Position position) {
         if (content == null || position == null) {
             return 0;
         }
-        
+
         String[] lines = content.split("\n", -1);
         int offset = 0;
         int targetLine = position.getLine();
         int targetChar = position.getCharacter();
-        
+
         if (targetLine < 0) {
             return 0;
         }
         if (targetLine >= lines.length) {
             return content.length();
         }
-        
+
         for (int i = 0; i < targetLine; i++) {
             offset += lines[i].length() + 1;
         }
-        
+
         String currentLine = lines[targetLine];
         int charPosition = Math.min(Math.max(targetChar, 0), currentLine.length());
         offset += charPosition;
-        
+
         return Math.min(offset, content.length());
     }
-    
+
     public static Position getPosition(String content, int offset) {
         if (content == null || offset <= 0) {
             return new Position(0, 0);
         }
-        
+
         int clampedOffset = Math.min(offset, content.length());
-        
+
         String textUpToOffset = content.substring(0, clampedOffset);
         String[] lines = textUpToOffset.split("\n", -1);
-        
+
         int line = lines.length - 1;
         int character = lines[line].length();
-        
+
         return new Position(line, character);
     }
 }

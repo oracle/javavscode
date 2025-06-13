@@ -65,7 +65,8 @@ export class NbLanguageClient extends LanguageClient {
                     'wantsTelemetryEnabled': Telemetry.getIsTelemetryFeatureAvailable(),
                     'commandPrefix': extConstants.COMMAND_PREFIX,
                     'configurationPrefix': `${extConstants.COMMAND_PREFIX}.`,
-                    'altConfigurationPrefix': `${extConstants.COMMAND_PREFIX}.`
+                    'altConfigurationPrefix': `${extConstants.COMMAND_PREFIX}.`,
+                    'wantsNotebookSupport': true
                 }
             },
             errorHandler: {

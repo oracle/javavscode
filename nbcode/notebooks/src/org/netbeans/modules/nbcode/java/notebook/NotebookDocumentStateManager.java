@@ -18,7 +18,9 @@ package org.netbeans.modules.nbcode.java.notebook;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.lsp4j.NotebookCell;
@@ -31,19 +33,21 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.VersionedNotebookDocumentIdentifier;
+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellContentRequestParams;
+import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 
 /**
  *
  * @author atalati
  */
 public class NotebookDocumentStateManager {
-    
+
     private static final Logger LOG = Logger.getLogger(NotebookDocumentStateManager.class.getName());
-    
+
     private final NotebookDocument notebookDoc;
     private final Map<String, CellState> cellsMap = new ConcurrentHashMap<>();
     private final List<String> cellsOrder;
-    
+
     public NotebookDocumentStateManager(NotebookDocument notebookDoc, List<TextDocumentItem> cells) {
         this.notebookDoc = notebookDoc;
         this.cellsOrder = new ArrayList<>();
@@ -52,13 +56,13 @@ public class NotebookDocumentStateManager {
             this.cellsOrder.add(cells.get(i).getUri());
         }
     }
-    
+
     public void syncState(VersionedNotebookDocumentIdentifier notebook, NotebookDocumentChangeEvent changeEvent, Map<String, String> cellsNotebookMap) {
         try {
             if (changeEvent.getCells() != null) {
                 updateNotebookCellStructure(changeEvent.getCells().getStructure(), cellsNotebookMap);
                 updateNotebookCellData(changeEvent.getCells().getData());
-                
+
                 if (changeEvent.getCells().getTextContent() != null) {
                     for (NotebookDocumentChangeEventCellTextContent contentChange : changeEvent.getCells().getTextContent()) {
                         updateNotebookCellContent(contentChange);
@@ -70,15 +74,15 @@ public class NotebookDocumentStateManager {
             throw new RuntimeException("Failed to sync notebook state", e);
         }
     }
-    
+
     public NotebookDocument getNotebookDocument() {
         return notebookDoc;
     }
-    
+
     public CellState getCell(String uri) {
         return cellsMap.get(uri);
     }
-    
+
     private void updateNotebookCellStructure(NotebookDocumentChangeEventCellStructure updatedStructure, Map<String, String> cellsNotebookMap) {
         if (updatedStructure == null) {
             return;
@@ -88,7 +92,7 @@ public class NotebookDocumentStateManager {
         if (deletedCells > 0 && updatedStructure.getDidClose() != null) {
             updatedStructure.getDidClose().forEach(cell -> {
                 String uri = cell.getUri();
-                
+
                 CellState removed = cellsMap.remove(uri);
                 cellsNotebookMap.remove(uri);
                 cellsOrder.remove(uri);
@@ -102,7 +106,7 @@ public class NotebookDocumentStateManager {
         int startIdx = updatedStructure.getArray().getStart();
         List<TextDocumentItem> cellsItem = updatedStructure.getDidOpen();
         List<NotebookCell> cellsDetail = updatedStructure.getArray().getCells();
-        
+
         if (cellsItem != null && cellsDetail != null && cellsDetail.size() == cellsItem.size()) {
             for (int i = 0; i < cellsDetail.size(); i++) {
                 addNewCellState(cellsDetail.get(i), cellsItem.get(i));
@@ -117,14 +121,14 @@ public class NotebookDocumentStateManager {
             LOG.severe("cell details is null or array size mismatch is present");
             throw new IllegalStateException("Error while adding cell to the notebook state");
         }
-        
+
     }
-    
+
     private void updateNotebookCellData(List<NotebookCell> data) {
         if (data == null) {
             return;
         }
-        
+
         data.forEach(cell -> {
             String cellUri = cell.getDocument();
             CellState cellState = cellsMap.get(cellUri);
@@ -137,7 +141,7 @@ public class NotebookDocumentStateManager {
             }
         });
     }
-    
+
     private void updateNotebookCellContent(NotebookDocumentChangeEventCellTextContent contentChange) {
         if (contentChange == null) {
             return;
@@ -161,14 +165,14 @@ public class NotebookDocumentStateManager {
             }
         }
     }
-    
+
     private String applyContentChanges(String originalContent, List<TextDocumentContentChangeEvent> changes) {
         if (originalContent == null) {
             originalContent = "";
         }
-        
+
         String currentContent = originalContent;
-        
+
         for (TextDocumentContentChangeEvent change : changes) {
             if (change.getRange() != null) {
                 currentContent = applyRangeChange(currentContent, change);
@@ -176,54 +180,54 @@ public class NotebookDocumentStateManager {
                 currentContent = change.getText();
             }
         }
-        
+
         return currentContent;
     }
-    
+
     private String applyRangeChange(String content, TextDocumentContentChangeEvent change) {
         Range range = change.getRange();
         Position start = range.getStart();
         Position end = range.getEnd();
-        
+
         String[] lines = content.split("\n", -1);
-        
+
         if (start.getLine() < 0 || start.getLine() >= lines.length
                 || end.getLine() < 0 || end.getLine() >= lines.length) {
             throw new IllegalArgumentException("Invalid range positions");
         }
-        
+
         StringBuilder result = new StringBuilder();
-        
+
         for (int i = 0; i < start.getLine(); i++) {
             result.append(lines[i]);
             if (i < lines.length - 1) {
                 result.append("\n");
             }
         }
-        
+
         String startLine = lines[start.getLine()];
         String beforeChange = startLine.substring(0, Math.min(start.getCharacter(), startLine.length()));
         result.append(beforeChange);
-        
+
         result.append(change.getText());
-        
+
         String endLine = lines[end.getLine()];
         String afterChange = endLine.substring(Math.min(end.getCharacter(), endLine.length()));
         result.append(afterChange);
-        
+
         for (int i = end.getLine() + 1; i < lines.length; i++) {
             result.append("\n").append(lines[i]);
         }
-        
+
         return result.toString();
     }
-    
+
     private void addNewCellState(NotebookCell cell, TextDocumentItem item) {
         if (cell == null || item == null) {
             LOG.log(Level.WARNING, "Attempted to add null cell or item");
             return;
         }
-        
+
         try {
             CellState cellState = new CellState(cell, item);
             cellsMap.put(item.getUri(), cellState);
