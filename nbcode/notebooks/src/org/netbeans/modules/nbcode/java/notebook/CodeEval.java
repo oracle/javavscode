@@ -31,7 +31,7 @@ import jdk.jshell.SourceCodeAnalysis;
  */
 public class CodeEval {
 
-    private static final Logger LOGGER = Logger.getLogger(CodeEval.class.getName());
+    private static final Logger LOG = Logger.getLogger(CodeEval.class.getName());
 
     public static List<ResultEval> evaluate(List<Object> arguments) {
         if (arguments != null) {
@@ -43,7 +43,7 @@ public class CodeEval {
                 notebookId = ((JsonPrimitive) arguments.get(1)).getAsString();
             }
             if (sourceCode != null && notebookId != null) {
-                JShell jshell = NotebookSessionManager.getInstance().getOrCreateSession(notebookId);
+                JShell jshell = NotebookSessionManager.getInstance().getSession(notebookId);
 
                 ByteArrayOutputStream outputStream = NotebookSessionManager.getInstance().getOutputStreamById(notebookId);
                 ByteArrayOutputStream errorStream = NotebookSessionManager.getInstance().getErrorStreamById(notebookId);
@@ -54,9 +54,9 @@ public class CodeEval {
 
                 return runCode(jshell, sourceCode, outputStream, errorStream, true);
             }
-            LOGGER.warning("sourceCode or notebookId are not present in code cell evaluation request");
+            LOG.warning("sourceCode or notebookId are not present in code cell evaluation request");
         } else {
-            LOGGER.warning("Empty arguments recevied in code cell evaluate request");
+            LOG.warning("Empty arguments recevied in code cell evaluate request");
         }
 
         return new ArrayList<>();
@@ -75,7 +75,7 @@ public class CodeEval {
                 }
             });
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error while executing code in JShell instance {0}", e.getMessage());
+            LOG.log(Level.SEVERE, "Error while executing code in JShell instance {0}", e.getMessage());
         }
         return results;
     }
@@ -107,6 +107,7 @@ public class CodeEval {
                 codeLeftToEval = info.remaining();
             }
         } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error while evaluation of the code : {0}", e.getMessage());
             results.add(ResultEval.text(("Evaluation error: " + e.getMessage())));
         }
         return results;

@@ -17,13 +17,11 @@ package org.netbeans.modules.nbcode.java.notebook;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.eclipse.lsp4j.ConfigurationItem;
 import org.eclipse.lsp4j.ConfigurationParams;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
-import org.openide.util.Lookup;
 
 /**
  *
@@ -33,7 +31,7 @@ public class NotebookConfigs {
 
     private static final String NOTEBOOK_JDK_HOME = "notebook.jdkhome";
     private String jdkVersion = null;
-    private transient WeakReference<NbCodeLanguageClient> cachedClient;
+    private NbCodeLanguageClient client = null;
 
     private NotebookConfigs() {
     }
@@ -47,15 +45,11 @@ public class NotebookConfigs {
         private static final NotebookConfigs instance = new NotebookConfigs();
     }
 
-    private NbCodeLanguageClient getLanguageClient() {
-        NbCodeLanguageClient client = this.cachedClient == null ? null : this.cachedClient.get();
-        if (client == null) {
-            client = Lookup.getDefault().lookup(NbCodeLanguageClient.class);
-            if (client != null) {
-                this.cachedClient = new WeakReference<>(client);
-            }
-        }
-
+    public void setLanguageClient(NbCodeLanguageClient client){
+        this.client = client;
+    }
+    
+    public NbCodeLanguageClient getLanguageClient() {
         return client;
     }
 
@@ -64,8 +58,7 @@ public class NotebookConfigs {
         // Option-1: Run java --version in a different process and get it's output.
         // Option-2: Check release file in the home path it might have info about major version.
         String notebookJdkVersion = jdkVersion != null ? jdkVersion : null;
-        if (notebookJdkVersion != null) {
-            NbCodeLanguageClient client = getLanguageClient();
+        if (notebookJdkVersion != null && client != null) {
             if (client != null) {
                 ConfigurationItem configItem = new ConfigurationItem();
                 configItem.setSection(client.getNbCodeCapabilities().getConfigurationPrefix() + NOTEBOOK_JDK_HOME);
