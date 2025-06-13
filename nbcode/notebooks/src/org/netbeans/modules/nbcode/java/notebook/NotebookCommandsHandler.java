@@ -15,7 +15,6 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
-import com.google.gson.JsonPrimitive;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -47,11 +46,6 @@ public class NotebookCommandsHandler implements CommandProvider {
             switch (command) {
                 case NBLS_JSHELL_EXEC:
                     return CompletableFuture.completedFuture(CodeEval.evaluate(arguments));
-                case NBLS_JSHELL_CLOSE:
-                    String notebookId = ((JsonPrimitive) arguments.get(0)).getAsString();
-                    NotebookSessionManager.getInstance().closeSession(notebookId);
-
-                    return new CompletableFuture<>();
                 default:
                     return CompletableFuture.failedFuture(new UnsupportedOperationException("Command not supported: " + command));
             }

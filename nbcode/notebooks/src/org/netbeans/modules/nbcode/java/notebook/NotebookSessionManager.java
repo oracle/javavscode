@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jdk.jshell.JShell;
+import org.eclipse.lsp4j.NotebookDocument;
 
 /**
  *
@@ -75,8 +76,10 @@ public class NotebookSessionManager {
                 .build();
     }
 
-    public JShell getOrCreateSession(String notebookId) {
-        return sessions.computeIfAbsent(notebookId, (String id) -> {
+    public void createSession(NotebookDocument notebookDoc) {
+        String notebookId = notebookDoc.getUri();
+
+        sessions.computeIfAbsent(notebookId, (String id) -> {
             try {
                 ByteArrayOutputStream outStream = new ByteArrayOutputStream();
                 ByteArrayOutputStream errStream = new ByteArrayOutputStream();
@@ -87,6 +90,7 @@ public class NotebookSessionManager {
                 PrintStream errPrintStream = new PrintStream(errStream, true);
 
                 JShell jshell = jshellBuilder(outPrintStream, errPrintStream);
+                jshell.onShutdown(shell -> closeSession(notebookId));
 
                 boolean implicitImports = true;
                 if (implicitImports) {
@@ -95,11 +99,15 @@ public class NotebookSessionManager {
                 }
 
                 return jshell;
-            } catch (Exception e) {
+            } catch (IllegalStateException | InterruptedException | ExecutionException e) {
                 LOGGER.log(Level.SEVERE, "Error creating notebook session: {0}", e.getMessage());
-                return null;
+                throw new IllegalStateException("Error while creating notebook session");
             }
         });
+    }
+
+    public JShell getSession(String notebookId) {
+        return sessions.get(notebookId);
     }
 
     public ByteArrayOutputStream getOutputStreamById(String notebookId) {
@@ -110,12 +118,12 @@ public class NotebookSessionManager {
         return errorStreams.get(notebookId);
     }
 
-    public void closeSession(String notebookId) {
-        JShell jshell = sessions.remove(notebookId);
+    public void closeSession(String notebookUri) {
+        JShell jshell = sessions.remove(notebookUri);
         if (jshell != null) {
             jshell.close();
         }
-        outputStreams.remove(notebookId);
-        errorStreams.remove(notebookId);
+        outputStreams.remove(notebookUri);
+        errorStreams.remove(notebookUri);
     }
 }
