@@ -25,6 +25,7 @@ import java.net.URLConnection;
  * @author atalati
  */
 public class ResultEval {
+
     private final String data;
     private final String mimeType;
 
@@ -40,11 +41,11 @@ public class ResultEval {
     public String getMimeType() {
         return mimeType;
     }
-    
-    public static ResultEval text(String data){
+
+    public static ResultEval text(String data) {
         return new ResultEval(data, "text/plain");
     }
-    
+
     private String detectMime(byte[] data) {
         try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
             String detected = URLConnection.guessContentTypeFromStream(in);

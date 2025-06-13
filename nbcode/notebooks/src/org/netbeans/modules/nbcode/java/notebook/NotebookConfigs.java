@@ -45,10 +45,10 @@ public class NotebookConfigs {
         private static final NotebookConfigs instance = new NotebookConfigs();
     }
 
-    public void setLanguageClient(NbCodeLanguageClient client){
+    public void setLanguageClient(NbCodeLanguageClient client) {
         this.client = client;
     }
-    
+
     public NbCodeLanguageClient getLanguageClient() {
         return client;
     }
@@ -75,8 +75,8 @@ public class NotebookConfigs {
         }
         return notebookJdkVersion;
     }
-    
-    public void notebookConfigsChangeListener(JsonObject settings){
+
+    public void notebookConfigsChangeListener(JsonObject settings) {
         // depends on #8514 PR open in Netbeans
     }
 }
