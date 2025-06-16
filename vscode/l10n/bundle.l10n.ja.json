@@ -96,5 +96,7 @@
   "jdk.workspace.new.prompt": "新しいファイルを生成するディレクトリのパスを入力してください",
   "jdk.extension.utils.error_message.failedHttpsRequest": "{url}の取得に失敗しました({statusCode})",
   "jdk.extension.error_msg.notEnabled": "{SERVER_NAME}が有効化されていません",
-  "jdk.telemetry.consent": "匿名テレメトリ・データをOracleにレポートすることを許可しますか。jdk.telemetry.enabledの設定からいつでもオプトアウトまたはオプトインできます。"
+  "jdk.telemetry.consent": "匿名テレメトリ・データをOracleにレポートすることを許可しますか。jdk.telemetry.enabledの設定からいつでもオプトアウトまたはオプトインできます。",
+  "jdk.configChanged": "Configurations updated for oracle java extenion , please reload the window to restart the extension.",
+  "jdk.configChangedFailed": "Error while updating extension configurations , please reload the window to restart the extension."
 }

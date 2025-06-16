@@ -121,13 +121,7 @@ export class JdkDownloaderAction {
             dialogBoxMessage = l10n.value("jdk.downloader.message.completedInstallingJdk");
         }
         LOGGER.log(`JDK installation completed successfully`);
-
-        const reloadNow: string = l10n.value("jdk.downloader.message.reload");
-        const selected = await window.showInformationMessage(dialogBoxMessage, reloadNow);
-        if (selected === reloadNow) {
-            await this.downloaderView.disposeView();
-            await commands.executeCommand('workbench.action.reloadWindow');
-        }
+        await window.showInformationMessage(dialogBoxMessage);
     }
 
     private jdkInstallationManager = async () => {

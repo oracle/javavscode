@@ -13,12 +13,13 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { commands } from "vscode";
+import { commands, window } from "vscode";
 import { LOGGER } from "../logger";
 import { NbProcessManager } from "./nbProcessManager";
 import { clientInit } from "./initializer";
 import { NbLanguageClient } from "./nbLanguageClient";
 import { globalState } from "../globalState";
+import { l10n } from "../localiser";
 
 export class ClientPromise {
     setClient!: [(c: NbLanguageClient) => void, (err: any) => void];
@@ -60,24 +61,32 @@ export class ClientPromise {
     }
 
     public restartExtension = async (nbProcessManager: NbProcessManager | null, notifyKill: boolean) => {
-        if (this.activationPending) {
-            LOGGER.warn("Server activation requested repeatedly, ignoring...");
-            return;
-        }
-        if (!nbProcessManager) {
+        if (nbProcessManager) {
+            try {
+                globalState.setDeactivated(true);
+                await this.stopClient();
+                await nbProcessManager.killProcess(notifyKill);
+                this.initialize();
+                clientInit();
+            } catch (error) {
+                LOGGER.error(`Error during activation: ${error}`);
+                const reloadNow: string = l10n.value("jdk.downloader.message.reload");
+                const dialogBoxMessage = l10n.value("jdk.configChangedFailed");
+                const selected = await window.showInformationMessage(dialogBoxMessage, reloadNow);
+                if (selected === reloadNow) {
+                    await commands.executeCommand('workbench.action.reloadWindow');
+                }
+            } finally {
+                this.activationPending = false;
+            }
+        }else{
             LOGGER.error("Nbcode Process is null");
-            return;
-        }
-        try {
-            await this.stopClient();
-            await nbProcessManager.killProcess(notifyKill);
-            this.initialize();
-            clientInit();
-        } catch (error) {
-            LOGGER.error(`Error during activation: ${error}`);
-            throw error;
-        } finally {
-            this.activationPending = false;
+            const reloadNow: string = l10n.value("jdk.downloader.message.reload");
+            const dialogBoxMessage = l10n.value("jdk.configChanged");
+            const selected = await window.showInformationMessage(dialogBoxMessage, reloadNow);
+            if (selected === reloadNow) {
+                await commands.executeCommand('workbench.action.reloadWindow');
+            }
         }
     }
 

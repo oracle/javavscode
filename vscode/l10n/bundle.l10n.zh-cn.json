@@ -96,5 +96,7 @@
   "jdk.workspace.new.prompt": "输入生成新文件的目录路径",
   "jdk.extension.utils.error_message.failedHttpsRequest": "无法获取 {url} ({statusCode})",
   "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} 未启用",
-  "jdk.telemetry.consent": "是否允许向 Oracle 报告匿名遥测数据？您随时可以通过 jdk.telemetry.enabled 对应的设置选择退出或加入。"
+  "jdk.telemetry.consent": "是否允许向 Oracle 报告匿名遥测数据？您随时可以通过 jdk.telemetry.enabled 对应的设置选择退出或加入。",
+  "jdk.configChanged": "Configurations updated for oracle java extenion , please reload the window to restart the extension.",
+  "jdk.configChangedFailed": "Error while updating extension configurations , please reload the window to restart the extension."
 }
