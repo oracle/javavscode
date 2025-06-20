@@ -26,24 +26,12 @@ export class IJNBKernel implements vscode.Disposable {
       ctr.executeHandler = this.executeCells.bind(this);
       this.controllers.push(ctr);
     }
-    vscode.workspace.onDidCloseNotebookDocument(this.onNotebookClosed, this);
   }
 
   dispose(): void {
     for (const ctr of this.controllers) {
       ctr.dispose();
     }
-  }
-
-  private onNotebookClosed(document: vscode.NotebookDocument): void {
-    globalState
-      .getClientPromise()
-      .client.then(async () => {
-        if (await isNbCommandRegistered(nbCommands.notebookCleanup)) {
-          await vscode.commands.executeCommand(nbCommands.notebookCleanup, document.uri.toString());
-        }
-      })
-      .catch((err) => console.error('Error cleaning up JShell for notebook:', err));
   }
 
   private async executeCells(
@@ -65,13 +53,16 @@ export class IJNBKernel implements vscode.Disposable {
             new vscode.NotebookCellOutput([createOutputItem(cell.document.getText(), 'text/plain')]),
           ]);
         } else {
-          await globalState.getClientPromise().client;
+          if (!(await globalState.getClientPromise().client)) {
+            throw new Error('JShell client not initialized. Notebook execution aborted.');
+          }
           if (!(await isNbCommandRegistered(nbCommands.executeNotebookCell))) {
-            throw new Error('Notebook execution not supported');
+            throw new Error(`Notebook execution command '${nbCommands.executeNotebookCell}' is not registered.`);
           }
           const response = (await vscode.commands.executeCommand<
             { data: string; mimeType: string }[]
-          >(nbCommands.executeNotebookCell, cell.document.getText(), notebookId, classpath))!;
+            >(nbCommands.executeNotebookCell, cell.document.getText(), notebookId, classpath));
+          if (!response) throw new Error('No output received from notebook cell execution.');
           
           const mimeMap = new Map<string, string[]>();
           for (const { data, mimeType } of response) {
@@ -92,7 +83,7 @@ export class IJNBKernel implements vscode.Disposable {
 
         exec.end(true, Date.now());
       } catch (err) {
-        console.error('Cell execution error:', err);
+        console.error(`Execution failed for cell (index: ${cell.index}): ${(err as Error).message}: `, err);
         await exec.replaceOutput([
           new vscode.NotebookCellOutput([
             vscode.NotebookCellOutputItem.error({
