@@ -157,3 +157,6 @@ export const isNbJavacDisabledHandler = (): boolean => {
 export const isNetbeansVerboseEnabled = (): boolean => {
     return getConfigurationValue(configKeys.verbose, false);
 }
+export const isEnablePreview = (): boolean =>{
+    return getConfigurationValue(configKeys.notebookEnablePreview,false);
+}

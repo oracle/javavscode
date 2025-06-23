@@ -51,29 +51,40 @@ public class NotebookSessionManager {
 
         private static final NotebookSessionManager instance = new NotebookSessionManager();
     }
-
+    private static boolean  checkEmptyString(String input){
+        return (input==null || input.trim().isEmpty());
+    }
     private JShell jshellBuilder(PrintStream outPrintStream, PrintStream errPrintStream) throws InterruptedException, ExecutionException {
         List<String> compilerOptions = new ArrayList<>();
         List<String> remoteOptions = new ArrayList<>();
-
-        boolean isEnablePreview = true;
-        if (isEnablePreview) {
-            compilerOptions.add(ENABLE_PREVIEW);
-        }
-
-        String notebookJdkVersion = NotebookConfigs.getInstance().getJdkVersion();
-        if (notebookJdkVersion == null) {
-            notebookJdkVersion = System.getProperty("java.version").split("\\.")[0];
-        }
-
-        compilerOptions.addAll(List.of(SOURCE_FLAG, notebookJdkVersion));
-
-        return JShell.builder()
+        NotebookConfigs.getInstance().getInitialized().get();// wait till intialized 
+        String  notebookJdkVersion = System.getProperty("java.version").split("\\.")[0];
+        String classpath = NotebookConfigs.getInstance().getClassPath();
+        if(!checkEmptyString(classpath)){compilerOptions.add("--class-path");compilerOptions.add(classpath);remoteOptions.add("--class-path");remoteOptions.add(classpath);}
+        String modulePath = NotebookConfigs.getInstance().getModulePath();
+        if(!checkEmptyString(modulePath)){compilerOptions.add("--module-path");compilerOptions.add(modulePath);remoteOptions.add("--module-path");remoteOptions.add(modulePath);}
+        String addModules = NotebookConfigs.getInstance().getAddModules();
+        if(!checkEmptyString(addModules)){compilerOptions.add("--add-modules");compilerOptions.add(addModules);remoteOptions.add("--add-modules");remoteOptions.add(addModules);}
+        boolean isEnablePreview = NotebookConfigs.getInstance().isEnablePreview();
+        if(isEnablePreview){compilerOptions.add("--enable-preview");compilerOptions.add("--source");compilerOptions.add(notebookJdkVersion);remoteOptions.add("--enable-preview");}
+        if(compilerOptions.isEmpty()){
+                return JShell.builder()
                 .out(outPrintStream)
                 .err(errPrintStream)
-                .compilerOptions(compilerOptions.toArray(new String[0]))
-                .remoteVMOptions(remoteOptions.toArray(new String[0]))
+                .compilerOptions()
+                .remoteVMOptions()
                 .build();
+        }else{
+                return JShell.builder()
+                .out(outPrintStream)
+                .err(errPrintStream)
+                .compilerOptions(compilerOptions.toArray(new String[compilerOptions.size()]))
+                .remoteVMOptions(remoteOptions.toArray(new String[remoteOptions.size()]))
+                .build();
+        
+        }
+
+
     }
 
     public void createSession(NotebookDocument notebookDoc) {
@@ -94,8 +105,14 @@ public class NotebookSessionManager {
 
                 boolean implicitImports = true;
                 if (implicitImports) {
-                    List.of("java.util", "java.io", "java.math")
+                    List<String> packages = NotebookConfigs.getInstance().getImplicitImports();
+                    if(packages!=null && !packages.isEmpty()){
+                        packages.forEach(pkg -> CodeEval.runCode(jshell, "import " + pkg));
+                    }else{
+                        List.of("java.util", "java.io", "java.math")
                             .forEach(pkg -> CodeEval.runCode(jshell, "import " + pkg + ".*"));
+                    }
+
                 }
 
                 return jshell;

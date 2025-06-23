@@ -45,7 +45,7 @@ public class NotebookCommandsHandler implements CommandProvider {
 
             switch (command) {
                 case NBLS_JSHELL_EXEC:
-                    return CompletableFuture.completedFuture(CodeEval.evaluate(arguments));
+                    return new CompletableFuture<>().completeAsync(()->CodeEval.evaluate(arguments));
                 default:
                     return CompletableFuture.failedFuture(new UnsupportedOperationException("Command not supported: " + command));
             }
