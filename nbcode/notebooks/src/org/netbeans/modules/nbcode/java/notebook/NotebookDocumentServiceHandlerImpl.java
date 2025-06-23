@@ -82,7 +82,10 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
     @Override
     public void didOpen(DidOpenNotebookDocumentParams params) {
         try {
-            NotebookSessionManager.getInstance().createSession(params.getNotebookDocument());
+            new CompletableFuture<Void>().completeAsync(()->{
+                NotebookSessionManager.getInstance().createSession(params.getNotebookDocument());
+                return null;
+            });
             NotebookDocumentStateManager state = new NotebookDocumentStateManager(params.getNotebookDocument(), params.getCellTextDocuments());
             params.getNotebookDocument().getCells().forEach(cell -> {
                 notebookCellMap.put(cell.getDocument(), params.getNotebookDocument().getUri());
