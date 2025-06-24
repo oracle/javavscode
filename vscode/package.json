@@ -481,6 +481,11 @@
 				"icon": "$(new-folder)"
 			},
 			{
+				"command": "jdk.jshell.project",
+				"title": "Open JShell in context of a Project",
+				"category": "Java"
+			},
+			{
 				"command": "jdk.java.goto.super.implementation",
 				"title": "%jdk.java.goto.super.implementation%",
 				"category": "Java"
@@ -584,7 +589,7 @@
 				"title": "%jdk.delete.cache%"
 			},
 			{
-				"command": "jdk.new.notebook",
+				"command": "jdk.notebook.new",
 				"title": "Create New Notebook...",
 				"category": "Java",
 				"icon": "$(new-file)"
@@ -635,6 +640,11 @@
 			"explorer/context": [
 				{
 					"command": "jdk.workspace.new",
+					"when": "nbJdkReady && explorerResourceIsFolder",
+					"group": "navigation@3"
+				},
+				{
+					"command": "jdk.notebook.new",
 					"when": "nbJdkReady && explorerResourceIsFolder",
 					"group": "navigation@3"
 				},
