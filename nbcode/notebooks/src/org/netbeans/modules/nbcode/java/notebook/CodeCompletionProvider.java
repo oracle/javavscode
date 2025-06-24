@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jdk.jshell.JShell;
 import jdk.jshell.SourceCodeAnalysis;
 import org.eclipse.lsp4j.CompletionItem;
@@ -33,6 +35,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
  * @author atalati
  */
 public class CodeCompletionProvider {
+    private static final Logger LOG = Logger.getLogger(CodeCompletionProvider.class.getName());
 
     private CodeCompletionProvider() {
     }
@@ -48,6 +51,9 @@ public class CodeCompletionProvider {
 
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> getCodeCompletions(CompletionParams params, NotebookDocumentStateManager state, JShell instance) {
         try {
+            if (instance == null || state == null) {
+                return CompletableFuture.completedFuture(Either.<List<CompletionItem>, CompletionList>forLeft(new ArrayList<>()));
+            }
             String uri = params.getTextDocument().getUri();
             CellState cellState = state.getCell(uri);
             String content = cellState.getContent();
@@ -89,7 +95,7 @@ public class CodeCompletionProvider {
 
             return CompletableFuture.completedFuture(Either.<List<CompletionItem>, CompletionList>forLeft(completionItems));
         } catch (Exception e) {
-            System.err.println("Error getting code completions: " + e.getMessage());
+            LOG.log(Level.WARNING, "Error getting code completions: {0}", e.getMessage());
             return CompletableFuture.completedFuture(Either.<List<CompletionItem>, CompletionList>forLeft(new ArrayList<>()));
         }
     }

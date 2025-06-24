@@ -93,4 +93,8 @@ public class NotebookUtils {
 
         return new Position(line, character);
     }
+    
+    public static boolean checkEmptyString(String input) {
+        return (input == null || input.trim().isEmpty());
+    }
 }

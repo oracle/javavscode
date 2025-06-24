@@ -46,7 +46,7 @@ public class NotebookCommandsHandler implements CommandProvider {
 
             switch (command) {
                 case NBLS_JSHELL_EXEC:
-                    return CompletableFuture.completedFuture(CodeEval.evaluate(arguments));
+                    return CodeEval.evaluate(arguments).thenApply(list -> (Object)list);
                 case NBLS_OPEN_PROJECT_JSHELL:
                     return CommandHandler.openJshellInProjectContext(arguments).thenApply(list -> (Object) list);
                 default:
