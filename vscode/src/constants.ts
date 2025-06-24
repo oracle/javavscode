@@ -23,6 +23,7 @@ export namespace extConstants {
   export const LANGUAGE_ID: string = "java";
   export const ORACLE_VSCODE_EXTENSION_ID = 'oracle.oracle-java';
   export const COMMAND_PREFIX = 'jdk';
+  export const NOTEBOOK_FILE_EXTENSION = 'ijnb';
 }
 
 export namespace jdkDownloaderConstants {

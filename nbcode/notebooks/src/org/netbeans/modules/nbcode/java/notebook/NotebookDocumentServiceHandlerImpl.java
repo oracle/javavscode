@@ -82,17 +82,14 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
     @Override
     public void didOpen(DidOpenNotebookDocumentParams params) {
         try {
-            new CompletableFuture<Void>().completeAsync(()->{
-                NotebookSessionManager.getInstance().createSession(params.getNotebookDocument());
-                return null;
-            });
+            CompletableFuture.runAsync(() -> NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()));
+
             NotebookDocumentStateManager state = new NotebookDocumentStateManager(params.getNotebookDocument(), params.getCellTextDocuments());
             params.getNotebookDocument().getCells().forEach(cell -> {
                 notebookCellMap.put(cell.getDocument(), params.getNotebookDocument().getUri());
             });
 
             notebookStateMap.put(params.getNotebookDocument().getUri(), state);
-
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error while opening notebook {0}", e.getMessage());
         }

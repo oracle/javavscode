@@ -233,23 +233,10 @@ export class IJNBKernel implements vscode.Disposable {
     this.controller.supportedLanguages = ['markdown', 'java'];
     this.controller.supportsExecutionOrder = true;
     this.controller.executeHandler = this.executeCell.bind(this);
-
-    vscode.workspace.onDidCloseNotebookDocument(this.onNotebookClosed.bind(this));
   }
 
   dispose() {
     this.controller.dispose();
-  }
-
-  private async onNotebookClosed(notebook: vscode.NotebookDocument): Promise<void> {
-    try {
-      await globalState.getClientPromise().client;
-      if (await isNbCommandRegistered(nbCommands.notebookCleanup)) {
-        await vscode.commands.executeCommand(nbCommands.notebookCleanup, notebook.uri.toString());
-      }
-    } catch (err) {
-      console.error(`Error cleaning up JShell for notebook: ${err}`);
-    }
   }
 
   private async executeCell(cells: vscode.NotebookCell[], notebook: vscode.NotebookDocument, _controller: vscode.NotebookController): Promise<void> {

@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import org.netbeans.modules.nbcode.java.project.CommandHandler;
 import org.netbeans.spi.lsp.CommandProvider;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -31,8 +32,8 @@ import org.openide.util.lookup.ServiceProvider;
 public class NotebookCommandsHandler implements CommandProvider {
 
     private static final String NBLS_JSHELL_EXEC = "nbls.jshell.execute.cell";
-    private static final String NBLS_JSHELL_CLOSE = "nbls.jshell.cleanup";
-    private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(NBLS_JSHELL_EXEC, NBLS_JSHELL_CLOSE));
+    private static final String NBLS_OPEN_PROJECT_JSHELL = "nbls.jshell.project.open";
+    private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(NBLS_JSHELL_EXEC, NBLS_OPEN_PROJECT_JSHELL));
 
     @Override
     public Set<String> getCommands() {
@@ -45,7 +46,9 @@ public class NotebookCommandsHandler implements CommandProvider {
 
             switch (command) {
                 case NBLS_JSHELL_EXEC:
-                    return new CompletableFuture<>().completeAsync(()->CodeEval.evaluate(arguments));
+                    return CodeEval.evaluate(arguments).thenApply(list -> (Object)list);
+                case NBLS_OPEN_PROJECT_JSHELL:
+                    return CommandHandler.openJshellInProjectContext(arguments).thenApply(list -> (Object) list);
                 default:
                     return CompletableFuture.failedFuture(new UnsupportedOperationException("Command not supported: " + command));
             }

@@ -21,9 +21,12 @@ import com.google.gson.JsonPrimitive;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jdk.jshell.SourceCodeAnalysis;
+import org.openide.util.RequestProcessor;
 
 /**
  *
@@ -32,34 +35,52 @@ import jdk.jshell.SourceCodeAnalysis;
 public class CodeEval {
 
     private static final Logger LOG = Logger.getLogger(CodeEval.class.getName());
+    private static final RequestProcessor CODE_EXECUTOR = new RequestProcessor("Jshell Code Evaluator", 1, true, true);
 
-    public static List<ResultEval> evaluate(List<Object> arguments) {
+    public static CompletableFuture<List<ResultEval>> evaluate(List<Object> arguments) {
         if (arguments != null) {
-            String sourceCode = null, notebookId = null;
+            AtomicReference<String> sourceCode = new AtomicReference<>(null);
+            AtomicReference<String> notebookId = new AtomicReference<>(null);
+
             if (arguments.get(0) != null && arguments.get(0) instanceof JsonPrimitive) {
-                sourceCode = ((JsonPrimitive) arguments.get(0)).getAsString();
+                sourceCode.set(((JsonPrimitive) arguments.get(0)).getAsString());
             }
             if (arguments.size() > 1 && arguments.get(1) != null && arguments.get(1) instanceof JsonPrimitive) {
-                notebookId = ((JsonPrimitive) arguments.get(1)).getAsString();
+                notebookId.set(((JsonPrimitive) arguments.get(1)).getAsString());
             }
-            if (sourceCode != null && notebookId != null) {
-                JShell jshell = NotebookSessionManager.getInstance().getSession(notebookId);
 
-                ByteArrayOutputStream outputStream = NotebookSessionManager.getInstance().getOutputStreamById(notebookId);
-                ByteArrayOutputStream errorStream = NotebookSessionManager.getInstance().getErrorStreamById(notebookId);
+            if (sourceCode.get() != null && notebookId.get() != null) {
+                CompletableFuture<JShell> future = NotebookSessionManager.getInstance().getSessionFuture(notebookId.get());
 
-                if (jshell == null) {
-                    throw new ExceptionInInitializerError("Error creating session for notebook");
-                }
+                return future.thenCompose(jshell -> {
+                    CompletableFuture<List<ResultEval>> resultFuture = new CompletableFuture<>();
+                    
+                    CODE_EXECUTOR.submit(() -> {
+                        try {
+                            ByteArrayOutputStream outputStream = NotebookSessionManager.getInstance().getOutputStreamById(notebookId.get());
+                            ByteArrayOutputStream errorStream = NotebookSessionManager.getInstance().getErrorStreamById(notebookId.get());
 
-                return runCode(jshell, sourceCode, outputStream, errorStream, true);
+                            if (jshell == null) {
+                                resultFuture.completeExceptionally(new ExceptionInInitializerError("Error creating session for notebook"));
+                                return;
+                            }
+
+                            List<ResultEval> results = runCode(jshell, sourceCode.get(), outputStream, errorStream, true);
+                            resultFuture.complete(results);
+                        } catch (Exception e) {
+                            resultFuture.completeExceptionally(e);
+                        }
+                    });
+                    
+                    return resultFuture;
+                });
             }
             LOG.warning("sourceCode or notebookId are not present in code cell evaluation request");
         } else {
             LOG.warning("Empty arguments recevied in code cell evaluate request");
         }
 
-        return new ArrayList<>();
+        return CompletableFuture.completedFuture(new ArrayList<>());
     }
 
     public static List<ResultEval> runCode(JShell jshell, String code) {

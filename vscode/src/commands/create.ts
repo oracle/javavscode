@@ -18,13 +18,11 @@ import { LanguageClient } from "vscode-languageclient/node";
 import { nbCommands, builtInCommands, extCommands } from "./commands";
 import { l10n } from "../localiser";
 import * as os from 'os';
-import * as path from 'path';
 import * as fs from 'fs';
 import { ICommand } from "./types";
 import { getContextUri, isNbCommandRegistered } from "./utils";
-import { isError, isString } from "../utils";
+import { isString } from "../utils";
 import { globalState } from "../globalState";
-import { LOGGER } from "../logger";
 
 const newFromTemplate = async (ctx: any, template: any) => {
     const client: LanguageClient = await globalState.getClientPromise().client;
@@ -98,72 +96,6 @@ const newProject = async (ctx: any) => {
     }
 };
 
-const createNewNotebook = async () => {
-    const userHomeDir = os.homedir();
-
-    const filePath = await window.showInputBox({
-        prompt: "Enter path for new Java notebook (.ijnb)",
-        value: path.join(userHomeDir, "Untitled.ijnb")
-    });
-
-    if (!filePath?.trim()) {
-        return;
-    }
-
-    const finalPath = filePath.endsWith('.ijnb') ? filePath : `${filePath}.ijnb`;
-
-    LOGGER.log(`Attempting to create notebook at: ${finalPath}`);
-
-    try {
-        const exists = await fs.promises.access(finalPath)
-            .then(() => true)
-            .catch(() => false);
-
-        if (exists) {
-            window.showErrorMessage("Notebook already exists, please try creating with some different name");
-            return;
-        }
-
-        const dir = path.dirname(finalPath);
-        await fs.promises.mkdir(dir, { recursive: true });
-
-        const emptyNotebook = {
-            cells: [{
-                cell_type: "code",
-                source: [],
-                metadata: {
-                    language: "java"
-                },
-                execution_count: null,
-                outputs: []
-            }],
-            metadata: {
-                kernelspec: {
-                    name: "java",
-                    language: "java",
-                    display_name: "Java"
-                },
-                language_info: {
-                    name: "java"
-                }
-            },
-            nbformat: 4,
-            nbformat_minor: 5
-        };
-
-        await fs.promises.writeFile(finalPath, JSON.stringify(emptyNotebook, null, 2), { encoding: 'utf8' });
-
-        LOGGER.log(`Created notebook at: ${finalPath}`);
-
-        const notebookUri = Uri.file(finalPath);
-        const notebookDocument = await workspace.openNotebookDocument(notebookUri);
-        await window.showNotebookDocument(notebookDocument);
-    } catch (err) {
-        console.error(`Detailed error:`, err);
-        window.showErrorMessage(`Failed to create notebook: ${isError(err) ? err.message : " "}`);
-    }
-};
-
 export const registerCreateCommands: ICommand[] = [
     {
         command: extCommands.newFromTemplate,
@@ -171,8 +103,5 @@ export const registerCreateCommands: ICommand[] = [
     }, {
         command: extCommands.newProject,
         handler: newProject
-    }, {
-        command: extCommands.createNotebook,
-        handler: createNewNotebook
     }
 ];

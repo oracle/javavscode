@@ -18,9 +18,7 @@ package org.netbeans.modules.nbcode.java.notebook;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.lsp4j.NotebookCell;
@@ -33,8 +31,6 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.VersionedNotebookDocumentIdentifier;
-import org.netbeans.modules.java.lsp.server.notebook.NotebookCellContentRequestParams;
-import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 
 /**
  *
