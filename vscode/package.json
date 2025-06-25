@@ -876,7 +876,6 @@
 	"devDependencies": {
 		"@istanbuljs/nyc-config-typescript": "^1.0.2",
 		"@types/chai": "^4.3.17",
-		"@types/glob": "^8.1.0",
 		"@types/mocha": "^10.0.10",
 		"@types/node": "^18.19.64",
 		"@types/sinon": "^17.0.4",
@@ -896,6 +895,7 @@
 	"dependencies": {
 		"@vscode/debugadapter": "^1.68.0",
 		"@vscode/l10n": "^0.0.18",
+		"ajv": "^6.12.6",
 		"jsonc-parser": "3.3.1",
 		"vscode-languageclient": "^9.0.1"
 	},

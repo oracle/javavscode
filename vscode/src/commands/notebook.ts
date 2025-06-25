@@ -11,6 +11,9 @@ import { globalState } from '../globalState';
 import { getContextUri, isNbCommandRegistered } from './utils';
 import { l10n } from '../localiser';
 import { extConstants } from '../constants';
+import { Notebook } from '../notebooks/notebook';
+import { ICell, ICodeCell } from '../notebooks/types';
+import { randomUUID } from 'crypto';
 
 const createNewNotebook = async (ctx?: any) => {
     try {
@@ -86,29 +89,16 @@ const createNewNotebook = async (ctx?: any) => {
             return;
         }
 
-        const emptyNotebook = {
-            cells: [{
-                cell_type: "code",
-                source: [],
-                metadata: {
-                    language: "java"
-                },
-                execution_count: null,
-                outputs: []
-            }],
-            metadata: {
-                kernelspec: {
-                    name: "java",
-                    language: "java",
-                    display_name: "Java"
-                },
-                language_info: {
-                    name: "java"
-                }
-            },
-            nbformat: 4,
-            nbformat_minor: 5
+        const newCell: ICodeCell = {
+            cell_type: 'code',
+            execution_count: null,
+            outputs: [],
+            id: randomUUID(),
+            metadata: undefined,
+            source: ''
         };
+
+        const emptyNotebook = new Notebook([newCell]).toJSON();
 
         await fs.promises.writeFile(finalNotebookPath, JSON.stringify(emptyNotebook, null, 2), { encoding: 'utf8' });
 
