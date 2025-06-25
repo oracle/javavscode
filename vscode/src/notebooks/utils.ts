@@ -1,6 +1,13 @@
 import { Buffer } from 'buffer';
 import * as vscode from 'vscode';
-import { CellJSON, CellOutputJSON } from './types';
+import {
+  ICell,
+  ICodeCell,
+  IMarkdownCell,
+  IOutput,
+  IExecuteResultOutput,
+  IMimeBundle
+} from './types';
 
 export function base64ToUint8Array(base64: string): Uint8Array {
   if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
@@ -33,7 +40,7 @@ export function createOutputItem(data: string | Uint8Array, mimeType: string): v
   return vscode.NotebookCellOutputItem.text(text, mimeType);
 }
 
-export function parseCell(cell: CellJSON): vscode.NotebookCellData {
+export function parseCell(cell: ICell): vscode.NotebookCellData {
   if (cell.cell_type !== 'code' && cell.cell_type !== 'markdown')
     throw new Error(`Invalid cell_type: ${cell.cell_type}`);
   if (cell.source === undefined || cell.source === null)
@@ -44,30 +51,31 @@ export function parseCell(cell: CellJSON): vscode.NotebookCellData {
   const value = Array.isArray(cell.source) ? cell.source.join('') : String(cell.source);
 
   const cellData = new vscode.NotebookCellData(kind, value, language);
-  if (typeof cell.execution_count === 'number') {
+  if (cell.cell_type === 'code') {
+    
     cellData.executionSummary = {
-      executionOrder: cell.execution_count,
+      executionOrder: cell.execution_count ?? undefined,
       success: true,
     };
-  }
 
-  if (Array.isArray(cell.outputs)) {
-    const outputs = cell.outputs.flatMap((out: CellOutputJSON) => {
-      const parsed = parseOutput(out);
-      if (!parsed) {
-        throw new Error(`Unrecognized output format: ${JSON.stringify(out)}`);
+    if (Array.isArray(cell.outputs)) {
+      const outputs = cell.outputs.flatMap((out: IOutput) => {
+        const parsed = parseOutput(out);
+        if (!parsed) {
+          throw new Error(`Unrecognized output format: ${JSON.stringify(out)}`);
+        }
+        return parsed;
+      });
+      if (outputs.length) {
+        cellData.outputs = outputs;
       }
-      return parsed;
-    });
-    if (outputs.length) {
-      cellData.outputs = outputs;
     }
   }
 
   return cellData;
 }
 
-export function parseOutput(raw: CellOutputJSON): vscode.NotebookCellOutput[] {
+export function parseOutput(raw: IOutput): vscode.NotebookCellOutput[] {
   const outputs: vscode.NotebookCellOutput[] = [];
   switch (raw.output_type) {
     case 'stream':
@@ -113,37 +121,55 @@ export function parseOutput(raw: CellOutputJSON): vscode.NotebookCellOutput[] {
   return outputs;
 }
 
-export function serializeCell(cell: vscode.NotebookCellData): any {
-  const cellType = cell.kind === vscode.NotebookCellKind.Code ? 'code' : 'markdown';
-  const source = [cell.value];
-  const executionCount = cell.executionSummary?.executionOrder ?? null;
-  const outputs = (cell.outputs || []).map((output) => {
-    const data: any = {};
-    let meta = output.metadata;
+export function serializeCell(cell: vscode.NotebookCellData): ICell { 
+  if (cell.kind === vscode.NotebookCellKind.Code) {
+    const executionCount = cell.executionSummary?.executionOrder ?? null;
 
-    for (const item of output.items) {
-      if (item.mime === 'text/plain') {
-        data['text/plain'] = Buffer.from(item.data).toString();
-      } else if (item.mime.startsWith('image/')) {
-        data[item.mime] = uint8ArrayToBase64(item.data);
+    const outputs: IOutput[] = (cell.outputs || []).map((output): IOutput => {
+      const data: IMimeBundle = {};
+      const metadata = output.metadata ?? {};
+
+      for (const item of output.items) {
+        if (item.mime === 'text/plain') {
+          data['text/plain'] = Buffer.from(item.data).toString();
+        } else {
+          data[item.mime] = uint8ArrayToBase64(item.data);
+        }
       }
-    }
 
-    return {
-      output_type: 'execute_result',
-      data,
-      metadata: meta,
+      const execOut: IExecuteResultOutput = {
+        output_type: 'execute_result',
+        data,
+        metadata,
+        execution_count: executionCount,
+      };
+      return execOut;
+    });
+
+    const codeCell: ICodeCell = {
+      id: "1234",
+      cell_type: 'code',
+      source: cell.value,
+      metadata: {
+        language: cell.languageId,
+        ...cell.metadata
+      },
       execution_count: executionCount,
+      outputs,
     };
-  });
+    return codeCell;
+  }
 
-  return {
-    cell_type: cellType,
-    source,
-    metadata: { language: cell.languageId, ...cell.metadata },
-    execution_count: executionCount,
-    outputs,
+  const mdCell: IMarkdownCell = {
+    id: "1234",
+    cell_type: 'markdown',
+    source: cell.value,        
+    metadata: {
+      language: cell.languageId,
+      ...cell.metadata
+    },
   };
+  return mdCell;
 }
 
 export function errorNotebook(title: string, message: string, consoleMessage: string = ''): vscode.NotebookData {
