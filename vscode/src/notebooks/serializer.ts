@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { errorNotebook, parseCell, serializeCell } from './utils';
-import { CellJSON, NotebookJSON } from './types';
+import { errorNotebook, parseCell } from './utils';
+import { ICell, INotebook } from './types';
 import { Notebook } from './notebook';
 
 export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
@@ -16,9 +16,9 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
       return errorNotebook('Empty Notebook', 'The notebook file appears to be empty.');
     }
 
-    let parsed: NotebookJSON;
+    let parsed: INotebook;
     try {
-      parsed = JSON.parse(raw) as NotebookJSON;
+      parsed = JSON.parse(raw) as INotebook;
     } catch (err) {
       console.error('Failed to parse notebook content:', err);
       vscode.window.showErrorMessage(`Failed to open notebook: ${(err as Error).message}`);
@@ -34,7 +34,7 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
 
     let cells: vscode.NotebookCellData[];
     try {
-      cells = parsed.cells.map((cell: CellJSON) => parseCell(cell));
+      cells = parsed.cells.map((cell: ICell) => parseCell(cell));
     } catch (cellError) {
       return errorNotebook(
         'Cell parsing error',
@@ -50,6 +50,7 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
   ): Promise<Uint8Array> {
     try {
       const notebook = Notebook.fromNotebookData(data, 'java');
+      notebook.assertValidNotebook();
       return notebook.toUint8Array();
     } catch (err) {
       console.error('Unhandled error in serializeNotebook:', err);
