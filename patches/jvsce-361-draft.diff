@@ -1,0 +1,256 @@
+diff --git a/java/java.hints/src/org/netbeans/modules/java/hints/bugs/MutableMethodsOnImmutableCollections.java b/java/java.hints/src/org/netbeans/modules/java/hints/bugs/MutableMethodsOnImmutableCollections.java
+new file mode 100644
+index 0000000000..6c6b1881f5
+--- /dev/null
++++ b/java/java.hints/src/org/netbeans/modules/java/hints/bugs/MutableMethodsOnImmutableCollections.java
+@@ -0,0 +1,132 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.hints.bugs;
++
++import com.sun.source.tree.CompilationUnitTree;
++import com.sun.source.tree.MemberSelectTree;
++import com.sun.source.tree.MethodInvocationTree;
++import com.sun.source.tree.Tree;
++import com.sun.source.util.TreePath;
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.HashSet;
++import java.util.List;
++import java.util.Set;
++import org.netbeans.api.java.source.CompilationInfo;
++import org.netbeans.modules.java.hints.introduce.Flow;
++import org.netbeans.modules.java.hints.introduce.Flow.FlowResult;
++import org.netbeans.spi.editor.hints.ErrorDescription;
++import org.netbeans.spi.editor.hints.Severity;
++import org.netbeans.spi.java.hints.HintContext;
++import org.netbeans.spi.java.hints.Hint;
++import org.netbeans.spi.java.hints.Hint.Options;
++import org.netbeans.spi.java.hints.TriggerPattern;
++import org.netbeans.spi.java.hints.ErrorDescriptionFactory;
++
++/**
++ *
++ * @author nbalyam
++ */
++@Hint(displayName = "Track mutable methods on immutable collections",
++        description = "Track mutable methods on immutable collections",
++        category = "bugs",
++        id = "ImmutableListCreation",
++        severity = Severity.WARNING,
++        options = Options.QUERY)
++
++public class MutableMethodsOnImmutableCollections {
++
++    private static final Set<String> MUTATING_METHODS_IN_LIST = Set.of(
++            "add", "addAll", "remove", "removeAll", "clear", "set", "replaceAll", "sort"
++    );
++
++    private static final Set<String> MUTATING_METHODS_IN_SET = Set.of(
++            "add", "addAll", "remove", "removeAll", "retainAll", "clear"
++    );
++
++    public static final String SUPPRESS_WARNING_KEY = "immutable-collection-mutation";
++
++    @TriggerPattern(value = "java.util.List.of($args$)")
++    public static List<ErrorDescription> immutableList(HintContext ctx) {
++        return checkForMutableMethodInvocations(ctx, MUTATING_METHODS_IN_LIST, "Attempting to modify an immutable List created via List.of()");
++    }
++
++    @TriggerPattern(value = "java.util.Set.of($args$)")
++    public static List<ErrorDescription> immutableSet(HintContext ctx) {
++        return checkForMutableMethodInvocations(ctx, MUTATING_METHODS_IN_SET, "Attempting to modify an immutable Set created via Set.of()");
++    }
++
++    private static List<ErrorDescription> checkForMutableMethodInvocations(HintContext ctx, Set<String> mutatingMethods, String warningMessage) {
++        List<ErrorDescription> errors = new ArrayList<>();
++
++        for (MemberSelectTree mst : getInvocations(ctx.getInfo(), ctx.getPath().getLeaf(), () -> ctx.isCanceled())) {
++            String method = mst.getIdentifier().toString();
++            if (mutatingMethods.contains(method)) {
++                errors.add(ErrorDescriptionFactory.forName(
++                        ctx,
++                        TreePath.getPath(ctx.getInfo().getCompilationUnit(), mst),
++                        warningMessage
++                ));
++
++            }
++        }
++        return errors;
++    }
++
++    private static Tree getMit(CompilationUnitTree cut, Tree patternTriggered) {
++        if (patternTriggered instanceof MethodInvocationTree mit) {
++            return TreePath.getPath(cut, mit).getLeaf();
++        } else {
++            return null;
++        }
++
++    }
++
++    private static List<MemberSelectTree> getInvocations(CompilationInfo info, Tree patternTriggered, Flow.Cancel cancel) {
++        var initializerMit = getMit(info.getCompilationUnit(), patternTriggered);
++        if (initializerMit != null) {
++            FlowResult flow = Flow.assignmentsForUse(info, cancel);
++            return checkForUsagesAndMarkInvocations(info, flow, initializerMit);
++        }
++        return List.of();
++    }
++
++    private static List<MemberSelectTree> checkForUsagesAndMarkInvocations(CompilationInfo info, FlowResult flow, Tree invokedMethodPattern) {
++        List<MemberSelectTree> usedInvocationsWithIdentifier = new ArrayList<>();
++        Collection<Tree> variablesToCheck = Set.of(invokedMethodPattern);
++        do {
++            Set<Tree> nextSetOfVariablesToCheck = new HashSet<>();          
++            for(var variable:variablesToCheck){
++                markMethodInvocation(info, variable, usedInvocationsWithIdentifier);
++                nextSetOfVariablesToCheck.addAll(flow.getValueUsers(variable));   
++            }
++            variablesToCheck = nextSetOfVariablesToCheck;
++        } while (!variablesToCheck.isEmpty());
++        return usedInvocationsWithIdentifier;
++    }
++
++    private static void markMethodInvocation(CompilationInfo info, Tree tree, List<MemberSelectTree> usedInvocationsWithIdentifier) {
++        var ancestor = TreePath.getPath(info.getCompilationUnit(), tree).getParentPath().getParentPath().getLeaf();
++        if (ancestor instanceof MethodInvocationTree mit && mit.getMethodSelect() instanceof MemberSelectTree mst) {
++            usedInvocationsWithIdentifier.add(mst);
++        }
++    }
++    
++
++}
+diff --git a/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/bugs/MutableMethodsOnImmutableCollectionsTest.java b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/bugs/MutableMethodsOnImmutableCollectionsTest.java
+new file mode 100644
+index 0000000000..229b730615
+--- /dev/null
++++ b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/bugs/MutableMethodsOnImmutableCollectionsTest.java
+@@ -0,0 +1,111 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.hints.bugs;
++
++import org.netbeans.junit.NbTestCase;
++import org.netbeans.modules.java.hints.test.api.HintTest;
++
++/**
++ *
++ * @author nbalyamm
++ */
++public class MutableMethodsOnImmutableCollectionsTest extends NbTestCase {
++
++    public MutableMethodsOnImmutableCollectionsTest(String name) {
++        super(name);
++    }
++     public void testCaseWithMutlipleVariablesAndNoAssigmentChange() throws Exception{
++         
++               HintTest
++                .create()
++                .input("""
++                       package test;
++                       
++                       import java.util.*;
++                       
++                       public class Test {
++                       		private void test () {
++                                  var l=List.of("foo","bar");
++                                  var l2=List.of("fool2","barl2");
++                                  l.add("bar2");
++                                  l.clear();  
++                                  l2.clear();                                                          
++                               }
++                       
++                       }
++                       """)
++                .sourceLevel(10)
++                .run(MutableMethodsOnImmutableCollections.class)
++                .assertWarnings(
++                        "8:13-8:16:warning:Attempting to modify an immutable List created via List.of()",
++                        "9:13-9:18:warning:Attempting to modify an immutable List created via List.of()",        
++                        "10:14-10:19:warning:Attempting to modify an immutable List created via List.of()");
++    }
++     
++      public void testCaseWithAssignmentChange() throws Exception{
++         
++               HintTest
++                .create()
++                .input("""
++                       package test;
++                       
++                       import java.util.*;
++                       
++                       public class Test {
++                       		private void test () {
++                                  var l=List.of("foo","bar");
++                                  var l2=List.of("foo2","bar2");
++                                  l.add("bar2");
++                                  l.clear();                           
++                                  l2.clear();                                                          
++                                  l2 = new ArrayList();
++                                  l2.clear();
++                                  l2 = List.of("foo3","bar3");
++                                  l2.clear();
++                                  l2 = l;
++                                  l2.clear();
++                                  if(true){
++                                    l.clear();
++                                  }
++                                  List<String> l3 = new ArrayList<String>();
++                                  l3 = l2;
++                                  l3.clear();
++                                  List<String> l4 = new ArrayList<String>();
++                                  l4 = l3;
++                                  l4.clear();
++                                  var s1 = Set.of("sfoo1","sbar1");
++                                  s1.clear();
++                               }
++                       }
++                       """)
++                .sourceLevel(10)
++                .run(MutableMethodsOnImmutableCollections.class)
++                .assertWarnings(
++                        "8:13-8:16:warning:Attempting to modify an immutable List created via List.of()",
++                        "9:13-9:18:warning:Attempting to modify an immutable List created via List.of()",        
++                        "10:14-10:19:warning:Attempting to modify an immutable List created via List.of()",
++                        "14:14-14:19:warning:Attempting to modify an immutable List created via List.of()",
++                        "16:14-16:19:warning:Attempting to modify an immutable List created via List.of()",
++                        "18:15-18:20:warning:Attempting to modify an immutable List created via List.of()",
++                        "22:14-22:19:warning:Attempting to modify an immutable List created via List.of()",
++                        "25:14-25:19:warning:Attempting to modify an immutable List created via List.of()",
++                        "27:14-27:19:warning:Attempting to modify an immutable Set created via Set.of()"
++                        );
++    }
++}
+\ No newline at end of file
