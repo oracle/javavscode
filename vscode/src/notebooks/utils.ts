@@ -6,8 +6,10 @@ import {
   IMarkdownCell,
   IOutput,
   IExecuteResultOutput,
-  IMimeBundle
+  IMimeBundle,
+  IMetadata
 } from './types';
+import { v4 as uuidv4 } from 'uuid';
 
 export function base64ToUint8Array(base64: string): Uint8Array {
   if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
@@ -51,6 +53,7 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
   const value = Array.isArray(cell.source) ? cell.source.join('') : String(cell.source);
 
   const cellData = new vscode.NotebookCellData(kind, value, language);
+  cellData.metadata = { id: cell.id, ...cell.metadata };
   if (cell.cell_type === 'code') {
     
     cellData.executionSummary = {
@@ -147,7 +150,7 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
     });
 
     const codeCell: ICodeCell = {
-      id: "1234",
+      id: (cell.metadata as IMetadata).id || uuidv4(),
       cell_type: 'code',
       source: cell.value,
       metadata: {
@@ -159,13 +162,14 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
     };
     return codeCell;
   }
-
+  const id = (cell.metadata as IMetadata).id || uuidv4();
   const mdCell: IMarkdownCell = {
-    id: "1234",
+    id,
     cell_type: 'markdown',
     source: cell.value,        
     metadata: {
       language: cell.languageId,
+      id,
       ...cell.metadata
     },
   };

@@ -80,5 +80,5 @@ export interface IMimeBundle {
 }
 
 export interface IMetadata {
-    [key: string]: unknown;
+    [key: string]: any;
 }
