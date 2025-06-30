@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024, Oracle and/or its affiliates.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 import { Buffer } from 'buffer';
 import * as vscode from 'vscode';
 import {
@@ -9,7 +30,7 @@ import {
   IMimeBundle,
   IMetadata
 } from './types';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 export function base64ToUint8Array(base64: string): Uint8Array {
   if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
@@ -56,9 +77,13 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
   cellData.metadata = { id: cell.id, ...cell.metadata };
   if (cell.cell_type === 'code') {
     
+    const metaExec = (cell.metadata as IMetadata).executionSummary;
+    const executionOrder = metaExec?.executionOrder ?? cell.execution_count ?? undefined;
+    const success = metaExec?.success ?? true;
+
     cellData.executionSummary = {
-      executionOrder: cell.execution_count ?? undefined,
-      success: true,
+      executionOrder,
+      success,
     };
 
     if (Array.isArray(cell.outputs)) {
@@ -74,7 +99,7 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
       }
     }
   }
-
+  console.log(`${cell.id.slice(0,5)} Successfully parsed`);
   return cellData;
 }
 
@@ -124,13 +149,20 @@ export function parseOutput(raw: IOutput): vscode.NotebookCellOutput[] {
   return outputs;
 }
 
-export function serializeCell(cell: vscode.NotebookCellData): ICell { 
+export function serializeCell(cell: vscode.NotebookCellData): ICell {
+  const baseMeta = (cell.metadata as Record<string, any>) || {};
+  const id = baseMeta.id || randomUUID();
+
   if (cell.kind === vscode.NotebookCellKind.Code) {
-    const executionCount = cell.executionSummary?.executionOrder ?? null;
+    const exec = cell.executionSummary ?? {};
+    const executionCount = exec.executionOrder ?? null;
+    const success = exec.success ?? false;
+
+    const metadata = { ...baseMeta, executionSummary: { executionOrder: executionCount, success } };
 
     const outputs: IOutput[] = (cell.outputs || []).map((output): IOutput => {
       const data: IMimeBundle = {};
-      const metadata = output.metadata ?? {};
+      const outMetadata = output.metadata ?? {};
 
       for (const item of output.items) {
         if (item.mime === 'text/plain') {
@@ -143,26 +175,26 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
       const execOut: IExecuteResultOutput = {
         output_type: 'execute_result',
         data,
-        metadata,
+        metadata: outMetadata,
         execution_count: executionCount,
       };
       return execOut;
     });
 
     const codeCell: ICodeCell = {
-      id: (cell.metadata as IMetadata).id || uuidv4(),
+      id,
       cell_type: 'code',
       source: cell.value,
       metadata: {
         language: cell.languageId,
-        ...cell.metadata
+        ...metadata
       },
       execution_count: executionCount,
       outputs,
     };
+    console.log(`${codeCell.id.slice(0,5)} Successfully serialized code cell`);
     return codeCell;
   }
-  const id = (cell.metadata as IMetadata).id || uuidv4();
   const mdCell: IMarkdownCell = {
     id,
     cell_type: 'markdown',
