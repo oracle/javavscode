@@ -75,12 +75,16 @@ export class Notebook {
     }
         
     assertValidNotebook(){
-        if (!Notebook.validateFn(this.toJSON())) {
+        Notebook.assertValidNotebookJson(this.toJSON());
+    }
+
+    static assertValidNotebookJson(notebook: INotebook) {
+        if (!Notebook.validateFn(notebook)) {
             const errors = (Notebook.validateFn.errors || [])
             .map(e => `${e.dataPath || '/'} ${e.message}`)
             .join('\n');
             throw new Error(`Notebook JSON validation failed:\n${errors}`);
         }
-        console.log("Notebook successfully validated.")
+        console.log("Notebook successfully validated.");
     }
 }
