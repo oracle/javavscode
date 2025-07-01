@@ -50,6 +50,8 @@ import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.ImplementationParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
+import org.eclipse.lsp4j.MessageParams;
+import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
 import org.eclipse.lsp4j.PrepareRenameParams;
 import org.eclipse.lsp4j.PrepareRenameResult;
@@ -64,6 +66,7 @@ import org.eclipse.lsp4j.TypeDefinitionParams;
 import org.eclipse.lsp4j.WillSaveTextDocumentParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
+import org.netbeans.modules.java.lsp.server.protocol.ShowStatusMessageParams;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -82,8 +85,16 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
     @Override
     public void didOpen(DidOpenNotebookDocumentParams params) {
         try {
-            CompletableFuture.runAsync(() -> NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()));
-
+            client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info,"Intializing Java kernel for notebook."));
+            NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()).whenComplete((JShell jshell,Throwable t) -> {
+                if (t == null) {
+                    client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, "Java kernel initialized successfully"));
+                } else {
+                    // if package import fails user is not informed ?
+                    client.showMessage(new MessageParams(MessageType.Error,"Error could not initialize Java kernel for the notebook."));
+                    LOG.log(Level.SEVERE, "Error could not initialize Java kernel for the notebook. : {0}", t.getMessage());
+                }
+            });
             NotebookDocumentStateManager state = new NotebookDocumentStateManager(params.getNotebookDocument(), params.getCellTextDocuments());
             params.getNotebookDocument().getCells().forEach(cell -> {
                 notebookCellMap.put(cell.getDocument(), params.getNotebookDocument().getUri());
