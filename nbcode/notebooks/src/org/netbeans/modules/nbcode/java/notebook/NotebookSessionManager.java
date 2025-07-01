@@ -39,9 +39,9 @@ public class NotebookSessionManager {
     private static final Logger LOG = Logger.getLogger(NotebookSessionManager.class.getName());
     private static final String SOURCE_FLAG = "--source";
     private static final String ENABLE_PREVIEW = "--enable-preview";
-    private static final String CLASS_PATH = "--enable-preview";
-    private static final String MODULE_PATH = "--enable-preview";
-    private static final String ADD_MODULES = "--enable-preview";
+    private static final String CLASS_PATH = "--class-path";
+    private static final String MODULE_PATH = "--module-path";
+    private static final String ADD_MODULES = "--add-modules";
 
     private final Map<String, CompletableFuture<JShell>> sessions = new ConcurrentHashMap<>();
     private final Map<String, ByteArrayOutputStream> outputStreams = new ConcurrentHashMap<>();
@@ -61,8 +61,6 @@ public class NotebookSessionManager {
 
     private CompletableFuture<JShell> jshellBuilder(PrintStream outPrintStream, PrintStream errPrintStream) {
         return CompletableFuture.supplyAsync(() -> {
-            List<String> compilerOptions = getCompilerOptions();
-            List<String> remoteOptions = getRemoteVmOptions();
             try {
                 NotebookConfigs.getInstance().getInitialized().get();
             } catch (InterruptedException ex) {
@@ -70,7 +68,8 @@ public class NotebookSessionManager {
             } catch (ExecutionException ex) {
                 LOG.log(Level.WARNING, "ExecutionException occurred while getting notebook configs: {0}", ex.getMessage());
             }
-
+            List<String> compilerOptions = getCompilerOptions();
+            List<String> remoteOptions = getRemoteVmOptions();
             if (compilerOptions.isEmpty()) {
                 return JShell.builder()
                         .out(outPrintStream)
@@ -89,10 +88,10 @@ public class NotebookSessionManager {
         });
     }
 
-    public void createSession(NotebookDocument notebookDoc) {
+    public CompletableFuture<JShell> createSession(NotebookDocument notebookDoc) {
         String notebookId = notebookDoc.getUri();
 
-        sessions.computeIfAbsent(notebookId, (String id) -> {
+        return sessions.computeIfAbsent(notebookId, (String id) -> {
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
             ByteArrayOutputStream errStream = new ByteArrayOutputStream();
             outputStreams.put(notebookId, outStream);
