@@ -40,6 +40,7 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
     let parsed: INotebook;
     try {
       parsed = JSON.parse(raw) as INotebook;
+      Notebook.assertValidNotebookJson(parsed);
     } catch (err) {
       console.error('Failed to parse notebook content:', err);
       vscode.window.showErrorMessage(`Failed to open notebook: ${(err as Error).message}`);

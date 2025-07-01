@@ -79,7 +79,7 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
     
     const metaExec = (cell.metadata as IMetadata).executionSummary;
     const executionOrder = metaExec?.executionOrder ?? cell.execution_count ?? undefined;
-    const success = metaExec?.success ?? true;
+    const success = metaExec?.success ?? undefined;
 
     cellData.executionSummary = {
       executionOrder,
@@ -99,7 +99,7 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
       }
     }
   }
-  console.log(`${cell.id.slice(0,5)} Successfully parsed`);
+  if(cell.id) console.log(`${cell.id.slice(0,5)} Successfully parsed`);
   return cellData;
 }
 
@@ -192,7 +192,7 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
       execution_count: executionCount,
       outputs,
     };
-    console.log(`${codeCell.id.slice(0,5)} Successfully serialized code cell`);
+    if(codeCell.id) console.log(`${codeCell.id.slice(0,5)} Successfully serialized code cell`);
     return codeCell;
   }
   const mdCell: IMarkdownCell = {
