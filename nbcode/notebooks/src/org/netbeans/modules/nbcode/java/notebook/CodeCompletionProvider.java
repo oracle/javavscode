@@ -67,8 +67,7 @@ public class CodeCompletionProvider {
             int[] anchor = new int[1];
 
             sourceAnalysis.analyzeCompletion(inputText);
-            // Need to get snippets because JShell doesn't provide suggestions sometimes if import statement is there in the cell
-            String finalString = getSnippets(sourceAnalysis, inputText).getLast();
+            String finalString = NotebookUtils.getCodeSnippets(sourceAnalysis, inputText).getLast();
             finalString = finalString.charAt(finalString.length() - 1) == ';' ? finalString.substring(0, finalString.length() - 1) : finalString;
 
             List<SourceCodeAnalysis.Suggestion> suggestions = sourceAnalysis.completionSuggestions(
@@ -98,23 +97,5 @@ public class CodeCompletionProvider {
             LOG.log(Level.WARNING, "Error getting code completions: {0}", e.getMessage());
             return CompletableFuture.completedFuture(Either.<List<CompletionItem>, CompletionList>forLeft(new ArrayList<>()));
         }
-    }
-
-    private List<String> getSnippets(SourceCodeAnalysis analysis, String code) {
-        String codeRemaining = code.trim();
-
-        List<String> codeSnippets = new ArrayList<>();
-        while (!codeRemaining.isEmpty()) {
-            SourceCodeAnalysis.CompletionInfo info = analysis.analyzeCompletion(codeRemaining);
-            if (info.completeness().isComplete()) {
-                codeSnippets.add(info.source());
-            } else {
-                codeSnippets.add(codeRemaining);
-                break;
-            }
-            codeRemaining = info.remaining().trim();
-        }
-
-        return codeSnippets;
     }
 }

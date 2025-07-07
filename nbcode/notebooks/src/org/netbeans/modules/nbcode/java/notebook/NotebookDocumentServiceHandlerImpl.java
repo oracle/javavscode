@@ -77,7 +77,6 @@ import org.openide.util.lookup.ServiceProvider;
 public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServiceHandler {
 
     private static final Logger LOG = Logger.getLogger(NotebookDocumentServiceHandler.class.getName());
-    private NbCodeLanguageClient client;
     private final Map<String, NotebookDocumentStateManager> notebookStateMap = new ConcurrentHashMap<>();
     // Below map is required because completion request doesn't send notebook uri in the params
     private final Map<String, String> notebookCellMap = new ConcurrentHashMap<>();
@@ -139,12 +138,8 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
 
     @Override
     public void connect(LanguageClient client) {
-        this.client = (NbCodeLanguageClient) client;
-        NotebookConfigs.getInstance().setLanguageClient((NbCodeLanguageClient) client);
-    }
-
-    public NbCodeLanguageClient getNbCodeLanguageClient() {
-        return this.client;
+        NotebookConfigs.getInstance().initConfigs();
+        LanguageClientInstance.getInstance().setClient((NbCodeLanguageClient) client);
     }
 
     @Override
