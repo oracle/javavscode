@@ -86,7 +86,7 @@ export class IJNBKernel implements vscode.Disposable {
           }
           const response = (await vscode.commands.executeCommand<
             { data: string; mimeType: string }[]
-            >(nbCommands.executeNotebookCell, cell.document.getText(), notebookId));
+            >(nbCommands.executeNotebookCell, cell.document.getText(), notebookId, cell.document.uri.toString()));
           if (!response) throw new Error('No output received from notebook cell execution.');
           
           const mimeMap = new Map<string, string[]>();
