@@ -15,6 +15,14 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
+import java.util.List;
+import jdk.jshell.SourceCodeAnalysis;
 import org.eclipse.lsp4j.Position;
 
 /**
@@ -93,8 +101,61 @@ public class NotebookUtils {
 
         return new Position(line, character);
     }
-    
+
     public static boolean checkEmptyString(String input) {
         return (input == null || input.trim().isEmpty());
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getArgument(List<Object> arguments, int index, Class<T> type) {
+        if (arguments != null && arguments.size() > index && arguments.get(index) != null) {
+            Object arg = arguments.get(index);
+
+            if (arg instanceof JsonElement) {
+                JsonElement jsonElement = (JsonElement) arg;
+                if (jsonElement.isJsonNull()) {
+                    return null;
+                }
+
+                if (type == String.class && jsonElement.isJsonPrimitive() && jsonElement.getAsJsonPrimitive().isString()) {
+                    return (T) jsonElement.getAsString();
+                } else if (type == Number.class && jsonElement.isJsonPrimitive() && jsonElement.getAsJsonPrimitive().isNumber()) {
+                    return (T) jsonElement.getAsNumber();
+                } else if (type == Boolean.class && jsonElement.isJsonPrimitive() && jsonElement.getAsJsonPrimitive().isBoolean()) {
+                    return (T) Boolean.valueOf(jsonElement.getAsBoolean());
+                } else if (type == JsonObject.class && jsonElement.isJsonObject()) {
+                    return (T) jsonElement.getAsJsonObject();
+                } else if (type == JsonArray.class && jsonElement.isJsonArray()) {
+                    return (T) jsonElement.getAsJsonArray();
+                } else if (type == JsonPrimitive.class && jsonElement.isJsonPrimitive()) {
+                    return (T) jsonElement.getAsJsonPrimitive();
+                } else if (type == JsonNull.class && jsonElement.isJsonNull()) {
+                    return (T) JsonNull.INSTANCE;
+                }
+            }
+
+            if (type.isInstance(arg)) {
+                return type.cast(arg);
+            }
+        }
+        return null;
+    }
+
+    public static List<String> getCodeSnippets(SourceCodeAnalysis analysis, String code) {
+        String codeRemaining = code.trim();
+
+        List<String> codeSnippets = new ArrayList<>();
+        while (!codeRemaining.isEmpty()) {
+            SourceCodeAnalysis.CompletionInfo info = analysis.analyzeCompletion(codeRemaining);
+            if (info.completeness().isComplete()) {
+                codeSnippets.add(info.source());
+            } else {
+                codeSnippets.add(codeRemaining);
+                break;
+            }
+            codeRemaining = info.remaining().trim();
+        }
+
+        return codeSnippets;
     }
 }

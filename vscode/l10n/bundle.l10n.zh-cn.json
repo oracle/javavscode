@@ -88,6 +88,7 @@
   "jdk.extension.error_msg.doesntSupportNewTeamplate":"客户端 {client} 不支持从模板新建文件",
   "jdk.extension.error_msg.doesntSupportNewProject":"客户端 {client} 不支持新项目",
   "jdk.extension.error_msg.doesntSupportGoToTest":"客户端 {client} 不支持转至测试",
+  "jdk.extension.error_msg.doesntSupportNoteboookCellExecution":"Client {client} doesn't support notebook cell execution",
   "jdk.extension.error_msg.noSuperImpl":"未找到超类实现",
   "jdk.extension.error_msg.cacheDeletionError":"删除高速缓存时出错",
   "jdk.extension.message.cacheDeleted":"已成功删除高速缓存",

@@ -12,7 +12,7 @@ import { getContextUri, isNbCommandRegistered } from './utils';
 import { l10n } from '../localiser';
 import { extConstants } from '../constants';
 import { Notebook } from '../notebooks/notebook';
-import { ICell, ICodeCell } from '../notebooks/types';
+import { ICodeCell } from '../notebooks/types';
 import { randomUUID } from 'crypto';
 
 const createNewNotebook = async (ctx?: any) => {
@@ -94,7 +94,7 @@ const createNewNotebook = async (ctx?: any) => {
             execution_count: null,
             outputs: [],
             id: randomUUID(),
-            metadata: undefined,
+            metadata: {},
             source: ''
         };
 
@@ -119,11 +119,15 @@ const openJshellInContextOfProject = async (ctx: any) => {
         let client: LanguageClient = await globalState.getClientPromise().client;
         if (await isNbCommandRegistered(nbCommands.openJshellInProject)) {
             const res: string[] = await commands.executeCommand(nbCommands.openJshellInProject, getContextUri(ctx)?.toString());
-
-            const args = res.join(" ");
-            const terminal = window.createTerminal("Jshell instance");
+            const { envMap, finalArgs } = passArgsToTerminal(res);
+            // Direct sendText is not working since it truncates the command exceeding a certain length.
+            // Open issues on vscode: 130688, 134324 and many more
+            // So, workaround by setting env variables.
+            const terminal = window.createTerminal({
+                name: "Jshell instance", env: envMap
+            });
+            terminal.sendText(`jshell ${finalArgs.join(' ')}`, true);
             terminal.show();
-            terminal.sendText(`jshell ${args}`, true);
         } else {
             throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest", { client });
         }
@@ -133,6 +137,18 @@ const openJshellInContextOfProject = async (ctx: any) => {
     }
 }
 
+const passArgsToTerminal = (args: string[]): { envMap: { [key: string]: string }, finalArgs: string[] } => {
+    const envMap: { [key: string]: string } = {};
+    const finalArgs = args.map((arg, index) => {
+        if (arg.startsWith('-') || arg.startsWith('--')) {
+            return arg;
+        }
+        const envName = `jshellArgsEnv${index}`;
+        envMap[envName] = arg;
+        return `$${envName}`;
+    });
+    return { envMap, finalArgs };
+}
 
 export const registerNotebookCommands: ICommand[] = [
     {

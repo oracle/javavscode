@@ -15,8 +15,6 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +42,7 @@ public class NotebookSessionManager {
     private static final String ADD_MODULES = "--add-modules";
 
     private final Map<String, CompletableFuture<JShell>> sessions = new ConcurrentHashMap<>();
-    private final Map<String, ByteArrayOutputStream> outputStreams = new ConcurrentHashMap<>();
-    private final Map<String, ByteArrayOutputStream> errorStreams = new ConcurrentHashMap<>();
+    private final Map<String, JshellStreamsHandler> jshellStreamsMap = new ConcurrentHashMap<>();
 
     private NotebookSessionManager() {
     }
@@ -59,7 +56,7 @@ public class NotebookSessionManager {
         private static final NotebookSessionManager instance = new NotebookSessionManager();
     }
 
-    private CompletableFuture<JShell> jshellBuilder(PrintStream outPrintStream, PrintStream errPrintStream) {
+    private CompletableFuture<JShell> jshellBuilder(JshellStreamsHandler streamsHandler) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 NotebookConfigs.getInstance().getInitialized().get();
@@ -72,15 +69,17 @@ public class NotebookSessionManager {
             List<String> remoteOptions = getRemoteVmOptions();
             if (compilerOptions.isEmpty()) {
                 return JShell.builder()
-                        .out(outPrintStream)
-                        .err(errPrintStream)
+                        .out(streamsHandler.getPrintOutStream())
+                        .err(streamsHandler.getPrintErrStream())
+                        .in(streamsHandler.getInputStream())
                         .compilerOptions()
                         .remoteVMOptions()
                         .build();
             } else {
                 return JShell.builder()
-                        .out(outPrintStream)
-                        .err(errPrintStream)
+                        .out(streamsHandler.getPrintOutStream())
+                        .err(streamsHandler.getPrintErrStream())
+                        .in(streamsHandler.getInputStream())
                         .compilerOptions(compilerOptions.toArray(new String[0]))
                         .remoteVMOptions(remoteOptions.toArray(new String[0]))
                         .build();
@@ -91,15 +90,11 @@ public class NotebookSessionManager {
     public CompletableFuture<JShell> createSession(NotebookDocument notebookDoc) {
         String notebookId = notebookDoc.getUri();
 
-        return sessions.computeIfAbsent(notebookId, (String id) -> {
-            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
-            outputStreams.put(notebookId, outStream);
-            errorStreams.put(notebookId, errStream);
+        return sessions.computeIfAbsent(notebookId, id -> {
+            JshellStreamsHandler handler = new JshellStreamsHandler(id, CodeEval.getInstance().outStreamFlushCb, CodeEval.getInstance().errStreamFlushCb);
+            jshellStreamsMap.put(id, handler);
 
-            PrintStream outPrintStream = new PrintStream(outStream, true);
-            PrintStream errPrintStream = new PrintStream(errStream, true);
-            CompletableFuture<JShell> future = jshellBuilder(outPrintStream, errPrintStream);
+            CompletableFuture<JShell> future = jshellBuilder(handler);
 
             future.thenAccept(jshell -> onJshellInit(notebookId, jshell))
                     .exceptionally(ex -> {
@@ -171,10 +166,10 @@ public class NotebookSessionManager {
 
         List<String> packages = NotebookConfigs.getInstance().getImplicitImports();
         if (packages != null && !packages.isEmpty()) {
-            packages.forEach(pkg -> CodeEval.runCode(jshell, "import " + pkg));
+            packages.forEach(pkg -> CodeEval.getInstance().runCode(jshell, "import " + pkg));
         } else {
             List.of("java.util", "java.io", "java.math")
-                    .forEach(pkg -> CodeEval.runCode(jshell, "import " + pkg + ".*"));
+                    .forEach(pkg -> CodeEval.getInstance().runCode(jshell, "import " + pkg + ".*"));
         }
     }
 
@@ -195,12 +190,8 @@ public class NotebookSessionManager {
         return null;
     }
 
-    public ByteArrayOutputStream getOutputStreamById(String notebookId) {
-        return outputStreams.get(notebookId);
-    }
-
-    public ByteArrayOutputStream getErrorStreamById(String notebookId) {
-        return errorStreams.get(notebookId);
+    public JshellStreamsHandler getJshellStreamsHandler(String notebookId) {
+        return jshellStreamsMap.get(notebookId);
     }
 
     public void closeSession(String notebookUri) {
@@ -209,7 +200,9 @@ public class NotebookSessionManager {
         if (jshell != null) {
             jshell.close();
         }
-        outputStreams.remove(notebookUri);
-        errorStreams.remove(notebookUri);
+        JshellStreamsHandler handler = jshellStreamsMap.remove(notebookUri);
+        if (handler != null) {
+            handler.close();
+        }
     }
 }

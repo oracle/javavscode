@@ -150,14 +150,17 @@ public class NotebookDocumentStateManager {
         }
         int newVersion = contentChange.getDocument().getVersion();
         String currentContent = cellState.getContent();
-        if (!contentChange.getChanges().isEmpty()) {
+        
+        try {
+            String updatedContent = applyContentChanges(currentContent, contentChange.getChanges());
+            cellState.setContent(updatedContent, newVersion);
+            LOG.log(Level.FINE, "Updated content for cell: {0}, version: {1}", new Object[]{uri, newVersion});
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "applyContentChanges failed, requesting full content: " + uri, e);
             try {
-                String updatedContent = applyContentChanges(currentContent, contentChange.getChanges());
-                cellState.setContent(updatedContent, newVersion);
-                LOG.log(Level.FINE, "Updated content for cell: {0}, version: {1}", new Object[]{uri, newVersion});
-            } catch (Exception e) {
-                LOG.log(Level.SEVERE, "Failed to apply content changes to cell: " + uri, e);
-                throw new RuntimeException("Failed to apply content changes", e);
+                cellState.requestContentAndSet();
+            } catch (Exception ex) {
+                LOG.log(Level.SEVERE, "Failed to refresh content for cell: " + uri, ex);
             }
         }
     }
@@ -217,20 +220,24 @@ public class NotebookDocumentStateManager {
 
         return result.toString();
     }
-
-    private void addNewCellState(NotebookCell cell, TextDocumentItem item) {
+    // protected methods for ease of unit testing
+    protected void addNewCellState(NotebookCell cell, TextDocumentItem item) {
         if (cell == null || item == null) {
             LOG.log(Level.WARNING, "Attempted to add null cell or item");
             return;
         }
 
         try {
-            CellState cellState = new CellState(cell, item);
+            CellState cellState = new CellState(cell, item, notebookDoc.getUri());
             cellsMap.put(item.getUri(), cellState);
             LOG.log(Level.FINE, "Added new cell state: {0}", item.getUri());
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to create cell state for: " + item.getUri(), e);
             throw new RuntimeException("Failed to create cell state", e);
         }
+    }
+    
+    protected Map<String, CellState> getCellsMap(){
+        return cellsMap;
     }
 }

@@ -19,31 +19,39 @@
  * under the License.
  */
 
-import * as vscode from 'vscode';
 import { globalState } from '../globalState';
 import { isNbCommandRegistered } from '../commands/utils';
 import { nbCommands } from '../commands/commands';
-import { getConfigurationValue } from '../configurations/handlers';
-import { configKeys } from '../configurations/configuration';
-import { createOutputItem } from './utils';
+import { createErrorOutput, createOutputItem } from './utils';
+import { NotebookCellExecutionResult } from '../lsp/protocol';
+import { NotebookCell, NotebookController, NotebookDocument, Disposable, notebooks, commands, NotebookCellOutput } from 'vscode';
+import { LanguageClient } from 'vscode-languageclient/node';
+import { l10n } from '../localiser';
+import { ijnbConstants, ipynbConstants, supportLanguages } from './constants';
+import { LOGGER } from '../logger';
+import { CodeCellExecution } from './codeCellExecution';
+import { isError } from '../utils';
 
-export class IJNBKernel implements vscode.Disposable {
-  private readonly controllers: vscode.NotebookController[] = [];
+export class IJNBKernel implements Disposable {
+  private readonly controllers: NotebookController[] = [];
+  private cellControllerIdMap = new Map<string, CodeCellExecution>();
   static executionCounter = new Map<string, number>();
 
   constructor() {
-    const custom = vscode.notebooks.createNotebookController(
-      'ijnb-kernel-ijnb',
-      'ijnb-notebook',
-      'IJNB Kernel'
-    )
-    const jupyter = vscode.notebooks.createNotebookController(
-      'ijnb-kernel-jupyter',
-      'jupyter-notebook',
-      'IJNB Kernel'
-    )
+    const custom = notebooks.createNotebookController(
+      ijnbConstants.KERNEL_ID,
+      ijnbConstants.NOTEBOOK_TYPE,
+      ijnbConstants.KERNEL_LABEL
+    );
+
+    const jupyter = notebooks.createNotebookController(
+      ipynbConstants.KERNEL_ID,
+      ipynbConstants.NOTEBOOK_TYPE,
+      ipynbConstants.KERNEL_LABEL
+    );
+
     for (const ctr of [custom, jupyter]) {
-      ctr.supportedLanguages = ['markdown', 'java'];
+      ctr.supportedLanguages = [supportLanguages.JAVA, supportLanguages.MARKDOWN];
       ctr.supportsExecutionOrder = true;
       ctr.executeHandler = this.executeCells.bind(this);
       this.controllers.push(ctr);
@@ -57,67 +65,113 @@ export class IJNBKernel implements vscode.Disposable {
   }
 
   private async executeCells(
-    cells: vscode.NotebookCell[],
-    notebook: vscode.NotebookDocument,
-    controller: vscode.NotebookController
+    cells: NotebookCell[],
+    notebook: NotebookDocument,
+    controller: NotebookController
   ): Promise<void> {
     const notebookId = notebook.uri.toString();
-    const classpath = getConfigurationValue(configKeys.notebookClasspath) || null;
 
     for (const cell of cells) {
-      const exec = controller.createNotebookCellExecution(cell);
-      const next = IJNBKernel.executionCounter.get(notebookId) ?? 1;
-      exec.executionOrder = next;
-      exec.start(Date.now());
-
-      try {
-        if (cell.document.languageId === 'markdown') {
-          await exec.replaceOutput([
-            new vscode.NotebookCellOutput([createOutputItem(cell.document.getText(), 'text/plain')]),
-          ]);
-        } else {
-          if (!(await globalState.getClientPromise().client)) {
-            throw new Error('JShell client not initialized. Notebook execution aborted.');
-          }
-          if (!(await isNbCommandRegistered(nbCommands.executeNotebookCell))) {
-            throw new Error(`Notebook execution command '${nbCommands.executeNotebookCell}' is not registered.`);
-          }
-          const response = (await vscode.commands.executeCommand<
-            { data: string; mimeType: string }[]
-            >(nbCommands.executeNotebookCell, cell.document.getText(), notebookId, classpath));
-          if (!response) throw new Error('No output received from notebook cell execution.');
-          
-          const mimeMap = new Map<string, string[]>();
-          for (const { data, mimeType } of response) {
-            const arr = mimeMap.get(mimeType) || [];
-            arr.push(data);
-            mimeMap.set(mimeType, arr);
-          }
-
-          if (mimeMap.size === 0) {
-            await exec.replaceOutput([]);
-          } else {
-            const items = Array.from(mimeMap.entries()).map(([mime, chunks]) =>
-              createOutputItem(mime.startsWith('image/') ? chunks[0] : chunks.join('\n'), mime)
-            );
-            await exec.replaceOutput([new vscode.NotebookCellOutput(items)]);
-          }
-        }
-
-        exec.end(true, Date.now());
-      } catch (err) {
-        console.error(`Execution failed for cell (index: ${cell.index}): ${(err as Error).message}: `, err);
-        await exec.replaceOutput([
-          new vscode.NotebookCellOutput([
-            vscode.NotebookCellOutputItem.error({
-              name: 'Execution Error',
-              message: String(err),
-            }),
-          ]),
-        ]);
-        exec.end(false, Date.now());
+      if (cell.document.languageId === supportLanguages.MARKDOWN) {
+        await this.handleMarkdownCellExecution(notebookId, cell, controller);
+      } else if (cell.document.languageId === supportLanguages.JAVA) {
+        await this.handleCodeCellExecution(notebookId, cell, controller);
+      } else {
+        await this.handleUnkownLanguageTypeExecution(notebookId, cell, controller);
       }
-      IJNBKernel.executionCounter.set(notebookId, next + 1);
+    }
+  }
+
+  private handleCodeCellExecution = async (notebookId: string, cell: NotebookCell, controller: NotebookController) => {
+    const cellId = cell.document.uri.toString();
+    const sourceCode = cell.document.getText();
+    const codeCellExecution = new CodeCellExecution(controller.id, notebookId, cell);
+    try {
+      this.cellControllerIdMap.set(cellId, codeCellExecution);
+      const client: LanguageClient = await globalState.getClientPromise().client;
+
+      if (!(await isNbCommandRegistered(nbCommands.executeNotebookCell))) {
+        throw l10n.value("jdk.extension.error_msg.doesntSupportNoteboookCellExecution", { client });
+      }
+
+      const response = await commands.executeCommand<string>(nbCommands.executeNotebookCell,
+        notebookId,
+        cellId,
+        sourceCode);
+
+      if (!response) {
+        LOGGER.error(`Some error occurred while cell execution: ${cellId}`);
+      }
+    } catch (error) {
+      LOGGER.error(isError(error) ? error.message : String(error));
+    } finally {
+      this.cellControllerIdMap.delete(cellId);
+    }
+  }
+
+  public handleCellExecutionNotification = async (params: NotebookCellExecutionResult.params) => {
+    const codeCellExecution = this.cellControllerIdMap.get(params.cellUri);
+    if (!codeCellExecution) {
+      LOGGER.warn(`There is no code cell execution object created for ${params.cellUri}`);
+      return;
+    }
+    switch (params.status) {
+      case NotebookCellExecutionResult.STATUS.QUEUED:
+        const controller = this.controllers.find(el => el.id === codeCellExecution.getControllerId());
+        codeCellExecution.queued(controller);
+        break;
+      case NotebookCellExecutionResult.STATUS.EXECUTING:
+        const { outputStream, errorStream, diagnostics, errorDiagnostics, metadata } = params;
+        await codeCellExecution.executing(outputStream, errorStream, diagnostics, errorDiagnostics, metadata, this.getExecutionCounter(codeCellExecution.getNotebookId()));
+        break;
+      case NotebookCellExecutionResult.STATUS.SUCCESS:
+        codeCellExecution.executionCompleted(true);
+        this.cellControllerIdMap.delete(params.cellUri);
+        break;
+      case NotebookCellExecutionResult.STATUS.FAILURE:
+        codeCellExecution.executionCompleted(false);
+        this.cellControllerIdMap.delete(params.cellUri);
+        break;
+      case NotebookCellExecutionResult.STATUS.INTERRUPTED:
+        codeCellExecution.executionInterrupted();
+        this.cellControllerIdMap.delete(params.cellUri);
+        break;
+    }
+  }
+
+  private handleUnkownLanguageTypeExecution = async (notebookId: string, cell: NotebookCell, controller: NotebookController) => {
+    const exec = controller.createNotebookCellExecution(cell);
+    exec.executionOrder = this.getExecutionCounterAndIncrement(notebookId);
+    exec.start(Date.now());
+    await exec.replaceOutput(createErrorOutput(new Error(`Doesn't support ${cell.document.languageId} execution`)));
+    exec.end(true, Date.now());
+  }
+
+  private getExecutionCounterAndIncrement = (notebookId: string) => {
+    const next = IJNBKernel.executionCounter.get(notebookId) ?? 1;
+    IJNBKernel.executionCounter.set(notebookId, next + 1);
+    return next;
+  }
+
+  private getExecutionCounter = (notebookId: string) => {
+    return IJNBKernel.executionCounter.get(notebookId) ?? 1;
+  }
+
+  private handleMarkdownCellExecution = async (notebookId: string, cell: NotebookCell, controller: NotebookController) => {
+    const exec = controller.createNotebookCellExecution(cell);
+    const mimeType = 'text/markdown';
+    exec.executionOrder = this.getExecutionCounterAndIncrement(notebookId);
+    try {
+      exec.start(Date.now());
+      await exec.replaceOutput([
+        new NotebookCellOutput([createOutputItem(cell.document.getText(), mimeType)]),
+      ]);
+    } catch (error) {
+      await exec.replaceOutput(createErrorOutput(error as Error));
+    } finally {
+      exec.end(true, Date.now());
     }
   }
 }
+
+export const notebookKernel = new IJNBKernel();

@@ -1,6 +1,6 @@
 --- /dev/null
-+++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellContentRequestParams.java
-@@ -0,0 +1,121 @@
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellExecutionResult.java
+@@ -0,0 +1,63 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -20,38 +20,220 @@
 + * under the License.
 + */
 +package org.netbeans.modules.java.lsp.server.notebook;
++
++import java.io.ByteArrayInputStream;
++import java.io.IOException;
++import java.net.URLConnection;
++import java.util.Arrays;
++
++/**
++ *
++ * @author atalati
++ */
++public class CellExecutionResult {
++    private final byte[] data;
++    private final String mimeType;
++
++    public CellExecutionResult(byte[] rawData, String mimeType) {
++        this.data = rawData;
++        this.mimeType = mimeType;
++    }
++
++    public byte[] getData() {
++        return Arrays.copyOf(data, data.length);
++    }
++
++    public String getMimeType() {
++        return mimeType;
++    }
++
++    public static CellExecutionResult text(byte[] data) {
++        return new CellExecutionResult(data, "text/plain");
++    }
++
++    public static CellExecutionResult detectMimeAndGetResult(byte[] data) {
++        return new CellExecutionResult(data, detectMime(data));
++    }
++
++    private static String detectMime(byte[] data) {
++        try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
++            String detected = URLConnection.guessContentTypeFromStream(in);
++            return detected != null ? detected : "text/plain";
++        } catch (IOException ex) {
++            return "text/plain";
++        }
++    }
++}
+--- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellExecutionProgressResultParams.java
+@@ -0,0 +1,301 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.lsp.server.notebook;
++
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.List;
 +import java.util.Objects;
 +import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 +import org.eclipse.lsp4j.util.Preconditions;
 +import org.eclipse.xtext.xbase.lib.Pure;
 +import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
++
 +/**
 + *
 + * @author atalati
 + */
-+@SuppressWarnings("all")
-+public class NotebookCellContentRequestParams {
++public class NotebookCellExecutionProgressResultParams {
++
++    public static enum EXECUTION_STATUS {
++        QUEUED,
++        EXECUTING,
++        SUCCESS,
++        FAILURE,
++        INTERRUPTED
++    }
 +    /**
 +     * URI of the notebook.
 +     */
 +    @NonNull
-+    private String notebookUri;
-+    
++    private final String notebookUri;
++
 +    /**
 +     * URI of the cell.
 +     */
 +    @NonNull
-+    private String cellUri;
-+    
-+    public NotebookCellContentRequestParams() {
-+        this("", "");
-+    }
-+    
-+    public NotebookCellContentRequestParams(@NonNull final String notebookUri, @NonNull final String cellUri) {
++    private final String cellUri;
++
++    /**
++     * cell execution status
++     */
++    private String status;
++
++    /**
++     * outputStream of the cell.
++     */
++    private CellExecutionResult outputStream;
++
++    /**
++     * errorStream of the cell.
++     */
++    private CellExecutionResult errorStream;
++
++    /**
++     * Diagnostics of the snippet ran.
++     */
++    private List<String> diagnostics;
++
++    /**
++     * Errors occurred while running or compilation of the snippet.
++     */
++    private List<String> errorDiagnostics;
++
++    /**
++     * add metadata about the execution.
++     */
++    private Object metadata;
++
++    private NotebookCellExecutionProgressResultParams(
++            @NonNull final String notebookUri,
++            @NonNull final String cellUri,
++            final EXECUTION_STATUS status,
++            final CellExecutionResult outputStream,
++            final CellExecutionResult errorStream,
++            final List<String> diagnostics,
++            final List<String> errorDiagnostics,
++            final Object metadata) {
 +        this.notebookUri = Preconditions.checkNotNull(notebookUri, "notebookUri");
 +        this.cellUri = Preconditions.checkNotNull(cellUri, "cellUri");
++        this.status = status != null ? status.name() : null;
++        this.outputStream = outputStream;
++        this.errorStream = errorStream;
++        this.diagnostics = diagnostics;
++        this.errorDiagnostics = errorDiagnostics;
++        this.metadata = metadata;
 +    }
-+    
++
++    public static Builder builder(@NonNull String notebookUri, @NonNull String cellUri) {
++        return new Builder(notebookUri, cellUri);
++    }
++
++    public static class Builder {
++
++        @NonNull
++        private final String notebookUri;
++        @NonNull
++        private final String cellUri;
++        private EXECUTION_STATUS status;
++        private CellExecutionResult outputStream;
++        private CellExecutionResult errorStream;
++        private List<String> diagnostics;
++        private List<String> errorDiagnostics;
++        private Object metadata;
++
++        private Builder(@NonNull String notebookUri, @NonNull String cellUri) {
++            this.notebookUri = notebookUri;
++            this.cellUri = cellUri;
++        }
++
++        public Builder status(EXECUTION_STATUS status) {
++            this.status = status;
++            return this;
++        }
++
++        public Builder outputStream(CellExecutionResult outputStream) {
++            this.outputStream = outputStream;
++            return this;
++        }
++
++        public Builder errorStream(CellExecutionResult errorStream) {
++            this.errorStream = errorStream;
++            return this;
++        }
++
++        public Builder diagnostics(List<String> diagnostics) {
++            this.diagnostics = diagnostics != null ? new ArrayList<>(diagnostics) : null;
++            return this;
++        }
++
++        public Builder errorDiagnostics(List<String> errorDiagnostics) {
++            this.errorDiagnostics = errorDiagnostics != null ? new ArrayList<>(errorDiagnostics) : null;
++            return this;
++        }
++
++        public Builder metadata(Object metadata) {
++            this.metadata = metadata;
++            return this;
++        }
++
++        public NotebookCellExecutionProgressResultParams build() {
++            return new NotebookCellExecutionProgressResultParams(notebookUri,
++                    cellUri,
++                    status,
++                    outputStream,
++                    errorStream,
++                    diagnostics,
++                    errorDiagnostics,
++                    metadata);
++        }
++    }
++
 +    /**
 +     * URI of the notebook.
 +     */
@@ -60,14 +242,7 @@
 +    public String getNotebookUri() {
 +        return notebookUri;
 +    }
-+    
-+    /**
-+     * URI of the notebook.
-+     */
-+    public void setNotebookUri(@NonNull final String notebookUri) {
-+        this.notebookUri = Preconditions.checkNotNull(notebookUri, "notebookUri");
-+    }
-+    
++
 +    /**
 +     * URI of the cell.
 +     */
@@ -76,14 +251,239 @@
 +    public String getCellUri() {
 +        return cellUri;
 +    }
-+    
++
++    /**
++     * @param status new execution stage (must not be null)
++     */
++    public void setStatus(@NonNull EXECUTION_STATUS status) {
++        this.status = Preconditions.checkNotNull(status.name(), "status");
++    }
++
++    /**
++     * @return captured outputStream (or null)
++     */
++    @Pure
++    public CellExecutionResult getOutputStream() {
++        return outputStream;
++    }
++
++    /**
++     * @param outputStream new outputStream (may be null)
++     */
++    public void setOutputStream(CellExecutionResult outputStream) {
++        this.outputStream = outputStream;
++    }
++
++    /**
++     * @return captured errorStream (or null)
++     */
++    @Pure
++    public CellExecutionResult getErrorStream() {
++        return errorStream;
++    }
++
++    /**
++     * @param errorStream new errorStream (may be null)
++     */
++    public void setErrorStream(CellExecutionResult errorStream) {
++        this.errorStream = errorStream;
++    }
++
++    public List<String> getDiagnostics() {
++        return Collections.unmodifiableList(diagnostics);
++    }
++
++    public void setDiagnostics(List<String> diagnostics) {
++        this.diagnostics = diagnostics != null ? new ArrayList<>(diagnostics) : null;
++    }
++
++    public List<String> getErrorDiagnostics() {
++        return Collections.unmodifiableList(errorDiagnostics);
++    }
++
++    public void setErrorDiagnostics(List<String> errorDiagnostics) {
++        this.errorDiagnostics = errorDiagnostics != null ? new ArrayList<>(errorDiagnostics) : null;
++    }
++
++    /**
++     * @return execution metadata (or null)
++     */
++    @Pure
++    public Object getMetadata() {
++        return metadata;
++    }
++
++    /**
++     * @param metadata new metadata (may be null)
++     */
++    public void setMetadata(Object metadata) {
++        this.metadata = metadata;
++    }
++
++    @Override
++    @Pure
++    public String toString() {
++        ToStringBuilder b = new ToStringBuilder(this);
++        b.add("notebookUri", notebookUri);
++        b.add("cellUri", cellUri);
++        b.add("status", status);
++        b.add("outputStream", outputStream);
++        b.add("errorStream", errorStream);
++        b.add("diagnostics", diagnostics);
++        b.add("errorDiagnostics", errorDiagnostics);
++        b.add("metadata", metadata);
++        return b.toString();
++    }
++
++    @Override
++    public int hashCode() {
++        return Objects.hash(
++                notebookUri,
++                cellUri,
++                status,
++                outputStream,
++                errorStream,
++                diagnostics,
++                errorDiagnostics,
++                metadata
++        );
++    }
++
++    @Override
++    public boolean equals(Object obj) {
++        if (this == obj) {
++            return true;
++        }
++        if (!(obj instanceof NotebookCellExecutionProgressResultParams)) {
++            return false;
++        }
++        NotebookCellExecutionProgressResultParams other = (NotebookCellExecutionProgressResultParams) obj;
++        return Objects.equals(this.notebookUri, other.notebookUri)
++                && Objects.equals(this.cellUri, other.cellUri)
++                && Objects.equals(this.status, other.status)
++                && Objects.equals(this.outputStream, other.outputStream)
++                && Objects.equals(this.errorStream, other.errorStream)
++                && Objects.equals(this.diagnostics, other.diagnostics)
++                && Objects.equals(this.errorDiagnostics, other.errorDiagnostics)
++                && Objects.equals(this.metadata, other.metadata);
++    }
++}
+--- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellStateResponse.java
+@@ -0,0 +1,41 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.lsp.server.notebook;
++
++/**
++ *
++ * @author atalati
++ */
++public class CellStateResponse {
++    private final String text;
++    private final int version;
++
++    public CellStateResponse(String text, int version) {
++        this.text = text;
++        this.version = version;
++    }
++
++    public String getText() {
++        return text;
++    }
++
++    public int getVersion() {
++        return version;
++    }
++}
+--- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellStateParams.java
+@@ -0,0 +1,99 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.lsp.server.notebook;
++
++import java.util.Objects;
++import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
++import org.eclipse.lsp4j.util.Preconditions;
++import org.eclipse.xtext.xbase.lib.Pure;
++import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
++
++/**
++ *
++ * @author atalati
++ */
++public class NotebookCellStateParams {
++
++    /**
++     * URI of the notebook.
++     */
++    @NonNull
++    private final String notebookUri;
++
 +    /**
 +     * URI of the cell.
 +     */
-+    public void setCellUri(@NonNull final String cellUri) {
++    @NonNull
++    private final String cellUri;
++
++    public NotebookCellStateParams(
++            @NonNull final String notebookUri,
++            @NonNull final String cellUri) {
++        this.notebookUri = Preconditions.checkNotNull(notebookUri, "notebookUri");
 +        this.cellUri = Preconditions.checkNotNull(cellUri, "cellUri");
 +    }
-+    
++
++    /**
++     * URI of the notebook.
++     */
++    @Pure
++    @NonNull
++    public String getNotebookUri() {
++        return notebookUri;
++    }
++
++    /**
++     * URI of the cell.
++     */
++    @Pure
++    @NonNull
++    public String getCellUri() {
++        return cellUri;
++    }
++
 +    @Override
 +    @Pure
 +    public String toString() {
@@ -92,34 +492,26 @@
 +        b.add("cellUri", cellUri);
 +        return b.toString();
 +    }
-+    
++
 +    @Override
 +    public int hashCode() {
-+        int hash = 5;
-+        hash = 43 * hash + Objects.hashCode(this.notebookUri);
-+        hash = 43 * hash + Objects.hashCode(this.cellUri);
-+        return hash;
++        return Objects.hash(
++                notebookUri,
++                cellUri
++        );
 +    }
-+    
++
 +    @Override
 +    public boolean equals(Object obj) {
 +        if (this == obj) {
 +            return true;
 +        }
-+        if (obj == null) {
++        if (!(obj instanceof NotebookCellStateParams)) {
 +            return false;
 +        }
-+        if (getClass() != obj.getClass()) {
-+            return false;
-+        }
-+        final NotebookCellContentRequestParams other = (NotebookCellContentRequestParams) obj;
-+        if (!Objects.equals(this.notebookUri, other.notebookUri)) {
-+            return false;
-+        }
-+        if (!Objects.equals(this.cellUri, other.cellUri)) {
-+            return false;
-+        }
-+        return true;
++        NotebookCellStateParams other = (NotebookCellStateParams) obj;
++        return Objects.equals(this.notebookUri, other.notebookUri)
++                && Objects.equals(this.cellUri, other.cellUri);
 +    }
 +}
 --- /dev/null
@@ -186,39 +578,51 @@
 +}
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java
-@@ -32,6 +32,7 @@
+@@ -32,6 +32,9 @@
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
  import org.netbeans.modules.java.lsp.server.explorer.api.NodeChangedParams;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellContentRequestParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  
  /**
   * An extension to the standard LanguageClient that adds several messages missing
-@@ -166,4 +167,6 @@
+@@ -166,4 +169,9 @@
      @JsonRequest("output/reset")
      public CompletableFuture<Void> resetOutput(String outputName);
      
-+    @JsonRequest("notebookDocument/cellContentRequest")
-+    public CompletableFuture<String> notebookDocumentCellContentRequest(@NonNull NotebookCellContentRequestParams params);
++    @JsonNotification("notebook/execution/progress")
++    public void notifyNotebookCellExecutionProgress(@NonNull NotebookCellExecutionProgressResultParams params);
++    
++    @JsonRequest("notebook/cell/state")
++    public CompletableFuture<CellStateResponse> getNotebookCellState(@NonNull NotebookCellStateParams params);
  }
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java
-@@ -44,6 +44,7 @@
+@@ -44,6 +44,9 @@
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
  import org.netbeans.modules.java.lsp.server.explorer.api.NodeChangedParams;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellContentRequestParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  
  /**
   * Convenience wrapper that binds language client's remote proxy together with
-@@ -244,4 +245,8 @@
+@@ -244,4 +247,13 @@
          return remote.resetOutput(outputName);
      }
      
 +    @Override
-+    public CompletableFuture<String> notebookDocumentCellContentRequest(NotebookCellContentRequestParams params) {
-+        return remote.notebookDocumentCellContentRequest(params);
++    public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
++        remote.notifyNotebookCellExecutionProgress(params);
  }
++
++    @Override
++    public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
++        return remote.getNotebookCellState(params);
++    }
 +}
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientCapabilities.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientCapabilities.java
@@ -247,65 +651,155 @@
              caps = new ClientCapabilities();
 --- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java
 +++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java
-@@ -43,6 +43,7 @@
+@@ -43,6 +43,9 @@
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellContentRequestParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  import org.netbeans.modules.java.lsp.server.protocol.OutputMessage;
  import org.netbeans.modules.java.lsp.server.protocol.SaveDocumentRequestParams;
  import org.netbeans.modules.java.lsp.server.protocol.ShowStatusMessageParams;
-@@ -182,4 +183,9 @@
+@@ -182,4 +185,14 @@
      public CompletableFuture<Void> resetOutput(String outputName) {
          return CompletableFuture.completedFuture(null);
      }
 +
 +    @Override
-+    public CompletableFuture<String> notebookDocumentCellContentRequest(NotebookCellContentRequestParams params) {
-+        return CompletableFuture.completedFuture(null);
++    public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params){
++        throw new UnsupportedOperationException();
  }
++
++    @Override
++    public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
++        return CompletableFuture.completedFuture(null);
++    }
 +}
 --- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java
 +++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java
-@@ -77,6 +77,7 @@
+@@ -77,6 +77,9 @@
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellContentRequestParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  import org.netbeans.modules.java.lsp.server.protocol.OutputMessage;
  import org.netbeans.modules.java.lsp.server.protocol.SaveDocumentRequestParams;
  import org.netbeans.modules.java.lsp.server.protocol.SetTextEditorDecorationParams;
-@@ -306,7 +307,12 @@
+@@ -306,8 +309,18 @@
          public CompletableFuture<Void> resetOutput(String outputName) {
              return CompletableFuture.completedFuture(null);
          }
 +
 +        @Override
-+        public CompletableFuture<String> notebookDocumentCellContentRequest(NotebookCellContentRequestParams params) {
-+            return CompletableFuture.completedFuture(null);
++        public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
      }
-+    }
  
++        @Override
++        public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
++            return CompletableFuture.completedFuture(null);
++        }
++
++    }
++
      private static Launcher<NbLanguageServer> createLauncher(NbCodeLanguageClient client, InputStream in, OutputStream out,
              Function<MessageConsumer, MessageConsumer> processor) {
+         return new LSPLauncher.Builder<NbLanguageServer>()
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/input/ShowInputBoxParams.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/input/ShowInputBoxParams.java
+@@ -53,6 +53,11 @@
+      */
+     private boolean password = false;
+ 
++    /**
++     * Controls if focus is changed from the input box whether it should close or not.
++     */
++    private boolean ignoreFocusOut = false;
++
+     public ShowInputBoxParams() {
+         this("", "");
+     }
+@@ -68,6 +73,11 @@
+         this.password = password;
+     }
+ 
++    public ShowInputBoxParams(@NonNull final String prompt, @NonNull final String value, final boolean ignoreFocusOut) {
++        this(prompt, value);
++        this.ignoreFocusOut = ignoreFocusOut;
++    }
++    
+     /**
+      * An optional title of the input box.
+      */
+@@ -131,6 +141,22 @@
+         this.password = password;
+     }
+ 
++    /**
++     * Controls if focus is changed from the input box whether it should close or not.
++     */
++    @Pure
++    @NonNull
++    public boolean isIgnoreFocusOut() {
++        return ignoreFocusOut;
++    }
++
++    /**
++     * Controls if focus is changed from the input box whether it should close or not.
++     */
++    public void setIgnoreFocusOut(boolean ignoreFocusOut) {
++        this.ignoreFocusOut = ignoreFocusOut;
++    }
++
+     @Override
+     @Pure
+     public String toString() {
+@@ -139,6 +165,7 @@
+         b.add("prompt", prompt);
+         b.add("value", value);
+         b.add("password" , password);
++        b.add("ignoreFocusOut", ignoreFocusOut);
+         return b.toString();
+     }
+ 
+@@ -169,6 +196,9 @@
+         if (this.password != other.password) {
+             return false;
+         }
++        if (this.ignoreFocusOut != other.ignoreFocusOut) {
++            return false;
++        }
+         if (!Objects.equals(this.title, other.title)) {
+             return false;
+         }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
+index 747d151600..bbf1f263d1 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
-@@ -134,6 +134,7 @@ import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
+@@ -134,6 +134,9 @@ import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
  import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellContentRequestParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  import org.netbeans.modules.java.lsp.server.progress.OperationContext;
  import org.netbeans.modules.parsing.spi.indexing.Context;
  import org.netbeans.modules.parsing.spi.indexing.CustomIndexer;
-@@ -1383,6 +1384,12 @@ public final class Server {
+@@ -1383,6 +1386,16 @@ public final class Server {
              logWarning("Reset output: " + outputName); //NOI18N
              return CompletableFuture.completedFuture(null);
          }
 +
 +        @Override
-+        public CompletableFuture<String> notebookDocumentCellContentRequest(NotebookCellContentRequestParams params) {
-+            logWarning("notebook document cell content request: " + params.getNotebookUri() + " cell uri: " + params.getCellUri()); //NOI18N
++        public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
++            logWarning("notebook document cell execution result: " + params.getNotebookUri() + " cell uri: " + params.getCellUri()); //NOI18N
++        }
++
++        @Override
++        public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
 +            return CompletableFuture.completedFuture(null);
 +        }
      };

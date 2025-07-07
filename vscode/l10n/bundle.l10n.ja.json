@@ -88,6 +88,7 @@
   "jdk.extension.error_msg.doesntSupportNewTeamplate":"クライアント{client}では、「テンプレートからファイル新規作成」はサポートされていません",
   "jdk.extension.error_msg.doesntSupportNewProject":"クライアント{client}では、新規プロジェクトはサポートされていません",
   "jdk.extension.error_msg.doesntSupportGoToTest":"クライアント{client}では、「テストへ移動」はサポートされていません",
+  "jdk.extension.error_msg.doesntSupportNoteboookCellExecution":"Client {client} doesn't support notebook cell execution",
   "jdk.extension.error_msg.noSuperImpl":"スーパークラスの実装が見つかりません",
   "jdk.extension.error_msg.cacheDeletionError":"キャッシュの削除中にエラーが発生しました",
   "jdk.extension.message.cacheDeleted":"キャッシュが正常に削除されました",

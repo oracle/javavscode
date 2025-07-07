@@ -17,15 +17,14 @@ package org.netbeans.modules.nbcode.java.project;
 
 import com.google.gson.JsonPrimitive;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.java.lsp.server.Utils;
+import org.netbeans.modules.nbcode.java.notebook.NotebookUtils;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 
@@ -41,16 +40,14 @@ public class CommandHandler {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         LOG.log(Level.FINER, "Request received for opening Jshell instance with project context {0}", args);
-
-        final String uri = args != null && args.get(0) != null && args.get(0) instanceof JsonPrimitive
-                ? ((JsonPrimitive) args.get(0)).getAsString()
-                : null;
         
+        String uri = NotebookUtils.getArgument(args, 0, String.class);
+
         if (uri == null) {
             future.completeExceptionally(new IllegalArgumentException("uri is required. It cannot be null"));
             return future;
         }
-        
+
         Project prj = getProject(uri);
         if (prj != null) {
             return ProjectConfigurationUtils.buildProject(prj)
@@ -73,19 +70,15 @@ public class CommandHandler {
     }
 
     public static boolean openNotebookInProjectContext(List<Object> args) {
-        LOG.log(Level.FINER, "Request received for opening Jshell instance with project context {0}", args);
+        LOG.log(Level.FINER, "Request received for opening notebook with project context {0}", args);
 
-        String uri = null, notebookUri = null;
-        if (args != null && !args.isEmpty() && args.get(0) != null && args.get(0) instanceof JsonPrimitive) {
-            uri = ((JsonPrimitive) args.get(0)).getAsString();
-        }
-        if (args != null && args.size() > 1 && args.get(1) != null && args.get(1) instanceof JsonPrimitive) {
-            notebookUri = ((JsonPrimitive) args.get(1)).getAsString();
-        }
+        String uri = NotebookUtils.getArgument(args, 0, String.class);
+        String notebookUri = NotebookUtils.getArgument(args, 1, String.class);
+        
         Project prj = getProject(uri);
         if (prj != null) {
             List<String> remoteVmOptions = ProjectConfigurationUtils.launchVMOptions(prj);
-            List<String> compileOptions = ProjectConfigurationUtils.compileOptions(prj);
+            List<String> compileOptions = ProjectConfigurationUtils.compilerOptions(prj);
 
             LOG.log(Level.INFO, "Opened Notebook instance with project context {0}", uri);
             return true;

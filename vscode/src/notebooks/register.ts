@@ -20,16 +20,15 @@
  */
 
 import { ExtensionContext, workspace } from "vscode";
-import { IJNBKernel } from "./kernel";
-import { IJNBNotebookSerializer } from "./serializer";
+import { notebookKernel } from "./kernel";
+import { notebookSerializer } from "./serializer";
 
-export const registerNotebooks = (context: ExtensionContext) => {
+export const registerNotebookProviders = (context: ExtensionContext) => {
     context.subscriptions.push(
         workspace.registerNotebookSerializer(
             'ijnb-notebook',
-            new IJNBNotebookSerializer()
-    ));
+            notebookSerializer
+        ));
 
-    const kernel = new IJNBKernel();
-    context.subscriptions.push(kernel);
+    context.subscriptions.push(notebookKernel);
 }

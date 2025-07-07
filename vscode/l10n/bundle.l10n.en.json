@@ -88,6 +88,7 @@
   "jdk.extension.error_msg.doesntSupportNewTeamplate":"Client {client} doesn't support creating a new file from template",
   "jdk.extension.error_msg.doesntSupportNewProject":"Client {client} doesn't support new project",
   "jdk.extension.error_msg.doesntSupportGoToTest":"Client {client} doesn't support go to test",
+  "jdk.extension.error_msg.doesntSupportNoteboookCellExecution":"Client {client} doesn't support notebook cell execution",
   "jdk.extension.error_msg.noSuperImpl":"No super implementation found",
   "jdk.extension.error_msg.cacheDeletionError":"Error deleting the cache",
   "jdk.extension.message.cacheDeleted":"Cache deleted successfully",

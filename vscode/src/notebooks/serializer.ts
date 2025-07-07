@@ -24,9 +24,8 @@ import { errorNotebook, parseCell } from './utils';
 import { ICell, INotebook } from './types';
 import { Notebook } from './notebook';
 
-export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
+class IJNBNotebookSerializer implements vscode.NotebookSerializer {
   private readonly decoder = new TextDecoder();
-  private readonly encoder = new TextEncoder();
 
   async deserializeNotebook(
     content: Uint8Array,
@@ -81,3 +80,5 @@ export class IJNBNotebookSerializer implements vscode.NotebookSerializer {
     }
   }
 }
+
+export const notebookSerializer = new IJNBNotebookSerializer();

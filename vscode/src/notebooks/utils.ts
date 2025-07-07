@@ -31,6 +31,8 @@ import {
   IMetadata
 } from './types';
 import { randomUUID } from 'crypto';
+import { isError, isString } from '../utils';
+import { mimeTypes } from './constants';
 
 export function base64ToUint8Array(base64: string): Uint8Array {
   if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
@@ -63,6 +65,14 @@ export function createOutputItem(data: string | Uint8Array, mimeType: string): v
   return vscode.NotebookCellOutputItem.text(text, mimeType);
 }
 
+export const createErrorOutput = (err: string | Error) => {
+  return new vscode.NotebookCellOutput([createErrorOutputItem(err)]);
+}
+
+export const createErrorOutputItem = (err: string | Error) => {
+  return vscode.NotebookCellOutputItem.text(isString(err) ? err: err.message);
+}
+
 export function parseCell(cell: ICell): vscode.NotebookCellData {
   if (cell.cell_type !== 'code' && cell.cell_type !== 'markdown')
     throw new Error(`Invalid cell_type: ${cell.cell_type}`);
@@ -76,7 +86,7 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
   const cellData = new vscode.NotebookCellData(kind, value, language);
   cellData.metadata = { id: cell.id, ...cell.metadata };
   if (cell.cell_type === 'code') {
-    
+
     const metaExec = (cell.metadata as IMetadata).executionSummary;
     const executionOrder = metaExec?.executionOrder ?? cell.execution_count ?? undefined;
     const success = metaExec?.success ?? undefined;
@@ -99,7 +109,7 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
       }
     }
   }
-  if(cell.id) console.log(`${cell.id.slice(0,5)} Successfully parsed`);
+  if (cell.id) console.log(`${cell.id.slice(0, 5)} Successfully parsed`);
   return cellData;
 }
 
@@ -132,7 +142,7 @@ export function parseOutput(raw: IOutput): vscode.NotebookCellOutput[] {
       const bundle = raw.data || {};
       for (const mime in bundle) {
         const data = bundle[mime];
-        if (mime === 'text/plain') {
+        if (mime === mimeTypes.TEXT) {
           const text = Array.isArray(data) ? data.join('') : String(data);
           items.push(vscode.NotebookCellOutputItem.text(text));
         } else if ((mime as string).startsWith('image/')) {
@@ -165,8 +175,8 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
       const outMetadata = output.metadata ?? {};
 
       for (const item of output.items) {
-        if (item.mime === 'text/plain') {
-          data['text/plain'] = Buffer.from(item.data).toString();
+        if (item.mime === mimeTypes.TEXT) {
+          data[mimeTypes.TEXT] = Buffer.from(item.data).toString();
         } else {
           data[item.mime] = uint8ArrayToBase64(item.data);
         }
@@ -192,13 +202,13 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
       execution_count: executionCount,
       outputs,
     };
-    if(codeCell.id) console.log(`${codeCell.id.slice(0,5)} Successfully serialized code cell`);
+    if (codeCell.id) console.log(`${codeCell.id.slice(0, 5)} Successfully serialized code cell`);
     return codeCell;
   }
   const mdCell: IMarkdownCell = {
     id,
     cell_type: 'markdown',
-    source: cell.value,        
+    source: cell.value,
     metadata: {
       language: cell.languageId,
       id,

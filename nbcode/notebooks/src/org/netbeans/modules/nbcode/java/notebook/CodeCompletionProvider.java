@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jdk.jshell.JShell;
 import jdk.jshell.SourceCodeAnalysis;
+import jdk.jshell.SourceCodeAnalysis.Suggestion;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
@@ -35,6 +36,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
  * @author atalati
  */
 public class CodeCompletionProvider {
+
     private static final Logger LOG = Logger.getLogger(CodeCompletionProvider.class.getName());
 
     private CodeCompletionProvider() {
@@ -49,72 +51,66 @@ public class CodeCompletionProvider {
         private static final CodeCompletionProvider instance = new CodeCompletionProvider();
     }
 
-    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> getCodeCompletions(CompletionParams params, NotebookDocumentStateManager state, JShell instance) {
-        try {
-            if (instance == null || state == null) {
-                return CompletableFuture.completedFuture(Either.<List<CompletionItem>, CompletionList>forLeft(new ArrayList<>()));
-            }
-            String uri = params.getTextDocument().getUri();
-            CellState cellState = state.getCell(uri);
-            String content = cellState.getContent();
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> getCodeCompletions(
+            CompletionParams params,
+            NotebookDocumentStateManager state,
+            JShell instance) {
 
-            Position position = params.getPosition();
-            int cursorOffset = NotebookUtils.getOffset(content, position);
-
-            String inputText = content.substring(0, cursorOffset);
-
-            SourceCodeAnalysis sourceAnalysis = instance.sourceCodeAnalysis();
-            int[] anchor = new int[1];
-
-            sourceAnalysis.analyzeCompletion(inputText);
-            // Need to get snippets because JShell doesn't provide suggestions sometimes if import statement is there in the cell
-            String finalString = getSnippets(sourceAnalysis, inputText).getLast();
-            finalString = finalString.charAt(finalString.length() - 1) == ';' ? finalString.substring(0, finalString.length() - 1) : finalString;
-
-            List<SourceCodeAnalysis.Suggestion> suggestions = sourceAnalysis.completionSuggestions(
-                    finalString, finalString.length(), anchor);
-
-            List<CompletionItem> completionItems = new ArrayList<>();
-            Map<String, Boolean> visited = new HashMap<>();
-
-            for (SourceCodeAnalysis.Suggestion suggestion : suggestions) {
-                if (visited.containsKey(suggestion.continuation())) {
-                    continue;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                if (instance == null || state == null) {
+                    return Either.<List<CompletionItem>, CompletionList>forLeft(new ArrayList<>());
                 }
 
-                CompletionItem item = new CompletionItem();
-                item.setLabel(suggestion.continuation());
+                SourceCodeAnalysis sourceCodeAnalysis = instance.sourceCodeAnalysis();
+                String textToComplete = getTextToComplete(
+                        params.getTextDocument().getUri(),
+                        params.getPosition(),
+                        state,
+                        sourceCodeAnalysis
+                );
 
-                if (!suggestion.continuation().isEmpty()) {
-                    item.setDocumentation(suggestion.continuation());
+                List<Suggestion> suggestions = sourceCodeAnalysis.completionSuggestions(
+                        textToComplete,
+                        textToComplete.length(),
+                        new int[1]
+                );
+
+                List<CompletionItem> completionItems = new ArrayList<>();
+                Map<String, Boolean> visited = new HashMap<>();
+
+                for (Suggestion suggestion : suggestions) {
+                    String continuation = suggestion.continuation();
+                    if (!visited.containsKey(continuation)) {
+                        completionItems.add(createCompletionItem(continuation));
+                        visited.put(continuation, Boolean.TRUE);
+                    }
                 }
 
-                completionItems.add(item);
-                visited.put(suggestion.continuation(), Boolean.TRUE);
-            }
+                return Either.<List<CompletionItem>, CompletionList>forLeft(completionItems);
 
-            return CompletableFuture.completedFuture(Either.<List<CompletionItem>, CompletionList>forLeft(completionItems));
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error getting code completions: {0}", e.getMessage());
-            return CompletableFuture.completedFuture(Either.<List<CompletionItem>, CompletionList>forLeft(new ArrayList<>()));
-        }
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Error getting code completions: {0}", e.getMessage());
+                return Either.<List<CompletionItem>, CompletionList>forLeft(new ArrayList<>());
+            }
+        });
     }
 
-    private List<String> getSnippets(SourceCodeAnalysis analysis, String code) {
-        String codeRemaining = code.trim();
+    private CompletionItem createCompletionItem(String label) {
+        CompletionItem item = new CompletionItem();
+        item.setLabel(label);
 
-        List<String> codeSnippets = new ArrayList<>();
-        while (!codeRemaining.isEmpty()) {
-            SourceCodeAnalysis.CompletionInfo info = analysis.analyzeCompletion(codeRemaining);
-            if (info.completeness().isComplete()) {
-                codeSnippets.add(info.source());
-            } else {
-                codeSnippets.add(codeRemaining);
-                break;
-            }
-            codeRemaining = info.remaining().trim();
-        }
+        return item;
+    }
 
-        return codeSnippets;
+    private String getTextToComplete(String uri, Position position, NotebookDocumentStateManager state, SourceCodeAnalysis sourceCodeAnalysis) {
+        CellState cellState = state.getCell(uri);
+        String content = cellState.getContent();
+        int cursorOffset = NotebookUtils.getOffset(content, position);
+
+        String offsetText = content.substring(0, cursorOffset);
+        List<String> snippets = NotebookUtils.getCodeSnippets(sourceCodeAnalysis, offsetText);
+
+        return snippets.isEmpty() ? "" : snippets.getLast();
     }
 }

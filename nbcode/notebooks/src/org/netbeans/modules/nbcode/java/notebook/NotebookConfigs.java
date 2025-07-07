@@ -34,7 +34,6 @@ import org.openide.util.Exceptions;
 public class NotebookConfigs {
 
     private static final String[] NOTEBOOK_CONFIG_LABELS = {"notebook.classpath", "notebook.modulepath", "notebook.addmodules", "notebook.enablePreview", "notebook.implicitImports"};
-    private NbCodeLanguageClient client = null;
     private String classPath = null;
     private String modulePath = null;
     private String addModules = null;
@@ -79,9 +78,7 @@ public class NotebookConfigs {
         private static final NotebookConfigs instance = new NotebookConfigs();
     }
 
-    public void setLanguageClient(NbCodeLanguageClient client) {
-        this.client = client;
-
+    public void initConfigs() {
         try {
             this.initialized = initializeConfigs();
         } catch (InterruptedException | ExecutionException ex) {
@@ -89,23 +86,22 @@ public class NotebookConfigs {
         }
     }
 
-    public NbCodeLanguageClient getLanguageClient() {
-        return client;
-    }
-
     private List<ConfigurationItem> getConfigItems() {
         List<ConfigurationItem> items = new ArrayList<>();
         for (String label : NOTEBOOK_CONFIG_LABELS) {
             ConfigurationItem item = new ConfigurationItem();
-            item.setSection(client.getNbCodeCapabilities().getConfigurationPrefix() + label);
-            items.add(item);
+            NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
+            if (client != null) {
+                item.setSection(client.getNbCodeCapabilities().getConfigurationPrefix() + label);
+                items.add(item);
+            }
         }
         return items;
     }
 
     private CompletableFuture<Void> initializeConfigs() throws InterruptedException, ExecutionException {
+        NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
         if (client != null) {
-
             CompletableFuture<List<Object>> configValues = client.configuration(new ConfigurationParams(getConfigItems()));
             return configValues.thenAccept((c) -> {
                 if (c != null) {

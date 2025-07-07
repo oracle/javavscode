@@ -15,11 +15,17 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 import org.eclipse.lsp4j.ExecutionSummary;
 import org.eclipse.lsp4j.NotebookCell;
 import org.eclipse.lsp4j.NotebookCellKind;
 import org.eclipse.lsp4j.TextDocumentItem;
+import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
+import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 
 /**
  *
@@ -29,13 +35,18 @@ public class CellState {
 
     private final NotebookCellKind type;
     private final String language;
+    private final String cellUri;
+    private final String notebookUri;
     private final AtomicReference<Object> metadata;
-    private final AtomicReference<VersionAwareCotent> content;
+    private final AtomicReference<VersionAwareContent> content;
     private final AtomicReference<ExecutionSummary> executionSummary;
+    private static final Logger LOG = Logger.getLogger(CellState.class.getName());
 
-    CellState(NotebookCell notebookCell, TextDocumentItem details) {
+    CellState(NotebookCell notebookCell, TextDocumentItem details, String notebookUri) {
         String normalizedText = NotebookUtils.normalizeLineEndings(details.getText());
-        this.content = new AtomicReference<>(new VersionAwareCotent(normalizedText, details.getVersion()));
+        this.cellUri = details.getUri();
+        this.notebookUri = notebookUri;
+        this.content = new AtomicReference<>(new VersionAwareContent(normalizedText, details.getVersion()));
         this.language = details.getLanguageId();
         this.type = notebookCell.getKind();
         this.metadata = new AtomicReference<>(notebookCell.getMetadata());
@@ -62,19 +73,57 @@ public class CellState {
         return executionSummary.get();
     }
 
-    public void setContent(String newContent, int newVersion) {
+    public String getCellUri() {
+        return cellUri;
+    }
+
+    public String getNotebookUri() {
+        return notebookUri;
+    }
+
+    public void setContent(String newContent, int newVersion) throws InterruptedException, ExecutionException {
         String normalizedContent = NotebookUtils.normalizeLineEndings(newContent);
-        VersionAwareCotent currentContent = content.get();
+        VersionAwareContent currentContent = content.get();
 
         if (currentContent.getVersion() != newVersion - 1) {
-            throw new IllegalStateException("Version mismatch: expected " + (newVersion - 1) + ", got " + currentContent.getVersion());
-        }
+            if (currentContent.getVersion() >= newVersion) {
+                LOG.warning("Current version is higher or equal than the new version request received, so ignoring it.");
+                return;
+            }
+            CompletableFuture<CellStateResponse> response = requestLatestCellState();
+            if (response == null) {
+                throw new IllegalStateException("Unable to send notebook cell state request to the client");
+            }
 
-        VersionAwareCotent newVersionContent = new VersionAwareCotent(normalizedContent, newVersion);
+            CellStateResponse newCellState = response.get();
+            int receivedVersion = newCellState.getVersion();
 
-        if (!content.compareAndSet(currentContent, newVersionContent)) {
-            throw new IllegalStateException("Concurrent modification detected. Version expected: " + (newVersion - 1) + ", current: " + content.get().getVersion());
+            if (receivedVersion > currentContent.getVersion()) {
+                VersionAwareContent newVersionContent = new VersionAwareContent(newCellState.getText(), receivedVersion);
+                content.set(newVersionContent);
+            } else {
+                throw new IllegalStateException("Version mismatch: Received version to be greater than current version, received version:  " + (receivedVersion) + ", current version: " + currentContent.getVersion());
+            }
+        } else {
+            VersionAwareContent newVersionContent = new VersionAwareContent(normalizedContent, newVersion);
+
+            if (!content.compareAndSet(currentContent, newVersionContent)) {
+                throw new IllegalStateException("Concurrent modification detected. Version expected: " + (newVersion - 1) + ", current: " + content.get().getVersion());
+            }
         }
+    }
+
+    public void requestContentAndSet() throws InterruptedException, ExecutionException {
+        CompletableFuture<CellStateResponse> response = requestLatestCellState();
+        if (response == null) {
+            throw new IllegalStateException("Unable to send notebook cell state request to the client");
+        }
+        CellStateResponse newCellState = response.get();
+        if (newCellState.getVersion() <= 0) {
+            throw new IllegalStateException("Received incorrect version number: " + newCellState.getVersion());
+        }
+        VersionAwareContent newVersionContent = new VersionAwareContent(newCellState.getText(), newCellState.getVersion());
+        content.set(newVersionContent);
     }
 
     public void setExecutionSummary(ExecutionSummary executionSummary) {
@@ -85,12 +134,27 @@ public class CellState {
         this.metadata.set(metadata);
     }
 
-    private class VersionAwareCotent {
+    // protected methods for ease of unit testing 
+    protected CompletableFuture<CellStateResponse> requestLatestCellState() {
+        NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
+
+        if (client == null) {
+            LOG.warning("Client is null");
+            return null;
+        }
+        return client.getNotebookCellState(new NotebookCellStateParams(notebookUri, cellUri));
+    }
+    
+    protected VersionAwareContent getVersionAwareContent(){
+        return this.content.get();
+    }
+
+    protected class VersionAwareContent {
 
         private String content;
         private int version;
 
-        public VersionAwareCotent(String content, int version) {
+        public VersionAwareContent(String content, int version) {
             this.content = content;
             this.version = version;
         }

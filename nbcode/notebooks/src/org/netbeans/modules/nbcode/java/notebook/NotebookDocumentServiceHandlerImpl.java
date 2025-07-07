@@ -77,7 +77,6 @@ import org.openide.util.lookup.ServiceProvider;
 public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServiceHandler {
 
     private static final Logger LOG = Logger.getLogger(NotebookDocumentServiceHandler.class.getName());
-    private NbCodeLanguageClient client;
     private final Map<String, NotebookDocumentStateManager> notebookStateMap = new ConcurrentHashMap<>();
     // Below map is required because completion request doesn't send notebook uri in the params
     private final Map<String, String> notebookCellMap = new ConcurrentHashMap<>();
@@ -85,6 +84,10 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
     @Override
     public void didOpen(DidOpenNotebookDocumentParams params) {
         try {
+            NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
+            if(client == null){
+                return;
+            }
             client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info,"Intializing Java kernel for notebook."));
             NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()).whenComplete((JShell jshell,Throwable t) -> {
                 if (t == null) {
@@ -139,12 +142,9 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
 
     @Override
     public void connect(LanguageClient client) {
-        this.client = (NbCodeLanguageClient) client;
-        NotebookConfigs.getInstance().setLanguageClient((NbCodeLanguageClient) client);
-    }
+        LanguageClientInstance.getInstance().setClient((NbCodeLanguageClient) client);
+        NotebookConfigs.getInstance().initConfigs();
 
-    public NbCodeLanguageClient getNbCodeLanguageClient() {
-        return this.client;
     }
 
     @Override

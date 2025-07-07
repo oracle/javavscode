@@ -142,7 +142,7 @@ public class ProjectConfigurationUtils {
     }
 
     @NonNull
-    public static List<String> compileOptions(Project project) {
+    public static List<String> compilerOptions(Project project) {
         if (project == null) {
             return new ArrayList<>();
         }

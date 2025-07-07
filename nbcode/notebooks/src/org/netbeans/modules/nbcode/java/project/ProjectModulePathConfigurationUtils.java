@@ -251,7 +251,6 @@ public class ProjectModulePathConfigurationUtils {
             ));
 
             vmOptions.addAll(getModuleConfigurations(project));
-            
         }
 
         return vmOptions;
