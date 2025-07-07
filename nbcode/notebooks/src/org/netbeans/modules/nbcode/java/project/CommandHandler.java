@@ -17,10 +17,8 @@ package org.netbeans.modules.nbcode.java.project;
 
 import com.google.gson.JsonPrimitive;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.FileOwnerQuery;
