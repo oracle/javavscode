@@ -15,8 +15,8 @@
 */
 import { LogMessageNotification, MessageType, TelemetryEventNotification } from "vscode-languageclient";
 import { notificationOrRequestListenerType } from "../../types";
-import { asRanges, ShowStatusMessageParams, StatusMessageRequest, TestProgressNotification, TextEditorDecorationDisposeNotification, TextEditorDecorationSetNotification } from "../../protocol";
-import { commands, window, workspace } from "vscode";
+import { asRanges, NotebookCellExecutionResult, ShowStatusMessageParams, StatusMessageRequest, TestProgressNotification, TextEditorDecorationDisposeNotification, TextEditorDecorationSetNotification } from "../../protocol";
+import { commands, window } from "vscode";
 import { isNbJavacDisabledHandler, updateConfigurationValue } from "../../../configurations/handlers";
 import { l10n } from "../../../localiser";
 import { configKeys } from "../../../configurations/configuration";
@@ -144,6 +144,11 @@ const telemetryEventHandler = (param: any) => {
     }
 }
 
+const notebookCellExecutionResultHandler = (params: NotebookCellExecutionResult.params): void => {
+    console.log(NotebookCellExecutionResult.STATUS[params?.status]);
+    console.log(params);
+}
+
 export const notificationListeners: notificationOrRequestListenerType[] = [{
     type: StatusMessageRequest.type,
     handler: showStatusBarMessageHandler
@@ -162,4 +167,7 @@ export const notificationListeners: notificationOrRequestListenerType[] = [{
 }, {
     type: TelemetryEventNotification.type,
     handler: telemetryEventHandler
+}, {
+    type: NotebookCellExecutionResult.type,
+    handler: notebookCellExecutionResultHandler
 }];

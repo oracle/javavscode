@@ -84,6 +84,7 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
     @Override
     public void didOpen(DidOpenNotebookDocumentParams params) {
         try {
+            NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
             client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info,"Intializing Java kernel for notebook."));
             NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()).whenComplete((JShell jshell,Throwable t) -> {
                 if (t == null) {

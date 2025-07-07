@@ -344,10 +344,27 @@ export namespace ResetOutputRequest {
     export const type = new ProtocolRequestType<string, void, void, void, void>('output/reset');
 }
 
-export interface NotebookCellContentRequestParams {
-    notebookUri: string;
-    cellUri: string;
-}
-export namespace NotebookCellContentRequest {
-    export const type = new ProtocolRequestType<NotebookCellContentRequestParams, void, void, void, void>('notebookDocument/cellContentRequest');
+export namespace NotebookCellExecutionResult {
+    export enum STATUS {
+        QUEUED,
+        EXECUTING,
+        SUCCESS,
+        FAILURE,
+        INTERRUPTED
+    }
+
+    export interface Result {
+        data: string;
+        mimeType: string;
+    }
+
+    export interface params {
+        notebookUri: string;
+        cellUri: string;
+        status: STATUS;
+        errorStream: Result;
+        outputStream: Result;
+        metadata?: any;
+    }
+    export const type = new ProtocolNotificationType<params, void>('notebook/execution/progress');
 }

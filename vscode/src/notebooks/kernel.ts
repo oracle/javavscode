@@ -62,13 +62,15 @@ export class IJNBKernel implements vscode.Disposable {
     controller: vscode.NotebookController
   ): Promise<void> {
     const notebookId = notebook.uri.toString();
-    const classpath = getConfigurationValue(configKeys.notebookClasspath) || null;
 
     for (const cell of cells) {
       const exec = controller.createNotebookCellExecution(cell);
       const next = IJNBKernel.executionCounter.get(notebookId) ?? 1;
       exec.executionOrder = next;
       exec.start(Date.now());
+      exec.token.onCancellationRequested(()=> {
+        vscode.commands.executeCommand(nbCommands.interruptNotebookCellExecution, notebookId);  
+      });
 
       try {
         if (cell.document.languageId === 'markdown') {
@@ -84,7 +86,7 @@ export class IJNBKernel implements vscode.Disposable {
           }
           const response = (await vscode.commands.executeCommand<
             { data: string; mimeType: string }[]
-            >(nbCommands.executeNotebookCell, cell.document.getText(), notebookId, classpath));
+            >(nbCommands.executeNotebookCell, cell.document.getText(), notebookId));
           if (!response) throw new Error('No output received from notebook cell execution.');
           
           const mimeMap = new Map<string, string[]>();

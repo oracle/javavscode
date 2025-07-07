@@ -88,7 +88,7 @@ public class NotebookSessionManager {
     public CompletableFuture<JShell> createSession(NotebookDocument notebookDoc) {
         String notebookId = notebookDoc.getUri();
 
-        sessions.computeIfAbsent(notebookId, id -> {
+        return sessions.computeIfAbsent(notebookId, id -> {
             JshellStreamsHandler handler = new JshellStreamsHandler(id, CodeEval.getInstance().outStreamFlushCb, CodeEval.getInstance().errStreamFlushCb);
             jshellStreamsMap.put(id, handler);
 
