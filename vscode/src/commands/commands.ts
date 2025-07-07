@@ -87,5 +87,6 @@ export const nbCommands = {
     javaProjectPackages: appendPrefixToCommand('java.get.project.packages'),
     openStackTrace: appendPrefixToCommand('open.stacktrace'),
     executeNotebookCell: appendPrefixToCommand("jshell.execute.cell"),
+    interruptNotebookCellExecution: appendPrefixToCommand("jshell.interrupt.cell"),
     openJshellInProject: appendPrefixToCommand("jshell.project.open"),
 }
