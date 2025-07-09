@@ -18,7 +18,6 @@ package org.netbeans.modules.nbcode.java.notebook;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
 /**
@@ -27,12 +26,12 @@ import java.util.function.Consumer;
  */
 public class StreamingOutputStream extends OutputStream {
     private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    private Consumer<String> callback;
+    private Consumer<byte[]> callback;
     // What if line endings are not there then how to flush Systen.out.print()?
     private static final char NEW_LINE_ENDING = '\n';
     private static final char NEW_LINE_ENDING_DOS = '\r';
 
-    public StreamingOutputStream(Consumer<String> callback) {
+    public StreamingOutputStream(Consumer<byte[]> callback) {
         this.callback = callback;
     }
 
@@ -66,7 +65,7 @@ public class StreamingOutputStream extends OutputStream {
         super.close();
     }
     
-    public void setCallback(Consumer<String> cb){
+    public void setCallback(Consumer<byte[]> cb){
         this.callback = cb;
     }
     
@@ -93,7 +92,7 @@ public class StreamingOutputStream extends OutputStream {
 
     private void flushToCallback() {
         if (buffer.size() > 0) {
-            String output = buffer.toString(StandardCharsets.UTF_8);
+            byte[] output = buffer.toByteArray();
             buffer.reset();
             callback.accept(output);
         }

@@ -346,11 +346,11 @@ export namespace ResetOutputRequest {
 
 export namespace NotebookCellExecutionResult {
     export enum STATUS {
-        QUEUED,
-        EXECUTING,
-        SUCCESS,
-        FAILURE,
-        INTERRUPTED
+        QUEUED = "QUEUED",
+        EXECUTING = "EXECUTING",
+        SUCCESS = "SUCCESS",
+        FAILURE = "FAILURE",
+        INTERRUPTED = "INTERRUPTED"
     }
 
     export interface Result {
@@ -363,6 +363,8 @@ export namespace NotebookCellExecutionResult {
         cellUri: string;
         status: STATUS;
         errorStream: Result;
+        diagnostics: string[];
+        errorDiagnostics: string[];
         outputStream: Result;
         metadata?: any;
     }

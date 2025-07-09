@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellExecutionResult.java
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,63 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -22,37 +22,37 @@
 +package org.netbeans.modules.java.lsp.server.notebook;
 +
 +import java.io.ByteArrayInputStream;
-+import java.io.ByteArrayOutputStream;
 +import java.io.IOException;
 +import java.net.URLConnection;
++import java.util.Arrays;
 +
 +/**
 + *
 + * @author atalati
 + */
 +public class CellExecutionResult {
-+    private final String data;
++    private final byte[] data;
 +    private final String mimeType;
 +
-+    public CellExecutionResult(String rawData, String mimeType) {
++    public CellExecutionResult(byte[] rawData, String mimeType) {
 +        this.data = rawData;
 +        this.mimeType = mimeType;
 +    }
 +
-+    public String getData() {
-+        return data;
++    public byte[] getData() {
++        return Arrays.copyOf(data, data.length);
 +    }
 +
 +    public String getMimeType() {
 +        return mimeType;
 +    }
 +
-+    public static CellExecutionResult text(String data) {
++    public static CellExecutionResult text(byte[] data) {
 +        return new CellExecutionResult(data, "text/plain");
 +    }
 +
-+    public static CellExecutionResult detectMimeAndGetResult(ByteArrayOutputStream data) {
-+        return new CellExecutionResult(data.toString(), detectMime(data));
++    public static CellExecutionResult detectMimeAndGetResult(byte[] data) {
++        return new CellExecutionResult(data, detectMime(data));
 +    }
 +
 +    private static String detectMime(byte[] data) {
@@ -63,14 +63,10 @@
 +            return "text/plain";
 +        }
 +    }
-+
-+    private static String detectMime(ByteArrayOutputStream data) {
-+        return detectMime(data.toByteArray());
-+    }
 +}
 --- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellExecutionProgressResultParams.java
-@@ -0,0 +1,243 @@
+@@ -0,0 +1,301 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -91,6 +87,9 @@
 + */
 +package org.netbeans.modules.java.lsp.server.notebook;
 +
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.List;
 +import java.util.Objects;
 +import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 +import org.eclipse.lsp4j.util.Preconditions;
@@ -138,6 +137,16 @@
 +    private CellExecutionResult errorStream;
 +
 +    /**
++     * Diagnostics of the snippet ran.
++     */
++    private List<String> diagnostics;
++
++    /**
++     * Errors occurred while running or compilation of the snippet.
++     */
++    private List<String> errorDiagnostics;
++
++    /**
 +     * add metadata about the execution.
 +     */
 +    private Object metadata;
@@ -148,12 +157,16 @@
 +            final EXECUTION_STATUS status,
 +            final CellExecutionResult outputStream,
 +            final CellExecutionResult errorStream,
++            final List<String> diagnostics,
++            final List<String> errorDiagnostics,
 +            final Object metadata) {
 +        this.notebookUri = Preconditions.checkNotNull(notebookUri, "notebookUri");
 +        this.cellUri = Preconditions.checkNotNull(cellUri, "cellUri");
-+        this.status = status!= null ? status.name(): null;
++        this.status = status != null ? status.name() : null;
 +        this.outputStream = outputStream;
 +        this.errorStream = errorStream;
++        this.diagnostics = diagnostics;
++        this.errorDiagnostics = errorDiagnostics;
 +        this.metadata = metadata;
 +    }
 +
@@ -170,6 +183,8 @@
 +        private EXECUTION_STATUS status;
 +        private CellExecutionResult outputStream;
 +        private CellExecutionResult errorStream;
++        private List<String> diagnostics;
++        private List<String> errorDiagnostics;
 +        private Object metadata;
 +
 +        private Builder(@NonNull String notebookUri, @NonNull String cellUri) {
@@ -192,13 +207,30 @@
 +            return this;
 +        }
 +
++        public Builder diagnostics(List<String> diagnostics) {
++            this.diagnostics = diagnostics != null ? new ArrayList<>(diagnostics) : null;
++            return this;
++        }
++
++        public Builder errorDiagnostics(List<String> errorDiagnostics) {
++            this.errorDiagnostics = errorDiagnostics != null ? new ArrayList<>(errorDiagnostics) : null;
++            return this;
++        }
++
 +        public Builder metadata(Object metadata) {
 +            this.metadata = metadata;
 +            return this;
 +        }
 +
 +        public NotebookCellExecutionProgressResultParams build() {
-+            return new NotebookCellExecutionProgressResultParams(notebookUri, cellUri, status, outputStream, errorStream, metadata);
++            return new NotebookCellExecutionProgressResultParams(notebookUri,
++                    cellUri,
++                    status,
++                    outputStream,
++                    errorStream,
++                    diagnostics,
++                    errorDiagnostics,
++                    metadata);
 +        }
 +    }
 +
@@ -257,6 +289,22 @@
 +        this.errorStream = errorStream;
 +    }
 +
++    public List<String> getDiagnostics() {
++        return Collections.unmodifiableList(diagnostics);
++    }
++
++    public void setDiagnostics(List<String> diagnostics) {
++        this.diagnostics = diagnostics != null ? new ArrayList<>(diagnostics) : null;
++    }
++
++    public List<String> getErrorDiagnostics() {
++        return Collections.unmodifiableList(errorDiagnostics);
++    }
++
++    public void setErrorDiagnostics(List<String> errorDiagnostics) {
++        this.errorDiagnostics = errorDiagnostics != null ? new ArrayList<>(errorDiagnostics) : null;
++    }
++
 +    /**
 +     * @return execution metadata (or null)
 +     */
@@ -281,6 +329,8 @@
 +        b.add("status", status);
 +        b.add("outputStream", outputStream);
 +        b.add("errorStream", errorStream);
++        b.add("diagnostics", diagnostics);
++        b.add("errorDiagnostics", errorDiagnostics);
 +        b.add("metadata", metadata);
 +        return b.toString();
 +    }
@@ -293,6 +343,8 @@
 +                status,
 +                outputStream,
 +                errorStream,
++                diagnostics,
++                errorDiagnostics,
 +                metadata
 +        );
 +    }
@@ -311,6 +363,8 @@
 +                && Objects.equals(this.status, other.status)
 +                && Objects.equals(this.outputStream, other.outputStream)
 +                && Objects.equals(this.errorStream, other.errorStream)
++                && Objects.equals(this.diagnostics, other.diagnostics)
++                && Objects.equals(this.errorDiagnostics, other.errorDiagnostics)
 +                && Objects.equals(this.metadata, other.metadata);
 +    }
 +}

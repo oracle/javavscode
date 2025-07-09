@@ -31,6 +31,7 @@ import {
   IMetadata
 } from './types';
 import { randomUUID } from 'crypto';
+import { isError } from '../utils';
 
 export function base64ToUint8Array(base64: string): Uint8Array {
   if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
@@ -61,6 +62,16 @@ export function createOutputItem(data: string | Uint8Array, mimeType: string): v
   }
   const text = typeof data === 'string' ? data : new TextDecoder().decode(data);
   return vscode.NotebookCellOutputItem.text(text, mimeType);
+}
+
+export const createErrorOutputItem = (err: any) => {
+  const errMessage: string = isError(err) ? err.message : (err?.toString() ?? "Some error occurred");
+  return new vscode.NotebookCellOutput([
+    vscode.NotebookCellOutputItem.error({
+      name: 'Execution Error',
+      message: errMessage,
+    }),
+  ]);
 }
 
 export function parseCell(cell: ICell): vscode.NotebookCellData {
