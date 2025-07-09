@@ -58,11 +58,11 @@ public class CodeEval {
         private static final CodeEval instance = new CodeEval();
     }
 
-    public BiConsumer<String, String> outStreamFlushCb = (notebookId, msg) -> {
+    public BiConsumer<String, byte[]> outStreamFlushCb = (notebookId, msg) -> {
         sendNotification(notebookId, msg, EXECUTION_STATUS.EXECUTING, false);
     };
 
-    public BiConsumer<String, String> errStreamFlushCb = (notebookId, msg) -> {
+    public BiConsumer<String, byte[]> errStreamFlushCb = (notebookId, msg) -> {
         sendNotification(notebookId, msg, EXECUTION_STATUS.EXECUTING, true);
     };
 
@@ -85,14 +85,11 @@ public class CodeEval {
     private String interruptCodeExecution(String notebookId) {
         try {
             JShell jshell = NotebookSessionManager.getInstance().getSession(notebookId);
-            if (jshell != null) {
-                jshell.stop();
+            String cellId = activeCellExecutionMapping.get(notebookId);
+            if(cellId != null){
+                sendNotification(notebookId, cellId, EXECUTION_STATUS.INTERRUPTED);
             }
-            RequestProcessor executor = codeExecMap.get(notebookId);
-            if (executor != null) {
-                executor.shutdownNow();
-                codeExecMap.remove(notebookId);
-            }
+            
             List<CompletableFuture<Boolean>> tasks = pendingTasks.get(notebookId);
             if (tasks != null) {
                 tasks.forEach(task -> {
@@ -102,8 +99,15 @@ public class CodeEval {
                 });
                 tasks.clear();
             }
+            if (jshell != null) {
+                jshell.stop();
+            }
+            RequestProcessor executor = codeExecMap.get(notebookId);
+            if (executor != null) {
+                executor.shutdownNow();
+                codeExecMap.remove(notebookId);
+            }
             activeCellExecutionMapping.remove(notebookId);
-            sendNotification(notebookId, EXECUTION_STATUS.INTERRUPTED);
 
             return CODE_EXEC_INTERRUPT_SUCCESS_MESSAGE;
         } catch (Exception ex) {
@@ -118,9 +122,9 @@ public class CodeEval {
             return CompletableFuture.completedFuture(false);
         }
 
-        String sourceCode = NotebookUtils.getArgument(arguments, 0, String.class);
-        String notebookId = NotebookUtils.getArgument(arguments, 1, String.class);
-        String cellId = NotebookUtils.getArgument(arguments, 2, String.class);
+        String notebookId = NotebookUtils.getArgument(arguments, 0, String.class);
+        String cellId = NotebookUtils.getArgument(arguments, 1, String.class);
+        String sourceCode = NotebookUtils.getArgument(arguments, 2, String.class);
 
         if (sourceCode == null || notebookId == null || cellId == null) {
             LOG.warning("sourceCode or notebookId or cellId are not present in code cell evaluation request");
@@ -183,15 +187,12 @@ public class CodeEval {
             for (String snippet : snippets) {
                 for (SnippetEvent event : jshell.eval(snippet)) {
                     if (notebookId != null) {
-                        getRuntimeErrors(event).forEach(error -> {
-                            sendNotification(notebookId, error, EXECUTION_STATUS.EXECUTING, true);
-                        });
-                        getCompilationErrors(jshell, event).forEach(error -> {
-                            sendNotification(notebookId, error, EXECUTION_STATUS.EXECUTING, true);
-                        });
-                        getSnippetValue(event).forEach(error -> {
-                            sendNotification(notebookId, error, EXECUTION_STATUS.EXECUTING, false);
-                        });
+                        sendNotification(notebookId, getRuntimeErrors(event), EXECUTION_STATUS.EXECUTING, true);
+                        sendNotification(notebookId, getCompilationErrors(jshell, event), EXECUTION_STATUS.EXECUTING, true);
+                        // TODO: Discuss if diagnostics needs to be given to client as part of excutionResult
+                        if (false) {
+                            sendNotification(notebookId, getSnippetValue(event), EXECUTION_STATUS.EXECUTING, false);
+                        }
                     }
                 }
             }
@@ -219,8 +220,12 @@ public class CodeEval {
     private List<String> getRuntimeErrors(SnippetEvent event) {
         List<String> runtimeErrors = new ArrayList<>();
         if (event.exception() != null) {
-            runtimeErrors.add(event.exception().getMessage());
-            runtimeErrors.add(event.exception().fillInStackTrace().toString());
+            if (!event.exception().getMessage().isBlank()) {
+                runtimeErrors.add(event.exception().getMessage());
+            }
+            if (!event.exception().fillInStackTrace().toString().isBlank()) {
+                runtimeErrors.add(event.exception().fillInStackTrace().toString());
+            }
         }
 
         return runtimeErrors;
@@ -291,18 +296,29 @@ public class CodeEval {
     }
 
     private void sendNotification(String notebookId, EXECUTION_STATUS status) {
-        sendNotification(notebookId, null, null, status, false);
+        sendNotification(notebookId, null, null, null, null, status, false);
     }
 
     private void sendNotification(String notebookId, String cellId, EXECUTION_STATUS status) {
-        sendNotification(notebookId, cellId, null, status, false);
+        sendNotification(notebookId, cellId, null, null, null, status, false);
     }
 
-    private void sendNotification(String notebookId, String msg, EXECUTION_STATUS status, boolean isError) {
-        sendNotification(notebookId, null, msg, status, isError);
+    private void sendNotification(String notebookId, byte[] msg, EXECUTION_STATUS status, boolean isError) {
+        sendNotification(notebookId, null, msg, null, null, status, isError);
     }
 
-    private void sendNotification(String notebookId, String cellId, String msg, EXECUTION_STATUS status, boolean isError) {
+    private void sendNotification(String notebookId, List<String> diags, EXECUTION_STATUS status, boolean isError) {
+        if (diags.isEmpty()) {
+            return;
+        }
+        if (isError) {
+            sendNotification(notebookId, null, null, null, diags, status, false);
+        } else {
+            sendNotification(notebookId, null, null, diags, null, status, false);
+        }
+    }
+
+    private void sendNotification(String notebookId, String cellId, byte[] msg, List<String> diags, List<String> errorDiags, EXECUTION_STATUS status, boolean isError) {
         try {
             if (cellId == null) {
                 cellId = activeCellExecutionMapping.get(notebookId);
@@ -313,10 +329,24 @@ public class CodeEval {
 
             NotebookCellExecutionProgressResultParams params;
             if (msg == null) {
-                params = NotebookCellExecutionProgressResultParams
-                        .builder(notebookId, cellId)
-                        .status(status)
-                        .build();
+                if (diags != null) {
+                    params = NotebookCellExecutionProgressResultParams
+                            .builder(notebookId, cellId)
+                            .diagnostics(diags)
+                            .status(status)
+                            .build();
+                } else if (errorDiags != null) {
+                    params = NotebookCellExecutionProgressResultParams
+                            .builder(notebookId, cellId)
+                            .errorDiagnostics(errorDiags)
+                            .status(status)
+                            .build();
+                } else {
+                    params = NotebookCellExecutionProgressResultParams
+                            .builder(notebookId, cellId)
+                            .status(status)
+                            .build();
+                }
             } else {
                 if (isError) {
                     params = NotebookCellExecutionProgressResultParams

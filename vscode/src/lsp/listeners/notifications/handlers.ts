@@ -26,6 +26,7 @@ import { globalState } from "../../../globalState";
 import { WorkspaceChangeData, WorkspaceChangeEvent } from "../../../telemetry/events/workspaceChange";
 import { Telemetry } from "../../../telemetry/telemetry";
 import { JdkFeatureEvent, JdkFeatureEventData } from "../../../telemetry/events/jdkFeature";
+import { notebookKernel } from "../../../notebooks/kernel";
 
 const checkInstallNbJavac = (msg: string) => {
     const NO_JAVA_SUPPORT = "Cannot initialize Java support";
@@ -144,9 +145,8 @@ const telemetryEventHandler = (param: any) => {
     }
 }
 
-const notebookCellExecutionResultHandler = (params: NotebookCellExecutionResult.params): void => {
-    console.log(NotebookCellExecutionResult.STATUS[params?.status]);
-    console.log(params);
+const notebookCellExecutionResultHandler = async (params: NotebookCellExecutionResult.params): Promise<void> => {
+    await notebookKernel.handleCellExecutionNotification(params);
 }
 
 export const notificationListeners: notificationOrRequestListenerType[] = [{

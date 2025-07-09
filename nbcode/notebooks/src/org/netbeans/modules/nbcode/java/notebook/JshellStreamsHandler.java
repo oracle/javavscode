@@ -36,13 +36,13 @@ public class JshellStreamsHandler implements AutoCloseable {
     private final PrintStream printOutStream;
     private final PrintStream printErrStream;
     
-    public JshellStreamsHandler(String notebookId, BiConsumer<String, String> streamCallback) {
+    public JshellStreamsHandler(String notebookId, BiConsumer<String, byte[]> streamCallback) {
         this(notebookId, streamCallback, streamCallback);
     }
     
     public JshellStreamsHandler(String notebookId, 
-                               BiConsumer<String, String> outStreamCallback,
-                               BiConsumer<String, String> errStreamCallback) {
+                               BiConsumer<String, byte[]> outStreamCallback,
+                               BiConsumer<String, byte[]> errStreamCallback) {
         if (notebookId == null || notebookId.trim().isEmpty()) {
             throw new IllegalArgumentException("Notebook Id cannot be null or empty");
         }
@@ -54,15 +54,15 @@ public class JshellStreamsHandler implements AutoCloseable {
         this.printErrStream = new PrintStream(errStream);
     }
     
-    private Consumer<String> createCallback(BiConsumer<String, String> callback) {
+    private Consumer<byte[]> createCallback(BiConsumer<String, byte[]> callback) {
         return callback != null ? output -> callback.accept(notebookId, output) : null;
     }
     
-    public void setOutStreamCallback(BiConsumer<String, String> callback) {
+    public void setOutStreamCallback(BiConsumer<String, byte[]> callback) {
         outStream.setCallback(createCallback(callback));
     }
     
-    public void setErrStreamCallback(BiConsumer<String, String> callback) {
+    public void setErrStreamCallback(BiConsumer<String, byte[]> callback) {
         errStream.setCallback(createCallback(callback));
     }
     
