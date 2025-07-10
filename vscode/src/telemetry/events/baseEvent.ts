@@ -16,7 +16,7 @@
 import { LOGGER } from "../../logger";
 import { AnonymousIdManager } from "../impl/AnonymousIdManager";
 import { cacheService } from "../impl/cacheServiceImpl";
-import { getHashCode } from "../utils";
+import { getHashCode, getValuesToBeTransformed, transformValue } from "../utils";
 
 export interface BaseEventPayload {
     vsCodeId: string;
@@ -26,6 +26,7 @@ export interface BaseEventPayload {
 export abstract class BaseEvent<T> {
     protected _payload: T & BaseEventPayload;
     protected _data: T
+    private static readonly blockedValues = getValuesToBeTransformed();
 
     constructor(public readonly NAME: string,
         public readonly ENDPOINT: string,
@@ -46,6 +47,13 @@ export abstract class BaseEvent<T> {
     get getData(): T {
         return this._data;
     }
+
+    protected static transformEvent = (propertiesToTransform: string[], payload: Record<string, any>): any => {
+        const replacedValue = "_REM_";
+
+        return transformValue(null, this.blockedValues, propertiesToTransform, replacedValue, payload);
+    };
+
 
     public onSuccessPostEventCallback = async (): Promise<void> => {
         LOGGER.debug(`${this.NAME} sent successfully`);

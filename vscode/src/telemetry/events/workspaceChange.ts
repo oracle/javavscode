@@ -37,9 +37,11 @@ let workspaceChangeEventTimeout: NodeJS.Timeout | null = null;
 export class WorkspaceChangeEvent extends BaseEvent<WorkspaceChangeData> {
     public static readonly NAME = "workspaceChange";
     public static readonly ENDPOINT = "/workspaceChange";
+    private static readonly propertiesToTransform = ['javaVersion'];
 
     constructor(payload: WorkspaceChangeData) {
-        super(WorkspaceChangeEvent.NAME, WorkspaceChangeEvent.ENDPOINT, payload);
+        const updatedPayload: WorkspaceChangeData = BaseEvent.transformEvent(WorkspaceChangeEvent.propertiesToTransform, payload);
+        super(WorkspaceChangeEvent.NAME, WorkspaceChangeEvent.ENDPOINT, updatedPayload);
     }
 
     public onSuccessPostEventCallback = async (): Promise<void> => {

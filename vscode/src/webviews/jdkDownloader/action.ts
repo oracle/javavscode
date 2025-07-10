@@ -203,6 +203,17 @@ export class JdkDownloaderAction {
             throw new Error(checksumMatchFailedLabel);
         }
         LOGGER.log(`Checksum match successful`);
+        const currentTime = getCurrentUTCDateInSeconds();
+        const downloadTelemetryEvent: JdkDownloadEventData = {
+            vendor: this.jdkType,
+            version: this.jdkVersion!,
+            os: this.osType!,
+            arch: this.machineArch!,
+            timeTaken: Math.min(currentTime - this.startTimer!)
+        };
+
+        const event: JdkDownloadEvent = new JdkDownloadEvent(downloadTelemetryEvent);
+        Telemetry.sendTelemetry(event);
     }
 
     private checksumMatch = async (): Promise<boolean> => {
@@ -276,18 +287,6 @@ export class JdkDownloaderAction {
     }
 
     private installationCleanup = (tempDirPath: string, newDirPath: string) => {
-        const currentTime = getCurrentUTCDateInSeconds();
-        const downloadTelemetryEvent: JdkDownloadEventData = {
-            vendor: this.jdkType,
-            version: this.jdkVersion!,
-            os: this.osType!,
-            arch: this.machineArch!,
-            timeTaken: Math.min(currentTime - this.startTimer!)
-        };
-
-        const event: JdkDownloadEvent = new JdkDownloadEvent(downloadTelemetryEvent);
-        Telemetry.sendTelemetry(event);
-
         fs.unlink(this.downloadFilePath!, async (err) => {
             if (err) {
                 LOGGER.error(`Error while installation cleanup: ${err.message}`);

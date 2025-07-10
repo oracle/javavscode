@@ -53,9 +53,11 @@ export interface StartEventData {
 export class ExtensionStartEvent extends BaseEvent<StartEventData> {
     public static readonly NAME = "startup";
     public static readonly ENDPOINT = "/start";
+    private static readonly propertiesToTransform = ['osVersion'];
 
     constructor(payload: StartEventData) {
-        super(ExtensionStartEvent.NAME, ExtensionStartEvent.ENDPOINT, payload);
+        const updatedPayload: StartEventData = BaseEvent.transformEvent(ExtensionStartEvent.propertiesToTransform, payload);
+        super(ExtensionStartEvent.NAME, ExtensionStartEvent.ENDPOINT, updatedPayload);
     }
 
     onSuccessPostEventCallback = async (): Promise<void> => {
