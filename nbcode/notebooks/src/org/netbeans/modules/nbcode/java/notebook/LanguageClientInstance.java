@@ -15,6 +15,7 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
+import java.lang.ref.WeakReference;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 
 /**
@@ -22,7 +23,7 @@ import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
  * @author atalati
  */
 public class LanguageClientInstance {
-    private NbCodeLanguageClient client = null;
+    private WeakReference<NbCodeLanguageClient> client = null;
 
     private LanguageClientInstance() {
     }
@@ -37,10 +38,10 @@ public class LanguageClientInstance {
     }
     
     public NbCodeLanguageClient getClient(){
-        return this.client;
+        return this.client == null ? null: this.client.get();
     }
     
     public void setClient(NbCodeLanguageClient client){
-        this.client = client;
+        this.client = new WeakReference<>(client);
     }
 }

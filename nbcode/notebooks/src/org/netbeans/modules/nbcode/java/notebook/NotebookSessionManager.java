@@ -71,6 +71,7 @@ public class NotebookSessionManager {
                 return JShell.builder()
                         .out(streamsHandler.getPrintOutStream())
                         .err(streamsHandler.getPrintErrStream())
+                        .in(streamsHandler.getInputStream())
                         .compilerOptions()
                         .remoteVMOptions()
                         .build();
@@ -78,6 +79,7 @@ public class NotebookSessionManager {
                 return JShell.builder()
                         .out(streamsHandler.getPrintOutStream())
                         .err(streamsHandler.getPrintErrStream())
+                        .in(streamsHandler.getInputStream())
                         .compilerOptions(compilerOptions.toArray(new String[0]))
                         .remoteVMOptions(remoteOptions.toArray(new String[0]))
                         .build();

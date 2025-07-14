@@ -1,13 +1,11 @@
-import { commands, NotebookCell, NotebookCellExecution, NotebookCellOutput, NotebookCellOutputItem, NotebookController } from "vscode";
+import { commands, NotebookCell, NotebookCellExecution, NotebookCellOutput, NotebookController } from "vscode";
 import { LOGGER } from "../logger";
 import { NotebookCellExecutionResult } from "../lsp/protocol";
-import { createOutputItem } from "./utils";
+import { createErrorOutputItem, createOutputItem } from "./utils";
 import { nbCommands } from "../commands/commands";
+import { mimeTypes } from "./constants";
 
 export class CodeCellExecution {
-    private readonly ERROR_MIME_TYPE = 'application/vnd.code.notebook.error';
-    private readonly TEXT_MIME_TYPE = 'text/plain';
-
     private controller?: NotebookController;
     private execution?: NotebookCellExecution;
     private isExecutionStarted: boolean = false;
@@ -52,17 +50,17 @@ export class CodeCellExecution {
         if (err) {
             const { data } = err;
             const newData = new TextDecoder().decode(Uint8Array.from(data));
-            this.handleOutput(newData, this.ERROR_MIME_TYPE, true);
+            this.handleOutput(newData, mimeTypes.ERROR, true);
         }
         if (diagnostics) {
             diagnostics.forEach(diag => {
-                this.handleOutput(diag + "\n", this.TEXT_MIME_TYPE);
+                this.handleOutput(diag + "\n", mimeTypes.TEXT);
             });
         }
 
         if (errorDiagnostics) {
             errorDiagnostics.forEach(diag => {
-                this.handleOutput(diag + "\n", this.ERROR_MIME_TYPE, true);
+                this.handleOutput(diag + "\n", mimeTypes.ERROR, true);
             });
         }
     }
@@ -73,13 +71,7 @@ export class CodeCellExecution {
         this.mimeMap.set(mimeType, updatedData);
 
         if (isError) {
-            await this.execution!.replaceOutputItems(
-                NotebookCellOutputItem.error({
-                    message: updatedData,
-                    name: "Error"
-                }),
-                this.output
-            );
+            await this.execution!.replaceOutputItems(createErrorOutputItem(updatedData), this.output);
         } else {
             await this.execution!.replaceOutputItems(
                 createOutputItem(updatedData, mimeType),

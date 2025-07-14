@@ -22,9 +22,9 @@
 import { globalState } from '../globalState';
 import { isNbCommandRegistered } from '../commands/utils';
 import { nbCommands } from '../commands/commands';
-import { createErrorOutputItem, createOutputItem } from './utils';
+import { createErrorOutput, createOutputItem } from './utils';
 import { NotebookCellExecutionResult } from '../lsp/protocol';
-import { NotebookCell, NotebookController, NotebookDocument, Disposable, notebooks, commands, NotebookCellOutput, NotebookCellExecution, workspace, window } from 'vscode';
+import { NotebookCell, NotebookController, NotebookDocument, Disposable, notebooks, commands, NotebookCellOutput } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { l10n } from '../localiser';
 import { ijnbConstants, ipynbConstants, supportLanguages } from './constants';
@@ -143,7 +143,7 @@ export class IJNBKernel implements Disposable {
     const exec = controller.createNotebookCellExecution(cell);
     exec.executionOrder = this.getExecutionCounterAndIncrement(notebookId);
     exec.start(Date.now());
-    await exec.replaceOutput([createErrorOutputItem(new Error(`Doesn't support ${cell.document.languageId} execution`))]);
+    await exec.replaceOutput(createErrorOutput(new Error(`Doesn't support ${cell.document.languageId} execution`)));
     exec.end(true, Date.now());
   }
 
@@ -167,7 +167,7 @@ export class IJNBKernel implements Disposable {
         new NotebookCellOutput([createOutputItem(cell.document.getText(), mimeType)]),
       ]);
     } catch (error) {
-      await exec.replaceOutput([createErrorOutputItem(error)]);
+      await exec.replaceOutput(createErrorOutput(error as Error));
     } finally {
       exec.end(true, Date.now());
     }

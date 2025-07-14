@@ -112,6 +112,10 @@ export interface ShowInputBoxParams {
      * Controls if a password input is shown. Password input hides the typed text.
      */
     password?: boolean;
+    /**
+     * Controls if focus is changed from the input box whether it should close or not.
+     */
+    ignoreFocusOut?: boolean;
 }
 
 export namespace InputBoxRequest {
