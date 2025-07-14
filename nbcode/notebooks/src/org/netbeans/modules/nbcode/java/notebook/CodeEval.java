@@ -32,6 +32,7 @@ import jdk.jshell.SourceCodeAnalysis;
 import org.netbeans.modules.java.lsp.server.notebook.CellExecutionResult;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams.EXECUTION_STATUS;
+import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 import org.openide.util.RequestProcessor;
 
 /**
@@ -86,10 +87,10 @@ public class CodeEval {
         try {
             JShell jshell = NotebookSessionManager.getInstance().getSession(notebookId);
             String cellId = activeCellExecutionMapping.get(notebookId);
-            if(cellId != null){
+            if (cellId != null) {
                 sendNotification(notebookId, cellId, EXECUTION_STATUS.INTERRUPTED);
             }
-            
+            flushStreams(notebookId);
             List<CompletableFuture<Boolean>> tasks = pendingTasks.get(notebookId);
             if (tasks != null) {
                 tasks.forEach(task -> {
@@ -158,7 +159,7 @@ public class CodeEval {
             }
 
             runCode(jshell, sourceCode, notebookId);
-
+            flushStreams(notebookId);
             sendNotification(notebookId, EXECUTION_STATUS.SUCCESS);
 
             future.complete(true);
@@ -238,6 +239,13 @@ public class CodeEval {
         }
 
         return snippetValues;
+    }
+
+    private void flushStreams(String notebookId) {
+        JshellStreamsHandler streamHandler = NotebookSessionManager.getInstance().getJshellStreamsHandler(notebookId);
+        if (streamHandler != null) {
+            streamHandler.flushOutputStreams();
+        }
     }
 
     // This method is directly taken from JShell tool implementation in jdk with some minor modifications
@@ -363,10 +371,12 @@ public class CodeEval {
                 }
             }
 
-            LanguageClientInstance.getInstance().getClient().notifyNotebookCellExecutionProgress(params);
+            NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
+            if (client != null) {
+                client.notifyNotebookCellExecutionProgress(params);
+            }
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Some error ocurred while sending code eval notification to the client {0}", ex.getMessage());
         }
     }
-
 }

@@ -15,7 +15,7 @@
 */
 import { QuickPickItem, Uri, window, workspace, WorkspaceConfiguration } from "vscode";
 import { notificationOrRequestListenerType } from "../../types";
-import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
+import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, ShowInputBoxParams, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
 import { InputStep, MultiStepInput } from "../../../utils";
 import { runConfigurationUpdateAll } from "../../../views/runConfiguration";
 import { isError } from "../../../utils";
@@ -69,8 +69,8 @@ const multiStepInputRequestHandler = async (param: any) => {
     return data;
 }
 
-const inputBoxRequestHandler = async (param: any) => {
-    return await window.showInputBox({ title: param.title, prompt: param.prompt, value: param.value, password: param.password });
+const inputBoxRequestHandler = async (param: ShowInputBoxParams) => {
+    return await window.showInputBox({ title: param?.title, prompt: param.prompt, value: param.value, password: param?.password, ignoreFocusOut: param?.ignoreFocusOut });
 }
 
 const saveDocumentRequestHandler = async (request: SaveDocumentRequestParams) => {

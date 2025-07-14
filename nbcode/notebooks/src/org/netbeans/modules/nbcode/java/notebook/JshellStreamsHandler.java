@@ -17,6 +17,7 @@ package org.netbeans.modules.nbcode.java.notebook;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -35,6 +36,7 @@ public class JshellStreamsHandler implements AutoCloseable {
     private final StreamingOutputStream errStream;
     private final PrintStream printOutStream;
     private final PrintStream printErrStream;
+    private final InputStream inputStream;
     
     public JshellStreamsHandler(String notebookId, BiConsumer<String, byte[]> streamCallback) {
         this(notebookId, streamCallback, streamCallback);
@@ -52,6 +54,7 @@ public class JshellStreamsHandler implements AutoCloseable {
         this.errStream = new StreamingOutputStream(createCallback(errStreamCallback));
         this.printOutStream = new PrintStream(outStream);
         this.printErrStream = new PrintStream(errStream);
+        this.inputStream = new CustomInputStream(LanguageClientInstance.getInstance().getClient());
     }
     
     private Consumer<byte[]> createCallback(BiConsumer<String, byte[]> callback) {
@@ -66,14 +69,6 @@ public class JshellStreamsHandler implements AutoCloseable {
         errStream.setCallback(createCallback(callback));
     }
     
-    public ByteArrayOutputStream getOutStream() {
-        return outStream.getOutputStream();
-    }
-    
-    public ByteArrayOutputStream getErrStream() {
-        return errStream.getOutputStream();
-    }
-    
     public PrintStream getPrintOutStream() {
         return printOutStream;
     }
@@ -82,8 +77,21 @@ public class JshellStreamsHandler implements AutoCloseable {
         return printErrStream;
     }
     
+    public InputStream getInputStream() {
+        return inputStream;
+    }
+    
     public String getNotebookId() {
         return notebookId;
+    }
+    
+    public void flushOutputStreams() {
+        try {
+            outStream.flush();
+            errStream.flush();
+        } catch (IOException ignored) {
+            // nothing can be done
+        }
     }
     
     @Override
@@ -93,6 +101,7 @@ public class JshellStreamsHandler implements AutoCloseable {
             printErrStream.close();
             outStream.close();
             errStream.close();
+            inputStream.close();
         } catch (IOException ex) {
             LOG.log(Level.WARNING, "IOException occurred while closing the streams {0}", ex.getMessage());
         }
