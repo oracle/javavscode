@@ -12,7 +12,7 @@ import { getContextUri, isNbCommandRegistered } from './utils';
 import { l10n } from '../localiser';
 import { extConstants } from '../constants';
 import { Notebook } from '../notebooks/notebook';
-import { ICell, ICodeCell } from '../notebooks/types';
+import { ICodeCell } from '../notebooks/types';
 import { randomUUID } from 'crypto';
 
 const createNewNotebook = async (ctx?: any) => {
@@ -94,7 +94,7 @@ const createNewNotebook = async (ctx?: any) => {
             execution_count: null,
             outputs: [],
             id: randomUUID(),
-            metadata: undefined,
+            metadata: {},
             source: ''
         };
 
