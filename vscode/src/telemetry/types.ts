@@ -24,10 +24,12 @@ export interface TelemetryReporter {
     closeEvent(): void;
 }
 
-export interface CacheService {
-    get(key: string): string | undefined;
+export interface CacheService<T,U> {
+    get(key: string): U | undefined;
 
-    put(key: string, value: string): Promise<boolean>;
+    put(key: string, value: T): Promise<boolean>;
+
+    removeOnOverflow?(): void;  
 }
 
 export interface TelemetryEventQueue {
