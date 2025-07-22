@@ -13,9 +13,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+import { randomUUID } from "crypto";
 import { LOGGER } from "../../logger";
 import { Telemetry } from "../telemetry";
 import { BaseEvent } from "./baseEvent";
+import { cacheServiceIndex } from "../impl/cache";
+import { ProjectCacheValue } from "../impl/cache/projectCacheValue";
 
 interface ProjectInfo {
     id: string;
@@ -40,8 +43,29 @@ export class WorkspaceChangeEvent extends BaseEvent<WorkspaceChangeData> {
     private static readonly propertiesToTransform = ['javaVersion'];
 
     constructor(payload: WorkspaceChangeData) {
-        const updatedPayload: WorkspaceChangeData = BaseEvent.transformEvent(WorkspaceChangeEvent.propertiesToTransform, payload);
+        const updatedPayload: WorkspaceChangeData = WorkspaceChangeEvent.transformPayload(payload);
         super(WorkspaceChangeEvent.NAME, WorkspaceChangeEvent.ENDPOINT, updatedPayload);
+    }
+    
+    private static transformPayload = (payload: WorkspaceChangeData) => {
+        const transformedPayload: WorkspaceChangeData = BaseEvent.transformEvent(WorkspaceChangeEvent.propertiesToTransform, payload);
+        return WorkspaceChangeEvent.updateProjectId(transformedPayload)
+    }
+
+    private static updateProjectId = (payload: WorkspaceChangeData) => {
+        const updatedProjectInfo = payload.projectInfo.map(project => {
+            const existingId = cacheServiceIndex.projectCache.get(project.id);
+            const uniqueId = existingId ?? randomUUID();
+
+            if (!existingId) {
+                // Cannot be awaited because the caller is constructor and it cannot be a async call
+                cacheServiceIndex.projectCache.put(project.id, new ProjectCacheValue(uniqueId));
+            }
+
+            return { ...project, id: uniqueId };
+        });
+
+        return { ...payload, projectInfo: updatedProjectInfo };
     }
 
     public onSuccessPostEventCallback = async (): Promise<void> => {

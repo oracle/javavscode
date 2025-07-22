@@ -15,7 +15,7 @@
 */
 import { LOGGER } from "../../logger";
 import { AnonymousIdManager } from "../impl/AnonymousIdManager";
-import { cacheService } from "../impl/cacheServiceImpl";
+import { cacheServiceIndex } from "../impl/cache";
 import { getHashCode, getValuesToBeTransformed, transformValue } from "../utils";
 
 export interface BaseEventPayload {
@@ -66,7 +66,7 @@ export abstract class BaseEvent<T> {
     protected addEventToCache = (): void => {
         const dataString = JSON.stringify(this.getData);
         const calculatedHashVal = getHashCode(dataString);
-        cacheService.put(this.NAME, calculatedHashVal).then((isAdded: boolean) => {
+        cacheServiceIndex.simpleCache.put(this.NAME, calculatedHashVal).then((isAdded: boolean) => {
             LOGGER.debug(`${this.NAME} added in cache ${isAdded ? "Successfully" : "Unsucessfully"}`);
         });
     }

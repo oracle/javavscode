@@ -16,71 +16,77 @@
 
 import { expect } from "chai";
 import * as sinon from "sinon";
-import { globalState } from "../../../globalState";
-import { LOGGER } from "../../../logger";
 import { describe, it, beforeEach, afterEach } from "mocha";
-import { cacheService } from "../../../telemetry/impl/cacheServiceImpl";
+import { BaseCacheValue } from "../../../telemetry/impl/cache/BaseCacheValue";
+import { removeEntriesOnOverflow } from "../../../telemetry/impl/cache/utils";
 
-describe("CacheServiceImpl", () => {
-    let getStub: sinon.SinonStub;
-    let updateStub: sinon.SinonStub;
-    let loggerErrorStub: sinon.SinonStub;
-    let loggerDebugStub: sinon.SinonStub;
+class TestCacheValue extends BaseCacheValue<string> {}
 
-    const fakeState = {
-        get: (key: string) => `value-${key}`,
-        update: async (key: string, value: string) => {},
+describe("removeEntriesOnOverflow", () => {
+  let globalCache: any;
+  let setKeysForSyncStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    let store: Record<string, BaseCacheValue<string>> = {
+      "a": new TestCacheValue("test", "foo", 10),
+      "b": new TestCacheValue("test", "bar", 20),
+      "c": new TestCacheValue("nonTarget", "foo", 30),
+      "d": new TestCacheValue("test", "bar", 5),
+      "e": new TestCacheValue("test", "foo", 2)
     };
+    setKeysForSyncStub = sinon.stub();
+    globalCache = {
+      keys: () => Object.keys(store),
+      get: (k: string) => store[k],
+      update: sinon.stub().callsFake((k: string, v: any) => {
+        if (v === undefined) {
+          delete store[k];
+        } else {
+          store[k] = v;
+        }
+        return Promise.resolve();
+      }),
+      setKeysForSync: sinon.stub()
+    };
+  });
 
-    beforeEach(() => {
-        getStub = sinon.stub(fakeState, "get").callThrough();
-        updateStub = sinon.stub(fakeState, "update").resolves();
+  afterEach(() => {
+    sinon.restore();
+  });
 
-        sinon.stub(globalState, "getExtensionContextInfo").returns({
-            getVscGlobalState: () => fakeState,
-        } as any);
+  it("should evict half of the matching cache entries by comparator", async () => {
+    const comparator = (a: BaseCacheValue<string>, b: BaseCacheValue<string>) =>
+      a.lastUsed - b.lastUsed;
 
-        loggerErrorStub = sinon.stub(LOGGER, "error");
-        loggerDebugStub = sinon.stub(LOGGER, "debug");
-    });
+    await removeEntriesOnOverflow(globalCache, "test", comparator);
 
-    afterEach(() => {
-        sinon.restore();
-    });
+    expect(globalCache.keys()).to.have.members(["a", "b", "c"]);
+    expect(globalCache.get("b")).to.be.an.instanceof(BaseCacheValue);
+    expect(globalCache.get("c")).to.be.an.instanceof(BaseCacheValue);
+  });
 
-    describe("get", () => {
-        it("should return the cached value for a key", () => {
-            const key = "example";
-            const value = cacheService.get(key);
-            expect(value).to.equal(`value-${key}`);
-            expect(getStub.calledOnceWith(key)).to.be.true;
-        });
+  it("should do nothing if there are not enough entries to evict", async () => {
+    sinon.stub(globalCache, "keys").returns(["a", "c"]);
+    const comparator = (a: BaseCacheValue<string>, b: BaseCacheValue<string>) => b.lastUsed - a.lastUsed;
 
-        it("should log and return undefined on error", () => {
-            getStub.throws(new Error("key not found error"));
+    await removeEntriesOnOverflow(globalCache, "test", comparator);
 
-            const result = cacheService.get("notPresent");
-            expect(result).to.be.undefined;
-            expect(loggerErrorStub.calledOnce).to.be.true;
-        });
-    });
+    expect(globalCache.keys()).to.include("a");
+    expect(globalCache.keys()).to.include("c");
+  });
 
-    describe("put", () => {
-        it("should store the value and return true", async () => {
-            const key = "example";
-            const value = "example-value"
-            const result = await cacheService.put(key, value);
-            expect(result).to.be.true;
-            expect(updateStub.calledOnceWith(key, value)).to.be.true;
-            expect(loggerDebugStub.calledOnce).to.be.true;
-        });
+  it("should not attempt to evict entries of a different type", async () => {
+    const comparator = (a: BaseCacheValue<string>, b: BaseCacheValue<string>) => a.lastUsed - b.lastUsed;
 
-        it("should log and return false on error", async () => {
-            updateStub.rejects(new Error("Error while storing key"));
+    await removeEntriesOnOverflow(globalCache, "otherType", comparator);
 
-            const result = await cacheService.put("badKey", "value");
-            expect(result).to.be.false;
-            expect(loggerErrorStub.calledOnce).to.be.true;
-        });
-    });
+    expect(globalCache.keys()).to.have.members(["a", "b", "c", "d", "e"]);
+  });
+
+  it("should handle when no entries match the type", async () => {
+    const comparator = (a: BaseCacheValue<string>, b: BaseCacheValue<string>) => 0;
+    await removeEntriesOnOverflow(globalCache, "absentType", comparator);
+
+    expect(globalCache.keys()).to.have.members(["a", "b", "c", "d", "e"]);
+  });
 });
