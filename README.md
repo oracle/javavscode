@@ -200,6 +200,20 @@ If an action has been applied to the Maven `pom.xml` file through the extension,
 1. Check the `pom.xml` file for any duplicated tags.
 2. If duplicated tags are found, remove the extra tags and attempt to compile again.
 
+## Telemetry
+
+You may choose to enable the Oracle Java extension for Visual Studio Code (\"*JVSCE*\") to collect and send anonymous technical data commonly known as \"*telemetry data*\" to Oracle to help improve the Java platform. 
+- No personal information nor source code is collected. 
+- You may refer to the data collection and privacy policy for JVSCE at [TELEMETRY.md](vscode/TELEMETRY.md).
+- No information is sent prior to you enabling Telemetry.
+
+### Enabling/Disabling Telemetry
+If you wish to enable or disable the collection and transmission of the telemetry data, you may do so in the following ways.
+1. Notification pop-up request to enable.
+    - Appears at the time of activation of the extension, when you have not made a choice for this setting.
+2. The Java extension setting: [`jdk.telemetry.enabled`](vscode://settings/jdk.telemetry.enabled)
+3. *(On Microsoft Visual Studio Code)* The global VS Code setting: [`telemetry.telemetryLevel`](vscode://settings/telemetry.telemetryLevel) must be set to `all` for enabling JVSCE telemetry.
+
 ## Contributing
 
 This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
