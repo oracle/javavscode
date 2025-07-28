@@ -19,17 +19,33 @@
  * under the License.
  */
 
-import { ExtensionContext, workspace } from "vscode";
-import { notebookKernel } from "./kernel";
-import { notebookSerializer } from "./serializer";
+export interface ExecutionSummaryData {
+  executionOrder?: number | null;
+  success?: boolean;
+}
 
-export const registerNotebookProviders = (context: ExtensionContext) => {
-    context.subscriptions.push(
-        workspace.registerNotebookSerializer(
-            'ijnb-notebook',
-            notebookSerializer
-        ));
+export class ExecutionSummary {
+  constructor(
+    public executionOrder: number | null = null,
+    public success: boolean = false
+  ) {}
 
-    context.subscriptions.push(notebookKernel);
-    context.subscriptions.push(notebookKernel.cleanUpKernel);
+  static fromMetadata(
+    meta?: ExecutionSummaryData,
+    fallbackExecCount?: number | null
+  ): ExecutionSummary {
+    const order =
+      meta?.executionOrder != null
+        ? meta.executionOrder
+        : fallbackExecCount ?? null;
+    const success = meta?.success ?? false;
+    return new ExecutionSummary(order, success);
+  }
+
+  toJSON(): ExecutionSummaryData {
+    return {
+      executionOrder: this.executionOrder,
+      success: this.success,
+    };
+  }
 }

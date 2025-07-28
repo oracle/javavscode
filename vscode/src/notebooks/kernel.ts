@@ -22,15 +22,16 @@
 import { globalState } from '../globalState';
 import { isNbCommandRegistered } from '../commands/utils';
 import { nbCommands } from '../commands/commands';
-import { createErrorOutput, createOutputItem } from './utils';
 import { NotebookCellExecutionResult } from '../lsp/protocol';
-import { NotebookCell, NotebookController, NotebookDocument, Disposable, notebooks, commands, NotebookCellOutput } from 'vscode';
+import { NotebookCell, NotebookController, NotebookDocument, Disposable, notebooks, commands, NotebookCellOutput, workspace } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { l10n } from '../localiser';
 import { ijnbConstants, ipynbConstants, supportLanguages } from './constants';
 import { LOGGER } from '../logger';
 import { CodeCellExecution } from './codeCellExecution';
-import { isError } from '../utils';
+import { isError, isString } from '../utils';
+import { MimeTypeHandler } from './mimeTypeHandler';
+import { createErrorOutput } from './utils';
 
 export class IJNBKernel implements Disposable {
   private readonly controllers: NotebookController[] = [];
@@ -86,6 +87,7 @@ export class IJNBKernel implements Disposable {
     const cellId = cell.document.uri.toString();
     const sourceCode = cell.document.getText();
     const codeCellExecution = new CodeCellExecution(controller.id, notebookId, cell);
+    this.getIncrementedExecutionCounter(notebookId);
     try {
       this.cellControllerIdMap.set(cellId, codeCellExecution);
       const client: LanguageClient = await globalState.getClientPromise().client;
@@ -141,37 +143,43 @@ export class IJNBKernel implements Disposable {
 
   private handleUnkownLanguageTypeExecution = async (notebookId: string, cell: NotebookCell, controller: NotebookController) => {
     const exec = controller.createNotebookCellExecution(cell);
-    exec.executionOrder = this.getExecutionCounterAndIncrement(notebookId);
+    exec.executionOrder = this.getIncrementedExecutionCounter(notebookId);
     exec.start(Date.now());
     await exec.replaceOutput(createErrorOutput(new Error(`Doesn't support ${cell.document.languageId} execution`)));
-    exec.end(true, Date.now());
+    exec.end(false, Date.now());
   }
 
-  private getExecutionCounterAndIncrement = (notebookId: string) => {
-    const next = IJNBKernel.executionCounter.get(notebookId) ?? 1;
-    IJNBKernel.executionCounter.set(notebookId, next + 1);
+  private getIncrementedExecutionCounter = (notebookId: string) => {
+    const next = (IJNBKernel.executionCounter.get(notebookId) ?? 0) + 1;
+    IJNBKernel.executionCounter.set(notebookId, next);
     return next;
   }
 
   private getExecutionCounter = (notebookId: string) => {
-    return IJNBKernel.executionCounter.get(notebookId) ?? 1;
+    return IJNBKernel.executionCounter.get(notebookId);
   }
 
   private handleMarkdownCellExecution = async (notebookId: string, cell: NotebookCell, controller: NotebookController) => {
     const exec = controller.createNotebookCellExecution(cell);
     const mimeType = 'text/markdown';
-    exec.executionOrder = this.getExecutionCounterAndIncrement(notebookId);
+    exec.executionOrder = this.getIncrementedExecutionCounter(notebookId);
     try {
       exec.start(Date.now());
       await exec.replaceOutput([
-        new NotebookCellOutput([createOutputItem(cell.document.getText(), mimeType)]),
+        new NotebookCellOutput([new MimeTypeHandler(mimeType).makeOutputItem(cell.document.getText())]),
       ]);
+      exec.end(true, Date.now());
     } catch (error) {
       await exec.replaceOutput(createErrorOutput(error as Error));
-    } finally {
-      exec.end(true, Date.now());
+      exec.end(false, Date.now());
     }
   }
+
+  cleanUpKernel = workspace.onDidCloseNotebookDocument(doc => {
+    if (doc.notebookType === ijnbConstants.NOTEBOOK_TYPE) {
+      IJNBKernel.executionCounter.delete(doc.uri.toString());
+    }
+  });
 }
 
 export const notebookKernel = new IJNBKernel();
