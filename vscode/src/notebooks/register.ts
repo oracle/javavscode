@@ -31,4 +31,5 @@ export const registerNotebookProviders = (context: ExtensionContext) => {
         ));
 
     context.subscriptions.push(notebookKernel);
+    context.subscriptions.push(notebookKernel.cleanUpKernel);
 }

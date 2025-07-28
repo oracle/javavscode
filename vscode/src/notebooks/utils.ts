@@ -31,7 +31,7 @@ import {
   IMetadata
 } from './types';
 import { randomUUID } from 'crypto';
-import { isError, isString } from '../utils';
+import { isString } from '../utils';
 import { mimeTypes } from './constants';
 
 export function base64ToUint8Array(base64: string): Uint8Array {
