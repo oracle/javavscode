@@ -1,9 +1,10 @@
 import { commands, NotebookCell, NotebookCellExecution, NotebookCellOutput, NotebookController } from "vscode";
 import { LOGGER } from "../logger";
 import { NotebookCellExecutionResult } from "../lsp/protocol";
-import { createErrorOutputItem, createOutputItem } from "./utils";
+import { createErrorOutputItem } from "./utils";
 import { nbCommands } from "../commands/commands";
 import { mimeTypes } from "./constants";
+import { MimeTypeHandler } from "./mimeTypeHandler";
 
 export class CodeCellExecution {
     private controller?: NotebookController;
@@ -74,7 +75,7 @@ export class CodeCellExecution {
             await this.execution!.replaceOutputItems(createErrorOutputItem(updatedData), this.output);
         } else {
             await this.execution!.replaceOutputItems(
-                createOutputItem(updatedData, mimeType),
+                new MimeTypeHandler(mimeType).makeOutputItem(updatedData),
                 this.output
             );
         }

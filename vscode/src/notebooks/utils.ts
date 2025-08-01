@@ -33,6 +33,9 @@ import {
 import { randomUUID } from 'crypto';
 import { isString } from '../utils';
 import { mimeTypes } from './constants';
+import { MimeTypeHandler } from './mimeTypeHandler';
+import { ExecutionSummary } from './executionSummary';
+
 
 export function base64ToUint8Array(base64: string): Uint8Array {
   if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
@@ -56,15 +59,6 @@ export function uint8ArrayToBase64(data: Uint8Array): string {
   return btoa(binary);
 }
 
-export function createOutputItem(data: string | Uint8Array, mimeType: string): vscode.NotebookCellOutputItem {
-  if (mimeType.startsWith('image/')) {
-    const bytes = typeof data === 'string' ? base64ToUint8Array(data) : data;
-    return new vscode.NotebookCellOutputItem(bytes, mimeType);
-  }
-  const text = typeof data === 'string' ? data : new TextDecoder().decode(data);
-  return vscode.NotebookCellOutputItem.text(text, mimeType);
-}
-
 export const createErrorOutput = (err: string | Error) => {
   return new vscode.NotebookCellOutput([createErrorOutputItem(err)]);
 }
@@ -86,14 +80,13 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
   const cellData = new vscode.NotebookCellData(kind, value, language);
   cellData.metadata = { id: cell.id, ...cell.metadata };
   if (cell.cell_type === 'code') {
-
-    const metaExec = (cell.metadata as IMetadata).executionSummary;
-    const executionOrder = metaExec?.executionOrder ?? cell.execution_count ?? undefined;
-    const success = metaExec?.success ?? undefined;
-
+    const execSummary = ExecutionSummary.fromMetadata(
+      (cell.metadata as IMetadata).executionSummary,
+      cell.execution_count ?? null
+    );
     cellData.executionSummary = {
-      executionOrder,
-      success,
+      executionOrder: execSummary.executionOrder ?? undefined,
+      success: execSummary.success,
     };
 
     if (Array.isArray(cell.outputs)) {
@@ -119,7 +112,7 @@ export function parseOutput(raw: IOutput): vscode.NotebookCellOutput[] {
     case 'stream':
       outputs.push(
         new vscode.NotebookCellOutput([
-          vscode.NotebookCellOutputItem.text(Array.isArray(raw.text) ? raw.text.join('') : raw.text),
+          new MimeTypeHandler(mimeTypes.TEXT).makeOutputItem(Array.isArray(raw.text) ? raw.text.join('') : raw.text),
         ])
       );
       break;
@@ -138,19 +131,8 @@ export function parseOutput(raw: IOutput): vscode.NotebookCellOutput[] {
 
     case 'display_data':
     case 'execute_result':
-      const items: vscode.NotebookCellOutputItem[] = [];
-      const bundle = raw.data || {};
-      for (const mime in bundle) {
-        const data = bundle[mime];
-        if (mime === mimeTypes.TEXT) {
-          const text = Array.isArray(data) ? data.join('') : String(data);
-          items.push(vscode.NotebookCellOutputItem.text(text));
-        } else if ((mime as string).startsWith('image/')) {
-          const b64 = Array.isArray(data) ? data.join('') : String(data);
-          const bytes = base64ToUint8Array(b64);
-          items.push(new vscode.NotebookCellOutputItem(bytes, mime));
-        }
-      }
+      const bundle = raw.data ?? {};
+      const items = MimeTypeHandler.itemsFromBundle(bundle);
       if (items.length) {
         outputs.push(new vscode.NotebookCellOutput(items, raw.metadata));
       }
@@ -168,7 +150,8 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
     const executionCount = exec.executionOrder ?? null;
     const success = exec.success ?? false;
 
-    const metadata = { ...baseMeta, executionSummary: { executionOrder: executionCount, success } };
+    const execSummary = new ExecutionSummary(executionCount, success);
+    const metadata = { ...baseMeta, executionSummary: execSummary.toJSON()};
 
     const outputs: IOutput[] = (cell.outputs || []).map((output): IOutput => {
       const data: IMimeBundle = {};
