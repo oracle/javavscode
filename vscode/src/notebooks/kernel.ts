@@ -22,7 +22,6 @@
 import { globalState } from '../globalState';
 import { isNbCommandRegistered } from '../commands/utils';
 import { nbCommands } from '../commands/commands';
-import { createErrorOutput, createOutputItem } from './utils';
 import { NotebookCellExecutionResult } from '../lsp/protocol';
 import { NotebookCell, NotebookController, NotebookDocument, Disposable, notebooks, commands, NotebookCellOutput, workspace } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
@@ -30,7 +29,9 @@ import { l10n } from '../localiser';
 import { ijnbConstants, ipynbConstants, supportLanguages } from './constants';
 import { LOGGER } from '../logger';
 import { CodeCellExecution } from './codeCellExecution';
-import { isError } from '../utils';
+import { isError, isString } from '../utils';
+import { MimeTypeHandler } from './mimeTypeHandler';
+import { createErrorOutput } from './utils';
 
 export class IJNBKernel implements Disposable {
   private readonly controllers: NotebookController[] = [];
@@ -165,7 +166,7 @@ export class IJNBKernel implements Disposable {
     try {
       exec.start(Date.now());
       await exec.replaceOutput([
-        new NotebookCellOutput([createOutputItem(cell.document.getText(), mimeType)]),
+        new NotebookCellOutput([new MimeTypeHandler(mimeType).makeOutputItem(cell.document.getText())]),
       ]);
       exec.end(true, Date.now());
     } catch (error) {
@@ -175,10 +176,10 @@ export class IJNBKernel implements Disposable {
   }
 
   cleanUpKernel = workspace.onDidCloseNotebookDocument(doc => {
-  if (doc.notebookType === ijnbConstants.NOTEBOOK_TYPE) {
-    IJNBKernel.executionCounter.delete(doc.uri.toString());
-  }
-});
+    if (doc.notebookType === ijnbConstants.NOTEBOOK_TYPE) {
+      IJNBKernel.executionCounter.delete(doc.uri.toString());
+    }
+  });
 }
 
 export const notebookKernel = new IJNBKernel();
