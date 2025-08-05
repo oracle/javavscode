@@ -374,3 +374,17 @@ export namespace NotebookCellExecutionResult {
     }
     export const type = new ProtocolNotificationType<params, void>('notebook/execution/progress');
 }
+
+export interface NotebookCellStateRequestParams {
+    notebookUri: string;
+    cellUri: string;
+}
+
+export interface NotebookCellStateResponse {
+    version: number;
+    text: string;
+}
+
+export namespace NotebookCellStateRequest {
+    export const type = new ProtocolRequestType<NotebookCellStateRequestParams, NotebookCellStateResponse, void, void, void>('notebook/cell/state');
+}
