@@ -156,7 +156,7 @@ export class IJNBKernel implements Disposable {
   }
 
   private getExecutionCounter = (notebookId: string) => {
-    return IJNBKernel.executionCounter.get(notebookId) ?? 1;
+    return IJNBKernel.executionCounter.get(notebookId);
   }
 
   private handleMarkdownCellExecution = async (notebookId: string, cell: NotebookCell, controller: NotebookController) => {

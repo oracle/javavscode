@@ -33,7 +33,7 @@ export class CodeCellExecution {
         diagnostics: string[] | undefined,
         errorDiagnostics: string[] | undefined,
         metadata: any,
-        executionOrder: number) => {
+        executionOrder: number | undefined) => {
 
         if (!this.isExecutionStarted) {
             this.handleExecutionStart(executionOrder);
@@ -98,7 +98,7 @@ export class CodeCellExecution {
         }
     }
 
-    private handleExecutionStart = async (executionOrder: number) => {
+    private handleExecutionStart = async (executionOrder: number | undefined) => {
         if (this.controller) {
             this.execution = this.controller.createNotebookCellExecution(this.cell);
             this.isExecutionStarted = true;
