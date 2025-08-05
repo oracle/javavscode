@@ -15,7 +15,7 @@
 */
 import { QuickPickItem, Uri, window, workspace, WorkspaceConfiguration } from "vscode";
 import { notificationOrRequestListenerType } from "../../types";
-import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, ShowInputBoxParams, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
+import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, NotebookCellStateRequest, NotebookCellStateRequestParams, NotebookCellStateResponse, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, ShowInputBoxParams, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
 import { InputStep, MultiStepInput } from "../../../utils";
 import { runConfigurationUpdateAll } from "../../../views/runConfiguration";
 import { isError } from "../../../utils";
@@ -114,6 +114,17 @@ const quickPickRequestHandler = async (param: any) => {
     return selected ? Array.isArray(selected) ? selected : [selected] : undefined;
 }
 
+const getNotebookCellStateHandler = (param: NotebookCellStateRequestParams): NotebookCellStateResponse => {
+    const notebookInstance = workspace.notebookDocuments.find(notebook => notebook.uri.toString() === param.notebookUri);
+    const cellInstance = notebookInstance?.getCells().find(cell => cell.document.uri.toString() === param.cellUri);
+    if (!notebookInstance || !cellInstance) {
+        return {
+            version: -1,
+            text: ""
+        };
+    }
+    return { version: cellInstance.document.version, text: cellInstance.document.getText() }
+}
 
 export const requestListeners: notificationOrRequestListenerType[] = [{
     type: TextEditorDecorationCreateRequest.type,
@@ -139,4 +150,7 @@ export const requestListeners: notificationOrRequestListenerType[] = [{
 }, {
     type: ExecInHtmlPageRequest.type,
     handler: execInHtmlPage
+}, {
+    type: NotebookCellStateRequest.type,
+    handler: getNotebookCellStateHandler
 }];

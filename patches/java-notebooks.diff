@@ -369,6 +369,152 @@
 +    }
 +}
 --- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellStateResponse.java
+@@ -0,0 +1,41 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.lsp.server.notebook;
++
++/**
++ *
++ * @author atalati
++ */
++public class CellStateResponse {
++    private final String text;
++    private final int version;
++
++    public CellStateResponse(String text, int version) {
++        this.text = text;
++        this.version = version;
++    }
++
++    public String getText() {
++        return text;
++    }
++
++    public int getVersion() {
++        return version;
++    }
++}
+--- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellStateParams.java
+@@ -0,0 +1,99 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.lsp.server.notebook;
++
++import java.util.Objects;
++import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
++import org.eclipse.lsp4j.util.Preconditions;
++import org.eclipse.xtext.xbase.lib.Pure;
++import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
++
++/**
++ *
++ * @author atalati
++ */
++public class NotebookCellStateParams {
++
++    /**
++     * URI of the notebook.
++     */
++    @NonNull
++    private final String notebookUri;
++
++    /**
++     * URI of the cell.
++     */
++    @NonNull
++    private final String cellUri;
++
++    public NotebookCellStateParams(
++            @NonNull final String notebookUri,
++            @NonNull final String cellUri) {
++        this.notebookUri = Preconditions.checkNotNull(notebookUri, "notebookUri");
++        this.cellUri = Preconditions.checkNotNull(cellUri, "cellUri");
++    }
++
++    /**
++     * URI of the notebook.
++     */
++    @Pure
++    @NonNull
++    public String getNotebookUri() {
++        return notebookUri;
++    }
++
++    /**
++     * URI of the cell.
++     */
++    @Pure
++    @NonNull
++    public String getCellUri() {
++        return cellUri;
++    }
++
++    @Override
++    @Pure
++    public String toString() {
++        ToStringBuilder b = new ToStringBuilder(this);
++        b.add("notebookUri", notebookUri);
++        b.add("cellUri", cellUri);
++        return b.toString();
++    }
++
++    @Override
++    public int hashCode() {
++        return Objects.hash(
++                notebookUri,
++                cellUri
++        );
++    }
++
++    @Override
++    public boolean equals(Object obj) {
++        if (this == obj) {
++            return true;
++        }
++        if (!(obj instanceof NotebookCellStateParams)) {
++            return false;
++        }
++        NotebookCellStateParams other = (NotebookCellStateParams) obj;
++        return Objects.equals(this.notebookUri, other.notebookUri)
++                && Objects.equals(this.cellUri, other.cellUri);
++    }
++}
+--- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookDocumentServiceHandler.java
 @@ -0,0 +1,59 @@
 +/*
@@ -432,32 +578,39 @@
 +}
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java
-@@ -32,6 +32,7 @@
+@@ -32,6 +32,9 @@
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
  import org.netbeans.modules.java.lsp.server.explorer.api.NodeChangedParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  
  /**
   * An extension to the standard LanguageClient that adds several messages missing
-@@ -166,4 +167,6 @@
+@@ -166,4 +169,9 @@
      @JsonRequest("output/reset")
      public CompletableFuture<Void> resetOutput(String outputName);
      
 +    @JsonNotification("notebook/execution/progress")
 +    public void notifyNotebookCellExecutionProgress(@NonNull NotebookCellExecutionProgressResultParams params);
++    
++    @JsonRequest("notebook/cell/state")
++    public CompletableFuture<CellStateResponse> getNotebookCellState(@NonNull NotebookCellStateParams params);
  }
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java
-@@ -44,6 +44,7 @@
+@@ -44,6 +44,9 @@
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
  import org.netbeans.modules.java.lsp.server.explorer.api.NodeChangedParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  
  /**
   * Convenience wrapper that binds language client's remote proxy together with
-@@ -244,4 +245,8 @@
+@@ -244,4 +247,13 @@
          return remote.resetOutput(outputName);
      }
      
@@ -465,6 +618,11 @@
 +    public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
 +        remote.notifyNotebookCellExecutionProgress(params);
  }
++
++    @Override
++    public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
++        return remote.getNotebookCellState(params);
++    }
 +}
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientCapabilities.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientCapabilities.java
@@ -493,15 +651,17 @@
              caps = new ClientCapabilities();
 --- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java
 +++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java
-@@ -43,6 +43,7 @@
+@@ -43,6 +43,9 @@
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  import org.netbeans.modules.java.lsp.server.protocol.OutputMessage;
  import org.netbeans.modules.java.lsp.server.protocol.SaveDocumentRequestParams;
  import org.netbeans.modules.java.lsp.server.protocol.ShowStatusMessageParams;
-@@ -182,4 +183,9 @@
+@@ -182,4 +185,14 @@
      public CompletableFuture<Void> resetOutput(String outputName) {
          return CompletableFuture.completedFuture(null);
      }
@@ -510,18 +670,25 @@
 +    public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params){
 +        throw new UnsupportedOperationException();
  }
++
++    @Override
++    public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
++        return CompletableFuture.completedFuture(null);
++    }
 +}
 --- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java
 +++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java
-@@ -77,6 +77,7 @@
+@@ -77,6 +77,9 @@
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  import org.netbeans.modules.java.lsp.server.protocol.OutputMessage;
  import org.netbeans.modules.java.lsp.server.protocol.SaveDocumentRequestParams;
  import org.netbeans.modules.java.lsp.server.protocol.SetTextEditorDecorationParams;
-@@ -306,8 +307,13 @@
+@@ -306,8 +309,18 @@
          public CompletableFuture<Void> resetOutput(String outputName) {
              return CompletableFuture.completedFuture(null);
          }
@@ -530,6 +697,11 @@
 +        public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
      }
  
++        @Override
++        public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
++            return CompletableFuture.completedFuture(null);
++        }
++
 +    }
 +
      private static Launcher<NbLanguageServer> createLauncher(NbCodeLanguageClient client, InputStream in, OutputStream out,
@@ -603,25 +775,32 @@
              return false;
          }
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
-index 747d151600..038db86c93 100644
+index 747d151600..bbf1f263d1 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
-@@ -134,6 +134,7 @@ import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
+@@ -134,6 +134,9 @@ import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
  import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
  import org.netbeans.modules.java.lsp.server.progress.OperationContext;
  import org.netbeans.modules.parsing.spi.indexing.Context;
  import org.netbeans.modules.parsing.spi.indexing.CustomIndexer;
-@@ -1383,6 +1384,11 @@ public final class Server {
+@@ -1383,6 +1386,16 @@ public final class Server {
              logWarning("Reset output: " + outputName); //NOI18N
              return CompletableFuture.completedFuture(null);
          }
-+        
++
 +        @Override
 +        public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
 +            logWarning("notebook document cell execution result: " + params.getNotebookUri() + " cell uri: " + params.getCellUri()); //NOI18N
++        }
++
++        @Override
++        public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
++            return CompletableFuture.completedFuture(null);
 +        }
      };
  
