@@ -84,10 +84,12 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
       (cell.metadata as IMetadata).executionSummary,
       cell.execution_count ?? null
     );
-    cellData.executionSummary = {
-      executionOrder: execSummary.executionOrder ?? undefined,
-      success: execSummary.success,
-    };
+    if (execSummary.executionOrder) {
+      cellData.executionSummary = {
+        executionOrder: execSummary.executionOrder ?? undefined,
+        success: execSummary.success,
+      };
+    }
 
     if (Array.isArray(cell.outputs)) {
       const outputs = cell.outputs.flatMap((out: IOutput) => {
@@ -148,10 +150,10 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
   if (cell.kind === vscode.NotebookCellKind.Code) {
     const exec = cell.executionSummary ?? {};
     const executionCount = exec.executionOrder ?? null;
-    const success = exec.success ?? false;
+    const success = exec.success;
 
     const execSummary = new ExecutionSummary(executionCount, success);
-    const metadata = { ...baseMeta, executionSummary: execSummary.toJSON()};
+    const metadata = executionCount ? { ...baseMeta, executionSummary: execSummary.toJSON() } : {};
 
     const outputs: IOutput[] = (cell.outputs || []).map((output): IOutput => {
       const data: IMimeBundle = {};
