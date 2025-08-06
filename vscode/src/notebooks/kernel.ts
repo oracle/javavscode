@@ -87,7 +87,7 @@ export class IJNBKernel implements Disposable {
     const cellId = cell.document.uri.toString();
     const sourceCode = cell.document.getText();
     const codeCellExecution = new CodeCellExecution(controller.id, notebookId, cell);
-    this.getIncementedExecutionCounter(notebookId);
+    this.getIncrementedExecutionCounter(notebookId);
     try {
       this.cellControllerIdMap.set(cellId, codeCellExecution);
       const client: LanguageClient = await globalState.getClientPromise().client;
@@ -143,13 +143,13 @@ export class IJNBKernel implements Disposable {
 
   private handleUnkownLanguageTypeExecution = async (notebookId: string, cell: NotebookCell, controller: NotebookController) => {
     const exec = controller.createNotebookCellExecution(cell);
-    exec.executionOrder = this.getIncementedExecutionCounter(notebookId);
+    exec.executionOrder = this.getIncrementedExecutionCounter(notebookId);
     exec.start(Date.now());
     await exec.replaceOutput(createErrorOutput(new Error(`Doesn't support ${cell.document.languageId} execution`)));
     exec.end(false, Date.now());
   }
 
-  private getIncementedExecutionCounter = (notebookId: string) => {
+  private getIncrementedExecutionCounter = (notebookId: string) => {
     const next = (IJNBKernel.executionCounter.get(notebookId) ?? 0) + 1;
     IJNBKernel.executionCounter.set(notebookId, next);
     return next;
@@ -162,7 +162,7 @@ export class IJNBKernel implements Disposable {
   private handleMarkdownCellExecution = async (notebookId: string, cell: NotebookCell, controller: NotebookController) => {
     const exec = controller.createNotebookCellExecution(cell);
     const mimeType = 'text/markdown';
-    exec.executionOrder = this.getIncementedExecutionCounter(notebookId);
+    exec.executionOrder = this.getIncrementedExecutionCounter(notebookId);
     try {
       exec.start(Date.now());
       await exec.replaceOutput([
