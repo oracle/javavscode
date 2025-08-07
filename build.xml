@@ -72,7 +72,7 @@
             patches/l10n-licence.diff
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
-            patches/change-method-parameters-refactoring-qualified-names.diff
+            patches/8637-draft.diff
             patches/javavscode-375.diff
         </string>
         <filterchain>
