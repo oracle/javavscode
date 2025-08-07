@@ -142,8 +142,9 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
 
     @Override
     public void connect(LanguageClient client) {
-        NotebookConfigs.getInstance().initConfigs();
         LanguageClientInstance.getInstance().setClient((NbCodeLanguageClient) client);
+        NotebookConfigs.getInstance().initConfigs();
+
     }
 
     @Override
