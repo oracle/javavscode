@@ -108,7 +108,7 @@ public class NotebookUtils {
 
     @SuppressWarnings("unchecked")
     public static <T> T getArgument(List<Object> arguments, int index, Class<T> type) {
-        if (arguments.size() > index && arguments.get(index) != null) {
+        if (arguments != null && arguments.size() > index && arguments.get(index) != null) {
             Object arg = arguments.get(index);
 
             if (arg instanceof JsonElement) {
