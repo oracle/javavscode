@@ -58,6 +58,7 @@
             patches/8260.diff
             patches/8280.diff
             patches/8289.diff
+            patches/8690.diff
             patches/7893-draft.diff
             patches/8442-draft.diff
             patches/8460-draft.diff
