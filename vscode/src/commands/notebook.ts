@@ -2,7 +2,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
 import { LOGGER } from '../logger';
-import { commands, Uri, window, workspace } from 'vscode';
+import { commands, ConfigurationTarget, Uri, window, workspace } from 'vscode';
 import { isError } from '../utils';
 import { extCommands, nbCommands } from './commands';
 import { ICommand } from './types';
@@ -14,6 +14,8 @@ import { extConstants } from '../constants';
 import { Notebook } from '../notebooks/notebook';
 import { ICodeCell } from '../notebooks/types';
 import { randomUUID } from 'crypto';
+import { getConfigurationValue, updateConfigurationValue } from '../configurations/handlers';
+import { configKeys } from '../configurations/configuration';
 
 const createNewNotebook = async (ctx?: any) => {
     try {
@@ -118,7 +120,7 @@ const openJshellInContextOfProject = async (ctx: any) => {
     try {
         let client: LanguageClient = await globalState.getClientPromise().client;
         if (await isNbCommandRegistered(nbCommands.openJshellInProject)) {
-            const res: string[] = await commands.executeCommand(nbCommands.openJshellInProject, getContextUri(ctx)?.toString());
+            const res: string[] = await commands.executeCommand(nbCommands.openJshellInProject, ctx?.toString());
             const { envMap, finalArgs } = passArgsToTerminal(res);
             // Direct sendText is not working since it truncates the command exceeding a certain length.
             // Open issues on vscode: 130688, 134324 and many more
@@ -150,6 +152,34 @@ const passArgsToTerminal = (args: string[]): { envMap: { [key: string]: string }
     return { envMap, finalArgs };
 }
 
+const createNotebookProjectMappingHandler = async (ctx: Uri | undefined) => {
+    try {
+        const uri: Uri | undefined = ctx ? ctx : window.activeNotebookEditor?.notebook.uri;
+        if (!uri?.toString().endsWith(extConstants.NOTEBOOK_FILE_EXTENSION)) {
+            window.showErrorMessage(`Please open any ${extConstants.NOTEBOOK_FILE_EXTENSION} notebook`);
+            return;
+        }
+        await globalState.getClientPromise().client;
+        if (await isNbCommandRegistered(nbCommands.createNotebookProjectContext)) {
+            const res = await commands.executeCommand<string>(nbCommands.createNotebookProjectContext, uri.toString());
+            if (res) {
+                const oldValue = getConfigurationValue(configKeys.notebookProjectMapping, {});
+                updateConfigurationValue(configKeys.notebookProjectMapping,
+                    { ...oldValue, [uri.fsPath]: res },
+                    ConfigurationTarget.Workspace);
+                return;
+            }
+            window.showErrorMessage("No project selected");
+        } else {
+            throw new Error("Change project context for notebook not command found");
+        }
+    } catch (error) {
+        LOGGER.error(`Error occurred while opening notebook : ${isError(error) ? error.message : error}`);
+        window.showErrorMessage("Error occurred while changing notebook project context");
+    }
+}
+
+
 export const registerNotebookCommands: ICommand[] = [
     {
         command: extCommands.createNotebook,
@@ -158,5 +188,9 @@ export const registerNotebookCommands: ICommand[] = [
     {
         command: extCommands.openJshellInProject,
         handler: openJshellInContextOfProject
+    },
+    {
+        command: extCommands.createNotebookProjectMapping,
+        handler: createNotebookProjectMappingHandler
     }
 ];
