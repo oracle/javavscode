@@ -284,6 +284,11 @@
 					],
 					"description": "list of packages to import implicitly."
 				},
+				"jdk.notebook.projects.mapping": {
+					"type": "object",
+					"default": {},
+					"description": "Mapping of notebook to project context"
+				},
 				"jdk.telemetry.enabled": {
 					"type": "boolean",
 					"description": "%jdk.configuration.telemetry.enabled.description%",
@@ -594,6 +599,11 @@
 				"title": "%jdk.notebook.new%",
 				"category": "Java",
 				"icon": "$(new-file)"
+			},
+			{
+				"command": "jdk.notebook.change.project",
+				"title": "%jdk.notebook.change.project%",
+				"category": "Java"
 			}
 		],
 		"keybindings": [

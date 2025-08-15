@@ -15,7 +15,6 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;

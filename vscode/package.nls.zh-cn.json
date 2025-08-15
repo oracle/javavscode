@@ -11,6 +11,8 @@
     "jdk.Edit.org.openide.actions.DeleteAction": "删除",
     "workbench.action.debug.run": "运行但不调试",
     "workbench.action.debug.start": "启动调试",
+    "jdk.notebook.new": "Create New Notebook...",
+    "jdk.notebook.change.project": "Open notebook in different project context",
     "jdk.project.run": "运行项目但不调试",
     "jdk.project.debug": "调试项目",
     "jdk.project.test": "测试项目",
