@@ -15,18 +15,14 @@
  */
 package org.netbeans.modules.nbcode.java.project;
 
-import com.google.gson.JsonPrimitive;
-import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.java.lsp.server.Utils;
+import org.netbeans.modules.nbcode.java.notebook.NotebookSessionManager;
 import org.netbeans.modules.nbcode.java.notebook.NotebookUtils;
-import org.openide.filesystems.FileObject;
-import org.openide.util.Exceptions;
 
 /**
  *
@@ -37,24 +33,30 @@ public class CommandHandler {
     private static final Logger LOG = Logger.getLogger(CommandHandler.class.getName());
 
     public static CompletableFuture<List<String>> openJshellInProjectContext(List<Object> args) {
-        CompletableFuture<List<String>> future = new CompletableFuture<>();
-
         LOG.log(Level.FINER, "Request received for opening Jshell instance with project context {0}", args);
+
+        String context = NotebookUtils.getArgument(args, 0, String.class);
+        String additionalContext = NotebookUtils.getArgument(args, 1, String.class);
+        CompletableFuture<Project> prjFuture;
         
-        String uri = NotebookUtils.getArgument(args, 0, String.class);
-
-        if (uri == null) {
-            future.completeExceptionally(new IllegalArgumentException("uri is required. It cannot be null"));
-            return future;
+        if (context != null) {
+            prjFuture = CompletableFuture.completedFuture(ProjectContext.getProject(context));
+        } else {
+            Project editorPrj = additionalContext != null ? ProjectContext.getProject(additionalContext) : null;
+            prjFuture = editorPrj != null
+                    ? ProjectContext.getProject(false, new ProjectContextInfo(editorPrj))
+                    : ProjectContext.getProject();
         }
-
-        Project prj = getProject(uri);
-        if (prj != null) {
+        
+        return prjFuture.thenCompose(prj -> {
+            if (prj == null) {
+                return CompletableFuture.completedFuture(new ArrayList<>());
+            }
             return ProjectConfigurationUtils.buildProject(prj)
                     .thenCompose(isBuildSuccess -> {
-                        if (Boolean.TRUE.equals(isBuildSuccess)) {
+                        if (isBuildSuccess) {
                             List<String> vmOptions = ProjectConfigurationUtils.launchVMOptions(prj);
-                            LOG.log(Level.INFO, "Opened Jshell instance with project context {0}", uri);
+                            LOG.log(Level.INFO, "Opened Jshell instance with project context {0}", context);
                             return CompletableFuture.completedFuture(vmOptions);
                         } else {
                             CompletableFuture<List<String>> failed = new CompletableFuture<>();
@@ -62,43 +64,15 @@ public class CommandHandler {
                             return failed;
                         }
                     });
-        }
-
-        LOG.log(Level.WARNING, "Cannot open Jshell instance as project is null");
-        future.completeExceptionally(new IllegalArgumentException("Project is null for uri: " + uri));
-        return future;
+        });
     }
 
-    public static boolean openNotebookInProjectContext(List<Object> args) {
-        LOG.log(Level.FINER, "Request received for opening notebook with project context {0}", args);
-
-        String uri = NotebookUtils.getArgument(args, 0, String.class);
-        String notebookUri = NotebookUtils.getArgument(args, 1, String.class);
-        
-        Project prj = getProject(uri);
-        if (prj != null) {
-            List<String> remoteVmOptions = ProjectConfigurationUtils.launchVMOptions(prj);
-            List<String> compileOptions = ProjectConfigurationUtils.compilerOptions(prj);
-
-            LOG.log(Level.INFO, "Opened Notebook instance with project context {0}", uri);
-            return true;
-        }
-        LOG.log(Level.WARNING, "Cannot open Jshell instance as project is null");
-        return false;
+    public static CompletableFuture<String> getNotebookProjectMappingPath(List<Object> args) {
+        LOG.log(Level.FINER, "Request received for notebook project mapping with args: {0}", args);
+        String notebookUri = NotebookUtils.getArgument(args, 0, String.class);
+        ProjectContextInfo prjCxtInfo = NotebookSessionManager.getInstance().getNotebookPrjNameContext(notebookUri);
+        return ProjectContext.getProject(true, prjCxtInfo)
+                .thenApply(prj -> prj == null ? null : prj.getProjectDirectory().getPath());
     }
 
-    public static Project getProject(String uri) {
-        try {
-            if (uri == null) {
-                return null;
-            }
-            FileObject file = Utils.fromUri(uri);
-            Project prj = FileOwnerQuery.getOwner(file);
-
-            return prj;
-        } catch (MalformedURLException ex) {
-            Exceptions.printStackTrace(ex);
-        }
-        return null;
-    }
 }

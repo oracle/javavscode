@@ -33,11 +33,17 @@ import org.openide.util.Exceptions;
  */
 public class NotebookConfigs {
 
-    private static final String[] NOTEBOOK_CONFIG_LABELS = {"notebook.classpath", "notebook.modulepath", "notebook.addmodules", "notebook.enablePreview", "notebook.implicitImports"};
+    private static final String[] NOTEBOOK_CONFIG_LABELS = {"notebook.classpath",
+        "notebook.modulepath",
+        "notebook.addmodules",
+        "notebook.enablePreview",
+        "notebook.implicitImports",
+        "notebook.projects.mapping"};
     private String classPath = null;
     private String modulePath = null;
     private String addModules = null;
     private boolean enablePreview = false;
+    private JsonObject notebookProjectMapping = new JsonObject();
     private List<String> implicitImports = null;
     private CompletableFuture<Void> initialized;
 
@@ -63,6 +69,10 @@ public class NotebookConfigs {
 
     public List<String> getImplicitImports() {
         return implicitImports;
+    }
+
+    public JsonObject getNotebookProjectMapping() {
+        return notebookProjectMapping;
     }
 
     private NotebookConfigs() {
@@ -119,6 +129,10 @@ public class NotebookConfigs {
                     }
                     if (c.get(4) != null) {
                         implicitImports = ((JsonArray) c.get(4)).asList().stream().map((elem) -> elem.getAsString()).toList();
+
+                    }
+                    if (c.get(5) != null) {
+                        notebookProjectMapping = (JsonObject) c.get(5);
 
                     }
                 }

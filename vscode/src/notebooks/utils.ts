@@ -35,6 +35,7 @@ import { isString } from '../utils';
 import { mimeTypes } from './constants';
 import { MimeTypeHandler } from './mimeTypeHandler';
 import { ExecutionSummary } from './executionSummary';
+import { LOGGER } from '../logger';
 
 
 export function base64ToUint8Array(base64: string): Uint8Array {
@@ -104,7 +105,7 @@ export function parseCell(cell: ICell): vscode.NotebookCellData {
       }
     }
   }
-  if (cell.id) console.log(`${cell.id.slice(0, 5)} Successfully parsed`);
+  if (cell.id) LOGGER.debug(`${cell.id.slice(0, 5)} Successfully parsed`);
   return cellData;
 }
 
@@ -187,7 +188,7 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
       execution_count: executionCount,
       outputs,
     };
-    if (codeCell.id) console.log(`${codeCell.id.slice(0, 5)} Successfully serialized code cell`);
+    if (codeCell.id) LOGGER.debug(`${codeCell.id.slice(0, 5)} Successfully serialized code cell`);
     return codeCell;
   }
   const mdCell: IMarkdownCell = {

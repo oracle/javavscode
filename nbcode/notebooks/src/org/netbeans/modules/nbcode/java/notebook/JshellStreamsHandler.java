@@ -15,7 +15,6 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -26,10 +25,11 @@ import java.util.logging.Logger;
 
 /**
  * Handles JShell output and error streams for notebook execution.
- * 
+ *
  * @author atalati
  */
 public class JshellStreamsHandler implements AutoCloseable {
+
     private static final Logger LOG = Logger.getLogger(JshellStreamsHandler.class.getName());
     private final String notebookId;
     private final StreamingOutputStream outStream;
@@ -37,18 +37,18 @@ public class JshellStreamsHandler implements AutoCloseable {
     private final PrintStream printOutStream;
     private final PrintStream printErrStream;
     private final InputStream inputStream;
-    
+
     public JshellStreamsHandler(String notebookId, BiConsumer<String, byte[]> streamCallback) {
         this(notebookId, streamCallback, streamCallback);
     }
-    
-    public JshellStreamsHandler(String notebookId, 
-                               BiConsumer<String, byte[]> outStreamCallback,
-                               BiConsumer<String, byte[]> errStreamCallback) {
+
+    public JshellStreamsHandler(String notebookId,
+            BiConsumer<String, byte[]> outStreamCallback,
+            BiConsumer<String, byte[]> errStreamCallback) {
         if (notebookId == null || notebookId.trim().isEmpty()) {
             throw new IllegalArgumentException("Notebook Id cannot be null or empty");
         }
-        
+
         this.notebookId = notebookId;
         this.outStream = new StreamingOutputStream(createCallback(outStreamCallback));
         this.errStream = new StreamingOutputStream(createCallback(errStreamCallback));
@@ -56,35 +56,35 @@ public class JshellStreamsHandler implements AutoCloseable {
         this.printErrStream = new PrintStream(errStream);
         this.inputStream = new CustomInputStream(LanguageClientInstance.getInstance().getClient());
     }
-    
+
     private Consumer<byte[]> createCallback(BiConsumer<String, byte[]> callback) {
         return callback != null ? output -> callback.accept(notebookId, output) : null;
     }
-    
+
     public void setOutStreamCallback(BiConsumer<String, byte[]> callback) {
         outStream.setCallback(createCallback(callback));
     }
-    
+
     public void setErrStreamCallback(BiConsumer<String, byte[]> callback) {
         errStream.setCallback(createCallback(callback));
     }
-    
+
     public PrintStream getPrintOutStream() {
         return printOutStream;
     }
-    
+
     public PrintStream getPrintErrStream() {
         return printErrStream;
     }
-    
+
     public InputStream getInputStream() {
         return inputStream;
     }
-    
+
     public String getNotebookId() {
         return notebookId;
     }
-    
+
     public void flushOutputStreams() {
         try {
             outStream.flush();
@@ -93,7 +93,7 @@ public class JshellStreamsHandler implements AutoCloseable {
             // nothing can be done
         }
     }
-    
+
     @Override
     public void close() {
         try {

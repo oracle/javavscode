@@ -22,8 +22,9 @@
 import * as vscode from 'vscode';
 import { ICell, INotebook } from './types';
 import { serializeCell } from './utils';
-import Ajv = require('ajv');
+import Ajv from "ajv";
 import schema = require('./nbformat.v4.d7.schema.json');
+import { LOGGER } from '../logger';
 
 export class NotebookVersionInfo {
   static readonly NBFORMAT = 4;
@@ -35,7 +36,10 @@ export class Notebook {
     readonly nbformat_minor: number;
     readonly metadata: { language_info: { name: string } };
     readonly cells: ICell[];
-    static ajv = new Ajv();
+    static ajv = new Ajv({
+        allErrors: true,
+        strict: false
+    });
     static validateFn = this.ajv.compile(schema);
 
     constructor(cells: ICell[], language: string = 'java') {
@@ -81,10 +85,10 @@ export class Notebook {
     static assertValidNotebookJson(notebook: INotebook) {
         if (!Notebook.validateFn(notebook)) {
             const errors = (Notebook.validateFn.errors || [])
-            .map(e => `${e.dataPath || '/'} ${e.message}`)
+            .map(e => `${e.schemaPath || '/'} ${e.message}`)
             .join('\n');
             throw new Error(`Notebook JSON validation failed:\n${errors}`);
         }
-        console.log("Notebook successfully validated.");
+        LOGGER.debug("Notebook successfully validated.");
     }
 }

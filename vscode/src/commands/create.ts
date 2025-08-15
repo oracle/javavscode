@@ -96,6 +96,7 @@ const newProject = async (ctx: any) => {
     }
 };
 
+
 export const registerCreateCommands: ICommand[] = [
     {
         command: extCommands.newFromTemplate,

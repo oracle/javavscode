@@ -23,6 +23,7 @@ import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
  * @author atalati
  */
 public class LanguageClientInstance {
+
     private WeakReference<NbCodeLanguageClient> client = null;
 
     private LanguageClientInstance() {
@@ -31,17 +32,17 @@ public class LanguageClientInstance {
     public static LanguageClientInstance getInstance() {
         return LanguageClientInstance.Singleton.instance;
     }
-    
+
     private static class Singleton {
 
         private static final LanguageClientInstance instance = new LanguageClientInstance();
     }
-    
-    public NbCodeLanguageClient getClient(){
-        return this.client == null ? null: this.client.get();
+
+    public NbCodeLanguageClient getClient() {
+        return this.client == null ? null : this.client.get();
     }
-    
-    public void setClient(NbCodeLanguageClient client){
+
+    public void setClient(NbCodeLanguageClient client) {
         this.client = new WeakReference<>(client);
     }
 }

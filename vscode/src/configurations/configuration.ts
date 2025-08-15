@@ -37,7 +37,7 @@ export const configKeys = {
     notebookEnablePreview: "notebook.enablePreview",
     notebookImplicitImports: "notebook.implicitImports",
     telemetryEnabled: 'telemetry.enabled',
-
+    notebookProjectMapping: "notebook.projects.mapping"
 };
 
 export const builtInConfigKeys = {
@@ -55,6 +55,7 @@ export const userConfigsListened: string[] = [
     appendPrefixToCommand(configKeys.notebookAddModules),
     appendPrefixToCommand(configKeys.notebookEnablePreview),
     appendPrefixToCommand(configKeys.notebookImplicitImports),
+    appendPrefixToCommand(configKeys.notebookProjectMapping),
     builtInConfigKeys.vscodeTheme,
 ];
 

@@ -85,16 +85,16 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
     public void didOpen(DidOpenNotebookDocumentParams params) {
         try {
             NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
-            if(client == null){
+            if (client == null) {
                 return;
             }
-            client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info,"Intializing Java kernel for notebook."));
-            NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()).whenComplete((JShell jshell,Throwable t) -> {
+            client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, "Intializing Java kernel for notebook."));
+            NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()).whenComplete((JShell jshell, Throwable t) -> {
                 if (t == null) {
                     client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, "Java kernel initialized successfully"));
                 } else {
                     // if package import fails user is not informed ?
-                    client.showMessage(new MessageParams(MessageType.Error,"Error could not initialize Java kernel for the notebook."));
+                    client.showMessage(new MessageParams(MessageType.Error, "Error could not initialize Java kernel for the notebook."));
                     LOG.log(Level.SEVERE, "Error could not initialize Java kernel for the notebook. : {0}", t.getMessage());
                 }
             });

@@ -99,5 +99,15 @@
   "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} 未启用",
   "jdk.telemetry.consent": "是否允许向 Oracle 报告匿名遥测数据？您随时可以通过 jdk.telemetry.enabled 对应的设置选择退出或加入。",
   "jdk.configChanged": "Configuration updated for the Oracle Java extension. Please reload the window to enable it.",
-  "jdk.configChangedFailed": "Error while updating the configuration for the Oracle Java extension. Please reload the window to restart the extension."
+  "jdk.configChangedFailed": "Error while updating the configuration for the Oracle Java extension. Please reload the window to restart the extension.",
+  "jdk.notebook.create.select.workspace.folder": "Select workspace folder in which notebook needs to be created",
+  "jdk.notebook.create.select.workspace.folder.label": "Select Notebook creation folder",
+  "jdk.notebook.create.select.workspace.folder.title": "Select folder in which notebook needs to be created",
+  "jdk.notebook.create.error_msg.path.not.selected": "Path not selected for creating new notebook",
+  "jdk.notebook.create.error_msg.invalid.notebook.name": "Invalid notebook file name",
+  "jdk.notebook.create.error_msg.invalid.notebook.path": "Notebook already exists, please try creating with some different name",
+  "jdk.notebook.create.error_msg.failed": "Failed to create new notebook",
+  "jdk.jshell.open.error_msg.failed": "Some error occurred while launching jshell",
+  "jdk.notebook.project.mapping.error_msg.failed": "Error occurred while changing notebook project context",
+  "jdk.notebook.create.new.notebook.input.name": "Enter new Java notebook ({fileExtension}) file name"
 }

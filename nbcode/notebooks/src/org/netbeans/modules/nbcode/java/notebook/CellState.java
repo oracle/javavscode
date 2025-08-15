@@ -144,8 +144,8 @@ public class CellState {
         }
         return client.getNotebookCellState(new NotebookCellStateParams(notebookUri, cellUri));
     }
-    
-    protected VersionAwareContent getVersionAwareContent(){
+
+    protected VersionAwareContent getVersionAwareContent() {
         return this.content.get();
     }
 

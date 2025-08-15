@@ -30,7 +30,6 @@ import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.classpath.JavaClassPathConstants;
 import org.netbeans.api.java.platform.JavaPlatform;
 import org.netbeans.api.java.queries.BinaryForSourceQuery;
-import org.netbeans.api.java.queries.SourceLevelQuery;
 import org.netbeans.api.java.source.ClassIndex;
 import org.netbeans.api.java.source.ClasspathInfo;
 import org.netbeans.api.java.source.SourceUtils;
@@ -38,7 +37,6 @@ import org.netbeans.api.project.Project;
 import org.netbeans.spi.java.classpath.support.ClassPathSupport;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.URLMapper;
-import org.openide.modules.SpecificationVersion;
 
 /**
  * Methods in this class are taken from the org.netbeans.modules.jshell.support

@@ -169,7 +169,7 @@ public class ProjectConfigurationUtils {
         }
         return false;
     }
-    
+
     public static CompletableFuture<Boolean> buildProject(Project project) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         ActionProvider p = project.getLookup().lookup(ActionProvider.class);

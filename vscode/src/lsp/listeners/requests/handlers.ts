@@ -15,7 +15,7 @@
 */
 import { QuickPickItem, Uri, window, workspace, WorkspaceConfiguration } from "vscode";
 import { notificationOrRequestListenerType } from "../../types";
-import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, NotebookCellStateRequest, NotebookCellStateRequestParams, NotebookCellStateResponse, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, ShowInputBoxParams, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
+import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, NotebookCellStateRequest, NotebookCellStateRequestParams, NotebookCellStateResponse, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, ShowInputBoxParams, ShowQuickPickParams, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
 import { InputStep, MultiStepInput } from "../../../utils";
 import { runConfigurationUpdateAll } from "../../../views/runConfiguration";
 import { isError } from "../../../utils";
@@ -109,7 +109,7 @@ const updateConfigRequestHandler = async (param: any) => {
     }
 }
 
-const quickPickRequestHandler = async (param: any) => {
+const quickPickRequestHandler = async (param: ShowQuickPickParams) => {
     const selected = await window.showQuickPick(param.items, { title: param.title, placeHolder: param.placeHolder, canPickMany: param.canPickMany, ignoreFocusOut: true });
     return selected ? Array.isArray(selected) ? selected : [selected] : undefined;
 }

@@ -34,7 +34,8 @@ public class NotebookCommandsHandler implements CommandProvider {
     private static final String NBLS_JSHELL_EXEC = "nbls.jshell.execute.cell";
     private static final String NBLS_JSHELL_INTERRUPT = "nbls.jshell.interrupt.cell";
     private static final String NBLS_OPEN_PROJECT_JSHELL = "nbls.jshell.project.open";
-    private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(NBLS_JSHELL_EXEC, NBLS_OPEN_PROJECT_JSHELL, NBLS_JSHELL_INTERRUPT));
+    private static final String NBLS_NOTEBOOK_PROJECT_MAPPING = "nbls.notebook.project.context";
+    private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(NBLS_JSHELL_EXEC, NBLS_OPEN_PROJECT_JSHELL, NBLS_JSHELL_INTERRUPT, NBLS_NOTEBOOK_PROJECT_MAPPING));
 
     @Override
     public Set<String> getCommands() {
@@ -47,11 +48,13 @@ public class NotebookCommandsHandler implements CommandProvider {
 
             switch (command) {
                 case NBLS_JSHELL_EXEC:
-                    return CodeEval.getInstance().evaluate(arguments).thenApply(list -> (Object)list);
+                    return CodeEval.getInstance().evaluate(arguments).thenApply(list -> (Object) list);
                 case NBLS_JSHELL_INTERRUPT:
                     return CompletableFuture.completedFuture(CodeEval.getInstance().interrupt(arguments));
                 case NBLS_OPEN_PROJECT_JSHELL:
                     return CommandHandler.openJshellInProjectContext(arguments).thenApply(list -> (Object) list);
+                case NBLS_NOTEBOOK_PROJECT_MAPPING:
+                    return CommandHandler.getNotebookProjectMappingPath(arguments).thenApply(prj -> (Object) prj);
                 default:
                     return CompletableFuture.failedFuture(new UnsupportedOperationException("Command not supported: " + command));
             }
