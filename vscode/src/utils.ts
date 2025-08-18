@@ -287,6 +287,8 @@ export function isError(obj: unknown): obj is Error {
 	return obj instanceof Error;
 }
 
+export const isObject = (value: any) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
 export async function initializeRunConfiguration(): Promise<boolean> {
 	if (vscode.workspace.name || vscode.workspace.workspaceFile) {
 		const java = await vscode.workspace.findFiles('**/*.java', '**/node_modules/**', 1);

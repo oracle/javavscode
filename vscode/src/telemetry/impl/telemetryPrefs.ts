@@ -19,10 +19,10 @@ import { configKeys } from "../../configurations/configuration";
 import { appendPrefixToCommand } from "../../utils";
 import { ExtensionContextInfo } from "../../extensionContextInfo";
 import { TelemetryPreference } from "../types";
-import { cacheService } from "./cacheServiceImpl";
 import { TELEMETRY_CONSENT_RESPONSE_TIME_KEY, TELEMETRY_CONSENT_VERSION_SCHEMA_KEY, TELEMETRY_SETTING_VALUE_KEY } from "../constants";
 import { TelemetryConfiguration } from "../config";
 import { LOGGER } from "../../logger";
+import { cacheServiceIndex } from "./cache";
 
 export class TelemetrySettings {
   private isTelemetryEnabled: boolean;
@@ -59,7 +59,7 @@ export class TelemetrySettings {
       }
     } else if (this.vscodePrefs.getIsTelemetryEnabled() 
       && !this.extensionPrefs.isTelemetrySettingSet()
-      && !cacheService.get(TELEMETRY_CONSENT_RESPONSE_TIME_KEY)) {
+      && !cacheServiceIndex.simpleCache.get(TELEMETRY_CONSENT_RESPONSE_TIME_KEY)) {
       this.triggerPopup();
     }
   }
@@ -78,8 +78,8 @@ export class TelemetrySettings {
   }
 
   private syncTelemetrySettingGlobalState (): void {
-    const cachedSettingValue = cacheService.get(TELEMETRY_SETTING_VALUE_KEY);
-    const cachedConsentSchemaVersion = cacheService.get(TELEMETRY_CONSENT_VERSION_SCHEMA_KEY);
+    const cachedSettingValue = cacheServiceIndex.simpleCache.get(TELEMETRY_SETTING_VALUE_KEY);
+    const cachedConsentSchemaVersion = cacheServiceIndex.simpleCache.get(TELEMETRY_CONSENT_VERSION_SCHEMA_KEY);
 
     if (this.isTelemetryEnabled.toString() !== cachedSettingValue) {
       this.updateGlobalStates();
@@ -88,9 +88,9 @@ export class TelemetrySettings {
   }
 
   private updateGlobalStates(): void {
-    cacheService.put(TELEMETRY_CONSENT_RESPONSE_TIME_KEY, Date.now().toString());
-    cacheService.put(TELEMETRY_CONSENT_VERSION_SCHEMA_KEY, TelemetryConfiguration.getInstance().getTelemetryConfigMetadata()?.consentSchemaVersion);
-    cacheService.put(TELEMETRY_SETTING_VALUE_KEY, this.isTelemetryEnabled.toString());
+    cacheServiceIndex.simpleCache.put(TELEMETRY_CONSENT_RESPONSE_TIME_KEY, Date.now().toString());
+    cacheServiceIndex.simpleCache.put(TELEMETRY_CONSENT_VERSION_SCHEMA_KEY, TelemetryConfiguration.getInstance().getTelemetryConfigMetadata()?.consentSchemaVersion);
+    cacheServiceIndex.simpleCache.put(TELEMETRY_SETTING_VALUE_KEY, this.isTelemetryEnabled.toString());
   }
 
   private checkConsentVersionSchemaGlobalState(consentSchemaVersion: string | undefined): void {
