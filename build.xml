@@ -62,7 +62,7 @@
             patches/7893-draft.diff
             patches/8442-draft.diff
             patches/8460-draft.diff
-            patches/8470-draft.diff
+            patches/8470.diff
             patches/8484.diff
             patches/disable-error-notification.diff
             patches/mvn-sh.diff
