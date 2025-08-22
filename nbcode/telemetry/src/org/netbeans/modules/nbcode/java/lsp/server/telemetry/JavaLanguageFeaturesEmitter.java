@@ -74,9 +74,9 @@ class JavaLanguageFeaturesEmitter implements Runnable {
             task = (JavacTask) ToolProvider.getSystemJavaCompiler().getTask(null, null, dl, List.of("--source", "8", "--source-path", sourceInfo.getSourcesPath()), null, List.of(sourceInfo.source));
             task.analyze();
         } catch (IOException e) {
-            LOG.log(Level.FINE, "IO error while scanning Java Language features: {0}", e);
+            LOG.log(Level.FINE, "IO error while scanning Java Language features: {0}", (Object) e);
         } catch (IllegalArgumentException e) {
-            LOG.log(Level.CONFIG, "Invalid parsing parameters for scanning Java Language features: {0}", e);
+            LOG.log(Level.CONFIG, "Invalid parsing parameters for scanning Java Language features: {0}", (Object) e);
         } catch (RuntimeException ignored) {
         }
         return featuresUsed;
