@@ -1,0 +1,489 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java
+index ecba2107a2..0eb4ba20f5 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java
+@@ -19,6 +19,7 @@
+ package org.netbeans.modules.java.lsp.server.refactoring;
+ 
+ import com.google.gson.Gson;
++import com.sun.source.tree.MethodTree;
+ import com.sun.source.tree.Tree;
+ import com.sun.source.util.TreePath;
+ import com.sun.source.util.Trees;
+@@ -62,6 +63,7 @@ import org.netbeans.modules.java.lsp.server.protocol.CodeActionsProvider;
+ import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
+ import org.netbeans.modules.parsing.api.ResultIterator;
+ import org.netbeans.modules.refactoring.java.api.ChangeParametersRefactoring;
++import org.netbeans.modules.refactoring.java.api.ChangeParametersRefactoring.ParameterInfo;
+ import org.netbeans.modules.refactoring.java.api.JavaRefactoringUtils;
+ import org.openide.filesystems.FileObject;
+ import org.openide.util.Exceptions;
+@@ -197,10 +199,11 @@ public final class ChangeMethodParametersRefactoring extends CodeRefactoring {
+         ParameterUI[] params = new ParameterUI[method.getParameters().size()];
+         for (int i = 0; i < method.getParameters().size(); i++) {
+             VariableElement param = method.getParameters().get(i);
+-            ChangeParametersRefactoring.ParameterInfo info = new ChangeParametersRefactoring.ParameterInfo(i, param.getSimpleName().toString(), Utilities.getTypeName(ci, param.asType(), true).toString(), null);
++            ChangeParametersRefactoring.ParameterInfo info = new ChangeParametersRefactoring.ParameterInfo(i, param.getSimpleName().toString(), ParameterInfo.parameterTypeFromSource(ci, param), null);
+             params[i] = new ParameterUI(info.getType(), info.getName());
+             params[i].assignInfo(info);
+         }
++        MethodTree methodTree = ci.getTrees().getTree(method);
+         Modifier mod;
+         if (method.getModifiers().contains(javax.lang.model.element.Modifier.PUBLIC)) {
+             mod = Modifier.PUBLIC;
+@@ -213,7 +216,7 @@ public final class ChangeMethodParametersRefactoring extends CodeRefactoring {
+         }
+         ChangeMethodParameterUI model = new ChangeMethodParameterUI();
+         model.withName(method.getSimpleName().toString())
+-                .withReturnType(Utilities.getTypeName(ci, method.getReturnType(), true).toString())
++                .withReturnType(methodTree.getReturnType().toString())
+                 .withSelectedModifier(mod)
+                 .withIsStatic(method.getModifiers().contains(javax.lang.model.element.Modifier.STATIC))
+                 .withParameters(params)
+diff --git a/java/refactoring.java/apichanges.xml b/java/refactoring.java/apichanges.xml
+index df20436cbf..a8bf83e9a4 100644
+--- a/java/refactoring.java/apichanges.xml
++++ b/java/refactoring.java/apichanges.xml
+@@ -25,6 +25,20 @@
+         <apidef name="JavaRefactoringAPI">Java Refactoring API</apidef>
+     </apidefs>
+     <changes>
++        <change id="parameterTypeFromSource">
++            <api name="JavaRefactoringAPI"/>
++            <summary>Added parameterTypeFromSource method to ParameterInfo.</summary>
++            <version major="1" minor="92"/>
++            <date day="7" month="7" year="2025"/>
++            <author login="jlahoda"/>
++            <compatibility addition="yes"/>
++            <description>
++                <p>
++                    Ability to get the parameter type as it appears in the source code.
++                </p>    
++            </description>
++            <class package="org.netbeans.modules.refactoring.java.api" name="ChangeParametersRefactoring"/>
++        </change>
+         <change id="FilterDependency">
+             <api name="JavaRefactoringAPI"/>
+             <summary>Added BINARYFILE, DEPENDENCY, PLATFORM constants to JavaWhereUsedFilters.</summary>
+diff --git a/java/refactoring.java/nbproject/project.properties b/java/refactoring.java/nbproject/project.properties
+index 2d587f1983..e07cee92e2 100644
+--- a/java/refactoring.java/nbproject/project.properties
++++ b/java/refactoring.java/nbproject/project.properties
+@@ -18,7 +18,7 @@ javac.release=17
+ javadoc.arch=${basedir}/arch.xml
+ javadoc.apichanges=${basedir}/apichanges.xml
+ 
+-spec.version.base=1.89.0
++spec.version.base=1.92.0
+ #test configs
+ test.config.find.includes=\
+     **/FindUsagesSuite.class
+diff --git a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/api/ChangeParametersRefactoring.java b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/api/ChangeParametersRefactoring.java
+index 60e3202992..69f9f43711 100644
+--- a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/api/ChangeParametersRefactoring.java
++++ b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/api/ChangeParametersRefactoring.java
+@@ -18,10 +18,14 @@
+  */
+ package org.netbeans.modules.refactoring.java.api;
+ 
++import com.sun.source.tree.VariableTree;
+ import java.util.Set;
++import javax.lang.model.element.ExecutableElement;
+ import javax.lang.model.element.Modifier;
++import javax.lang.model.element.VariableElement;
+ import org.netbeans.api.annotations.common.CheckForNull;
+ import org.netbeans.api.annotations.common.NullAllowed;
++import org.netbeans.api.java.source.CompilationInfo;
+ import org.netbeans.api.java.source.TreePathHandle;
+ import org.netbeans.modules.refactoring.api.AbstractRefactoring;
+ import org.openide.util.lookup.Lookups;
+@@ -196,6 +200,25 @@ public final class ChangeParametersRefactoring extends AbstractRefactoring {
+      * Parameter can be added, changed or moved to another position.
+      */
+     public static final class ParameterInfo {
++        /**
++         * Return the type of the given parameter as it appears in the source code.
++         *
++         * @param info the relevant {@code CompilationInfo}
++         * @param parameter the parameter for which the type should be detected
++         * @return the parameter type as it appears in the source code
++         * @since 1.92
++         */
++        public static String parameterTypeFromSource(CompilationInfo info, VariableElement parameter) {
++            VariableTree parTree = (VariableTree) info.getTrees().getTree(parameter);
++            ExecutableElement method = (ExecutableElement) parameter.getEnclosingElement();
++            int index = method.getParameters().indexOf(parameter);
++            if (method.isVarArgs() && index == method.getParameters().size() - 1) {
++                return parTree.getType().toString().replace("[]", "..."); // NOI18N
++            } else {
++                return parTree.getType().toString();
++            }
++        }
++
+         int origIndex;
+         String name;
+         String type;
+diff --git a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/ChangeParamsTransformer.java b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/ChangeParamsTransformer.java
+index 25344464af..7180252bf3 100644
+--- a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/ChangeParamsTransformer.java
++++ b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/ChangeParamsTransformer.java
+@@ -401,11 +401,15 @@ public class ChangeParamsTransformer extends RefactoringVisitor {
+             int originalIndex = pi[i].getOriginalIndex();
+             VariableTree vt;
+             boolean isVarArgs = i == pi.length -1 && pi[i].getType().endsWith("..."); // NOI18N
+-            String newType = isVarArgs? pi[i].getType().replace("...", "") : pi[i].getType(); //NOI18N
++            ExpressionTree newTypeAsTree = (ExpressionTree) make.Type(isVarArgs? pi[i].getType().replace("...", "") : pi[i].getType()); //NOI18N
++            if (isVarArgs) {
++                //hack: insert '...'
++                newTypeAsTree = make.MemberSelect(newTypeAsTree, "..");
++            }
+             if (originalIndex < 0) {
+                 vt = make.Variable(make.Modifiers(Collections.<Modifier>emptySet()),
+                         pi[i].getName(),
+-                        skipType? null : make.Identifier(newType), // NOI18N
++                        skipType? null : newTypeAsTree, // NOI18N
+                         null);
+             } else {
+                 vt = currentParameters.get(originalIndex);
+@@ -413,10 +417,10 @@ public class ChangeParamsTransformer extends RefactoringVisitor {
+                     Tree typeTree = null;
+                     if (origMethod != null) {
+                         if (!pi[i].getType().equals(origMethod.getParameters().get(originalIndex).getType().toString())) {
+-                            typeTree = make.Identifier(newType);
++                            typeTree = newTypeAsTree;
+                         }
+                     } else {
+-                        typeTree = make.Identifier(newType);
++                        typeTree = newTypeAsTree;
+                     }
+                     if(typeTree != null) {
+                         vt = make.Variable(vt.getModifiers(),
+@@ -601,7 +605,7 @@ public class ChangeParamsTransformer extends RefactoringVisitor {
+                     boolean isVarArgs = i == p.length -1 && p[i].getType().endsWith("..."); // NOI18N
+                     vt = make.Variable(make.Modifiers(Collections.<Modifier>emptySet()),
+                             p[i].getName(),
+-                            make.Identifier(isVarArgs? p[i].getType().replace("...", "") : p[i].getType()), // NOI18N
++                            make.Type(isVarArgs? p[i].getType().replace("...", "") : p[i].getType()), // NOI18N
+                             null);
+                 } else {
+                     VariableTree originalVt = currentParameters.get(originalIndex);
+@@ -613,10 +617,10 @@ public class ChangeParamsTransformer extends RefactoringVisitor {
+                         if (p[i].getType().equals(origMethod.getParameters().get(originalIndex).getType().toString())) { // Type has not changed
+                             typeTree = originalVt.getType();
+                         } else {
+-                            typeTree = make.Identifier(newType); // NOI18N
++                            typeTree = make.Type(newType); // NOI18N
+                         }
+                     } else {
+-                        typeTree = make.Identifier(newType); // NOI18N
++                        typeTree = make.Type(newType); // NOI18N
+                     }
+                     vt = make.Variable(originalVt.getModifiers(),
+                             renameParams? p[i].getName() : originalVt.getName(),
+diff --git a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/IntroduceParameterPlugin.java b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/IntroduceParameterPlugin.java
+index 140b029030..d17857515c 100644
+--- a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/IntroduceParameterPlugin.java
++++ b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/plugins/IntroduceParameterPlugin.java
+@@ -497,14 +497,7 @@ public class IntroduceParameterPlugin extends JavaRefactoringPlugin {
+                 paramTable = new ChangeParametersRefactoring.ParameterInfo[parameters.size() + 1];
+                 for (int originalIndex = 0; originalIndex < parameters.size(); originalIndex++) {
+                     VariableElement param = parameters.get(originalIndex);
+-                    VariableTree parTree = (VariableTree) info.getTrees().getTree(param);
+-                    String typeRepresentation;
+-                    if (method.isVarArgs() && originalIndex == parameters.size()-1) {
+-                        typeRepresentation = parTree.getType().toString().replace("[]", "..."); // NOI18N
+-                    } else {
+-                        typeRepresentation = parTree.getType().toString();
+-                    }
+-                    paramTable[originalIndex] = new ChangeParametersRefactoring.ParameterInfo(originalIndex, param.getSimpleName().toString(), typeRepresentation, null);
++                    paramTable[originalIndex] = new ChangeParametersRefactoring.ParameterInfo(originalIndex, param.getSimpleName().toString(), ParameterInfo.parameterTypeFromSource(info, param), null);
+                 }
+                 index = paramTable.length - 1;
+                 if (method.isVarArgs()) {
+diff --git a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/ui/ChangeParametersPanel.java b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/ui/ChangeParametersPanel.java
+index 2d8581d138..b194443dcf 100644
+--- a/java/refactoring.java/src/org/netbeans/modules/refactoring/java/ui/ChangeParametersPanel.java
++++ b/java/refactoring.java/src/org/netbeans/modules/refactoring/java/ui/ChangeParametersPanel.java
+@@ -179,6 +179,7 @@ public class ChangeParametersPanel extends JPanel implements CustomRefactoringPa
+                     try {
+                         info.toPhase(org.netbeans.api.java.source.JavaSource.Phase.RESOLVED);
+                         ExecutableElement e = (ExecutableElement) refactoredObj.resolveElement(info);
++                        MethodTree methodTree = (MethodTree) refactoredObj.resolve(info).getLeaf();
+                         isConstructor = e.getKind() == ElementKind.CONSTRUCTOR;
+                         TreePath enclosingClass = JavaRefactoringUtils.findEnclosingClass(info, refactoredObj.resolve(info), true, true, true, true, true);
+                         TreePathHandle tph = TreePathHandle.create(enclosingClass, info);
+@@ -187,10 +188,9 @@ public class ChangeParametersPanel extends JPanel implements CustomRefactoringPa
+                                 enclosingElement.getSimpleName().toString() :
+                                 e.getSimpleName().toString());
+                         final FileObject fileObject = refactoredObj.getFileObject();
+-                        final String returnType = e.getReturnType().toString();
++                        final String returnType = methodTree.getReturnType().toString();
+                         final long[] returnSpan = {-1, -1};
+                         if(!isConstructor) {
+-                            MethodTree methodTree = (MethodTree) refactoredObj.resolve(info).getLeaf();
+                             final long methodStart = info.getTreeUtilities().findNameSpan(methodTree)[0];
+                             Tree tree = methodTree.getReturnType();
+                             returnSpan[0] = tree == null ? methodStart -1 : info.getTrees().getSourcePositions().getStartPosition(info.getCompilationUnit(), tree);
+@@ -764,13 +764,7 @@ public class ChangeParametersPanel extends JPanel implements CustomRefactoringPa
+         List<? extends VariableElement> pars = method.getParameters();
+         int originalIndex = 0;
+         for (VariableElement par : pars) {
+-            VariableTree parTree = (VariableTree) info.getTrees().getTree(par);
+-            String typeRepresentation;
+-            if (method.isVarArgs() && originalIndex == pars.size() - 1) {
+-                typeRepresentation = getTypeStringRepresentation(parTree).replace("[]", "..."); // NOI18N
+-            } else {
+-                typeRepresentation = getTypeStringRepresentation(parTree);
+-            }
++            String typeRepresentation = ParameterInfo.parameterTypeFromSource(info, par);
+             LocalVarScanner scan = new LocalVarScanner(info, null);
+             scan.scan(path, par);
+             Boolean removable = !scan.hasRefernces();
+diff --git a/java/refactoring.java/test/unit/src/org/netbeans/modules/refactoring/java/test/ChangeParametersTest.java b/java/refactoring.java/test/unit/src/org/netbeans/modules/refactoring/java/test/ChangeParametersTest.java
+index 35c999d2ce..cb348b86ed 100644
+--- a/java/refactoring.java/test/unit/src/org/netbeans/modules/refactoring/java/test/ChangeParametersTest.java
++++ b/java/refactoring.java/test/unit/src/org/netbeans/modules/refactoring/java/test/ChangeParametersTest.java
+@@ -379,6 +379,7 @@ public class ChangeParametersTest extends RefactoringTestBase {
+                 new File("t/A.java", "package t;\n"
+                 + "\n"
+                 + "import java.io.File;\n"
++                + "import java.io.InputStream;\n"
+                 + "import java.util.Scanner;\n"
+                 + "\n"
+                 + "public class A\n"
+@@ -395,7 +396,7 @@ public class ChangeParametersTest extends RefactoringTestBase {
+                 + "        analyzeFile(file);\n"
+                 + "    }\n"
+                 + "\n"
+-                + "    private static void analyzeFile(final java.io.InputStream is) throws\n"
++                + "    private static void analyzeFile(final InputStream is) throws\n"
+                 + "java.io.FileNotFoundException\n"
+                 + "    {\n"
+                 + "        Scanner scanner = new Scanner(is);\n"
+@@ -1341,6 +1342,226 @@ public class ChangeParametersTest extends RefactoringTestBase {
+                 + "}\n"));
+     }
+ 
++    public void testQualifiedNamedPreserveAndAdd() throws Exception {
++        writeFilesAndWaitForScan(src,
++                new File("t/A.java",
++                         """
++                         package t;
++                         public interface A {
++                             int testMethod(java.io.File file, String y);
++                         }
++                         """),
++                new File("t/B.java",
++                         """
++                         package t;
++                         import java.io.File;
++                         public class B implements A {
++                             public int testMethod(File file, java.lang.String y) {
++                                  return x;
++                             }
++
++                             public void foo() {
++                                 testMethod(new File(""), "ddd");
++                                 A a1 = (file, y) -> testMethod(new File(""), "ddd");
++                                 A a2 = (File file, java.lang.String y) -> testMethod(new File(""), "ddd");
++                             }
++                         }
++                         """));
++        ParameterInfo[] paramTable = new ParameterInfo[] {new ParameterInfo(0, "file", "java.io.File", null), new ParameterInfo(1, "y", "String", null), new ParameterInfo(-1, "set", "java.util.Set<java.lang.String>", "null")};
++        performChangeParameters(null, null, null, paramTable, Javadoc.NONE, 0, false);
++        verifyContent(src,
++                new File("t/A.java",
++                         """
++                         package t;
++                         import java.util.Set;
++                         public interface A {
++                             int testMethod(java.io.File file, String y, Set<String> set);
++                         }
++                         """),
++                new File("t/B.java",
++                         """
++                         package t;
++                         import java.io.File;
++                         import java.util.Set;
++                         public class B implements A {
++                             public int testMethod(File file, java.lang.String y, Set<String> set) {
++                                  return x;
++                             }
++
++                             public void foo() {
++                                 testMethod(new File(""), "ddd", null);
++                                 A a1 = (file, y, set) -> testMethod(new File(""), "ddd", null);
++                                 A a2 = (File file, java.lang.String y, Set<String> set) -> testMethod(new File(""), "ddd", null);
++                             }
++                         }
++                         """));
++    }
++
++    public void testQualifiedNamedTypeChange() throws Exception {
++        writeFilesAndWaitForScan(src,
++                new File("t/A.java",
++                         """
++                         package t;
++                         public interface A {
++                             int testMethod(java.io.File file, String y);
++                         }
++                         """),
++                new File("t/B.java",
++                         """
++                         package t;
++                         import java.io.File;
++                         public class B implements A {
++                             public int testMethod(File file, java.lang.String y) {
++                                  return x;
++                             }
++
++                             public void foo() {
++                                 testMethod(null, null);
++                                 A a1 = (file, y) -> testMethod(null, null);
++                                 A a2 = (File file, java.lang.String y) -> testMethod(null, null);
++                             }
++                         }
++                         """));
++        ParameterInfo[] paramTable = new ParameterInfo[] {new ParameterInfo(0, "x", "java.util.List<java.lang.String>", null), new ParameterInfo(1, "y", "java.util.Set<java.lang.String>", null)};
++        performChangeParameters(null, null, null, paramTable, Javadoc.NONE, 0, false, new Problem(false, "WRN_isNotAssignable"), new Problem(false, "WRN_isNotAssignable"));
++        verifyContent(src,
++                new File("t/A.java",
++                         """
++                         package t;
++                         import java.util.List;
++                         import java.util.Set;
++                         public interface A {
++                             int testMethod(List<String> x, Set<String> y);
++                         }
++                         """),
++                new File("t/B.java",
++                         """
++                         package t;
++                         import java.io.File;
++                         import java.util.List;
++                         import java.util.Set;
++                         public class B implements A {
++                             public int testMethod(List<String> x, Set<String> y) {
++                                  return x;
++                             }
++
++                             public void foo() {
++                                 testMethod(null, null);
++                                 A a1 = (file, y) -> testMethod(null, null);
++                                 A a2 = (List<String> file, Set<String> y) -> testMethod(null, null);
++                             }
++                         }
++                         """));
++    }
++
++    public void testQualifiedNamedVarArgsPreserve() throws Exception {
++        writeFilesAndWaitForScan(src,
++                new File("t/A.java",
++                         """
++                         package t;
++                         public interface A {
++                             int testMethod(java.io.File file, String... y);
++                         }
++                         """),
++                new File("t/B.java",
++                         """
++                         package t;
++                         import java.io.File;
++                         public class B implements A {
++                             public int testMethod(File file, java.lang.String... y) { //TODO: ideally the FQN should be preserved, but too difficult for now
++                                  return x;
++                             }
++
++                             public void foo() {
++                                 testMethod(null, null);
++                                 A a1 = (file, y) -> testMethod(null, null);
++                                 A a2 = (File file, java.lang.String... y) -> testMethod(null, null);
++                             }
++                         }
++                         """));
++        ParameterInfo[] paramTable = new ParameterInfo[] {new ParameterInfo(0, "x", "java.util.List<java.lang.String>", null), new ParameterInfo(1, "y", "java.lang.String...", null)};
++        performChangeParameters(null, null, null, paramTable, Javadoc.NONE, 0, false, new Problem(false, "WRN_isNotAssignable"));
++        verifyContent(src,
++                new File("t/A.java",
++                         """
++                         package t;
++                         import java.util.List;
++                         public interface A {
++                             int testMethod(List<String> x, String... y);
++                         }
++                         """),
++                new File("t/B.java",
++                         """
++                         package t;
++                         import java.io.File;
++                         import java.util.List;
++                         public class B implements A {
++                             public int testMethod(List<String> x, String... y) { //TODO: ideally the FQN should be preserved, but too difficult for now
++                                  return x;
++                             }
++
++                             public void foo() {
++                                 testMethod(null, null);
++                                 A a1 = (file, y) -> testMethod(null, null);
++                                 A a2 = (List<String> file, String... y) -> testMethod(null, null);
++                             }
++                         }
++                         """));
++    }
++
++    public void testQualifiedNamedVarArgsAdd() throws Exception {
++        writeFilesAndWaitForScan(src,
++                new File("t/A.java",
++                         """
++                         package t;
++                         public interface A {
++                             int testMethod(java.io.File file);
++                         }
++                         """),
++                new File("t/B.java",
++                         """
++                         package t;
++                         import java.io.File;
++                         public class B implements A {
++                             public int testMethod(File file) {
++                                  return x;
++                             }
++
++                             public void foo() {
++                                 testMethod(null);
++                                 A a1 = (file) -> testMethod(null);
++                                 A a2 = (File file) -> testMethod(null);
++                             }
++                         }
++                         """));
++        ParameterInfo[] paramTable = new ParameterInfo[] {new ParameterInfo(0, "file", "java.io.File", null), new ParameterInfo(-1, "y", "java.lang.String...", "null")};
++        performChangeParameters(null, null, null, paramTable, Javadoc.NONE, 0, false);
++        verifyContent(src,
++                new File("t/A.java",
++                         """
++                         package t;
++                         public interface A {
++                             int testMethod(java.io.File file, String... y);
++                         }
++                         """),
++                new File("t/B.java",
++                         """
++                         package t;
++                         import java.io.File;
++                         public class B implements A {
++                             public int testMethod(File file, String... y) {
++                                  return x;
++                             }
++
++                             public void foo() {
++                                 testMethod(null, null);
++                                 A a1 = (file, y) -> testMethod(null, null);
++                                 A a2 = (File file, String... y) -> testMethod(null, null);
++                             }
++                         }
++                         """));
++    }
++
+     private void performChangeParameters(final Set<Modifier> modifiers, String methodName, String returnType, ParameterInfo[] paramTable, final Javadoc javadoc, final int position, final boolean compatible, Problem... expectedProblems) throws Exception {
+         final ChangeParametersRefactoring[] r = new ChangeParametersRefactoring[1];
+ 
