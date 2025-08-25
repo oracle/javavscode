@@ -20,7 +20,10 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -38,7 +41,7 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 
 class SourceInfo {
-
+    private static final Logger LOG = Logger.getLogger(SourceInfo.class.getName());
     private final FileObject file;
     private final Project owner;
     final JavaFileObject source;
@@ -108,10 +111,15 @@ class SourceInfo {
         return LspServerTelemetryManager.getJavaRuntimeVersion(lookupFunction);
     }
 
-    public boolean getPreviewEnabled() {
-        return LspServerTelemetryManager.getInstance().isPreviewEnabled(file,
-                owner == null ? LspServerTelemetryManager.ProjectType.standalone : LspServerTelemetryManager.getInstance().getProjectType(owner),
-                getLanguageClient());
+    public boolean getPreviewEnabled(){
+        try {
+            return LspServerTelemetryManager.getInstance().isPreviewEnabled(file,
+                    owner == null ? LspServerTelemetryManager.ProjectType.standalone : LspServerTelemetryManager.getInstance().getProjectType(owner),
+                    getLanguageClient()).get();
+        } catch (InterruptedException | ExecutionException ex) {
+            LOG.log(Level.FINE, "exception while checking if preview enabled: {0}", (Object) ex);
+        }
+        return false;
     }
 
     public static SourceInfo getSourceObject(ErrorProvider.Context context) {
