@@ -1,5 +1,5 @@
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
-index d82646afb1..5018896480 100644
+index d82646afb1..a4a1b53e26 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
 @@ -21,6 +21,7 @@ package org.netbeans.modules.java.lsp.server.protocol;
@@ -339,14 +339,14 @@ index d82646afb1..5018896480 100644
          
 +        boolean previewEnabled;
 +        previewEnabled = source != null && isPreviewEnabledForSource(source);
-+        if (!previewEnabled && prjType == ProjectType.gradle) {
++        if (!previewEnabled) {
 +            assert prj != null;
 +            FileObject prjRoot = prj.getProjectDirectory();            
 +            String relativePath = prjRoot == null ? null : FileUtil.getRelativePath(prjRoot, source);
 +            if (relativePath == null || relativePath.isEmpty()) {
 +                // The source is not inside the project root, and,
 +                // so the project contents need to be checked for preview-enabled
-+                previewEnabled = previewEnabled || isPreviewEnabledForAnyProjectSourceRoot(prj);
++                previewEnabled = isPreviewEnabledForAnyProjectSourceRoot(prj);
 +                previewEnabled = previewEnabled || isPreviewEnabledForAnyContainedProjects(prj);
 +            }
 +        }
