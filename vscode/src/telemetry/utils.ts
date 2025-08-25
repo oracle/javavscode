@@ -15,6 +15,8 @@
 */
 import * as crypto from 'crypto';
 import { Uri, workspace } from 'vscode';
+import * as os from 'os';
+import { isObject, isString } from '../utils';
 
 export const getCurrentUTCDateInSeconds = () => {
     const date = Date.now();
@@ -70,3 +72,72 @@ const getUri = (pathOrUri: Uri | string): Uri => {
     }
     return Uri.file(pathOrUri);
 }
+
+export const getValuesToBeTransformed = (): string[] => {
+    const MIN_BLOCKED_VAL_LENGTH = 3;
+    const IGNORED_VALUES = ['java', 'vscode', 'user', 'oracle'];
+
+    const blockedValues: (string | undefined)[] = [
+    process.env?.SUDO_USER,
+    process.env?.C9_USER,
+    process.env?.LOGNAME,
+    process.env?.USER,
+    process.env?.LNAME,
+    process.env?.USERNAME,
+    process.env?.HOSTNAME,
+    process.env?.COMPUTERNAME,
+    process.env?.NAME,
+    os.userInfo().username].map(el => el?.trim());
+
+    return Array.from(new Set(blockedValues.filter((el): el is string => el !== undefined &&
+        el.length >= MIN_BLOCKED_VAL_LENGTH &&
+        !IGNORED_VALUES.includes(el)
+    )));
+}
+
+
+export const isPrimitiveTransformationNotRequired = (value: any) => (
+    value === null ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'undefined' ||
+    typeof value === 'symbol' ||
+    typeof value === 'bigint'
+);
+
+
+export const transformValue = (key: string | null, blockedValues: string[], propertiesToTransform: string[], replacedValue: string, value: any): any => {
+    if (isPrimitiveTransformationNotRequired(value)) {
+        return value;
+    }
+
+    if (isString(value)) {
+        if (!value.trim().length) return value;
+
+        let updatedValue = value;
+        if (key == null || !propertiesToTransform.includes(key)) return value;
+        blockedValues.forEach(valueToBeReplaced =>
+            updatedValue = replaceAllOccurrences(updatedValue, valueToBeReplaced, replacedValue)
+        );
+
+        return updatedValue;
+    }
+
+    if (Array.isArray(value)) {
+        return value.map(el => transformValue(key, blockedValues, propertiesToTransform, replacedValue, el));
+    }
+
+    if (isObject(value)) {
+        const result: any = {};
+        for (const [k, val] of Object.entries(value)) {
+            result[k] = transformValue(k, blockedValues, propertiesToTransform, replacedValue, val);
+        }
+        return result;
+    }
+    return value;
+};
+
+export const replaceAllOccurrences = (str: string, valueString: string, replaceString: string) => {
+    if(!valueString.trim().length) return str;
+    return str.split(valueString).join(replaceString);
+} 

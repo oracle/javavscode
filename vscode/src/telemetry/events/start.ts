@@ -15,7 +15,7 @@
 */
 import { globalState } from "../../globalState";
 import { LOGGER } from "../../logger";
-import { cacheService } from "../impl/cacheServiceImpl";
+import { cacheServiceIndex } from "../impl/cache";
 import { getEnvironmentInfo } from "../impl/enviromentDetails";
 import { getHashCode } from "../utils";
 import { BaseEvent } from "./baseEvent";
@@ -53,9 +53,11 @@ export interface StartEventData {
 export class ExtensionStartEvent extends BaseEvent<StartEventData> {
     public static readonly NAME = "startup";
     public static readonly ENDPOINT = "/start";
+    private static readonly propertiesToTransform = ['osVersion'];
 
     constructor(payload: StartEventData) {
-        super(ExtensionStartEvent.NAME, ExtensionStartEvent.ENDPOINT, payload);
+        const updatedPayload: StartEventData = BaseEvent.transformEvent(ExtensionStartEvent.propertiesToTransform, payload);
+        super(ExtensionStartEvent.NAME, ExtensionStartEvent.ENDPOINT, updatedPayload);
     }
 
     onSuccessPostEventCallback = async (): Promise<void> => {
@@ -65,7 +67,7 @@ export class ExtensionStartEvent extends BaseEvent<StartEventData> {
 
     public static builder = (): ExtensionStartEvent | null => {
         const startEventData = getEnvironmentInfo(globalState.getExtensionContextInfo());
-        const cachedValue: string | undefined = cacheService.get(this.NAME);
+        const cachedValue: string | undefined = cacheServiceIndex.simpleCache.get(this.NAME);
         const envString = JSON.stringify(startEventData);
         const newValue = getHashCode(envString);
 

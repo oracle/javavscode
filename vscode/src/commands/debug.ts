@@ -51,10 +51,9 @@ const packageTest = async (uri: any, launchConfiguration? : string) => {
 const runDebug = async (noDebug: boolean, testRun: boolean, uri: any, methodName?: string, launchConfiguration?: string, project : boolean = false, ) => {
     const docUri = getContextUri(uri);
     if (docUri) {
-        // attempt to find the active configuration in the vsode launch settings; undefined if no config is there.
-        let debugConfig : vscode.DebugConfiguration = await findRunConfiguration(docUri) || {
+        let debugConfig : vscode.DebugConfiguration = {
             type: extConstants.COMMAND_PREFIX,
-            name: "Java Single Debug",
+            name: `Java ${project ? "Project" : "Single"} ${testRun ? "Test" : ""} ${noDebug ? "Run" : "Debug"} `,
             request: "launch"
         };
         if (methodName) {
@@ -71,14 +70,13 @@ const runDebug = async (noDebug: boolean, testRun: boolean, uri: any, methodName
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(docUri);
         if (project || testRun) {
             debugConfig['projectFile'] = docUri.toString();
-            debugConfig['project'] = true;
+            debugConfig['project'] = project;
         } else {
             debugConfig['mainClass'] =  docUri.toString();
         }
         const debugOptions : vscode.DebugSessionOptions = {
             noDebug: noDebug,
         }
-
 
         const ret = await vscode.debug.startDebugging(workspaceFolder, debugConfig, debugOptions);
         return ret ? new Promise((resolve) => {
@@ -89,41 +87,6 @@ const runDebug = async (noDebug: boolean, testRun: boolean, uri: any, methodName
         }) : ret;
     }
 };
-
-
-async function findRunConfiguration(uri : vscode.Uri) : Promise<vscode.DebugConfiguration|undefined> {
-    // do not invoke debug start with no (jdk) configurations, as it would probably create an user prompt
-    let cfg = vscode.workspace.getConfiguration("launch");
-    let c = cfg.get('configurations');
-    if (!Array.isArray(c)) {
-        return undefined;
-    }
-    let f = c.filter((v) => v['type'] === extConstants.COMMAND_PREFIX);
-    if (!f.length) {
-        return undefined;
-    }
-    class P implements vscode.DebugConfigurationProvider {
-        config : vscode.DebugConfiguration | undefined;
-
-        resolveDebugConfigurationWithSubstitutedVariables(folder: vscode.WorkspaceFolder | undefined, debugConfiguration: vscode.DebugConfiguration, token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
-            this.config = debugConfiguration;
-            return undefined;
-        }
-    }
-    let provider = new P();
-    let d = vscode.debug.registerDebugConfigurationProvider(extConstants.COMMAND_PREFIX, provider);
-    // let vscode to select a debug config
-    return await vscode.commands.executeCommand(builtInCommands.startDebug, { config: {
-        type: extConstants.COMMAND_PREFIX,
-        mainClass: uri.toString()
-    }, noDebug: true}).then((v) => {
-        d.dispose();
-        return provider.config;
-    }, (err) => {
-        d.dispose();
-        return undefined;
-    });
-}
 
 export const registerDebugCommands: ICommand[] = [
     {

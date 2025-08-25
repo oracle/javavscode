@@ -19,7 +19,7 @@ import { l10n } from "../localiser";
 import { extCommands, nbCommands } from "./commands";
 import { ICommand } from "./types";
 import { wrapCommandWithProgress, wrapProjectActionWithProgress } from "./utils";
-import { workspace } from "vscode";
+import { window, workspace } from "vscode";
 import * as fs from 'fs';
 
 const saveFilesInWorkspaceBeforeBuild = async (callbackFn: Function) => {
@@ -52,22 +52,31 @@ const cleanWorkspaceHandler = () => {
 }
 
 const compileProjectHandler = (args: any) => {
+    let commandArgs = args;
+    if (!commandArgs) {
+        commandArgs = window.activeTextEditor?.document.uri.toString();
+    }
+
     const compileProjectFunction = () =>
         wrapProjectActionWithProgress('build',
             undefined, l10n.value('jdk.extension.command.progress.compilingProject'),
             LOGGER.getOutputChannel(),
-            args
+            commandArgs
         );
 
     saveFilesInWorkspaceBeforeBuild(compileProjectFunction);
 }
 
 const cleanProjectHandler = (args: any) => {
+    let commandArgs = args;
+    if (!commandArgs) {
+        commandArgs = window.activeTextEditor?.document.uri.toString();
+    }
     const cleanProjectHandler = () => wrapProjectActionWithProgress('clean',
         undefined,
         l10n.value('jdk.extension.command.progress.cleaningProject'),
         LOGGER.getOutputChannel(),
-        args
+        commandArgs
     );
 
     saveFilesInWorkspaceBeforeBuild(cleanProjectHandler);

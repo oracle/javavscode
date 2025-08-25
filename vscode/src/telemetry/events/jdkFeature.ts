@@ -25,9 +25,11 @@ export interface JdkFeatureEventData {
 export class JdkFeatureEvent extends BaseEvent<JdkFeatureEventData> {
     public static readonly NAME = "jdkFeature";
     public static readonly ENDPOINT = "/jdkFeature";
+    private static readonly propertiesToTransform = ['javaVersion'];
 
     constructor(payload: JdkFeatureEventData) {
-        super(JdkFeatureEvent.NAME, JdkFeatureEvent.ENDPOINT, payload);
+        const updatedPayload: JdkFeatureEventData = BaseEvent.transformEvent(JdkFeatureEvent.propertiesToTransform, payload);
+        super(JdkFeatureEvent.NAME, JdkFeatureEvent.ENDPOINT, updatedPayload);
     }
 
     public static concatEvents(events:JdkFeatureEvent[]): JdkFeatureEvent[] {
