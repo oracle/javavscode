@@ -14,7 +14,7 @@
   limitations under the License.
 */
 import { builtInConfigKeys, configKeys } from "../configurations/configuration"
-import { isDarkColorThemeHandler, isNetbeansVerboseEnabled, jdkHomeValueHandler, lspServerVmOptionsHandler, projectSearchRootsValueHandler, userdirHandler } from "../configurations/handlers";
+import { isDarkColorThemeHandler, isNetbeansVerboseEnabled, jdkHomeValueHandler, projectJdkHomeValueHandler, lspServerVmOptionsHandler, projectSearchRootsValueHandler, userdirHandler } from "../configurations/handlers";
 import { l10n } from "../localiser";
 import { isString } from "../utils";
 import { userDefinedLaunchOptionsType } from "./types"
@@ -25,6 +25,10 @@ export const getUserConfigLaunchOptionsDefaults = (): userDefinedLaunchOptionsTy
             value: jdkHomeValueHandler(),
             optionToPass: ['--jdkhome']
         },
+        [configKeys.projectJdkHome]: {
+            value: projectJdkHomeValueHandler(),
+            optionToPass: '-J-Dnetbeans.lsp.java.platform.override='
+        }, 
         [configKeys.userdir]: {
             value: userdirHandler(),
             optionToPass: ['--userdir']
