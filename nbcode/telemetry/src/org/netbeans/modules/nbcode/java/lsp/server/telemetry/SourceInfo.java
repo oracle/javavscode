@@ -114,7 +114,7 @@ class SourceInfo {
     public boolean getPreviewEnabled(){
         try {
             return LspServerTelemetryManager.getInstance().isPreviewEnabled(file,
-                    owner == null ? LspServerTelemetryManager.ProjectType.standalone : LspServerTelemetryManager.getInstance().getProjectType(owner),
+                    owner,
                     getLanguageClient()).get();
         } catch (InterruptedException | ExecutionException ex) {
             LOG.log(Level.FINE, "exception while checking if preview enabled: {0}", (Object) ex);
