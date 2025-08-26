@@ -4,7 +4,7 @@
 	"description": "Java Platform Extension for Visual Studio Code",
 	"author": "Oracle",
 	"license": "Apache 2.0",
-	"version": "0.1.0",
+	"version": "25.0.0",
 	"preview": false,
 	"repository": {
 		"type": "git",
@@ -41,8 +41,7 @@
 		"workspaceContains:build.gradle",
 		"onDebug",
 		"onDebugDynamicConfigurations",
-		"onNotebook:ijnb-notebook",
-		"onNotebook:jupyter-notebook"
+		"onNotebook:ijnb-notebook"
 	],
 	"main": "./out/extension.js",
 	"l10n": "./l10n",
@@ -258,22 +257,22 @@
 				"jdk.notebook.classpath": {
 					"type": "string",
 					"default": "",
-					"description": "Classpath that needs to be set for notebooks"
+					"description": "%jdk.notebook.classpath.description%"
 				},
 				"jdk.notebook.modulepath": {
 					"type": "string",
 					"default": "",
-					"description": "Modulepath that needs to be set for notebooks"
+					"description": "%jdk.notebook.modulepath.description%"
 				},
 				"jdk.notebook.addmodules": {
 					"type": "string",
 					"default": "",
-					"description": "Modules needs for notebooks"
+					"description": "%jdk.notebook.addmodules.description%"
 				},
 				"jdk.notebook.enablePreview": {
 					"type": "boolean",
 					"default": false,
-					"description": "Flag to enable jdk preview features for notebooks"
+					"description": "%jdk.notebook.enablePreview.description%"
 				},
 				"jdk.notebook.implicitImports": {
 					"type": "array",
@@ -282,12 +281,12 @@
 						"java.io.*",
 						"java.math.*"
 					],
-					"description": "list of packages to import implicitly."
+					"description": "%jdk.notebook.implicitImports.description%"
 				},
 				"jdk.notebook.projects.mapping": {
 					"type": "object",
 					"default": {},
-					"description": "Mapping of notebook to project context"
+					"description": "%jdk.notebook.projects.mapping.description%"
 				},
 				"jdk.telemetry.enabled": {
 					"type": "boolean",
@@ -915,7 +914,7 @@
 	"dependencies": {
 		"@vscode/debugadapter": "^1.68.0",
 		"@vscode/l10n": "^0.0.18",
-		"ajv": "^6.12.6",
+		"ajv": "^8.17.1",
 		"jsonc-parser": "3.3.1",
 		"vscode-languageclient": "^9.0.1"
 	}

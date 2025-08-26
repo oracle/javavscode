@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2025, Oracle and/or its affiliates.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 import { commands, NotebookCell, NotebookCellExecution, NotebookCellOutput, NotebookController } from "vscode";
 import { LOGGER } from "../logger";
 import { NotebookCellExecutionResult } from "../lsp/protocol";
@@ -12,6 +33,7 @@ export class CodeCellExecution {
     private isExecutionStarted: boolean = false;
     private mimeMap = new Map<string, string>();
     private output: NotebookCellOutput = new NotebookCellOutput([]);
+    private isError: boolean = false;
 
     constructor(
         private controllerId: string,
@@ -24,7 +46,7 @@ export class CodeCellExecution {
             LOGGER.warn(`Received undefined controller ${this.getCellId()}`);
             return;
         }
-        LOGGER.log(`${this.getCellId()} queued for execution`);
+        LOGGER.debug(`${this.getCellId()} queued for execution`);
         this.controller = controller;
     }
 
@@ -49,6 +71,7 @@ export class CodeCellExecution {
         }
 
         if (err) {
+            this.isError = true;
             const { data } = err;
             const newData = new TextDecoder().decode(Uint8Array.from(data));
             this.handleOutput(newData, mimeTypes.ERROR, true);
@@ -60,6 +83,7 @@ export class CodeCellExecution {
         }
 
         if (errorDiagnostics) {
+            this.isError = true;
             errorDiagnostics.forEach(diag => {
                 this.handleOutput(diag + "\n", mimeTypes.ERROR, true);
             });
@@ -82,12 +106,13 @@ export class CodeCellExecution {
     }
 
     public executionCompleted = (status: boolean) => {
+        const finalExecStatus = status && !this.isError;
         if (this.isExecutionStarted) {
-            status ?
-                LOGGER.log(`${this.getCellId()} successfully executed`)
+            status && !this.isError ?
+                LOGGER.debug(`${this.getCellId()} successfully executed`)
                 :
                 LOGGER.error(`${this.getCellId()} failed while executing`);
-            this.execution!.end(status, Date.now());
+            this.execution!.end(finalExecStatus, Date.now());
         }
     }
 
