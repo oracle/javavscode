@@ -55,6 +55,10 @@ export const jdkHomeValueHandler = (): string | null => {
         null;
 }
 
+export const projectJdkHomeValueHandler = (): string | null => {
+    return getConfigurationValue(configKeys.projectJdkHome, null);
+}
+
 export const projectSearchRootsValueHandler = (): string => {
     let projectSearchRoots: string = '';
     const isProjectFolderSearchLimited: boolean = !getConfigurationValue(configKeys.disableProjSearchLimit, false);
