@@ -37,7 +37,7 @@ const createNewNotebook = async (ctx?: any) => {
                 if (defaultUri == null) {
                     if (workspaceFolders && workspaceFolders.length > 1) {
                         const userPref = await window.showWorkspaceFolderPick({
-                            placeHolder: "Select workspace folder in which notebook needs to be created",
+                            placeHolder: l10n.value("jdk.notebook.create.select.workspace.folder"),
                             ignoreFocusOut: true
                         });
                         if (userPref) {
@@ -55,8 +55,8 @@ const createNewNotebook = async (ctx?: any) => {
                 canSelectFiles: false,
                 canSelectMany: false,
                 defaultUri,
-                openLabel: "Select Notebook creation folder",
-                title: "Select folder in which notebook needs to be created"
+                openLabel: l10n.value("jdk.notebook.create.select.workspace.folder.label"),
+                title: l10n.value("jdk.notebook.create.select.workspace.folder.title")
             });
 
             if (nbFolderPath) {
@@ -66,20 +66,20 @@ const createNewNotebook = async (ctx?: any) => {
             notebookDir = getContextUri(ctx) || null;
         }
         if (notebookDir == null) {
-            window.showErrorMessage("Path not selected for creating new notebook");
+            window.showErrorMessage(l10n.value("jdk.notebook.create.error_msg.path.not.selected"));
             return;
         }
 
         const notebookName = await window.showInputBox({
-            prompt: `Enter new Java notebook (${extConstants.NOTEBOOK_FILE_EXTENSION}) or (.ipynb) file name`,
+            prompt: l10n.value("jdk.notebook.create.new.notebook.input.name", { fileExtension: extConstants.NOTEBOOK_FILE_EXTENSION }),
             value: `Untitled.${extConstants.NOTEBOOK_FILE_EXTENSION}`
         });
 
         if (!notebookName?.trim()) {
-            window.showErrorMessage("Invalid notebook file name");
+            window.showErrorMessage(l10n.value("jdk.notebook.create.error_msg.invalid.notebook.name"));
             return;
         }
-        const notebookNameWithExt = notebookName.endsWith(extConstants.NOTEBOOK_FILE_EXTENSION) || notebookName.endsWith('.ipynb') ?
+        const notebookNameWithExt = notebookName.endsWith(extConstants.NOTEBOOK_FILE_EXTENSION) ?
             notebookName : `${notebookName}.${extConstants.NOTEBOOK_FILE_EXTENSION}`;
 
         const finalNotebookPath = path.join(notebookDir.fsPath, notebookNameWithExt);
@@ -87,7 +87,7 @@ const createNewNotebook = async (ctx?: any) => {
         LOGGER.log(`Attempting to create notebook at: ${finalNotebookPath}`);
 
         if (fs.existsSync(finalNotebookPath)) {
-            window.showErrorMessage("Notebook already exists, please try creating with some different name");
+            window.showErrorMessage(l10n.value("jdk.notebook.create.error_msg.invalid.notebook.path"));
             return;
         }
 
@@ -112,7 +112,7 @@ const createNewNotebook = async (ctx?: any) => {
     } catch (error) {
         LOGGER.error(`Error occurred while creating new notebook: ${isError(error) ? error.message : error}`);
 
-        window.showErrorMessage(`Failed to create new notebook`);
+        window.showErrorMessage(l10n.value("jdk.notebook.create.error_msg.failed"));
     }
 };
 
@@ -134,7 +134,7 @@ const openJshellInContextOfProject = async (ctx: any) => {
             throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest", { client });
         }
     } catch (error) {
-        window.showErrorMessage("Some error occurred while launching jshell");
+        window.showErrorMessage(l10n.value("jdk.jshell.open.error_msg.failed"));
         LOGGER.error(`Error occurred while launching jshell in project context : ${isError(error) ? error.message : error}`);
     }
 }
@@ -156,10 +156,10 @@ const createNotebookProjectMappingHandler = async (ctx: Uri | undefined) => {
     try {
         const uri: Uri | undefined = ctx ? ctx : window.activeNotebookEditor?.notebook.uri;
         if (!uri?.toString().endsWith(extConstants.NOTEBOOK_FILE_EXTENSION)) {
-            window.showErrorMessage(`Please open any ${extConstants.NOTEBOOK_FILE_EXTENSION} notebook`);
+            window.showErrorMessage(l10n.value("jdk.notebook.project.mapping.error_msg.notebook.not.found", { fileExtension: extConstants.NOTEBOOK_FILE_EXTENSION }));
             return;
         }
-        await globalState.getClientPromise().client;
+        let client: LanguageClient = await globalState.getClientPromise().client;
         if (await isNbCommandRegistered(nbCommands.createNotebookProjectContext)) {
             const res = await commands.executeCommand<string>(nbCommands.createNotebookProjectContext, uri.toString());
             if (res) {
@@ -169,13 +169,13 @@ const createNotebookProjectMappingHandler = async (ctx: Uri | undefined) => {
                     ConfigurationTarget.Workspace);
                 return;
             }
-            window.showErrorMessage("No project selected");
+            window.showErrorMessage(l10n.value("jdk.notebook.project.mapping.error_msg.project.not.selected"));
         } else {
-            throw new Error("Change project context for notebook not command found");
+            throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest", { client });
         }
     } catch (error) {
         LOGGER.error(`Error occurred while opening notebook : ${isError(error) ? error.message : error}`);
-        window.showErrorMessage("Error occurred while changing notebook project context");
+        window.showErrorMessage(l10n.value("jdk.notebook.project.mapping.error_msg.failed"));
     }
 }
 

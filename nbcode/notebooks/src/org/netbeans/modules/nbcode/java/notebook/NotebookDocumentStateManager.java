@@ -150,7 +150,7 @@ public class NotebookDocumentStateManager {
         }
         int newVersion = contentChange.getDocument().getVersion();
         String currentContent = cellState.getContent();
-        
+
         try {
             String updatedContent = applyContentChanges(currentContent, contentChange.getChanges());
             cellState.setContent(updatedContent, newVersion);
@@ -220,6 +220,7 @@ public class NotebookDocumentStateManager {
 
         return result.toString();
     }
+
     // protected methods for ease of unit testing
     protected void addNewCellState(NotebookCell cell, TextDocumentItem item) {
         if (cell == null || item == null) {
@@ -236,8 +237,8 @@ public class NotebookDocumentStateManager {
             throw new RuntimeException("Failed to create cell state", e);
         }
     }
-    
-    protected Map<String, CellState> getCellsMap(){
+
+    protected Map<String, CellState> getCellsMap() {
         return cellsMap;
     }
 }
