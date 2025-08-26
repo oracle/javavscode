@@ -22,6 +22,24 @@
     under the License.
 
 -->
+## Version 24.1.1
+### What's Changed
+
+#### Bug Fixes
+* Standalone run output correction [#448](https://github.com/oracle/javavscode/pull/448)
+* Fix run/debug/test due to launch-config clashes [#432](https://github.com/oracle/javavscode/pull/432)
+* Updated the JavaLangFeatures feature name extractor to work with JDK25+ EA [#451](https://github.com/oracle/javavscode/pull/451)
+* Constructor init of java.lsp.server JavaPlatformProvider override [#453](https://github.com/oracle/javavscode/pull/453)
+* Extension restart fix [#433](https://github.com/oracle/javavscode/pull/433)
+* Fix formatting issue when there is erroneous if tree [#429](https://github.com/oracle/javavscode/pull/429)
+* Fixed project clean and project compile commands in the command palette [#438](https://github.com/oracle/javavscode/pull/438)
+* Fixed enable preview event field value for Gradle and Standalone projects [#452](https://github.com/oracle/javavscode/pull/452)
+
+#### Other Changes
+* Updated openjdk24 URL to 24.0.2 [#442](https://github.com/oracle/javavscode/pull/442)
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v24.1.0...v24.1.1
+
 ## Version 24.1.0
 ### What's Changed
 
