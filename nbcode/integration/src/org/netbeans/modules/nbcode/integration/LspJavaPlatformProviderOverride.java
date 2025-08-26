@@ -28,4 +28,8 @@ import org.openide.util.lookup.ServiceProvider;
  */
 @ServiceProvider(service = JavaPlatformProvider.class, position = 10_000)
 public class LspJavaPlatformProviderOverride extends AbstractJavaPlatformProviderOverride {
+
+    public LspJavaPlatformProviderOverride() {
+        super(System.getProperty("netbeans.lsp.java.platform.override", null)); //NOI18N
+    }
 }
