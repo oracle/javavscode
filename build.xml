@@ -48,22 +48,10 @@
         <string>
             patches/6330.diff
             patches/7610.diff
-            patches/8036-draft.diff
             patches/8038-draft.diff
-            patches/8210.diff
-            patches/8237.diff
-            patches/8242.diff
-            patches/8245.diff
-            patches/8255.diff
-            patches/8260.diff
-            patches/8280.diff
-            patches/8289.diff
             patches/8690.diff
             patches/7893-draft.diff
-            patches/8442-draft.diff
             patches/8460-draft.diff
-            patches/8470.diff
-            patches/8484.diff
             patches/8745-draft.diff
             patches/disable-error-notification.diff
             patches/mvn-sh.diff
@@ -76,7 +64,6 @@
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
-            patches/javavscode-375.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">

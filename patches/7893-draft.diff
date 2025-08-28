@@ -124,7 +124,7 @@ index 891bfa328d..ed80b903a5 100644
 +            boolean isJavaTemplate = "text/x-java".equals(FileUtil.getMIMEType(template));
 +            CompletionStage<String> userInput = client.showInputBox(new ShowInputBoxParams(Bundle.CTL_TemplateUI_SelectName(), desc.getProposedName()));
 +            if(isJavaTemplate) userInput = userInput.thenCompose(new ValidateJavaObjectName());
-+            return userInput.thenApply(name -> {return name != null ? builder.name(name) : null;}); 
++            return userInput.thenApply(name -> {return name != null ? builder.name(name) : null;});
          }
          return CompletableFuture.completedFuture(builder);
      }

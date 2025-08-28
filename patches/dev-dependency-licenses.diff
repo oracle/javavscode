@@ -3,7 +3,7 @@ new file mode 100644
 index 0000000000..db92c5cb72
 --- /dev/null
 +++ b/nbbuild/misc/prepare-bundles/src/main/resources/org/netbeans/prepare/bundles/assertion-error-1.1.0-license
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,21 @@
 +(The MIT License)
 +
 +Copyright (c) 2013 Jake Luer <jake@qualiancy.com> (http://qualiancy.com)
@@ -25,7 +25,6 @@ index 0000000000..db92c5cb72
 +LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 +OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 +THE SOFTWARE.
-+
 diff --git a/nbbuild/misc/prepare-bundles/src/main/resources/org/netbeans/prepare/bundles/eastasianwidth-0.2.0-license b/nbbuild/misc/prepare-bundles/src/main/resources/org/netbeans/prepare/bundles/eastasianwidth-0.2.0-license
 new file mode 100644
 index 0000000000..e8f4a01dd0
@@ -57,7 +56,7 @@ new file mode 100644
 index 0000000000..14c83ad1c4
 --- /dev/null
 +++ b/nbbuild/misc/prepare-bundles/src/main/resources/org/netbeans/prepare/bundles/imurmurhash-0.1.4-license
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,18 @@
 +Copyright (c) 2013 Gary Court, Jens Taylor
 +
 +Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -76,13 +75,12 @@ index 0000000000..14c83ad1c4
 +COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 +IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 +CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-+
 diff --git a/nbbuild/misc/prepare-bundles/src/main/resources/org/netbeans/prepare/bundles/isarray-1.0.0-license b/nbbuild/misc/prepare-bundles/src/main/resources/org/netbeans/prepare/bundles/isarray-1.0.0-license
 new file mode 100644
 index 0000000000..ba21cfcb7d
 --- /dev/null
 +++ b/nbbuild/misc/prepare-bundles/src/main/resources/org/netbeans/prepare/bundles/isarray-1.0.0-license
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,21 @@
 +(MIT)
 +
 +Copyright (c) 2013 Julian Gruber &lt;julian@juliangruber.com&gt;
@@ -104,7 +102,6 @@ index 0000000000..ba21cfcb7d
 +LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 +OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 +SOFTWARE.
-+
 diff --git a/nbbuild/misc/prepare-bundles/src/main/resources/org/netbeans/prepare/bundles/jszip-3.10.1-license b/nbbuild/misc/prepare-bundles/src/main/resources/org/netbeans/prepare/bundles/jszip-3.10.1-license
 new file mode 100644
 index 0000000000..803b55c862

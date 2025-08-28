@@ -69,5 +69,9 @@
     "jdk.initialConfigurations.launchJavaApp.name": "Javaアプリケーションの起動",
     "jdk.configurationSnippets.name": "Javaアプリケーションの起動",
     "jdk.configurationSnippets.label": "Java+: Javaアプリケーションの起動",
-    "jdk.configurationSnippets.description": "デバッグ・モードでのJavaアプリケーションの起動"
+    "jdk.configurationSnippets.description": "デバッグ・モードでのJavaアプリケーションの起動",
+    "jdk.configuration.inlay.enabled.description": "Enable or disable various inline hints.",
+    "jdk.configuration.inlay.enabled.enum.chained.markdownDescription": "Show return types of chained methods",
+    "jdk.configuration.inlay.enabled.enum.parameter.markdownDescription": "Show parameter names",
+    "jdk.configuration.inlay.enabled.enum.var.markdownDescription": "Show types of `var` variables"
 }

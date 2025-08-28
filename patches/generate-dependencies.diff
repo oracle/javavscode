@@ -583,11 +583,11 @@ index 536df96b0e..8428268f51 100644
 -                licenseName = use.key + "-" + use.projects.stream().collect(Collectors.joining("-"));
 +
 +                String projectsString = use.projects.stream().collect(Collectors.joining("-"));
-+                
++
 +                MessageDigest digest = MessageDigest.getInstance("SHA-256");
 +                byte[] hashBytes = digest.digest(projectsString.getBytes(StandardCharsets.UTF_8));
 +                String shasum = String.format("%064x", new BigInteger(1, hashBytes));
-+                
++
 +                licenseName = use.key + "-" + shasum;
 +
                  try (OutputStream out = Files.newOutputStream(licensesDir.resolve(licenseName))) {
