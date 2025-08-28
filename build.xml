@@ -77,6 +77,7 @@
             patches/nb-telemetry.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
             patches/javavscode-375.diff
+            patches/jvsce-361-draft.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
