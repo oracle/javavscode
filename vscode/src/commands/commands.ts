@@ -53,7 +53,7 @@ export const extCommands = {
     projectDeleteEntry: appendPrefixToCommand("foundProjects.deleteEntry"),
     createNotebook: appendPrefixToCommand("notebook.new"),
     openJshellInProject: appendPrefixToCommand("jshell.project"),
-    createNotebookProjectMapping: appendPrefixToCommand("notebook.change.project")
+    notebookChangeProjectContext: appendPrefixToCommand("notebook.change.project")
 }
 
 export const builtInCommands = {
@@ -90,5 +90,5 @@ export const nbCommands = {
     executeNotebookCell: appendPrefixToCommand("jshell.execute.cell"),
     interruptNotebookCellExecution: appendPrefixToCommand("jshell.interrupt.cell"),
     openJshellInProject: appendPrefixToCommand("jshell.project.open"),
-    createNotebookProjectContext: appendPrefixToCommand("notebook.project.context"),
+    createNotebookProjectContext: appendPrefixToCommand("notebook.project.context")
 }

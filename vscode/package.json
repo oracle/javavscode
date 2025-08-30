@@ -4,7 +4,7 @@
 	"description": "Java Platform Extension for Visual Studio Code",
 	"author": "Oracle",
 	"license": "Apache 2.0",
-	"version": "25.0.0",
+	"version": "0.1.0",
 	"preview": false,
 	"repository": {
 		"type": "git",
@@ -721,6 +721,10 @@
 				{
 					"command": "jdk.addEventListener",
 					"when": "false"
+				},
+				{
+					"command": "jdk.notebook.change.project",
+					"when": "false"
 				}
 			],
 			"view/title": [
@@ -794,6 +798,13 @@
 					"command": "jdk.workspace.configureRunSettings",
 					"when": "view == run-config && viewItem == configureRunSettings",
 					"group": "inline@1"
+				}
+			],
+			"notebook/toolbar": [
+				{
+					"command": "jdk.notebook.change.project",
+					"group": "navigation@1",
+					"when": "nbJdkReady && resourceExtname == .ijnb"
 				}
 			]
 		},

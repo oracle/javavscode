@@ -12,7 +12,7 @@ import { getContextUri, isNbCommandRegistered } from './utils';
 import { l10n } from '../localiser';
 import { extConstants } from '../constants';
 import { Notebook } from '../notebooks/notebook';
-import { ICodeCell } from '../notebooks/types';
+import { ICodeCell, INotebookToolbar } from '../notebooks/types';
 import { randomUUID } from 'crypto';
 import { getConfigurationValue, updateConfigurationValue } from '../configurations/handlers';
 import { configKeys } from '../configurations/configuration';
@@ -152,13 +152,10 @@ const passArgsToTerminal = (args: string[]): { envMap: { [key: string]: string }
     return { envMap, finalArgs };
 }
 
-const createNotebookProjectMappingHandler = async (ctx: Uri | undefined) => {
+const notebookChangeProjectContextHandler = async (ctx: INotebookToolbar) => {
     try {
-        const uri: Uri | undefined = ctx ? ctx : window.activeNotebookEditor?.notebook.uri;
-        if (!uri?.toString().endsWith(extConstants.NOTEBOOK_FILE_EXTENSION)) {
-            window.showErrorMessage(l10n.value("jdk.notebook.project.mapping.error_msg.notebook.not.found", { fileExtension: extConstants.NOTEBOOK_FILE_EXTENSION }));
-            return;
-        }
+        const uri: Uri = ctx.notebookEditor.notebookUri;
+        
         let client: LanguageClient = await globalState.getClientPromise().client;
         if (await isNbCommandRegistered(nbCommands.createNotebookProjectContext)) {
             const res = await commands.executeCommand<string>(nbCommands.createNotebookProjectContext, uri.toString());
@@ -190,7 +187,7 @@ export const registerNotebookCommands: ICommand[] = [
         handler: openJshellInContextOfProject
     },
     {
-        command: extCommands.createNotebookProjectMapping,
-        handler: createNotebookProjectMappingHandler
+        command: extCommands.notebookChangeProjectContext,
+        handler: notebookChangeProjectContextHandler
     }
 ];
