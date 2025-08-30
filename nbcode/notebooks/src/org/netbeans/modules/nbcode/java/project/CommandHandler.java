@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.nbcode.java.notebook.NotebookSessionManager;
 import org.netbeans.modules.nbcode.java.notebook.NotebookUtils;
 
 /**
@@ -60,7 +61,9 @@ public class CommandHandler {
 
     public static CompletableFuture<String> getNotebookProjectMappingPath(List<Object> args) {
         LOG.log(Level.FINER, "Request received for notebook project mapping with args: {0}", args);
-        return ProjectContext.getProject()
+        String notebookUri = NotebookUtils.getArgument(args, 0, String.class);
+        ProjectContextInfo prjCxtInfo = NotebookSessionManager.getInstance().getNotebookPrjNameContext(notebookUri);
+        return ProjectContext.getProject(true, prjCxtInfo)
                 .thenApply(prj -> prj == null ? null : prj.getProjectDirectory().getPath());
     }
 

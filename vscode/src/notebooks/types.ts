@@ -19,6 +19,8 @@
  * under the License.
  */
 
+import { Uri } from "vscode";
+
 export interface INotebook {
   nbformat: number;
   nbformat_minor: number;
@@ -102,4 +104,12 @@ export interface IMimeBundle {
 
 export interface IMetadata {
     [key: string]: any;
+}
+
+export interface INotebookToolbar {
+  ui: boolean;
+  source: 'notebookToolbar';
+  notebookEditor: {
+    notebookUri: Uri
+  }
 }

@@ -56,11 +56,19 @@ public class ProjectContext {
     }
 
     public static CompletableFuture<Project> getProject() {
+        return getProject(false, null);
+    }
+
+    public static CompletableFuture<Project> getProject(boolean forceShowQuickPick, ProjectContextInfo prjCxtInfo) {
         LspServerState serverState = Lookup.getDefault().lookup(LspServerState.class);
         if (serverState == null) {
             return CompletableFuture.completedFuture(null);
         }
-
+        if (forceShowQuickPick) {
+            return serverState.openedProjects()
+                    .thenCompose(prjs -> selectFromMultipleProjects(prjs, prjCxtInfo).thenApply(res
+                    -> res.isEmpty() ? null : res.getFirst()));
+        }
         return serverState.openedProjects().thenCompose(prjs -> {
             switch (prjs.length) {
                 case 0:
@@ -68,13 +76,13 @@ public class ProjectContext {
                 case 1:
                     return CompletableFuture.completedFuture(prjs[0]);
                 default:
-                    return selectFromMultipleProjects(prjs, false).thenApply(res
+                    return selectFromMultipleProjects(prjs, prjCxtInfo).thenApply(res
                             -> res.isEmpty() ? null : res.getFirst());
             }
         });
     }
 
-    private static CompletableFuture<List<Project>> selectFromMultipleProjects(Project[] prjs, boolean canSelectMany) {
+    private static CompletableFuture<List<Project>> selectFromMultipleProjects(Project[] prjs, ProjectContextInfo defaultPrjSelected) {
         NbCodeLanguageClient client = Lookup.getDefault().lookup(NbCodeLanguageClient.class);
         if (client == null) {
             return CompletableFuture.completedFuture(new ArrayList<>());
@@ -88,8 +96,10 @@ public class ProjectContext {
             prjMap.put(displayName, prj);
             items.add(item);
         }
+        String placeholder = defaultPrjSelected != null ? "Current project context: " + defaultPrjSelected.getName()
+                : items.isEmpty() ? "No projects found" : "No project context";
 
-        ShowQuickPickParams params = new ShowQuickPickParams(title, "", canSelectMany, items);
+        ShowQuickPickParams params = new ShowQuickPickParams(title, placeholder, false, items);
         return client.showQuickPick(params).thenApply(selected -> {
             List<Project> res = new ArrayList<>();
             for (QuickPickItem item : selected) {

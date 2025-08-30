@@ -35,6 +35,7 @@ import org.netbeans.api.project.Project;
 import static org.netbeans.modules.nbcode.java.notebook.NotebookUtils.checkEmptyString;
 import org.netbeans.modules.nbcode.java.project.ProjectConfigurationUtils;
 import org.netbeans.modules.nbcode.java.project.ProjectContext;
+import org.netbeans.modules.nbcode.java.project.ProjectContextInfo;
 
 /**
  *
@@ -51,6 +52,7 @@ public class NotebookSessionManager {
 
     private final Map<String, CompletableFuture<JShell>> sessions = new ConcurrentHashMap<>();
     private final Map<String, JshellStreamsHandler> jshellStreamsMap = new ConcurrentHashMap<>();
+    private final Map<String, ProjectContextInfo> notebookPrjMap = new ConcurrentHashMap<>();
 
     private NotebookSessionManager() {
     }
@@ -67,8 +69,12 @@ public class NotebookSessionManager {
     private CompletableFuture<JShell> jshellBuilder(String notebookUri, JshellStreamsHandler streamsHandler) {
         return NotebookConfigs.getInstance().getInitialized()
                 .thenCompose(v -> getProjectContextForNotebook(notebookUri)
-                .thenApply(prj -> jshellBuildWithProject(prj, streamsHandler)
-                )).exceptionally(throwable -> {
+                .thenApply(prj -> {
+                    if (prj != null) {
+                        notebookPrjMap.put(notebookUri, new ProjectContextInfo(prj));
+                    }
+                    return jshellBuildWithProject(prj, streamsHandler);
+                })).exceptionally(throwable -> {
             LOG.log(Level.WARNING, "Failed to get project context, using default JShell configuration", throwable);
             return jshellBuildWithProject(null, streamsHandler);
         });
@@ -225,6 +231,10 @@ public class NotebookSessionManager {
         return jshellStreamsMap.get(notebookId);
     }
 
+    public ProjectContextInfo getNotebookPrjNameContext(String notebookId) {
+        return notebookPrjMap.get(notebookId);
+    }
+
     public void closeSession(String notebookUri) {
         CompletableFuture<JShell> future = sessions.remove(notebookUri);
         JShell jshell = future.getNow(null);
@@ -235,6 +245,7 @@ public class NotebookSessionManager {
         if (handler != null) {
             handler.close();
         }
+        notebookPrjMap.remove(notebookUri);
     }
 
     private CompletableFuture<Project> getProjectContextForNotebook(String notebookUri) {
@@ -248,7 +259,7 @@ public class NotebookSessionManager {
 
         if (prj == null) {
             LOG.log(Level.WARNING, "Project not found or not open in workspace: {0}", projectKey);
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
 
         return ProjectConfigurationUtils.buildProject(prj).thenApply(buildStatus -> {
