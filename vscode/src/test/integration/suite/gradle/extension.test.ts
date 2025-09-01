@@ -41,6 +41,7 @@ suite("Extension gradle tests", function () {
       assert.ok(compile, " Compile workspace command not working");
       const mainClass = path.join(
         folder,
+        "yourProject",
         "build",
         "classes",
         "java",
@@ -55,21 +56,28 @@ suite("Extension gradle tests", function () {
         "Class created by compilation: " + mainClass
       );
     } catch (error) {
-      dumpJava();
+      await dumpJava();
+      console.log(`Error: ${error}`);
       throw error;
     }
   });
 
   // Check if clean workspace command is excuted succesfully
   test("Clean workspace - Gradle", async () => {
-    let folder: string = assertWorkspace();
-    const clean = await commands.executeCommand("jdk.workspace.clean");
-    assert.ok(clean, " Clean workspace command not working");
+    try {
+      let folder: string = assertWorkspace();
+      const clean = await commands.executeCommand("jdk.workspace.clean");
+      assert.ok(clean, " Clean workspace command not working");
 
-    const mainClass = path.join(folder, "build");
-    assert.ok(
-      !fs.existsSync(mainClass),
-      "Class created by compilation: " + mainClass
-    );
+      const buildFolder = path.join(folder, "yourProject", "build");
+      assert.ok(
+        !fs.existsSync(buildFolder),
+        "Build removed by clean: " + buildFolder
+      );
+    } catch (error) {
+      await dumpJava();
+      console.log(`Error: ${error}`);
+      throw error;
+    }
   });
 });
