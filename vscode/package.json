@@ -602,7 +602,8 @@
 			{
 				"command": "jdk.notebook.change.project",
 				"title": "%jdk.notebook.change.project%",
-				"category": "Java"
+				"category": "Java",
+				"icon" : "$(pencil)"
 			}
 		],
 		"keybindings": [
