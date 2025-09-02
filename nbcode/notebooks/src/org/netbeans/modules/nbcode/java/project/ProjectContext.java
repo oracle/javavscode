@@ -102,6 +102,9 @@ public class ProjectContext {
         ShowQuickPickParams params = new ShowQuickPickParams(title, placeholder, false, items);
         return client.showQuickPick(params).thenApply(selected -> {
             List<Project> res = new ArrayList<>();
+            if (selected == null) {
+                return res;
+            }
             for (QuickPickItem item : selected) {
                 if (prjMap.containsKey(item.getLabel())) {
                     res.add(prjMap.get(item.getLabel()));

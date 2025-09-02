@@ -108,7 +108,6 @@
   "jdk.notebook.create.error_msg.invalid.notebook.path": "Notebook already exists, please try creating with some different name",
   "jdk.notebook.create.error_msg.failed": "Failed to create new notebook",
   "jdk.jshell.open.error_msg.failed": "Some error occurred while launching jshell",
-  "jdk.notebook.project.mapping.error_msg.project.not.selected": "No project selected",
   "jdk.notebook.project.mapping.error_msg.failed": "Error occurred while changing notebook project context",
   "jdk.notebook.create.new.notebook.input.name": "Enter new Java notebook ({fileExtension}) file name"
 }

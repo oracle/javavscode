@@ -155,18 +155,17 @@ const passArgsToTerminal = (args: string[]): { envMap: { [key: string]: string }
 const notebookChangeProjectContextHandler = async (ctx: INotebookToolbar) => {
     try {
         const uri: Uri = ctx.notebookEditor.notebookUri;
-        
+
         let client: LanguageClient = await globalState.getClientPromise().client;
         if (await isNbCommandRegistered(nbCommands.createNotebookProjectContext)) {
-            const res = await commands.executeCommand<string>(nbCommands.createNotebookProjectContext, uri.toString());
-            if (res) {
-                const oldValue = getConfigurationValue(configKeys.notebookProjectMapping, {});
-                updateConfigurationValue(configKeys.notebookProjectMapping,
-                    { ...oldValue, [uri.fsPath]: res },
-                    ConfigurationTarget.Workspace);
+            const res = await commands.executeCommand<string | null>(nbCommands.createNotebookProjectContext, uri.toString());
+            if (!res) {
                 return;
             }
-            window.showErrorMessage(l10n.value("jdk.notebook.project.mapping.error_msg.project.not.selected"));
+            const oldValue = getConfigurationValue(configKeys.notebookProjectMapping, {});
+            updateConfigurationValue(configKeys.notebookProjectMapping,
+                { ...oldValue, [uri.fsPath]: res },
+                ConfigurationTarget.Workspace);
         } else {
             throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest", { client });
         }
