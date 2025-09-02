@@ -248,13 +248,31 @@
 					"markdownDescription": "%jdk.configuration.telemetry.enabled.markdownDescription%",
 					"default": false,
 					"tags": [
-                        "telemetry"
-          			]
+						"telemetry"
+					]
 				},
 				"jdk.java.completion.commit.chars": {
 					"type": "array",
 					"default": [],
 					"description": "%jdk.configuration.java.completion.commit.chars%"
+				},
+				"jdk.inlay.enabled": {
+					"description": "%jdk.configuration.inlay.enabled.description%",
+					"type": "array",
+					"default": [],
+					"items": {
+						"type": "string",
+						"enum": [
+							"chained",
+							"parameter",
+							"var"
+						],
+						"markdownEnumDescriptions": [
+							"%jdk.configuration.inlay.enabled.enum.chained.markdownDescription%",
+							"%jdk.configuration.inlay.enabled.enum.parameter.markdownDescription%",
+							"%jdk.configuration.inlay.enabled.enum.var.markdownDescription%"
+						]
+					}
 				}
 			}
 		},

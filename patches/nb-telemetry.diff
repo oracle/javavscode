@@ -341,7 +341,7 @@ index d82646afb1..a4a1b53e26 100644
 +        previewEnabled = source != null && isPreviewEnabledForSource(source);
 +        if (!previewEnabled) {
 +            assert prj != null;
-+            FileObject prjRoot = prj.getProjectDirectory();            
++            FileObject prjRoot = prj.getProjectDirectory();
 +            String relativePath = prjRoot == null ? null : FileUtil.getRelativePath(prjRoot, source);
 +            if (relativePath == null || relativePath.isEmpty()) {
 +                // The source is not inside the project root, and,
@@ -462,7 +462,7 @@ index 9134992f5f..f070fec320 100644
       * Secondary prefix for configuration.
       */
      private String altConfigurationPrefix = "java+.";
-+    
++
 +    /**
 +     * Whether telemetry needs to be enabled.
 +     */

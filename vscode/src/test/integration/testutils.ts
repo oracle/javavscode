@@ -253,7 +253,8 @@ export const runShellCommand = async (command: string, folderPath: string) => {
 export async function gradleInitJavaApplication(folder: string) {
 	const basePackage = "org.yourCompany.yourProject";
 
-	const projectPath = path.join(folder);
+	const rootProjectPath = path.join(folder);
+	const projectPath = path.join(rootProjectPath, "yourProject");
 	const srcMainPath = path.join(
 		projectPath,
 		"src",
@@ -272,6 +273,7 @@ export async function gradleInitJavaApplication(folder: string) {
 
 	try {
 		// Create directories
+		await fs.promises.mkdir(rootProjectPath, { recursive: true });
 		await fs.promises.mkdir(projectPath, { recursive: true });
 		await fs.promises.mkdir(srcMainPath, { recursive: true });
 		await fs.promises.mkdir(resourcesPath, { recursive: true });
@@ -283,7 +285,7 @@ export async function gradleInitJavaApplication(folder: string) {
 			SAMPLE_BUILD_GRADLE
 		);
 		await fs.promises.writeFile(
-			path.join(projectPath, "settings.gradle"),
+			path.join(rootProjectPath, "settings.gradle"),
 			SAMPLE_SETTINGS_GRADLE
 		);
 		// Create Java main file
@@ -347,7 +349,7 @@ export const awaitClient = async () : Promise<NbLanguageClient> => {
 }
 
 export function findClusters(myPath : string): string[] {
-    let clusters = [];
+    let clusters:string[] = [];
     for (let e of vscode.extensions.all) {
         if (e.extensionPath === myPath) {
             continue;
