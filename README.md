@@ -196,9 +196,19 @@ If your extension is not starting and throwing some error like no JDK found even
 The extension will analyze the content of the opened workspace, and relevant other files. If the workspace contains a lot of data, this may take a long time. It is therefore recommended to avoid adding unnecessarily big folders in a workspace. Specifically, it is not recommended to open user's home directory as a part of the workspace.
 
 ## Known Issue
-If an action has been applied to the Maven `pom.xml` file through the extension, such as enabling a preview feature or adding a test runner framework, subsequent compile or run operations may fail. To resolve this issue, please follow the steps below:
-1. Check the `pom.xml` file for any duplicated tags.
-2. If duplicated tags are found, remove the extra tags and attempt to compile again.
+1. If an action has been applied to the Maven `pom.xml` file through the extension, such as enabling a preview feature or adding a test runner framework, subsequent compile or run operations may fail. To resolve this issue, please follow the steps below:
+    1. Check the `pom.xml` file for any duplicated tags.
+    2. If duplicated tags are found, remove the extra tags and attempt to compile again.
+    3. Add the `--enable-preview` VM argument to the *exec-maven-plugin* or *maven-surefile-plugin* configurations if they are used execution or test runs.
+2. If the "*Launch Java App*" configuration is being used to *Run and Debug* an application, the following issues may occur if no `mainClass` field value is defined.
+    - Issues:
+        1. If more than 2 main classes are present in the project, then using the *Run and Debug* button does not launch execution and appears as stuck prior to run.
+        2. If the editor window open is a file that is not within the src root of the maven/gradle project, then using the *Run and Debug* button launches the projects tests.
+    - Resolution or Workaround:
+        1. Open the `launch.json` file.
+        2. Edit the configuration for the "*Launch Java App*", i.e. the one which has `"type": "jdk"` and `"request": "launch"`.
+        3. Define a value for the *mainClass* field, i.e. `"mainClass": "<main class fully-qualified-name or file-path>"`.
+3. The *Project: Test Project* command executes the project's tests but does not update the Testing or the Tests Results panels. The test output is present only in the Terminal or Debug Console panel.
 
 ## Telemetry
 
