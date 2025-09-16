@@ -35,11 +35,19 @@ public class CommandHandler {
     public static CompletableFuture<List<String>> openJshellInProjectContext(List<Object> args) {
         LOG.log(Level.FINER, "Request received for opening Jshell instance with project context {0}", args);
 
-        String uri = NotebookUtils.getArgument(args, 0, String.class);
-
-        CompletableFuture<Project> prjFuture = uri == null ? ProjectContext.getProject()
-                : CompletableFuture.completedFuture(ProjectContext.getProject(uri));
-
+        String context = NotebookUtils.getArgument(args, 0, String.class);
+        String additionalContext = NotebookUtils.getArgument(args, 1, String.class);
+        CompletableFuture<Project> prjFuture;
+        
+        if (context != null) {
+            prjFuture = CompletableFuture.completedFuture(ProjectContext.getProject(context));
+        } else {
+            Project editorPrj = additionalContext != null ? ProjectContext.getProject(additionalContext) : null;
+            prjFuture = editorPrj != null
+                    ? ProjectContext.getProject(false, new ProjectContextInfo(editorPrj))
+                    : ProjectContext.getProject();
+        }
+        
         return prjFuture.thenCompose(prj -> {
             if (prj == null) {
                 return CompletableFuture.completedFuture(new ArrayList<>());
@@ -48,7 +56,7 @@ public class CommandHandler {
                     .thenCompose(isBuildSuccess -> {
                         if (isBuildSuccess) {
                             List<String> vmOptions = ProjectConfigurationUtils.launchVMOptions(prj);
-                            LOG.log(Level.INFO, "Opened Jshell instance with project context {0}", uri);
+                            LOG.log(Level.INFO, "Opened Jshell instance with project context {0}", context);
                             return CompletableFuture.completedFuture(vmOptions);
                         } else {
                             CompletableFuture<List<String>> failed = new CompletableFuture<>();
