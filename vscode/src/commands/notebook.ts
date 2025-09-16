@@ -120,7 +120,8 @@ const openJshellInContextOfProject = async (ctx: any) => {
     try {
         let client: LanguageClient = await globalState.getClientPromise().client;
         if (await isNbCommandRegistered(nbCommands.openJshellInProject)) {
-            const res: string[] = await commands.executeCommand(nbCommands.openJshellInProject, ctx?.toString());
+            const additionalContext = window.activeTextEditor?.document.uri.toString();
+            const res = await commands.executeCommand<string[]>(nbCommands.openJshellInProject, ctx?.toString(), additionalContext);
             const { envMap, finalArgs } = passArgsToTerminal(res);
             // Direct sendText is not working since it truncates the command exceeding a certain length.
             // Open issues on vscode: 130688, 134324 and many more

@@ -603,7 +603,7 @@
 				"command": "jdk.notebook.change.project",
 				"title": "%jdk.notebook.change.project%",
 				"category": "Java",
-				"icon" : "$(pencil)"
+				"icon": "$(pencil)"
 			}
 		],
 		"keybindings": [
