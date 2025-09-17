@@ -37,6 +37,7 @@
 
 #### Other Changes
 * Updated openjdk24 URL to 24.0.2 [#442](https://github.com/oracle/javavscode/pull/442)
+* Updated openjdk25 URL to 25 [#465](https://github.com/oracle/javavscode/pull/465)
 
 **Full Changelog**: https://github.com/oracle/javavscode/compare/v24.1.0...v24.1.1
 
