@@ -31,10 +31,10 @@ export namespace jdkDownloaderConstants {
 
   export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
 
-  export const ORACLE_JDK_FALLBACK_VESIONS = ['24', '21'];
+  export const ORACLE_JDK_FALLBACK_VESIONS = ['25', '21'];
 
   export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-    "24": "https://download.java.net/java/GA/jdk24.0.2/fdc5d0102fe0414db21410ad5834341f/12/GPL/openjdk-24.0.2"
+    "25": "https://download.java.net/java/GA/jdk25/bd75d5f9689641da8e1daabeccb5528b/36/GPL/openjdk-25"
   };  
 }
 export const NODE_WINDOWS_LABEL = "Windows_NT";
