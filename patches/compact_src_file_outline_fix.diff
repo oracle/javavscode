@@ -1,0 +1,18 @@
+diff --git a/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementOpen.java b/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementOpen.java
+index f561cb51c8..86870d93aa 100644
+--- a/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementOpen.java
++++ b/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementOpen.java
+@@ -590,6 +590,13 @@ public final class ElementOpen {
+             target[3] = span[0];
+             target[4] = span[1];
+         }
++        // If end < start then make end == start (Temp fix for compact source files)
++        if ((int) target[2] < (int) target[1]) {
++            target[2] = (int) target[1];
++        }
++        if ((int) target[4] < (int) target[3]){
++            target[4] = (int) target[3];
++        }
+     }
+ 
+     // Private innerclasses ----------------------------------------------------

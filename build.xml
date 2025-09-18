@@ -64,6 +64,7 @@
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
+            patches/compact_src_file_outline_fix.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
