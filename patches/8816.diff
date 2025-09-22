@@ -1,0 +1,176 @@
+diff --git a/java/maven/src/org/netbeans/modules/maven/execute/defaultActionMappings.xml b/java/maven/src/org/netbeans/modules/maven/execute/defaultActionMappings.xml
+index d493332788e4..ac4122a96709 100644
+--- a/java/maven/src/org/netbeans/modules/maven/execute/defaultActionMappings.xml
++++ b/java/maven/src/org/netbeans/modules/maven/execute/defaultActionMappings.xml
+@@ -133,7 +133,7 @@
+         </packagings>
+         <goals>
+             <goal>process-classes</goal>
+-            <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>
++            <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
+         </goals>
+         <properties>
+             <exec.vmArgs></exec.vmArgs>
+@@ -150,7 +150,7 @@
+         </packagings>
+         <goals>
+             <goal>process-classes</goal>
+-            <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>
++            <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
+         </goals>
+         <properties>
+             <exec.vmArgs>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
+@@ -168,7 +168,7 @@
+         </packagings>
+         <goals>
+             <goal>process-classes</goal>
+-            <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>
++            <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
+         </goals>
+         <properties>
+             <exec.vmArgs></exec.vmArgs>
+@@ -186,7 +186,7 @@
+         </packagings>
+         <goals>
+             <goal>process-test-classes</goal>
+-            <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>
++            <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
+         </goals>
+         <properties>
+             <exec.vmArgs>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
+@@ -255,7 +255,7 @@
+         </packagings>
+         <goals>
+             <goal>process-classes</goal>
+-            <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>
++            <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
+         </goals>
+         <properties>
+             <exec.vmArgs></exec.vmArgs>
+@@ -272,7 +272,7 @@
+         </packagings>
+         <goals>
+             <goal>process-classes</goal>
+-            <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>
++            <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
+         </goals>
+         <properties>
+             <exec.vmArgs></exec.vmArgs>
+diff --git a/java/maven/test/unit/src/org/netbeans/modules/maven/api/customizer/ModelHandle2Test.java b/java/maven/test/unit/src/org/netbeans/modules/maven/api/customizer/ModelHandle2Test.java
+index d0d66a131ab5..ae4b37f8477b 100644
+--- a/java/maven/test/unit/src/org/netbeans/modules/maven/api/customizer/ModelHandle2Test.java
++++ b/java/maven/test/unit/src/org/netbeans/modules/maven/api/customizer/ModelHandle2Test.java
+@@ -162,7 +162,7 @@ public void testJettyDebugSingle() throws Exception { // #
+ "            </packagings>\n" +
+ "            <goals>\n" +
+ "                <goal>process-classes</goal>\n" +
+-"                <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>\n" +
++"                <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>\n" +
+ "            </goals>\n" +
+ "            <properties>\n" +
+ "                <exec.args>-classpath %classpath ${packageClassName}</exec.args>\n" +
+@@ -177,7 +177,7 @@ public void testJettyDebugSingle() throws Exception { // #
+ "            </packagings>\n" +
+ "            <goals>\n" +
+ "                <goal>process-classes</goal>\n" +
+-"                <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>\n" +
++"                <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>\n" +
+ "            </goals>\n" +
+ "            <properties>\n" +
+ "                <exec.args>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address} -classpath %classpath ${packageClassName}</exec.args>\n" +
+@@ -199,7 +199,7 @@ public void testJettyDebugSingle() throws Exception { // #
+ "            </packagings>\n" +
+ "            <goals>\n" +
+ "                <goal>process-classes</goal>\n" +
+-"                <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>\n" +
++"                <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>\n" +
+ "            </goals>\n" +
+ "            <properties>\n" +
+ "                <exec.args>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address} -classpath %classpath ${packageClassName}</exec.args>\n" +
+@@ -223,7 +223,7 @@ public void testJettyDebugSingle() throws Exception { // #
+             RunConfig run = ActionToGoalUtils.createRunConfig("debug.single.main", (NbMavenProjectImpl) project, project.getLookup());
+             assertEquals("Two goals: " + run.getGoals(), 2, run.getGoals().size());
+             assertEquals("process-classes", run.getGoals().get(0));
+-            assertEquals("org.codehaus.mojo:exec-maven-plugin:3.1.0:exec", run.getGoals().get(1));
++            assertEquals("org.codehaus.mojo:exec-maven-plugin:3.5.1:exec", run.getGoals().get(1));
+             assertEquals("One profile activated in action: " + run.getActivatedProfiles(), 1, run.getActivatedProfiles().size());
+             assertEquals("jetty", run.getActivatedProfiles().get(0));
+         }
+diff --git a/java/maven/test/unit/src/org/netbeans/modules/maven/execute/MavenExecutionTestBase.java b/java/maven/test/unit/src/org/netbeans/modules/maven/execute/MavenExecutionTestBase.java
+index 700b67a48ec1..fa480776502d 100644
+--- a/java/maven/test/unit/src/org/netbeans/modules/maven/execute/MavenExecutionTestBase.java
++++ b/java/maven/test/unit/src/org/netbeans/modules/maven/execute/MavenExecutionTestBase.java
+@@ -188,7 +188,7 @@ protected FileObject createPom(String argsString, String propString) throws IOEx
+                 + "            <plugin>\n"
+                 + "                <groupId>org.codehaus.mojo</groupId>\n"
+                 + "                <artifactId>exec-maven-plugin</artifactId>\n"
+-                + "                <version>3.1.0</version>\n"
++                + "                <version>3.5.1</version>\n"
+                 + "                <configuration>\n"
+                 +                      argsString 
+                 + "                </configuration>\n"
+diff --git a/java/maven/test/unit/src/org/netbeans/modules/maven/execute/ModelRunConfigTest.java b/java/maven/test/unit/src/org/netbeans/modules/maven/execute/ModelRunConfigTest.java
+index 612a6b57a08a..6398e3481159 100644
+--- a/java/maven/test/unit/src/org/netbeans/modules/maven/execute/ModelRunConfigTest.java
++++ b/java/maven/test/unit/src/org/netbeans/modules/maven/execute/ModelRunConfigTest.java
+@@ -242,7 +242,7 @@ private void assertArgs(String argsString, String propString, AssertArgs a) thro
+                 + "            <plugin>\n"
+                 + "                <groupId>org.codehaus.mojo</groupId>\n"
+                 + "                <artifactId>exec-maven-plugin</artifactId>\n"
+-                + "                <version>3.1.0</version>\n"
++                + "                <version>3.5.1</version>\n"
+                 + "                <configuration>\n"
+                 + "                    <executable>${java.home}/bin/java</executable>\n"
+                 +                      argsString 
+diff --git a/java/maven/test/unit/src/org/netbeans/modules/maven/runjar/nbactions-template.xml b/java/maven/test/unit/src/org/netbeans/modules/maven/runjar/nbactions-template.xml
+index f3105025afe0..bea883ca7071 100644
+--- a/java/maven/test/unit/src/org/netbeans/modules/maven/runjar/nbactions-template.xml
++++ b/java/maven/test/unit/src/org/netbeans/modules/maven/runjar/nbactions-template.xml
+@@ -27,7 +27,7 @@
+         </packagings>
+         <goals>
+             <goal>process-classes</goal>
+-            <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>
++            <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
+         </goals>
+         <properties>
+                 &runProperties;
+@@ -40,7 +40,7 @@
+         </packagings>
+         <goals>
+             <goal>process-classes</goal>
+-            <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>
++            <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
+         </goals>
+         <properties>
+                 &debugProperties;
+@@ -53,7 +53,7 @@
+         </packagings>
+         <goals>
+             <goal>process-classes</goal>
+-            <goal>org.codehaus.mojo:exec-maven-plugin:3.1.0:exec</goal>
++            <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
+         </goals>
+         <properties>
+                 &profileProperties;
+diff --git a/java/maven/test/unit/src/org/netbeans/modules/maven/spi/actions/ProvidedConfigurationsTest.java b/java/maven/test/unit/src/org/netbeans/modules/maven/spi/actions/ProvidedConfigurationsTest.java
+index 1183cfe90e71..458d008519bb 100644
+--- a/java/maven/test/unit/src/org/netbeans/modules/maven/spi/actions/ProvidedConfigurationsTest.java
++++ b/java/maven/test/unit/src/org/netbeans/modules/maven/spi/actions/ProvidedConfigurationsTest.java
+@@ -47,6 +47,7 @@
+  *
+  * @author sdedic
+  */
++@SuppressWarnings("unchecked")
+ public class ProvidedConfigurationsTest extends NbTestCase {
+ 
+     public ProvidedConfigurationsTest(String name) {
+@@ -144,7 +145,7 @@ public void testSpecificConfigurationGoalOverride() throws Exception {
+         RunConfig cfg = ActionToGoalUtils.createRunConfig("run", pimpl, Lookup.EMPTY);
+         assertEquals(Arrays.asList(
+                 "process-classes",
+-                "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec"), cfg.getGoals());
++                "org.codehaus.mojo:exec-maven-plugin:3.5.1:exec"), cfg.getGoals());
+         
+         ProjectConfigurationProvider<MavenConfiguration> pcp = p.getLookup().lookup(ProjectConfigurationProvider.class);
+         MavenConfiguration c = pcp.getConfigurations().stream().filter(x -> "Micronaut: dev mode".equals(x.getDisplayName())).findAny().get();

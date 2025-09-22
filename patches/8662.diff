@@ -1,0 +1,404 @@
+diff --git a/java/java.api.common/src/org/netbeans/modules/java/api/common/queries/ModuleInfoAccessibilityQueryImpl.java b/java/java.api.common/src/org/netbeans/modules/java/api/common/queries/ModuleInfoAccessibilityQueryImpl.java
+index 65d735c60007..f871a84dafed 100644
+--- a/java/java.api.common/src/org/netbeans/modules/java/api/common/queries/ModuleInfoAccessibilityQueryImpl.java
++++ b/java/java.api.common/src/org/netbeans/modules/java/api/common/queries/ModuleInfoAccessibilityQueryImpl.java
+@@ -32,10 +32,13 @@
+ import java.util.Collections;
+ import java.util.HashSet;
+ import java.util.List;
++import java.util.Objects;
+ import java.util.Optional;
+ import java.util.Queue;
+ import java.util.Set;
+ import java.util.stream.Collectors;
++import javax.lang.model.element.Element;
++import javax.lang.model.element.ElementKind;
+ import javax.lang.model.element.ModuleElement;
+ import javax.swing.event.ChangeListener;
+ import org.netbeans.api.annotations.common.CheckForNull;
+@@ -60,7 +63,7 @@
+ import org.openide.util.WeakListeners;
+ 
+ /**
+- * An implementation of the {@link AccessibilityQueryImplementation} based on the module-info.
++ * An implementation of the {@link AccessibilityQueryImplementation2} based on the module-info.
+  * Accessible through the {@link QuerySupport#createModuleInfoAccessibilityQuery}.
+  * @author Tomas Zezula
+  */
+@@ -179,7 +182,8 @@ private ExportsCache getCache() {
+                 todo.offer(tests.getRoots());
+             }
+             for (FileObject[] work : todo) {
+-                readExports(work, rootsCollector).ifPresent(data::add);
++                Collections.addAll(rootsCollector, work);
++                extractExports(work).ifPresent(data::add);
+             }
+ 
+             ec = new ExportsCache(rootsCollector, data);
+@@ -232,48 +236,49 @@ private Collection<FileObject[]> collectModuleRoots(
+         final MultiModule model = MultiModule.getOrCreate(mods, src);
+         for (String modName : model.getModuleNames()) {
+             final ClassPath cp = model.getModuleSources(modName);
+-            res.add(cp.getRoots());
++            if (cp != null) {
++                res.add(cp.getRoots());
++            }
+         }
+         return res;
+     }
+ 
+     @NonNull
+-    private static Optional<Pair<Set<FileObject>,Set<FileObject>>> readExports(
+-            @NonNull final FileObject[] roots,
+-            @NonNull final Set<? super FileObject> rootsCollector) {
+-        Collections.addAll(rootsCollector, roots);
+-        final Optional<FileObject> moduleInfo = Arrays.stream(roots)
+-                .map((root) -> root.getFileObject(MODULE_INFO_JAVA))
+-                .filter((mi) -> mi != null)
+-                .findFirst();
+-        if (!moduleInfo.isPresent()) {
+-            return Optional.empty();
+-        }
+-        final Set<FileObject> rootsSet = new HashSet<>();
+-        Collections.addAll(rootsSet, roots);
+-        final Set<FileObject> exportsSet = readExports(moduleInfo.get(), rootsSet);
+-        return Optional.of(Pair.of(rootsSet, exportsSet));
++    private static Optional<Pair<Set<FileObject>, Set<FileObject>>> extractExports(
++            @NonNull final FileObject[] roots) {
++        return Arrays.stream(roots)
++                .map(root -> root.getFileObject(MODULE_INFO_JAVA))
++                .filter(Objects::nonNull)
++                .findFirst()
++                .map(mi -> {
++                    Set<FileObject> rootsSet = new HashSet<>();
++                    Collections.addAll(rootsSet, roots);
++                    Set<FileObject> exportsSet = readExports(mi, rootsSet);
++                    return Pair.of(rootsSet, exportsSet);
++                });
+     }
+ 
+     @NonNull
+     private static Set<FileObject> readExports(
+-        @NonNull final FileObject moduleInfo,
+-        @NonNull final Set<FileObject> roots) {
++            @NonNull final FileObject moduleInfo,
++            @NonNull final Set<FileObject> roots) {
+         final Set<FileObject> exports = new HashSet<>();
+         final JavaSource src = JavaSource.forFileObject(moduleInfo);
+         if (src != null) {
+             try {
+                 src.runUserActionTask((cc) -> {
+                     cc.toPhase(JavaSource.Phase.RESOLVED);
+-                    final CompilationUnitTree cu = cc.getCompilationUnit();
+-                    if (cu.getTypeDecls().size() == 1 && cu.getTypeDecls().get(0) instanceof ModuleTree) {
+-                        final ModuleTree mt = (ModuleTree) cu.getTypeDecls().get(0);
+-                        final ModuleElement me = (ModuleElement) cc.getTrees().getElement(TreePath.getPath(cu, mt));
+-                        if (me != null) {
++                    CompilationUnitTree cu = cc.getCompilationUnit();
++                    ModuleTree mt = cu.getModule();
++                    if (mt != null) {
++                        TreePath path = TreePath.getPath(cu, mt);
++                        Element element = cc.getTrees().getElement(path);
++                        if (element.getKind() == ElementKind.MODULE) {
++                            ModuleElement me = (ModuleElement) element;
+                             for (ModuleElement.Directive directive : me.getDirectives()) {
+                                 if (directive.getKind() == ModuleElement.DirectiveKind.EXPORTS) {
+-                                    final ModuleElement.ExportsDirective export = (ModuleElement.ExportsDirective) directive;
+-                                    final String pkgName = export.getPackage().getQualifiedName().toString();
++                                    ModuleElement.ExportsDirective export = (ModuleElement.ExportsDirective) directive;
++                                    String pkgName = export.getPackage().getQualifiedName().toString();
+                                     exports.addAll(findPackage(pkgName, roots));
+                                 }
+                             }
+diff --git a/java/java.api.common/test/unit/src/org/netbeans/modules/java/api/common/queries/ModuleInfoAccessibilityQueryImplTest.java b/java/java.api.common/test/unit/src/org/netbeans/modules/java/api/common/queries/ModuleInfoAccessibilityQueryImplTest.java
+new file mode 100644
+index 000000000000..8484c955be98
+--- /dev/null
++++ b/java/java.api.common/test/unit/src/org/netbeans/modules/java/api/common/queries/ModuleInfoAccessibilityQueryImplTest.java
+@@ -0,0 +1,141 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.api.common.queries;
++
++import java.io.IOException;
++import java.io.OutputStream;
++import java.nio.charset.StandardCharsets;
++import java.util.Map;
++import org.junit.Before;
++import org.junit.Test;
++import org.netbeans.api.java.queries.AccessibilityQuery.Accessibility;
++import org.netbeans.api.project.Project;
++import org.netbeans.junit.NbTestCase;
++import org.netbeans.modules.java.api.common.TestProject;
++import org.netbeans.modules.java.api.common.ant.UpdateHelper;
++import org.netbeans.spi.java.queries.AccessibilityQueryImplementation2.Result;
++import org.netbeans.spi.project.support.ant.AntProjectHelper;
++import org.netbeans.spi.project.support.ant.EditableProperties;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
++import org.openide.util.test.MockLookup;
++
++/**
++ *
++ * @author peterhull
++ */
++public class ModuleInfoAccessibilityQueryImplTest extends NbTestCase {
++
++    private static final String MODULE_INFO_JAVA = "module-info.java";  //NOI18N
++
++    // Module definition which exports mymodule but not myinternal
++    private static final String MODULE_INFO = """
++                                              module mymodule {
++                                              exports mypackage;
++                                              }
++                                              """;
++
++    private FileObject src;
++    private FileObject test;
++    private FileObject workDir;
++    private TestProject testProject;
++    private FileObject mypackage;
++    private FileObject myinternal;
++
++    public ModuleInfoAccessibilityQueryImplTest(String name) {
++        super(name);
++    }
++
++    @Before
++    @Override
++    public void setUp() throws Exception {
++        super.setUp();
++        clearWorkDir();
++        MockLookup.setInstances(TestProject.createProjectType());
++        workDir = FileUtil.toFileObject(FileUtil.normalizeFile(getWorkDir()));
++        src = workDir.createFolder("src"); //NOI18N
++        test = workDir.createFolder("test"); //NOI18N
++        mypackage = src.createFolder("mypackage"); //NOI18N
++        myinternal = src.createFolder("myinternal"); //NOI18N
++        try (OutputStream os = src.createAndOpen(MODULE_INFO_JAVA)) {
++            os.write(MODULE_INFO.getBytes(StandardCharsets.UTF_8));
++        }
++        Project prj = TestProject.createProject(workDir, src, test);
++        testProject = prj.getLookup().lookup(TestProject.class);
++        // Using modules, so project has to be source level 9 or later.
++        UpdateHelper helper = testProject.getUpdateHelper();
++        EditableProperties properties = helper.getProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH);
++        properties.putAll(Map.of("javac.source", "9", "javac.target", "9"));
++        helper.putProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH, properties);
++        /* Modular project has the structure
++        ROOT
++        +-src
++        | +-mypackage
++        | | `-*.java
++        | +-myinternal
++        | + `-*.java
++        | `-module-info.java
++        `-test
++          `-mypackage
++            `-MyClassTest.java
++         */
++    }
++
++    /**
++     * Test of isPubliclyAccessible method, of class
++     * ModuleInfoAccessibilityQueryImpl. Tests if an exported package
++     * 'mypackage' is accessible.
++     *
++     * @throws java.io.IOException if test file creation failed.
++     */
++    @Test
++    public void testIsPubliclyAccessible1() throws IOException {
++        ModuleInfoAccessibilityQueryImpl instance = new ModuleInfoAccessibilityQueryImpl(null, testProject.getSourceRoots(), null, testProject.getTestRoots());
++        Result result = instance.isPubliclyAccessible(mypackage);
++        // Return value can be null, that's a fail
++        if (result == null) {
++            fail("AccessibilityQuery returned null"); //NOI18N
++        } else {
++            Accessibility accessibility = result.getAccessibility();
++            Accessibility expAccessibility = Accessibility.EXPORTED;
++            assertEquals(expAccessibility, accessibility);
++        }
++    }
++
++    /**
++     * Test of isPubliclyAccessible method, of class
++     * ModuleInfoAccessibilityQueryImpl. Tests if a not-exported package
++     * 'myinternal' is not accessible.
++     *
++     * @throws java.io.IOException if test file creation failed.
++     */
++    @Test
++    public void testIsPubliclyAccessible2() throws IOException {
++        ModuleInfoAccessibilityQueryImpl instance = new ModuleInfoAccessibilityQueryImpl(null, testProject.getSourceRoots(), null, testProject.getTestRoots());
++        Result result = instance.isPubliclyAccessible(myinternal);
++        // Return value can be null, that's a fail
++        if (result == null) {
++            fail("AccessibilityQuery returned null"); //NOI18N
++        } else {
++            Accessibility accessibility = result.getAccessibility();
++            Accessibility expAccessibility = Accessibility.PRIVATE;
++            assertEquals(expAccessibility, accessibility);
++        }
++    }
++}
+diff --git a/java/java.api.common/test/unit/src/org/netbeans/modules/java/api/common/queries/UnitTestsCompilerOptionsQueryImplTest.java b/java/java.api.common/test/unit/src/org/netbeans/modules/java/api/common/queries/UnitTestsCompilerOptionsQueryImplTest.java
+index e6529eb794c8..6928413cd2bd 100644
+--- a/java/java.api.common/test/unit/src/org/netbeans/modules/java/api/common/queries/UnitTestsCompilerOptionsQueryImplTest.java
++++ b/java/java.api.common/test/unit/src/org/netbeans/modules/java/api/common/queries/UnitTestsCompilerOptionsQueryImplTest.java
+@@ -112,7 +112,6 @@ public void testJDK9_UnnamedModule() {
+         assertEquals(Collections.emptyList(), args);
+     }
+ 
+-    @Ignore // TODO failure
+     public void testJDK9_TestInlinedIntoSourceModule() throws IOException {
+         setSourceLevel(project, "9"); //NOI18N
+         final String srcModuleName = "org.nb.App";  //NOI18N
+@@ -132,7 +131,6 @@ public void testJDK9_TestInlinedIntoSourceModule() throws IOException {
+             args);
+     }
+ 
+-    @Ignore // TODO failure
+     public void testJDK9_TestModule() throws IOException {
+         setSourceLevel(project, "9"); //NOI18N
+         final String srcModuleName = "org.nb.App";  //NOI18N
+@@ -169,7 +167,6 @@ public void testExplicitArgs() {
+         assertEquals(options, args);
+     }
+ 
+-    @Ignore // TODO failure
+     public void testSourceLevelChanges() throws IOException {
+         setSourceLevel(project, "1.8"); //NOI18N
+         final String srcModuleName = "org.nb.App";  //NOI18N
+@@ -194,7 +191,6 @@ public void testSourceLevelChanges() throws IOException {
+             args);
+     }
+ 
+-    @Ignore // TODO failure
+     public void testRootsChanges() throws IOException {
+         setSourceLevel(project, "9"); //NOI18N
+         final FileObject src2 = srcRoots.getRoots()[0].getParent().createFolder("src2");
+@@ -226,7 +222,6 @@ public void testRootsChanges() throws IOException {
+             args);
+     }
+ 
+-    @Ignore // TODO failure
+     public void testModuleInfoCreation() throws IOException {
+         setSourceLevel(project, "9"); //NOI18N
+         final CompilerOptionsQueryImplementation impl = QuerySupport.createUnitTestsCompilerOptionsQuery(project.getEvaluator(), srcRoots, testRoots);
+@@ -251,7 +246,6 @@ public void testModuleInfoCreation() throws IOException {
+             args);
+     }
+ 
+-    @Ignore // TODO failure
+     public void testModuleInfoChanges() throws IOException {
+         setSourceLevel(project, "9"); //NOI18N
+         final String srcModuleName = "org.nb.App";  //NOI18N
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/JavaSourceUtilImpl.java b/java/java.source.base/src/org/netbeans/modules/java/source/JavaSourceUtilImpl.java
+index ddb82083e4d5..3bfa153618b9 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/JavaSourceUtilImpl.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/JavaSourceUtilImpl.java
+@@ -22,7 +22,6 @@
+ 
+ import com.sun.source.tree.CompilationUnitTree;
+ import com.sun.source.tree.ModuleTree;
+-import com.sun.source.tree.Tree;
+ import com.sun.source.util.TreePath;
+ import org.netbeans.api.java.source.support.ErrorAwareTreeScanner;
+ import com.sun.source.util.Trees;
+@@ -90,7 +89,6 @@
+ import org.netbeans.spi.java.classpath.support.ClassPathSupport;
+ import org.openide.filesystems.FileObject;
+ import org.openide.filesystems.FileUtil;
+-import org.openide.util.Pair;
+ import org.openide.util.Parameters;
+ 
+ /**
+@@ -102,6 +100,7 @@
+ public final class JavaSourceUtilImpl extends org.netbeans.modules.java.preprocessorbridge.spi.JavaSourceUtilImpl {
+     private static final Logger LOGGER = Logger.getLogger(JavaSourceUtilImpl.class.getName());
+     
++    @Override
+     protected long createTaggedCompilationController(FileObject file, int position, long currenTag, Object[] out) throws IOException {
+         assert file != null;
+         final JavaSource js = JavaSource.forFileObject(file);
+@@ -290,12 +289,8 @@ protected ModuleInfoHandle getModuleInfoHandle(@NonNull final Object javaSource)
+                     public String parseModuleName() throws IOException {
+                         cc.toPhase(JavaSource.Phase.PARSED);
+                         final CompilationUnitTree cu = cc.getCompilationUnit();
+-                        for (Tree decl : cu.getTypeDecls()) {
+-                            if (decl.getKind() == Tree.Kind.MODULE) {
+-                                return ((ModuleTree) decl).getName().toString();
+-                            }
+-                        }
+-                        return null;
++                        ModuleTree mt = cu.getModule();
++                        return mt != null ? mt.getName().toString() : null;
+                     }
+ 
+                     @Override
+diff --git a/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/JavaSourceUtilImplTest.java b/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/JavaSourceUtilImplTest.java
+index b644653b09cc..875847a13e06 100644
+--- a/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/JavaSourceUtilImplTest.java
++++ b/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/JavaSourceUtilImplTest.java
+@@ -28,6 +28,7 @@
+ import java.util.HashSet;
+ import java.util.Map;
+ import java.util.Map.Entry;
++import java.util.Objects;
+ import java.util.Set;
+ import java.util.stream.Collectors;
+ import javax.swing.event.ChangeListener;
+@@ -39,6 +40,8 @@
+ import org.netbeans.api.java.classpath.ClassPath;
+ import org.netbeans.api.java.classpath.JavaClassPathConstants;
+ import org.netbeans.api.java.queries.AnnotationProcessingQuery;
++import org.netbeans.modules.java.preprocessorbridge.spi.JavaSourceUtilImpl.ModuleInfoHandle;
++import org.netbeans.api.java.source.JavaSource;
+ import org.netbeans.api.java.source.SourceUtilsTestUtil2;
+ import org.netbeans.api.java.source.TestUtilities;
+ import org.netbeans.junit.NbTestCase;
+@@ -65,6 +68,11 @@ public class JavaSourceUtilImplTest extends NbTestCase {
+     private FileObject cache;
+     private FileObject cacheSrc;
+     private FileObject ap;
++    private final String MODULE_INFO_SOURCE=
++            """
++            module org.nb {
++            }
++            """;
+     
+     public JavaSourceUtilImplTest(String name) {
+         super(name);
+@@ -274,7 +282,15 @@ private static void dump(
+         }
+         System.out.printf("Dumped into: %s%n", FileUtil.getFileDisplayName(wd));
+     }
+-
++    @Test
++    public void testGetModuleInfoHandle() throws Exception {
++        JavaSourceUtilImpl impl = new JavaSourceUtilImpl();
++        FileObject ff = createFile(root,"module-info.java", MODULE_INFO_SOURCE);
++        JavaSource src = Objects.requireNonNull(JavaSource.forFileObject(ff));
++        ModuleInfoHandle mih = Objects.requireNonNull(impl.getModuleInfoHandle(src));
++        String moduleName = mih.parseModuleName();
++        assertEquals("org.nb", moduleName);
++    }
+     static {
+         System.setProperty("SourcePath.no.source.filter", "true");
+     }
