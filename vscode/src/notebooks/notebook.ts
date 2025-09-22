@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,10 +25,11 @@ import { serializeCell } from './utils';
 import Ajv from "ajv";
 import schema = require('./nbformat.v4.d7.schema.json');
 import { LOGGER } from '../logger';
+import { l10n } from '../localiser';
 
 export class NotebookVersionInfo {
-  static readonly NBFORMAT = 4;
-  static readonly NBFORMAT_MINOR = 5;
+    static readonly NBFORMAT = 4;
+    static readonly NBFORMAT_MINOR = 5;
 }
 
 export class Notebook {
@@ -55,10 +56,10 @@ export class Notebook {
     ): Notebook {
         const cells = data.cells.map((cell) => {
             try {
-            return serializeCell(cell)
+                return serializeCell(cell)
             } catch (cellError) {
-            console.error('Error serializing cell: ', cell, cellError);
-            throw new Error('Failed to serialize one or more cells')
+                LOGGER.error('Error serializing cell: ' + cell + cellError);
+                throw new Error(l10n.value("jdk.notebook.cell.serializer.error_msg"))
             }
         })
         return new Notebook(cells, language);
@@ -66,10 +67,10 @@ export class Notebook {
 
     toJSON(): INotebook {
         return {
-        nbformat: this.nbformat,
-        nbformat_minor: this.nbformat_minor,
-        metadata: this.metadata,
-        cells: this.cells,
+            nbformat: this.nbformat,
+            nbformat_minor: this.nbformat_minor,
+            metadata: this.metadata,
+            cells: this.cells,
         };
     }
 
@@ -77,17 +78,18 @@ export class Notebook {
         const json = JSON.stringify(this.toJSON(), null, 2);
         return new TextEncoder().encode(json);
     }
-        
-    assertValidNotebook(){
+
+    assertValidNotebook() {
         Notebook.assertValidNotebookJson(this.toJSON());
     }
 
     static assertValidNotebookJson(notebook: INotebook) {
         if (!Notebook.validateFn(notebook)) {
             const errors = (Notebook.validateFn.errors || [])
-            .map(e => `${e.schemaPath || '/'} ${e.message}`)
-            .join('\n');
-            throw new Error(`Notebook JSON validation failed:\n${errors}`);
+                .map(e => `${e.schemaPath || '/'} ${e.message}`)
+                .join('\n');
+            LOGGER.error(`Notebook JSON validation failed:\n${errors}`);
+            throw new Error(l10n.value("jdk.notebook.validation.failed.error_msg"));
         }
         LOGGER.debug("Notebook successfully validated.");
     }

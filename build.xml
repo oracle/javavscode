@@ -67,6 +67,7 @@
             patches/nb-telemetry.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
 	        patches/upgrade-lsp4j.diff
+	        patches/updated-show-input-params.diff
 	        patches/java-notebooks.diff
         </string>
         <filterchain>

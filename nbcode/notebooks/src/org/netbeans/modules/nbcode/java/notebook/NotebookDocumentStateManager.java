@@ -16,8 +16,12 @@
 package org.netbeans.modules.nbcode.java.notebook;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +33,7 @@ import org.eclipse.lsp4j.NotebookDocumentChangeEventCellTextContent;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.VersionedNotebookDocumentIdentifier;
 
@@ -47,9 +52,16 @@ public class NotebookDocumentStateManager {
     public NotebookDocumentStateManager(NotebookDocument notebookDoc, List<TextDocumentItem> cells) {
         this.notebookDoc = notebookDoc;
         this.cellsOrder = new ArrayList<>();
-        for (int i = 0; i < cells.size(); i++) {
-            addNewCellState(notebookDoc.getCells().get(i), cells.get(i));
-            this.cellsOrder.add(cells.get(i).getUri());
+        Iterator<NotebookCell> notebookCellsIterator = notebookDoc.getCells().iterator();
+
+        for (TextDocumentItem cellItem : cells) {
+            if (notebookCellsIterator.hasNext()) {
+                addNewCellState(notebookCellsIterator.next(), cellItem);
+                this.cellsOrder.add(cellItem.getUri());
+            } else {
+                LOG.log(Level.SEVERE, "Mismatched number of cells and cell items during initialization.");
+                break;
+            }
         }
     }
 
@@ -83,41 +95,66 @@ public class NotebookDocumentStateManager {
         if (updatedStructure == null) {
             return;
         }
-        // Handle deleted cells
-        int deletedCells = updatedStructure.getArray().getDeleteCount();
-        if (deletedCells > 0 && updatedStructure.getDidClose() != null) {
-            updatedStructure.getDidClose().forEach(cell -> {
-                String uri = cell.getUri();
+
+        Set<String> closedCellUris = new HashSet<>();
+        Set<String> openedCellUris = new HashSet<>();
+
+        if (updatedStructure.getDidClose() != null) {
+            for (TextDocumentIdentifier closedCell : updatedStructure.getDidClose()) {
+                String uri = closedCell.getUri();
+                closedCellUris.add(uri);
 
                 CellState removed = cellsMap.remove(uri);
                 cellsNotebookMap.remove(uri);
-                cellsOrder.remove(uri);
                 if (removed != null) {
-                    LOG.log(Level.FINE, "Removed cell: {0}", uri);
+                    LOG.log(Level.FINE, "Removed cell from map: {0}", uri);
                 }
-            });
+            }
         }
 
-        // Handle added cells
-        int startIdx = updatedStructure.getArray().getStart();
         List<TextDocumentItem> cellsItem = updatedStructure.getDidOpen();
         List<NotebookCell> cellsDetail = updatedStructure.getArray().getCells();
 
-        if (cellsItem != null && cellsDetail != null && cellsDetail.size() == cellsItem.size()) {
+        if (cellsItem != null && cellsDetail != null) {
             for (int i = 0; i < cellsDetail.size(); i++) {
-                addNewCellState(cellsDetail.get(i), cellsItem.get(i));
-                cellsNotebookMap.put(cellsItem.get(i).getUri(), notebookDoc.getUri());
-                if (startIdx + i <= cellsOrder.size()) {
-                    cellsOrder.add(startIdx + i, cellsItem.get(i).getUri());
-                } else {
-                    LOG.warning("unable to add cell in the list of cells");
-                }
+                TextDocumentItem cellItem = cellsItem.get(i);
+                String uri = cellItem.getUri();
+                openedCellUris.add(uri);
+
+                addNewCellState(cellsDetail.get(i), cellItem);
+                cellsNotebookMap.put(uri, notebookDoc.getUri());
             }
-        } else {
-            LOG.severe("cell details is null or array size mismatch is present");
-            throw new IllegalStateException("Error while adding cell to the notebook state");
         }
 
+        synchronized (cellsOrder) {
+            int startIdx = updatedStructure.getArray().getStart();
+            int deleteCount = updatedStructure.getArray().getDeleteCount();
+
+            ListIterator<String> iterator = cellsOrder.listIterator(startIdx);
+
+            for (int i = 0; i < deleteCount && iterator.hasNext(); i++) {
+                String removedUri = iterator.next();
+                iterator.remove();
+
+                if (!closedCellUris.contains(removedUri)) {
+                    LOG.log(Level.WARNING, "Removed URI {0} not found in didClose list", removedUri);
+                }
+                LOG.log(Level.FINE, "Removed cell from order: {0}", removedUri);
+            }
+
+            if (cellsItem != null) {
+                for (TextDocumentItem cellItem : cellsItem) {
+                    String uri = cellItem.getUri();
+                    iterator.add(uri);
+
+                    if (!openedCellUris.contains(uri)) {
+                        LOG.log(Level.WARNING, "Added URI {0} not found in didOpen list", uri);
+                    }
+
+                    LOG.log(Level.FINE, "Added cell to order: {0}", uri);
+                }
+            }
+        }
     }
 
     private void updateNotebookCellData(List<NotebookCell> data) {

@@ -201,12 +201,12 @@ public class NotebookSessionManager {
     private void onJshellInit(String notebookId, JShell jshell) {
         jshell.onShutdown(shell -> closeSession(notebookId));
 
-        List<String> packages = NotebookConfigs.getInstance().getImplicitImports();
-        if (packages != null && !packages.isEmpty()) {
-            packages.forEach(pkg -> CodeEval.getInstance().runCode(jshell, "import " + pkg));
+        List<String> elements = NotebookConfigs.getInstance().getImplicitImports();
+        if (elements != null && !elements.isEmpty()) {
+            elements.forEach(el -> CodeEval.getInstance().runCode(jshell, "import " + el));
         } else {
             List.of("java.util", "java.io", "java.math")
-                    .forEach(pkg -> CodeEval.getInstance().runCode(jshell, "import " + pkg + ".*"));
+                    .forEach(el -> CodeEval.getInstance().runCode(jshell, "import " + el + ".*"));
         }
     }
 

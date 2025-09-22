@@ -15,6 +15,7 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,10 @@ import org.eclipse.lsp4j.FoldingRangeRequestParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.ImplementationParams;
+import org.eclipse.lsp4j.InlayHint;
+import org.eclipse.lsp4j.InlayHintParams;
+import org.eclipse.lsp4j.InlineValue;
+import org.eclipse.lsp4j.InlineValueParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MessageParams;
@@ -67,6 +72,7 @@ import org.eclipse.lsp4j.WillSaveTextDocumentParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
 import org.netbeans.modules.java.lsp.server.protocol.ShowStatusMessageParams;
+import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -74,6 +80,9 @@ import org.openide.util.lookup.ServiceProvider;
  * @author atalati
  */
 @ServiceProvider(service = NotebookDocumentServiceHandler.class)
+@NbBundle.Messages({"kernel.initializing=Intializing Java kernel for notebook.",
+    "kernel.initialize.success=Java kernel initialized successfully.",
+    "kernel.initialize.failed=Error could not initialize Java kernel for the notebook."})
 public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServiceHandler {
 
     private static final Logger LOG = Logger.getLogger(NotebookDocumentServiceHandler.class.getName());
@@ -88,13 +97,13 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
             if (client == null) {
                 return;
             }
-            client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, "Intializing Java kernel for notebook."));
+            client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, Bundle.kernel_initializing()));
             NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()).whenComplete((JShell jshell, Throwable t) -> {
                 if (t == null) {
-                    client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, "Java kernel initialized successfully"));
+                    client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, Bundle.kernel_initialize_success()));
                 } else {
                     // if package import fails user is not informed ?
-                    client.showMessage(new MessageParams(MessageType.Error, "Error could not initialize Java kernel for the notebook."));
+                    client.showMessage(new MessageParams(MessageType.Error, Bundle.kernel_initialize_failed()));
                     LOG.log(Level.SEVERE, "Error could not initialize Java kernel for the notebook. : {0}", t.getMessage());
                 }
             });
@@ -122,7 +131,10 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
 
     @Override
     public void didClose(DidCloseNotebookDocumentParams params) {
-        NotebookSessionManager.getInstance().closeSession(params.getNotebookDocument().getUri());
+        String notebookUri = params.getNotebookDocument().getUri();
+        NotebookSessionManager.getInstance().closeSession(notebookUri);
+        notebookStateMap.remove(notebookUri);
+        notebookCellMap.entrySet().removeIf(entry -> notebookUri.equals(entry.getValue()));
     }
 
     @Override
@@ -231,4 +243,13 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
         return CompletableFuture.completedFuture(null);
     }
 
+    @Override
+    public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
+        return CompletableFuture.completedFuture(new ArrayList<>());
+    }
+
+    @Override
+    public CompletableFuture<List<InlineValue>> inlineValue(InlineValueParams params) {
+        return CompletableFuture.completedFuture(new ArrayList<>());
+    }
 }

@@ -18,6 +18,7 @@ package org.netbeans.modules.nbcode.java.notebook;
 import jdk.jshell.JShell;
 import jdk.jshell.SnippetEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -28,22 +29,27 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jdk.jshell.Diag;
+import jdk.jshell.JShellException;
 import jdk.jshell.SourceCodeAnalysis;
 import org.netbeans.modules.java.lsp.server.notebook.CellExecutionResult;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams.Builder;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams.EXECUTION_STATUS;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
+import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
 /**
  *
  * @author atalati
  */
+@NbBundle.Messages({"InterruptCodeCell.exec.success=Code execution stopped successfully",
+"InterruptCodeCell.info.msg=Code execution stopped successfully"})
 public class CodeEval {
 
     private static final Logger LOG = Logger.getLogger(CodeEval.class.getName());
-    private static final String CODE_EXEC_INTERRUPT_SUCCESS_MESSAGE = "Code execution stopped successfully";
-    private static final String CODE_EXEC_INTERRUPTED_MESSAGE = "Code execution was interrupted";
+    private static final String CODE_EXEC_INTERRUPT_SUCCESS_MESSAGE = Bundle.InterruptCodeCell_exec_success();
+    private static final String CODE_EXEC_INTERRUPTED_MESSAGE = Bundle.InterruptCodeCell_info_msg();
     private static final Pattern LINEBREAK = Pattern.compile("\\R");
 
     private final Map<String, RequestProcessor> codeExecMap = new ConcurrentHashMap<>();
@@ -70,14 +76,14 @@ public class CodeEval {
     public String interrupt(List<Object> arguments) {
         if (arguments == null) {
             LOG.warning("Received null in interrupt execution request");
-            return "Arguments list is null";
+            throw new IllegalArgumentException("Recevied null arguments");
         }
 
         String notebookId = NotebookUtils.getArgument(arguments, 0, String.class);
 
         if (notebookId == null) {
             LOG.warning("Received empty notebookId in interrupt execution request");
-            return "Empty notebookId received";
+            throw new IllegalArgumentException("Empty notebookId received");
         }
 
         return interruptCodeExecution(notebookId);
@@ -150,13 +156,12 @@ public class CodeEval {
 
     private void codeEvalTaskRunnable(CompletableFuture<Boolean> future, JShell jshell, String notebookId, String cellId, String sourceCode) {
         try {
-            activeCellExecutionMapping.put(notebookId, cellId);
-            sendNotification(notebookId, EXECUTION_STATUS.EXECUTING);
-
             if (jshell == null) {
-                future.completeExceptionally(new ExceptionInInitializerError("notebook session not found or closed"));
+                future.completeExceptionally(new IllegalStateException("notebook session not found or closed"));
                 return;
             }
+            activeCellExecutionMapping.put(notebookId, cellId);
+            sendNotification(notebookId, EXECUTION_STATUS.EXECUTING);
 
             runCode(jshell, sourceCode, notebookId);
             flushStreams(notebookId);
@@ -220,12 +225,14 @@ public class CodeEval {
 
     private List<String> getRuntimeErrors(SnippetEvent event) {
         List<String> runtimeErrors = new ArrayList<>();
-        if (event.exception() != null) {
-            if (!event.exception().getMessage().isBlank()) {
-                runtimeErrors.add(event.exception().getMessage());
+        JShellException jshellException = event.exception();
+        if (jshellException != null) {
+            String msg = jshellException.getMessage();
+            if (msg != null && !msg.isBlank()) {
+                runtimeErrors.add(msg);
             }
-            if (!event.exception().fillInStackTrace().toString().isBlank()) {
-                runtimeErrors.add(event.exception().fillInStackTrace().toString());
+            if (!jshellException.fillInStackTrace().toString().isBlank()) {
+                runtimeErrors.add(jshellException.fillInStackTrace().toString());
             }
         }
 
@@ -233,12 +240,7 @@ public class CodeEval {
     }
 
     private List<String> getSnippetValue(SnippetEvent event) {
-        List<String> snippetValues = new ArrayList<>();
-        if (event.value() != null) {
-            snippetValues.add(event.value());
-        }
-
-        return snippetValues;
+        return event.value() != null ? List.of(event.value()) : Collections.emptyList();
     }
 
     private void flushStreams(String notebookId) {
@@ -335,42 +337,19 @@ public class CodeEval {
                 }
             }
 
-            NotebookCellExecutionProgressResultParams params;
+            Builder b = NotebookCellExecutionProgressResultParams.builder(notebookId, cellId).status(status);
             if (msg == null) {
                 if (diags != null) {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .diagnostics(diags)
-                            .status(status)
-                            .build();
+                    b.diagnostics(diags);
                 } else if (errorDiags != null) {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .errorDiagnostics(errorDiags)
-                            .status(status)
-                            .build();
-                } else {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .status(status)
-                            .build();
+                    b.errorDiagnostics(errorDiags);
                 }
             } else {
-                if (isError) {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .status(status)
-                            .errorStream(CellExecutionResult.text(msg))
-                            .build();
-                } else {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .status(status)
-                            .outputStream(CellExecutionResult.text(msg))
-                            .build();
-                }
+                b = isError
+                        ? b.errorStream(CellExecutionResult.text(msg))
+                        : b.outputStream(CellExecutionResult.text(msg));
             }
-
+            NotebookCellExecutionProgressResultParams params = b.build();
             NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
             if (client != null) {
                 client.notifyNotebookCellExecutionProgress(params);

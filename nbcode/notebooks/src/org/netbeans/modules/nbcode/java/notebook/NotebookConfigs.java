@@ -21,17 +21,18 @@ import com.google.gson.JsonPrimitive;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.lsp4j.ConfigurationItem;
 import org.eclipse.lsp4j.ConfigurationParams;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
-import org.openide.util.Exceptions;
 
 /**
  *
  * @author atalati
  */
 public class NotebookConfigs {
+    private static final Logger LOG = Logger.getLogger(NotebookConfigs.class.getName());
 
     private static final String[] NOTEBOOK_CONFIG_LABELS = {"notebook.classpath",
         "notebook.modulepath",
@@ -39,13 +40,13 @@ public class NotebookConfigs {
         "notebook.enablePreview",
         "notebook.implicitImports",
         "notebook.projects.mapping"};
-    private String classPath = null;
-    private String modulePath = null;
-    private String addModules = null;
-    private boolean enablePreview = false;
-    private JsonObject notebookProjectMapping = new JsonObject();
-    private List<String> implicitImports = null;
-    private CompletableFuture<Void> initialized;
+    private volatile String classPath = null;
+    private volatile String modulePath = null;
+    private volatile String addModules = null;
+    private volatile boolean enablePreview = false;
+    private volatile JsonObject notebookProjectMapping = new JsonObject();
+    private volatile List<String> implicitImports = null;
+    private volatile CompletableFuture<Void> initialized;
 
     public CompletableFuture<Void> getInitialized() {
         return initialized;
@@ -91,8 +92,8 @@ public class NotebookConfigs {
     public void initConfigs() {
         try {
             this.initialized = initializeConfigs();
-        } catch (InterruptedException | ExecutionException ex) {
-            Exceptions.printStackTrace(ex);
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Exception occurred while init configs for notebooks: {0}", ex.getMessage());
         }
     }
 
@@ -109,7 +110,7 @@ public class NotebookConfigs {
         return items;
     }
 
-    private CompletableFuture<Void> initializeConfigs() throws InterruptedException, ExecutionException {
+    private CompletableFuture<Void> initializeConfigs() {
         NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
         if (client != null) {
             CompletableFuture<List<Object>> configValues = client.configuration(new ConfigurationParams(getConfigItems()));
@@ -148,7 +149,7 @@ public class NotebookConfigs {
     }
 
     public void notebookConfigsChangeListener(JsonObject settings) {
-        // depends on #8514 PR open in Netbeans
+        // TODO: Cache configurations using changes done in #8514 PR open in Netbeans
 
     }
 }

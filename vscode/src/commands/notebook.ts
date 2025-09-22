@@ -68,10 +68,13 @@ const createNewNotebook = async (ctx?: any) => {
         if (notebookDir == null) {
             window.showErrorMessage(l10n.value("jdk.notebook.create.error_msg.path.not.selected"));
             return;
+        } else if(!fs.existsSync(notebookDir.fsPath)){
+            window.showErrorMessage(l10n.value("jdk.notebook.create.error_msg.dir.not.found"));
+            return;
         }
 
         const notebookName = await window.showInputBox({
-            prompt: l10n.value("jdk.notebook.create.new.notebook.input.name", { fileExtension: extConstants.NOTEBOOK_FILE_EXTENSION }),
+            prompt: l10n.value("jdk.notebook.create.new.notebook.input.name"),
             value: `Untitled.${extConstants.NOTEBOOK_FILE_EXTENSION}`
         });
 
@@ -168,7 +171,7 @@ const notebookChangeProjectContextHandler = async (ctx: INotebookToolbar) => {
                 { ...oldValue, [uri.fsPath]: res },
                 ConfigurationTarget.Workspace);
         } else {
-            throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest", { client });
+            throw l10n.value("jdk.extension.error_msg.doesntSupportNoteboookCellExecution", { client });
         }
     } catch (error) {
         LOGGER.error(`Error occurred while opening notebook : ${isError(error) ? error.message : error}`);

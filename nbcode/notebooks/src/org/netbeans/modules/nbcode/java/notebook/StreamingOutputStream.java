@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.openide.util.RequestProcessor;
 import org.openide.util.RequestProcessor.Task;
 
@@ -30,7 +31,7 @@ import org.openide.util.RequestProcessor.Task;
 public class StreamingOutputStream extends OutputStream {
 
     private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    private Consumer<byte[]> callback;
+    private volatile Consumer<byte[]> callback;
     private static final int MAX_BUFFER_SIZE = 1024;
     private final AtomicBoolean isPeriodicFlushOutputStream;
 
@@ -62,6 +63,13 @@ public class StreamingOutputStream extends OutputStream {
 
     @Override
     public synchronized void write(byte[] b, int off, int len) throws IOException {
+        if (len >= MAX_BUFFER_SIZE) {
+            flushToCallback();
+            byte[] chunk = new byte[len];
+            System.arraycopy(b, off, chunk, 0, len);
+            callback.accept(chunk);
+            return;
+        }
         buffer.write(b, off, len);
         ifBufferOverflowFlush();
     }
@@ -73,8 +81,7 @@ public class StreamingOutputStream extends OutputStream {
 
     @Override
     public synchronized void write(byte[] b) throws IOException {
-        buffer.write(b);
-        ifBufferOverflowFlush();
+        write(b, 0, b.length);
     }
 
     @Override
@@ -84,6 +91,7 @@ public class StreamingOutputStream extends OutputStream {
         super.close();
     }
 
+    @NonNull
     public void setCallback(Consumer<byte[]> cb) {
         this.callback = cb;
     }

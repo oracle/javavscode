@@ -88,9 +88,13 @@ public class JshellStreamsHandler implements AutoCloseable {
     public void flushOutputStreams() {
         try {
             outStream.flush();
+        } catch (IOException exception) {
+            LOG.log(Level.WARNING, "IOException occurred while flushing out stream: {0}", exception.getMessage());
+        }
+        try {
             errStream.flush();
-        } catch (IOException ignored) {
-            // nothing can be done
+        } catch (IOException exception) {
+            LOG.log(Level.WARNING, "IOException occurred while flushing error stream: {0}", exception.getMessage());
         }
     }
 
@@ -99,11 +103,23 @@ public class JshellStreamsHandler implements AutoCloseable {
         try {
             printOutStream.close();
             printErrStream.close();
+        } catch (Exception exception) {
+            LOG.log(Level.WARNING, "Exception occurred while closing print streams: {0}", exception.getMessage());
+        }
+        try {
             outStream.close();
+        } catch (IOException exception) {
+            LOG.log(Level.WARNING, "IOException occurred while closing out stream: {0}", exception.getMessage());
+        }
+        try {
             errStream.close();
+        } catch (IOException exception) {
+            LOG.log(Level.WARNING, "IOException occurred while closing error stream: {0}", exception.getMessage());
+        }
+        try {
             inputStream.close();
-        } catch (IOException ex) {
-            LOG.log(Level.WARNING, "IOException occurred while closing the streams {0}", ex.getMessage());
+        } catch (IOException exception) {
+            LOG.log(Level.WARNING, "IOException occurred while closing input stream: {0}", exception.getMessage());
         }
     }
 }

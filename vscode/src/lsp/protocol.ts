@@ -366,10 +366,10 @@ export namespace NotebookCellExecutionResult {
         notebookUri: string;
         cellUri: string;
         status: STATUS;
-        errorStream: Result;
-        diagnostics: string[];
-        errorDiagnostics: string[];
-        outputStream: Result;
+        errorStream?: Result;
+        diagnostics?: string[];
+        errorDiagnostics?: string[];
+        outputStream?: Result;
         metadata?: any;
     }
     export const type = new ProtocolNotificationType<params, void>('notebook/execution/progress');

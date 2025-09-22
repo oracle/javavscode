@@ -55,14 +55,12 @@ public class CommandHandler {
             return ProjectConfigurationUtils.buildProject(prj)
                     .thenCompose(isBuildSuccess -> {
                         if (isBuildSuccess) {
-                            List<String> vmOptions = ProjectConfigurationUtils.launchVMOptions(prj);
-                            LOG.log(Level.INFO, "Opened Jshell instance with project context {0}", context);
-                            return CompletableFuture.completedFuture(vmOptions);
+                            LOG.log(Level.INFO, "Opened Jshell instance with build success status");
                         } else {
-                            CompletableFuture<List<String>> failed = new CompletableFuture<>();
-                            failed.completeExceptionally(new RuntimeException("Build failed"));
-                            return failed;
-                        }
+                            LOG.log(Level.WARNING, "Opened Jshell instance with build failed status");
+                        }                        
+                        List<String> vmOptions = ProjectConfigurationUtils.launchVMOptions(prj);
+                        return CompletableFuture.completedFuture(vmOptions);
                     });
         });
     }
