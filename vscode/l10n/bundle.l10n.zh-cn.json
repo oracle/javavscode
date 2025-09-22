@@ -36,8 +36,8 @@
   "jdk.downloader.label.selectJdk":"选择安装的 JDK",
   "jdk.downloader.label.installJdk": "安装在所选位置",
   "jdk.downloader.message.noLocationSelected": "未选择位置。",
-  "jdk.downloader.message.completedInstallingJdk": "已完成 JDK 安装。请重新加载 Visual Studio Code 来启用它。",
-  "jdk.downloader.message.addedJdkPath": "已将 JDK 路径添加到配置设置。请重新加载 Visual Studio Code 来启用它。",
+  "jdk.downloader.message.completedInstallingJdk": "已完成 JDK 安装。",
+  "jdk.downloader.message.addedJdkPath": "已将 JDK 路径添加到配置设置。",
   "jdk.downloader.message.reload": "立即重新加载",
   "jdk.explorer.error_message.cannotDeleteNode":"无法删除节点 {label}",
   "jdk.extension.label.openInNewWindow": "在新窗口中打开",
@@ -65,7 +65,7 @@
   "jdk.extension.lspServer.message.noJdkFound": "未找到 JDK！",
   "jdk.extension.lspServer.label.downloadAndSetup": "自动下载 JDK 并进行设置",
   "jdk.extension.lspServer.error_message": "初始化时出错：{reason}",
-  "jdk.extension.nbjavac.message.supportedVersionRequired": "需要支持的 javac 版本。请启用 nb-javac 库或使用 JDK 24+",
+  "jdk.extension.nbjavac.message.supportedVersionRequired": "需要支持的 javac 版本。请启用 nb-javac 库或使用 JDK 25+",
   "jdk.extension.nbjavac.label.enableNbjavac": "启用 nb-javac 库",
   "jdk.extension.nbjavac.label.openSettings": "打开设置",
   "jdk.extension.javaSupport.label.installGpl": "安装 GPLv2+CPEx 代码",
@@ -97,6 +97,6 @@
   "jdk.extension.utils.error_message.failedHttpsRequest": "无法获取 {url} ({statusCode})",
   "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} 未启用",
   "jdk.telemetry.consent": "是否允许向 Oracle 报告匿名遥测数据？您随时可以通过 jdk.telemetry.enabled 对应的设置选择退出或加入。",
-  "jdk.configChanged": "Configurations updated for oracle java extenion , please reload the window to restart the extension.",
-  "jdk.configChangedFailed": "Error while updating extension configurations , please reload the window to restart the extension."
+  "jdk.configChanged": "Configuration updated for the Oracle Java extension. Please reload the window to enable it.",
+  "jdk.configChangedFailed": "Error while updating the configuration for the Oracle Java extension. Please reload the window to restart the extension."
 }

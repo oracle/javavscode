@@ -36,8 +36,8 @@
   "jdk.downloader.label.selectJdk":"Select installed JDK",
   "jdk.downloader.label.installJdk": "Install in selected location",
   "jdk.downloader.message.noLocationSelected": "No location selected.",
-  "jdk.downloader.message.completedInstallingJdk": "Completed installing JDK. Please reload Visual Studio Code to enable it.",
-  "jdk.downloader.message.addedJdkPath": "Added JDK Path to the configuration settings. Please reload Visual Studio Code to enable it.",
+  "jdk.downloader.message.completedInstallingJdk": "Completed installing JDK.",
+  "jdk.downloader.message.addedJdkPath": "Added JDK Path to the configuration settings.",
   "jdk.downloader.message.reload": "Reload now",
   "jdk.explorer.error_message.cannotDeleteNode":"Cannot delete node {label}",
   "jdk.extension.label.openInNewWindow": "Open in new window",
@@ -65,7 +65,7 @@
   "jdk.extension.lspServer.message.noJdkFound": "No JDK found!",
   "jdk.extension.lspServer.label.downloadAndSetup": "Download JDK and setup automatically",
   "jdk.extension.lspServer.error_message": "Error initializing {reason}",
-  "jdk.extension.nbjavac.message.supportedVersionRequired": "Supported version of javac needed. Please either enable the nb-javac library, or use JDK 24+",
+  "jdk.extension.nbjavac.message.supportedVersionRequired": "Supported version of javac needed. Please either enable the nb-javac library, or use JDK 25+",
   "jdk.extension.nbjavac.label.enableNbjavac": "Enable the nb-javac library",
   "jdk.extension.nbjavac.label.openSettings": "Open settings",
   "jdk.extension.javaSupport.label.installGpl": "Install GPLv2+CPEx code",
@@ -97,6 +97,6 @@
   "jdk.extension.utils.error_message.failedHttpsRequest": "Failed to get {url} ({statusCode})",
   "jdk.extension.error_msg.notEnabled": "{SERVER_NAME} not enabled",
   "jdk.telemetry.consent": "Allow anonymous telemetry data to be reported to Oracle? You may opt-out or in at any time from the Settings for jdk.telemetry.enabled.",
-  "jdk.configChanged": "Configurations updated for oracle java extenion , please reload the window to restart the extension.",
-  "jdk.configChangedFailed": "Error while updating extension configurations , please reload the window to restart the extension."
+  "jdk.configChanged": "Configuration updated for the Oracle Java extension. Please reload the window to enable it.",
+  "jdk.configChangedFailed": "Error while updating the configuration for the Oracle Java extension. Please reload the window to restart the extension."
 }
