@@ -9835,8 +9835,11 @@ SOFTWARE.
 
 ------------------ END OF DEPENDENCY LICENSE --------------------
 
-Dependancy: nbformat
+Dependency: nbformat.v4.5.schema.json
 ====================
+Accessible at: vscode/src/notebooks/nbformat.v4.5.d7.schema.json
+Modified from source at: https://github.com/jupyter/nbformat/blob/main/nbformat/v4/nbformat.v4.5.schema.json
+License: BSD 3-Clause License
 
 ------------------ START OF DEPENDENCY LICENSE --------------------
 BSD 3-Clause License

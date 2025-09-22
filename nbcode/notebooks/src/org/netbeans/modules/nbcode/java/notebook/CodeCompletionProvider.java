@@ -16,9 +16,8 @@
 package org.netbeans.modules.nbcode.java.notebook;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,34 +62,27 @@ public class CodeCompletionProvider {
                 }
 
                 SourceCodeAnalysis sourceCodeAnalysis = instance.sourceCodeAnalysis();
-                String textToComplete = getTextToComplete(
+                List<Suggestion> suggestions = getSuggestions(
                         params.getTextDocument().getUri(),
                         params.getPosition(),
                         state,
                         sourceCodeAnalysis
                 );
 
-                List<Suggestion> suggestions = sourceCodeAnalysis.completionSuggestions(
-                        textToComplete,
-                        textToComplete.length(),
-                        new int[1]
-                );
-
                 List<CompletionItem> completionItems = new ArrayList<>();
-                Map<String, Boolean> visited = new HashMap<>();
+                HashSet<String> visited = new HashSet<>();
 
                 for (Suggestion suggestion : suggestions) {
                     String continuation = suggestion.continuation();
-                    if (!visited.containsKey(continuation)) {
+                    if (visited.add(continuation)) {
                         completionItems.add(createCompletionItem(continuation));
-                        visited.put(continuation, Boolean.TRUE);
                     }
                 }
 
                 return Either.<List<CompletionItem>, CompletionList>forLeft(completionItems);
 
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Error getting code completions: {0}", e.getMessage());
+                LOG.log(Level.WARNING, "Error getting code completions: {0}", e.toString());
                 return Either.<List<CompletionItem>, CompletionList>forLeft(new ArrayList<>());
             }
         });
@@ -103,14 +95,28 @@ public class CodeCompletionProvider {
         return item;
     }
 
-    private String getTextToComplete(String uri, Position position, NotebookDocumentStateManager state, SourceCodeAnalysis sourceCodeAnalysis) {
+    private List<Suggestion> getSuggestions(String uri, Position position, NotebookDocumentStateManager state, SourceCodeAnalysis sourceCodeAnalysis) {
         CellState cellState = state.getCell(uri);
         String content = cellState.getContent();
         int cursorOffset = NotebookUtils.getOffset(content, position);
-
+        int[] anchor = new int[1];
         String offsetText = content.substring(0, cursorOffset);
         List<String> snippets = NotebookUtils.getCodeSnippets(sourceCodeAnalysis, offsetText);
 
-        return snippets.isEmpty() ? "" : snippets.getLast();
+        String lastSnippet = snippets.isEmpty() ? "" : snippets.get(snippets.size()-1);
+        List<Suggestion> suggestions = new ArrayList<>();
+        suggestions.addAll(sourceCodeAnalysis.completionSuggestions(
+                lastSnippet,
+                lastSnippet.length(),
+                anchor
+        ));
+        if (snippets.size() > 1) {
+            suggestions.addAll(sourceCodeAnalysis.completionSuggestions(
+                    offsetText,
+                    offsetText.length(),
+                    anchor
+            ));
+        }
+        return suggestions;
     }
 }

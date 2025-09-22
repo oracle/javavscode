@@ -18,6 +18,7 @@ package org.netbeans.modules.nbcode.java.notebook;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.lsp4j.ExecutionSummary;
 import org.eclipse.lsp4j.NotebookCell;
@@ -82,7 +83,6 @@ public class CellState {
     }
 
     public void setContent(String newContent, int newVersion) throws InterruptedException, ExecutionException {
-        String normalizedContent = NotebookUtils.normalizeLineEndings(newContent);
         VersionAwareContent currentContent = content.get();
 
         if (currentContent.getVersion() != newVersion - 1) {
@@ -99,16 +99,17 @@ public class CellState {
             int receivedVersion = newCellState.getVersion();
 
             if (receivedVersion > currentContent.getVersion()) {
-                VersionAwareContent newVersionContent = new VersionAwareContent(newCellState.getText(), receivedVersion);
-                content.set(newVersionContent);
+                VersionAwareContent newVersionContent = new VersionAwareContent(NotebookUtils.normalizeLineEndings(newCellState.getText()), receivedVersion);
+                content.updateAndGet(current -> current != currentContent && receivedVersion <= current.getVersion() ? current : newVersionContent);
             } else {
-                throw new IllegalStateException("Version mismatch: Received version to be greater than current version, received version:  " + (receivedVersion) + ", current version: " + currentContent.getVersion());
+                LOG.log(Level.WARNING, "Version mismatch: Received version to be greater than current version, received version:  {0}, current version: {1}", new Object[]{receivedVersion, currentContent.getVersion()});
             }
         } else {
-            VersionAwareContent newVersionContent = new VersionAwareContent(normalizedContent, newVersion);
+            // newContent is already normalized during applyChanges
+            VersionAwareContent newVersionContent = new VersionAwareContent(newContent, newVersion);
 
             if (!content.compareAndSet(currentContent, newVersionContent)) {
-                throw new IllegalStateException("Concurrent modification detected. Version expected: " + (newVersion - 1) + ", current: " + content.get().getVersion());
+                LOG.log(Level.WARNING, "Concurrent modification detected. Version expected: {0}, current: {1}", new Object[]{newVersion - 1, content.get().getVersion()});
             }
         }
     }
@@ -122,7 +123,7 @@ public class CellState {
         if (newCellState.getVersion() <= 0) {
             throw new IllegalStateException("Received incorrect version number: " + newCellState.getVersion());
         }
-        VersionAwareContent newVersionContent = new VersionAwareContent(newCellState.getText(), newCellState.getVersion());
+        VersionAwareContent newVersionContent = new VersionAwareContent(NotebookUtils.normalizeLineEndings(newCellState.getText()), newCellState.getVersion());
         content.set(newVersionContent);
     }
 
@@ -151,8 +152,8 @@ public class CellState {
 
     protected class VersionAwareContent {
 
-        private String content;
-        private int version;
+        private final String content;
+        private final int version;
 
         public VersionAwareContent(String content, int version) {
             this.content = content;
@@ -163,17 +164,8 @@ public class CellState {
             return content;
         }
 
-        public void setContent(String content) {
-            this.content = content;
-        }
-
         public int getVersion() {
             return version;
         }
-
-        public void setVersion(int version) {
-            this.version = version;
-        }
-
     }
 }

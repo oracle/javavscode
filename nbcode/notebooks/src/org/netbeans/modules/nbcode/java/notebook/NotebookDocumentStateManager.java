@@ -16,8 +16,12 @@
 package org.netbeans.modules.nbcode.java.notebook;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,9 +30,9 @@ import org.eclipse.lsp4j.NotebookDocument;
 import org.eclipse.lsp4j.NotebookDocumentChangeEvent;
 import org.eclipse.lsp4j.NotebookDocumentChangeEventCellStructure;
 import org.eclipse.lsp4j.NotebookDocumentChangeEventCellTextContent;
-import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.VersionedNotebookDocumentIdentifier;
 
@@ -43,13 +47,26 @@ public class NotebookDocumentStateManager {
     private final NotebookDocument notebookDoc;
     private final Map<String, CellState> cellsMap = new ConcurrentHashMap<>();
     private final List<String> cellsOrder;
+    private final CellStateCreator cellStateCreator;
 
     public NotebookDocumentStateManager(NotebookDocument notebookDoc, List<TextDocumentItem> cells) {
+        this(notebookDoc, cells, null);
+    }
+    
+    public NotebookDocumentStateManager(NotebookDocument notebookDoc, List<TextDocumentItem> cells, CellStateCreator cellStateCreator) {
+        this.cellStateCreator = cellStateCreator != null ? cellStateCreator : CellState::new;
         this.notebookDoc = notebookDoc;
         this.cellsOrder = new ArrayList<>();
-        for (int i = 0; i < cells.size(); i++) {
-            addNewCellState(notebookDoc.getCells().get(i), cells.get(i));
-            this.cellsOrder.add(cells.get(i).getUri());
+        Iterator<NotebookCell> notebookCellsIterator = notebookDoc.getCells().iterator();
+
+        for (TextDocumentItem cellItem : cells) {
+            if (notebookCellsIterator.hasNext()) {
+                addNewCellState(notebookCellsIterator.next(), cellItem);
+                this.cellsOrder.add(cellItem.getUri());
+            } else {
+                LOG.log(Level.SEVERE, "Mismatched number of cells and cell items during initialization.");
+                break;
+            }
         }
     }
 
@@ -83,41 +100,67 @@ public class NotebookDocumentStateManager {
         if (updatedStructure == null) {
             return;
         }
-        // Handle deleted cells
-        int deletedCells = updatedStructure.getArray().getDeleteCount();
-        if (deletedCells > 0 && updatedStructure.getDidClose() != null) {
-            updatedStructure.getDidClose().forEach(cell -> {
-                String uri = cell.getUri();
+
+        Set<String> closedCellUris = new HashSet<>();
+        Set<String> openedCellUris = new HashSet<>();
+
+        if (updatedStructure.getDidClose() != null) {
+            for (TextDocumentIdentifier closedCell : updatedStructure.getDidClose()) {
+                String uri = closedCell.getUri();
+                closedCellUris.add(uri);
 
                 CellState removed = cellsMap.remove(uri);
                 cellsNotebookMap.remove(uri);
-                cellsOrder.remove(uri);
                 if (removed != null) {
-                    LOG.log(Level.FINE, "Removed cell: {0}", uri);
+                    LOG.log(Level.FINE, "Removed cell from map: {0}", uri);
                 }
-            });
+            }
         }
 
-        // Handle added cells
-        int startIdx = updatedStructure.getArray().getStart();
         List<TextDocumentItem> cellsItem = updatedStructure.getDidOpen();
         List<NotebookCell> cellsDetail = updatedStructure.getArray().getCells();
 
-        if (cellsItem != null && cellsDetail != null && cellsDetail.size() == cellsItem.size()) {
-            for (int i = 0; i < cellsDetail.size(); i++) {
-                addNewCellState(cellsDetail.get(i), cellsItem.get(i));
-                cellsNotebookMap.put(cellsItem.get(i).getUri(), notebookDoc.getUri());
-                if (startIdx + i <= cellsOrder.size()) {
-                    cellsOrder.add(startIdx + i, cellsItem.get(i).getUri());
-                } else {
-                    LOG.warning("unable to add cell in the list of cells");
+        if (cellsItem != null && cellsDetail != null) {
+            Iterator<NotebookCell> details = cellsDetail.iterator();
+            for (TextDocumentItem cellItem: cellsItem) {
+                String uri = cellItem.getUri();
+                openedCellUris.add(uri);
+                cellsNotebookMap.put(uri, notebookDoc.getUri());
+                if (details.hasNext()) {
+                    addNewCellState(details.next(), cellItem);
                 }
             }
-        } else {
-            LOG.severe("cell details is null or array size mismatch is present");
-            throw new IllegalStateException("Error while adding cell to the notebook state");
         }
 
+        synchronized (cellsOrder) {
+            int startIdx = updatedStructure.getArray().getStart();
+            int deleteCount = updatedStructure.getArray().getDeleteCount();
+
+            ListIterator<String> iterator = cellsOrder.listIterator(startIdx);
+
+            for (int i = 0; i < deleteCount && iterator.hasNext(); i++) {
+                String removedUri = iterator.next();
+                iterator.remove();
+
+                if (!closedCellUris.contains(removedUri)) {
+                    LOG.log(Level.WARNING, "Removed URI {0} not found in didClose list", removedUri);
+                }
+                LOG.log(Level.FINE, "Removed cell from order: {0}", removedUri);
+            }
+
+            if (cellsItem != null) {
+                for (TextDocumentItem cellItem : cellsItem) {
+                    String uri = cellItem.getUri();
+                    iterator.add(uri);
+
+                    if (!openedCellUris.contains(uri)) {
+                        LOG.log(Level.WARNING, "Added URI {0} not found in didOpen list", uri);
+                    }
+
+                    LOG.log(Level.FINE, "Added cell to order: {0}", uri);
+                }
+            }
+        }
     }
 
     private void updateNotebookCellData(List<NotebookCell> data) {
@@ -156,7 +199,7 @@ public class NotebookDocumentStateManager {
             cellState.setContent(updatedContent, newVersion);
             LOG.log(Level.FINE, "Updated content for cell: {0}, version: {1}", new Object[]{uri, newVersion});
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "applyContentChanges failed, requesting full content: " + uri, e);
+            LOG.log(Level.WARNING, "applyContentChanges failed, requesting full content for cell: {0}. Error - {1}", new Object[]{uri, e});
             try {
                 cellState.requestContentAndSet();
             } catch (Exception ex) {
@@ -185,60 +228,33 @@ public class NotebookDocumentStateManager {
 
     private String applyRangeChange(String content, TextDocumentContentChangeEvent change) {
         Range range = change.getRange();
-        Position start = range.getStart();
-        Position end = range.getEnd();
-
-        String[] lines = content.split("\n", -1);
-
-        if (start.getLine() < 0 || start.getLine() >= lines.length
-                || end.getLine() < 0 || end.getLine() >= lines.length) {
-            throw new IllegalArgumentException("Invalid range positions");
-        }
-
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < start.getLine(); i++) {
-            result.append(lines[i]);
-            if (i < lines.length - 1) {
-                result.append("\n");
-            }
-        }
-
-        String startLine = lines[start.getLine()];
-        String beforeChange = startLine.substring(0, Math.min(start.getCharacter(), startLine.length()));
-        result.append(beforeChange);
-
-        result.append(change.getText());
-
-        String endLine = lines[end.getLine()];
-        String afterChange = endLine.substring(Math.min(end.getCharacter(), endLine.length()));
-        result.append(afterChange);
-
-        for (int i = end.getLine() + 1; i < lines.length; i++) {
-            result.append("\n").append(lines[i]);
-        }
-
-        return result.toString();
+        return NotebookUtils.applyChange(content, range.getStart(), range.getEnd(), change.getText());
     }
 
-    // protected methods for ease of unit testing
-    protected void addNewCellState(NotebookCell cell, TextDocumentItem item) {
+
+    private void addNewCellState(NotebookCell cell, TextDocumentItem item) {
         if (cell == null || item == null) {
             LOG.log(Level.WARNING, "Attempted to add null cell or item");
             return;
         }
 
+        CellState cellState;
         try {
-            CellState cellState = new CellState(cell, item, notebookDoc.getUri());
-            cellsMap.put(item.getUri(), cellState);
+            cellState = cellStateCreator.create(cell, item, notebookDoc.getUri());
             LOG.log(Level.FINE, "Added new cell state: {0}", item.getUri());
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to create cell state for: " + item.getUri(), e);
             throw new RuntimeException("Failed to create cell state", e);
         }
+        cellsMap.put(item.getUri(), cellState);
     }
 
     protected Map<String, CellState> getCellsMap() {
         return cellsMap;
+    }
+    
+    // protected methods for ease of unit testing
+    protected interface CellStateCreator {
+        CellState create(NotebookCell cell, TextDocumentItem item, String notebookDocUri);
     }
 }

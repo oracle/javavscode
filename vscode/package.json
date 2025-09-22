@@ -255,18 +255,27 @@
 					"description": "%jdk.debugger.configuration.completion.warning.time.description%"
 				},
 				"jdk.notebook.classpath": {
-					"type": "string",
-					"default": "",
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
 					"description": "%jdk.notebook.classpath.description%"
 				},
 				"jdk.notebook.modulepath": {
-					"type": "string",
-					"default": "",
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
 					"description": "%jdk.notebook.modulepath.description%"
 				},
 				"jdk.notebook.addmodules": {
-					"type": "string",
-					"default": "",
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
 					"description": "%jdk.notebook.addmodules.description%"
 				},
 				"jdk.notebook.enablePreview": {
@@ -276,6 +285,9 @@
 				},
 				"jdk.notebook.implicitImports": {
 					"type": "array",
+					"items": {
+						"type": "string"
+					},
 					"default": [
 						"java.util.*",
 						"java.io.*",

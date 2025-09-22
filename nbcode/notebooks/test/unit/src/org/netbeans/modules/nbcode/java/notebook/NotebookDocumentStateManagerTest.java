@@ -201,18 +201,8 @@ public class NotebookDocumentStateManagerTest extends NbTestCase {
     }
 
     private static class TestableNotebookDocumentStateManager extends NotebookDocumentStateManager {
-
         public TestableNotebookDocumentStateManager(NotebookDocument notebookDoc, List<TextDocumentItem> cells) {
-            super(notebookDoc, cells);
-        }
-
-        @Override
-        protected void addNewCellState(NotebookCell cell, TextDocumentItem item) {
-            if (cell == null || item == null) {
-                return;
-            }
-            CellState cellState = new TestableCellState(cell, item, getNotebookDocument().getUri());
-            getCellsMap().put(item.getUri(), cellState);
+            super(notebookDoc, cells, TestableCellState::new);
         }
     }
 

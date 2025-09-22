@@ -130,12 +130,7 @@ public class NotebookSessionManager {
         addOption.accept(CLASS_PATH, configs.getClassPath());
         addOption.accept(MODULE_PATH, configs.getModulePath());
         addOption.accept(ADD_MODULES, configs.getAddModules());
-
-        if (configs.isEnablePreview()) {
-            compilerOptions.add(ENABLE_PREVIEW);
-            compilerOptions.add(SOURCE_FLAG);
-            compilerOptions.add(configs.getJdkVersion());
-        }
+        boolean enablePreview = configs.isEnablePreview();
 
         if (prj != null) {
             List<String> projOptions = ProjectConfigurationUtils.compilerOptions(prj);
@@ -153,6 +148,13 @@ public class NotebookSessionManager {
             if (checkEmptyString(configs.getAddModules()) && prjConfigMap.containsKey(ADD_MODULES)) {
                 addOption.accept(ADD_MODULES, prjConfigMap.get(ADD_MODULES));
             }
+            enablePreview = enablePreview || projOptions.contains(ENABLE_PREVIEW);
+        }
+
+        if (enablePreview) {
+            compilerOptions.add(ENABLE_PREVIEW);
+            compilerOptions.add(SOURCE_FLAG);
+            compilerOptions.add(configs.getJdkVersion());
         }
 
         return compilerOptions;
@@ -161,7 +163,7 @@ public class NotebookSessionManager {
     private List<String> getRemoteVmOptions(Project prj) {
         List<String> remoteOptions = new ArrayList<>();
         NotebookConfigs configs = NotebookConfigs.getInstance();
-        boolean isEnablePreview = configs.isEnablePreview();
+        boolean enablePreview = configs.isEnablePreview();
 
         BiConsumer<String, String> addOption = (flag, value) -> {
             if (!checkEmptyString(value)) {
@@ -173,10 +175,6 @@ public class NotebookSessionManager {
         addOption.accept(CLASS_PATH, configs.getClassPath());
         addOption.accept(MODULE_PATH, configs.getModulePath());
         addOption.accept(ADD_MODULES, configs.getAddModules());
-
-        if (isEnablePreview) {
-            remoteOptions.add(ENABLE_PREVIEW);
-        }
 
         if (prj != null) {
             List<String> projOptions = ProjectConfigurationUtils.launchVMOptions(prj);
@@ -194,6 +192,10 @@ public class NotebookSessionManager {
             if (checkEmptyString(configs.getAddModules()) && prjConfigMap.containsKey(ADD_MODULES)) {
                 addOption.accept(ADD_MODULES, prjConfigMap.get(ADD_MODULES));
             }
+            enablePreview = enablePreview || projOptions.contains(ENABLE_PREVIEW);
+        }
+        if (enablePreview) {
+            remoteOptions.add(ENABLE_PREVIEW);
         }
         return remoteOptions;
     }
@@ -201,12 +203,12 @@ public class NotebookSessionManager {
     private void onJshellInit(String notebookId, JShell jshell) {
         jshell.onShutdown(shell -> closeSession(notebookId));
 
-        List<String> packages = NotebookConfigs.getInstance().getImplicitImports();
-        if (packages != null && !packages.isEmpty()) {
-            packages.forEach(pkg -> CodeEval.getInstance().runCode(jshell, "import " + pkg));
+        List<String> elements = NotebookConfigs.getInstance().getImplicitImports();
+        if (elements != null && !elements.isEmpty()) {
+            elements.forEach(el -> CodeEval.getInstance().runCode(jshell, "import " + el));
         } else {
             List.of("java.util", "java.io", "java.math")
-                    .forEach(pkg -> CodeEval.getInstance().runCode(jshell, "import " + pkg + ".*"));
+                    .forEach(el -> CodeEval.getInstance().runCode(jshell, "import " + el + ".*"));
         }
     }
 

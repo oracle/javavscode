@@ -23,12 +23,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
+import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.platform.JavaPlatform;
 import org.netbeans.api.java.platform.JavaPlatformManager;
 import org.netbeans.api.java.platform.Specification;
 import org.netbeans.api.java.project.JavaProjectConstants;
+import org.netbeans.api.java.queries.CompilerOptionsQuery;
 import org.netbeans.api.java.queries.UnitTestForSourceQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.SourceGroup;
@@ -50,6 +51,7 @@ public class ProjectConfigurationUtils {
     public final static String MODULE_PATH = "--module-path";
     public final static String ADD_MODULES = "--add-modules";
     public final static String ADD_EXPORTS = "--add-exports";
+    public final static String ENABLE_PREVIEW = "--enable-preview";
 
     public static boolean isNonTestRoot(SourceGroup sg) {
         return UnitTestForSourceQuery.findSources(sg.getRootFolder()).length == 0;
@@ -106,7 +108,7 @@ public class ProjectConfigurationUtils {
     public static JavaPlatform findPlatform(Project project) {
         List<FileObject> ref = findProjectRoots(project);
         if (ref.isEmpty()) {
-            return null;
+            return JavaPlatform.getDefault();
         }
         JavaPlatform platform = findPlatform(ClassPath.getClassPath(ref.get(0), ClassPath.BOOT));
         return platform != null ? platform : JavaPlatform.getDefault();
@@ -123,6 +125,50 @@ public class ProjectConfigurationUtils {
         return null;
     }
 
+    static boolean isPreviewEnabled(@NonNull Project project, List<FileObject> sourceRoots) {
+        boolean previewEnabled = isPreviewEnabledForAnyProjectSourceRoot(project, sourceRoots);
+        previewEnabled = previewEnabled || isPreviewEnabledForAnyContainedProjects(project);
+        return previewEnabled;
+    }
+
+    private static boolean isPreviewEnabledForAnyContainedProjects(@NonNull Project project) {
+        Set<Project> subProjects = ProjectUtils.getContainedProjects(project, false);
+        if (subProjects != null) {
+            for (Project subProject : subProjects) {
+                if (isPreviewEnabledForAnyProjectSourceRoot(subProject, getNonTestRoots(subProject))) {
+                    return true;
+                }
+            }
+            for (Project subProject : subProjects) {
+                if (isPreviewEnabledForAnyContainedProjects(subProject)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isPreviewEnabledForAnyProjectSourceRoot(@NonNull Project project, List<FileObject> sourceRoots) {
+        if (sourceRoots == null || sourceRoots.isEmpty()) {
+            FileObject root = project.getProjectDirectory();
+            if (root != null && isPreviewEnabledForSource(root)) {
+                return true;
+            }
+        } else {
+            for (FileObject root : sourceRoots) {
+                if (root != null && isPreviewEnabledForSource(root)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isPreviewEnabledForSource(@NonNull FileObject source) {
+        CompilerOptionsQuery.Result result = CompilerOptionsQuery.getOptions(source);
+        return result.getArguments().contains(ENABLE_PREVIEW);
+    }
+
     @NonNull
     public static List<String> launchVMOptions(Project project) {
         if (project == null) {
@@ -130,13 +176,20 @@ public class ProjectConfigurationUtils {
         }
         boolean isModular = ProjectModulePathConfigurationUtils.isModularProject(project);
         if (isModular) {
-            return ProjectModulePathConfigurationUtils.getVmOptions(project);
+            List<String> vmOptions = ProjectModulePathConfigurationUtils.getVmOptions(project);
+            if (isPreviewEnabled(project, getNonTestRoots(project))) {
+                vmOptions.add(ENABLE_PREVIEW);
+            }
+            return vmOptions;
         }
         List<String> vmOptions = new ArrayList<>();
         List<FileObject> roots = getNonTestRoots(project);
         if (!roots.isEmpty()) {
-            ClassPath cp = ClassPath.getClassPath(roots.getFirst(), ClassPath.EXECUTE);
+            ClassPath cp = ClassPath.getClassPath(roots.get(0), ClassPath.EXECUTE);
             vmOptions.addAll(Arrays.asList(CLASS_PATH, addRoots("", cp)));
+        }
+        if (isPreviewEnabled(project, roots)) {
+            vmOptions.add(ENABLE_PREVIEW);
         }
         return vmOptions;
     }
@@ -148,13 +201,20 @@ public class ProjectConfigurationUtils {
         }
         boolean isModular = ProjectModulePathConfigurationUtils.isModularProject(project);
         if (isModular) {
-            return ProjectModulePathConfigurationUtils.getCompileOptions(project);
+            List<String> compileOptions = ProjectModulePathConfigurationUtils.getCompileOptions(project);
+            if (isPreviewEnabled(project, getNonTestRoots(project))) {
+                compileOptions.add(ENABLE_PREVIEW);
+            }
+            return compileOptions;
         }
         List<String> compileOptions = new ArrayList<>();
         List<FileObject> roots = getNonTestRoots(project);
         if (!roots.isEmpty()) {
-            ClassPath cp = ClassPath.getClassPath(roots.getFirst(), ClassPath.COMPILE);
+            ClassPath cp = ClassPath.getClassPath(roots.get(0), ClassPath.COMPILE);
             compileOptions.addAll(Arrays.asList(CLASS_PATH, addRoots("", cp)));
+        }
+        if (isPreviewEnabled(project, roots)) {
+            compileOptions.add(ENABLE_PREVIEW);
         }
         return compileOptions;
     }

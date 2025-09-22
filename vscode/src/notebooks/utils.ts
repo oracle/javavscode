@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -36,6 +36,7 @@ import { mimeTypes } from './constants';
 import { MimeTypeHandler } from './mimeTypeHandler';
 import { ExecutionSummary } from './executionSummary';
 import { LOGGER } from '../logger';
+import { l10n } from '../localiser';
 
 
 export function base64ToUint8Array(base64: string): Uint8Array {
@@ -65,14 +66,14 @@ export const createErrorOutput = (err: string | Error) => {
 }
 
 export const createErrorOutputItem = (err: string | Error) => {
-  return vscode.NotebookCellOutputItem.text(isString(err) ? err: err.message);
+  return vscode.NotebookCellOutputItem.text(isString(err) ? err : err.message);
 }
 
 export function parseCell(cell: ICell): vscode.NotebookCellData {
   if (cell.cell_type !== 'code' && cell.cell_type !== 'markdown')
-    throw new Error(`Invalid cell_type: ${cell.cell_type}`);
+    throw new Error(l10n.value("jdk.notebook.cell.type.error_msg", { cellType: cell.cell_type }));
   if (cell.source === undefined || cell.source === null)
-    throw new Error('Missing cell.source');
+    throw new Error(l10n.value("jdk.notebook.cell.missing.error_msg", { fieldName: "cell.source" }));
   const kind =
     cell.cell_type === 'code' ? vscode.NotebookCellKind.Code : vscode.NotebookCellKind.Markup;
   const language = kind === vscode.NotebookCellKind.Code ? 'java' : 'markdown';
@@ -205,7 +206,7 @@ export function serializeCell(cell: vscode.NotebookCellData): ICell {
 }
 
 export function errorNotebook(title: string, message: string, consoleMessage: string = ''): vscode.NotebookData {
-  console.error(title, ': ', message, ': ', consoleMessage);
+  LOGGER.error(title + ': ' + message + ': ' + consoleMessage);
   return new vscode.NotebookData([
     new vscode.NotebookCellData(
       vscode.NotebookCellKind.Markup,

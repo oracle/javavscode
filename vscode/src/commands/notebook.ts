@@ -68,10 +68,13 @@ const createNewNotebook = async (ctx?: any) => {
         if (notebookDir == null) {
             window.showErrorMessage(l10n.value("jdk.notebook.create.error_msg.path.not.selected"));
             return;
+        } else if(!fs.existsSync(notebookDir.fsPath)){
+            window.showErrorMessage(l10n.value("jdk.notebook.create.error_msg.dir.not.found"));
+            return;
         }
 
         const notebookName = await window.showInputBox({
-            prompt: l10n.value("jdk.notebook.create.new.notebook.input.name", { fileExtension: extConstants.NOTEBOOK_FILE_EXTENSION }),
+            prompt: l10n.value("jdk.notebook.create.new.notebook.input.name"),
             value: `Untitled.${extConstants.NOTEBOOK_FILE_EXTENSION}`
         });
 
@@ -116,23 +119,29 @@ const createNewNotebook = async (ctx?: any) => {
     }
 };
 
+type openJshellNbResponse = {
+    jdkPath: string,
+    vmOptions: string[]
+}
+
 const openJshellInContextOfProject = async (ctx: any) => {
     try {
         let client: LanguageClient = await globalState.getClientPromise().client;
         if (await isNbCommandRegistered(nbCommands.openJshellInProject)) {
             const additionalContext = window.activeTextEditor?.document.uri.toString();
-            const res = await commands.executeCommand<string[]>(nbCommands.openJshellInProject, ctx?.toString(), additionalContext);
-            const { envMap, finalArgs } = passArgsToTerminal(res);
+            const res = await commands.executeCommand<openJshellNbResponse>(nbCommands.openJshellInProject, ctx?.toString(), additionalContext);
+            const { envMap, finalArgs } = passArgsToTerminal(res.vmOptions);
+            const jshellPath = res.jdkPath ? path.join(res.jdkPath, "bin", "jshell") : "jshell";
             // Direct sendText is not working since it truncates the command exceeding a certain length.
             // Open issues on vscode: 130688, 134324 and many more
             // So, workaround by setting env variables.
             const terminal = window.createTerminal({
                 name: "Jshell instance", env: envMap
             });
-            terminal.sendText(`jshell ${finalArgs.join(' ')}`, true);
+            terminal.sendText(`${jshellPath} ${finalArgs.join(' ')}`, true);
             terminal.show();
         } else {
-            throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest", { client });
+            throw l10n.value("jdk.extension.error_msg.doesntSupportJShellExecution", { client: client?.name });
         }
     } catch (error) {
         window.showErrorMessage(l10n.value("jdk.jshell.open.error_msg.failed"));
@@ -168,7 +177,7 @@ const notebookChangeProjectContextHandler = async (ctx: INotebookToolbar) => {
                 { ...oldValue, [uri.fsPath]: res },
                 ConfigurationTarget.Workspace);
         } else {
-            throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest", { client });
+            throw l10n.value("jdk.extension.error_msg.doesntSupportNotebookCellExecution", { client: client?.name });
         }
     } catch (error) {
         LOGGER.error(`Error occurred while opening notebook : ${isError(error) ? error.message : error}`);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,6 +23,7 @@ import { Buffer } from 'buffer';
 import * as vscode from 'vscode';
 import { IMimeBundle } from './types';
 import { mimeTypes } from './constants';
+import { l10n } from '../localiser';
 
 export type DataOrBytes = string | Uint8Array;
 
@@ -65,7 +66,7 @@ export class MimeTypeHandler {
         const payload = Array.isArray(data) ? data.join('') : data;
         return [mt.makeOutputItem(payload)];
       }
-      return [];
+      return vscode.NotebookCellOutputItem.text(l10n.value("jdk.notebook.mime_type.not.found.cell.output", {mimeType: mime, contentLength: data.length}));
     });
   }
 }

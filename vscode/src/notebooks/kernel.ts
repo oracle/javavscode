@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -93,7 +93,7 @@ export class IJNBKernel implements Disposable {
       const client: LanguageClient = await globalState.getClientPromise().client;
 
       if (!(await isNbCommandRegistered(nbCommands.executeNotebookCell))) {
-        throw l10n.value("jdk.extension.error_msg.doesntSupportNoteboookCellExecution", { client });
+        throw l10n.value("jdk.extension.error_msg.doesntSupportNotebookCellExecution", { client: client?.name });
       }
 
       const response = await commands.executeCommand<string>(nbCommands.executeNotebookCell,
@@ -145,7 +145,7 @@ export class IJNBKernel implements Disposable {
     const exec = controller.createNotebookCellExecution(cell);
     exec.executionOrder = this.getIncrementedExecutionCounter(notebookId);
     exec.start(Date.now());
-    await exec.replaceOutput(createErrorOutput(new Error(`Doesn't support ${cell.document.languageId} execution`)));
+    await exec.replaceOutput(createErrorOutput(new Error(l10n.value("jdk.notebook.cell.language.not.found", { languageId: cell.document.languageId }))));
     exec.end(false, Date.now());
   }
 

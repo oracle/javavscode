@@ -17,21 +17,22 @@ package org.netbeans.modules.nbcode.java.notebook;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.lsp4j.ConfigurationItem;
 import org.eclipse.lsp4j.ConfigurationParams;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
-import org.openide.util.Exceptions;
 
 /**
  *
  * @author atalati
  */
 public class NotebookConfigs {
+    private static final Logger LOG = Logger.getLogger(NotebookConfigs.class.getName());
 
     private static final String[] NOTEBOOK_CONFIG_LABELS = {"notebook.classpath",
         "notebook.modulepath",
@@ -39,13 +40,13 @@ public class NotebookConfigs {
         "notebook.enablePreview",
         "notebook.implicitImports",
         "notebook.projects.mapping"};
-    private String classPath = null;
-    private String modulePath = null;
-    private String addModules = null;
-    private boolean enablePreview = false;
-    private JsonObject notebookProjectMapping = new JsonObject();
-    private List<String> implicitImports = null;
-    private CompletableFuture<Void> initialized;
+    private volatile String classPath = null;
+    private volatile String modulePath = null;
+    private volatile String addModules = null;
+    private volatile boolean enablePreview = false;
+    private volatile JsonObject notebookProjectMapping = new JsonObject();
+    private volatile List<String> implicitImports = null;
+    private volatile CompletableFuture<Void> initialized;
 
     public CompletableFuture<Void> getInitialized() {
         return initialized;
@@ -91,8 +92,8 @@ public class NotebookConfigs {
     public void initConfigs() {
         try {
             this.initialized = initializeConfigs();
-        } catch (InterruptedException | ExecutionException ex) {
-            Exceptions.printStackTrace(ex);
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Exception occurred while init configs for notebooks: {0}", ex.getMessage());
         }
     }
 
@@ -109,31 +110,40 @@ public class NotebookConfigs {
         return items;
     }
 
-    private CompletableFuture<Void> initializeConfigs() throws InterruptedException, ExecutionException {
+    private CompletableFuture<Void> initializeConfigs() {
         NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
         if (client != null) {
             CompletableFuture<List<Object>> configValues = client.configuration(new ConfigurationParams(getConfigItems()));
             return configValues.thenAccept((c) -> {
                 if (c != null) {
-                    if (c.get(0) != null) {
-                        classPath = ((JsonPrimitive) c.get(0)).getAsString();
+                    JsonArray classPathConfig = NotebookUtils.getArgument(c, 0, JsonArray.class);
+                    if (classPathConfig != null) {
+                        classPath = String.join(File.pathSeparator,classPathConfig.asList().stream().map((elem) -> elem.getAsString()).toList());
                     }
-                    if (c.get(1) != null) {
-                        modulePath = ((JsonPrimitive) c.get(1)).getAsString();
+                    
+                    JsonArray modulePathConfig = NotebookUtils.getArgument(c, 1, JsonArray.class);
+                    if (modulePathConfig != null) {
+                        modulePath = String.join(File.pathSeparator,modulePathConfig.asList().stream().map((elem) -> elem.getAsString()).toList());
                     }
-                    if (c.get(2) != null) {
-                        addModules = ((JsonPrimitive) c.get(2)).getAsString();
+                    
+                    JsonArray addModulesConfig = NotebookUtils.getArgument(c, 2, JsonArray.class);
+                    if (addModulesConfig != null) {
+                        addModules = String.join(",",addModulesConfig.asList().stream().map((elem) -> elem.getAsString()).toList());
                     }
-                    if (c.get(3) != null) {
-                        enablePreview = ((JsonPrimitive) c.get(3)).getAsBoolean();
+                    
+                    Boolean enablePreviewConfig = NotebookUtils.getArgument(c, 3, Boolean.class);
+                    if (enablePreviewConfig != null) {
+                        enablePreview = enablePreviewConfig;
                     }
-                    if (c.get(4) != null) {
-                        implicitImports = ((JsonArray) c.get(4)).asList().stream().map((elem) -> elem.getAsString()).toList();
+                    
+                    JsonArray implicitImportsConfig = NotebookUtils.getArgument(c, 4, JsonArray.class);
+                    if (implicitImportsConfig != null) {
+                        implicitImports = implicitImportsConfig.asList().stream().map((elem) -> elem.getAsString()).toList();
+                    }
 
-                    }
-                    if (c.get(5) != null) {
-                        notebookProjectMapping = (JsonObject) c.get(5);
-
+                    JsonObject notebookProjectMappingConfig = NotebookUtils.getArgument(c, 5, JsonObject.class);
+                    if (notebookProjectMappingConfig != null) {
+                        notebookProjectMapping = notebookProjectMappingConfig;
                     }
                 }
             });
@@ -148,7 +158,7 @@ public class NotebookConfigs {
     }
 
     public void notebookConfigsChangeListener(JsonObject settings) {
-        // depends on #8514 PR open in Netbeans
+        // TODO: Cache configurations using changes done in #8514 PR open in Netbeans
 
     }
 }

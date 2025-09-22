@@ -26,17 +26,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
+import org.openide.util.NbBundle;
 
 /**
  *
  * @author atalati
  */
+@NbBundle.Messages({
+    "PROMPT_GetUserInput=Please provide scanner input here"
+})
 public class CustomInputStream extends InputStream {
 
     private static final Logger LOG = Logger.getLogger(CustomInputStream.class.getName());
     private ByteArrayInputStream currentStream;
-    WeakReference<NbCodeLanguageClient> client;
-    private static final String USER_PROMPT_REQUEST = "Please provide scanner input here";
+    private final WeakReference<NbCodeLanguageClient> client;
+    private static final String USER_PROMPT_REQUEST = Bundle.PROMPT_GetUserInput();
 
     public CustomInputStream(NbCodeLanguageClient client) {
         this.client = new WeakReference<>(client);
@@ -45,13 +49,13 @@ public class CustomInputStream extends InputStream {
     @Override
     public synchronized int read(byte[] b, int off, int len) throws IOException {
         try {
-            if (client == null || client.get() == null) {
-                LOG.log(Level.WARNING, "client is null");
-                return -1;
-            }
-
             if (currentStream == null || currentStream.available() == 0) {
-                CompletableFuture<String> future = client.get().showInputBox(new ShowInputBoxParams(USER_PROMPT_REQUEST, "", true));
+                NbCodeLanguageClient client = this.client.get();
+                if (client == null) {
+                    LOG.log(Level.WARNING, "client is null");
+                    return -1;
+                }
+                CompletableFuture<String> future = client.showInputBox(new ShowInputBoxParams(USER_PROMPT_REQUEST, "", true));
                 String userInput = future.get();
 
                 if (userInput == null) {

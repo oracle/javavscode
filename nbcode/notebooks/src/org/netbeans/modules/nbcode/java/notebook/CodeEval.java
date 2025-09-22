@@ -15,9 +15,10 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
-import jdk.jshell.JShell;
-import jdk.jshell.SnippetEvent;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -28,22 +29,32 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jdk.jshell.Diag;
+import jdk.jshell.EvalException;
+import jdk.jshell.JShell;
+import jdk.jshell.JShellException;
 import jdk.jshell.SourceCodeAnalysis;
+import jdk.jshell.SnippetEvent;
 import org.netbeans.modules.java.lsp.server.notebook.CellExecutionResult;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams.Builder;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams.EXECUTION_STATUS;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
+import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
 /**
  *
  * @author atalati
  */
+@NbBundle.Messages({
+    "MSG_InterruptCodeCellExecSuccess=Code execution stopped successfully",
+    "MSG_InterruptCodeCellInfo=Code execution was interrupted"
+})
 public class CodeEval {
 
     private static final Logger LOG = Logger.getLogger(CodeEval.class.getName());
-    private static final String CODE_EXEC_INTERRUPT_SUCCESS_MESSAGE = "Code execution stopped successfully";
-    private static final String CODE_EXEC_INTERRUPTED_MESSAGE = "Code execution was interrupted";
+    private static final String CODE_EXEC_INTERRUPT_SUCCESS_MESSAGE = Bundle.MSG_InterruptCodeCellExecSuccess();
+    private static final String CODE_EXEC_INTERRUPTED_MESSAGE = Bundle.MSG_InterruptCodeCellInfo();
     private static final Pattern LINEBREAK = Pattern.compile("\\R");
 
     private final Map<String, RequestProcessor> codeExecMap = new ConcurrentHashMap<>();
@@ -70,14 +81,14 @@ public class CodeEval {
     public String interrupt(List<Object> arguments) {
         if (arguments == null) {
             LOG.warning("Received null in interrupt execution request");
-            return "Arguments list is null";
+            throw new IllegalArgumentException("Recevied null arguments");
         }
 
         String notebookId = NotebookUtils.getArgument(arguments, 0, String.class);
 
         if (notebookId == null) {
             LOG.warning("Received empty notebookId in interrupt execution request");
-            return "Empty notebookId received";
+            throw new IllegalArgumentException("Empty notebookId received");
         }
 
         return interruptCodeExecution(notebookId);
@@ -150,13 +161,12 @@ public class CodeEval {
 
     private void codeEvalTaskRunnable(CompletableFuture<Boolean> future, JShell jshell, String notebookId, String cellId, String sourceCode) {
         try {
-            activeCellExecutionMapping.put(notebookId, cellId);
-            sendNotification(notebookId, EXECUTION_STATUS.EXECUTING);
-
             if (jshell == null) {
-                future.completeExceptionally(new ExceptionInInitializerError("notebook session not found or closed"));
+                future.completeExceptionally(new IllegalStateException("notebook session not found or closed"));
                 return;
             }
+            activeCellExecutionMapping.put(notebookId, cellId);
+            sendNotification(notebookId, EXECUTION_STATUS.EXECUTING);
 
             runCode(jshell, sourceCode, notebookId);
             flushStreams(notebookId);
@@ -220,25 +230,103 @@ public class CodeEval {
 
     private List<String> getRuntimeErrors(SnippetEvent event) {
         List<String> runtimeErrors = new ArrayList<>();
-        if (event.exception() != null) {
-            if (!event.exception().getMessage().isBlank()) {
-                runtimeErrors.add(event.exception().getMessage());
+        JShellException jshellException = event.exception();
+        if (jshellException != null) {
+            String msg = jshellException.getMessage();
+            boolean msgAdded = false;
+            if (msg != null && !msg.isBlank()) {
+                runtimeErrors.add(msg);
+                msgAdded = true;
             }
-            if (!event.exception().fillInStackTrace().toString().isBlank()) {
-                runtimeErrors.add(event.exception().fillInStackTrace().toString());
+            // Getting the exception stacktrace/details:
+            // stacktrace for EvalException provides the exception that the snippet code generated
+            // stacktrace for non-EvalException is not helpful as it is only internal details
+            String stacktrace = jshellException instanceof EvalException
+                    ? getStackTrace((EvalException) jshellException)
+                    : msgAdded ? "" : jshellException.toString();
+            if (!stacktrace.isBlank()) {
+                runtimeErrors.add(stacktrace);
             }
         }
 
         return runtimeErrors;
     }
 
-    private List<String> getSnippetValue(SnippetEvent event) {
-        List<String> snippetValues = new ArrayList<>();
-        if (event.value() != null) {
-            snippetValues.add(event.value());
-        }
+    private String getStackTrace(EvalException exception) {
+        return printStackTrace(null, exception).toString();
+    }
 
-        return snippetValues;
+    private StringBuilder printStackTrace(StringBuilder output, EvalException exception) {
+        StringBuilder sb = printStackTrace(output, (Throwable) exception);
+
+        return correctExceptionName(sb, 0, exception);
+    }
+
+    private StringBuilder correctExceptionName(StringBuilder output, int startIndex, EvalException exception) {
+        // EvalException has the peculiarity that it replaces the actual cause,
+        // while retaining the name, stacktrace and subsequent causes.
+        // This is unhelpful since it hides the actual exception in the output.
+        // Note: jdk.internal.jshell.tool.JShellTool.displayEvalException() uses
+        // elaborate code to perform the user-friendly printing on console.
+        String actualName = exception.getExceptionClassName();
+        String wrapperName = exception.getClass().getName();
+        if (actualName != null && !wrapperName.equals(actualName)) {
+            int foundAt = output.indexOf(wrapperName, startIndex);
+            if (foundAt >= 0) {
+                output.replace(foundAt, foundAt + wrapperName.length(), actualName);
+                foundAt += actualName.length();
+                if (foundAt < output.length()) {
+                    Throwable cause = exception;
+                    Throwable cycleDetector = cause;
+                    do {
+                        cause = cause.getCause();
+
+                        if (cycleDetector != null) {
+                            // Check for loops in cause using a tortoise-hare detector.
+                            cycleDetector = cycleDetector.getCause();
+                            if (cycleDetector != null) {
+                                cycleDetector = cycleDetector.getCause();
+                                if (cycleDetector == cause) {
+                                    cause = null;   // Cycle has been detected; break
+                                }
+                            }
+                        }
+                    } while (cause != null && !(cause instanceof EvalException));
+                    if (cause != null) {
+                        correctExceptionName(output, foundAt, (EvalException) cause);
+                    }
+                }
+            }
+        }
+        return output;
+    }
+    
+    private StringBuilder printStackTrace(StringBuilder output, Throwable exception) {
+        if (exception == null) {
+            return output != null ? output : new StringBuilder(0);
+        }
+        StringBuilder sb = output != null ? output : new StringBuilder();
+        PrintWriter stackWriter = new PrintWriter(new Writer() {
+            @Override
+            public void write(char[] cbuf, int off, int len) {
+                sb.append(cbuf, off, len);
+            }
+            
+            @Override
+            public void flush() {
+            }
+            
+            @Override
+            public void close() {
+            }
+        });
+        exception.printStackTrace(stackWriter);
+        
+        return sb;
+    }
+
+    private List<String> getSnippetValue(SnippetEvent event) {
+        return event.value() != null ? List.of(event.value()) : Collections.emptyList();
     }
 
     private void flushStreams(String notebookId) {
@@ -248,11 +336,11 @@ public class CodeEval {
         }
     }
 
-    // This method is directly taken from JShell tool implementation in jdk with some minor modifications
+    // Note: This method is taken from jdk.internal.jshell.tool.JShellTool with some simplifications
     private List<String> displayableDiagnostic(String source, Diag diag) {
         List<String> toDisplay = new ArrayList<>();
 
-        for (String line : diag.getMessage(null).split("\\r?\\n")) {
+        for (String line : diag.getMessage(null).split("\\R")) {
             if (!line.trim().startsWith("location:")) {
                 toDisplay.add(line);
             }
@@ -335,42 +423,19 @@ public class CodeEval {
                 }
             }
 
-            NotebookCellExecutionProgressResultParams params;
+            Builder b = NotebookCellExecutionProgressResultParams.builder(notebookId, cellId).status(status);
             if (msg == null) {
                 if (diags != null) {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .diagnostics(diags)
-                            .status(status)
-                            .build();
+                    b.diagnostics(diags);
                 } else if (errorDiags != null) {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .errorDiagnostics(errorDiags)
-                            .status(status)
-                            .build();
-                } else {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .status(status)
-                            .build();
+                    b.errorDiagnostics(errorDiags);
                 }
             } else {
-                if (isError) {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .status(status)
-                            .errorStream(CellExecutionResult.text(msg))
-                            .build();
-                } else {
-                    params = NotebookCellExecutionProgressResultParams
-                            .builder(notebookId, cellId)
-                            .status(status)
-                            .outputStream(CellExecutionResult.text(msg))
-                            .build();
-                }
+                b = isError
+                        ? b.errorStream(CellExecutionResult.text(msg))
+                        : b.outputStream(CellExecutionResult.text(msg));
             }
-
+            NotebookCellExecutionProgressResultParams params = b.build();
             NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
             if (client != null) {
                 client.notifyNotebookCellExecutionProgress(params);

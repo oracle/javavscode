@@ -1,0 +1,67 @@
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/input/ShowInputBoxParams.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/input/ShowInputBoxParams.java
+@@ -53,6 +53,11 @@
+      */
+     private boolean password = false;
+ 
++    /**
++     * Controls if focus is changed from the input box whether it should close or not.
++     */
++    private boolean ignoreFocusOut = false;
++
+     public ShowInputBoxParams() {
+         this("", "");
+     }
+@@ -68,6 +73,11 @@
+         this.password = password;
+     }
+ 
++    public ShowInputBoxParams(@NonNull final String prompt, @NonNull final String value, final boolean ignoreFocusOut) {
++        this(prompt, value);
++        this.ignoreFocusOut = ignoreFocusOut;
++    }
++    
+     /**
+      * An optional title of the input box.
+      */
+@@ -131,6 +141,22 @@
+         this.password = password;
+     }
+ 
++    /**
++     * Controls if focus is changed from the input box whether it should close or not.
++     */
++    @Pure
++    @NonNull
++    public boolean isIgnoreFocusOut() {
++        return ignoreFocusOut;
++    }
++
++    /**
++     * Controls if focus is changed from the input box whether it should close or not.
++     */
++    public void setIgnoreFocusOut(boolean ignoreFocusOut) {
++        this.ignoreFocusOut = ignoreFocusOut;
++    }
++
+     @Override
+     @Pure
+     public String toString() {
+@@ -139,6 +165,7 @@
+         b.add("prompt", prompt);
+         b.add("value", value);
+         b.add("password" , password);
++        b.add("ignoreFocusOut", ignoreFocusOut);
+         return b.toString();
+     }
+ 
+@@ -169,6 +196,9 @@
+         if (this.password != other.password) {
+             return false;
+         }
++        if (this.ignoreFocusOut != other.ignoreFocusOut) {
++            return false;
++        }
+         if (!Objects.equals(this.title, other.title)) {
+             return false;
+         }

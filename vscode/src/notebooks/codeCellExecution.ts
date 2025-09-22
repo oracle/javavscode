@@ -19,7 +19,7 @@
  * under the License.
  */
 
-import { commands, NotebookCell, NotebookCellExecution, NotebookCellOutput, NotebookController } from "vscode";
+import { commands, NotebookCell, NotebookCellExecution, NotebookCellOutput, NotebookController, window, workspace } from "vscode";
 import { LOGGER } from "../logger";
 import { NotebookCellExecutionResult } from "../lsp/protocol";
 import { createErrorOutputItem } from "./utils";
@@ -132,7 +132,12 @@ export class CodeCellExecution {
             this.execution.clearOutput();
             await this.execution.replaceOutput(this.output);
             this.execution.token.onCancellationRequested(async () => {
-                await commands.executeCommand(nbCommands.interruptNotebookCellExecution, this.notebookId);
+                try {
+                    await commands.executeCommand(nbCommands.interruptNotebookCellExecution, this.notebookId);
+                } catch (error) {
+                    LOGGER.error("Some Error occurred while interrupting code cell: " + error);
+                    window.showErrorMessage("Cannot interrupt code cell");
+                }
             });
             return;
         }

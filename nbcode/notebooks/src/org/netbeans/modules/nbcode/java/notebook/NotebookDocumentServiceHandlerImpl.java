@@ -15,6 +15,7 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,9 +35,6 @@ import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.DefinitionParams;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
-import org.netbeans.modules.java.lsp.server.notebook.NotebookDocumentServiceHandler;
 import org.eclipse.lsp4j.DidChangeNotebookDocumentParams;
 import org.eclipse.lsp4j.DidCloseNotebookDocumentParams;
 import org.eclipse.lsp4j.DidOpenNotebookDocumentParams;
@@ -48,6 +46,10 @@ import org.eclipse.lsp4j.FoldingRangeRequestParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.ImplementationParams;
+import org.eclipse.lsp4j.InlayHint;
+import org.eclipse.lsp4j.InlayHintParams;
+import org.eclipse.lsp4j.InlineValue;
+import org.eclipse.lsp4j.InlineValueParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MessageParams;
@@ -66,7 +68,11 @@ import org.eclipse.lsp4j.TypeDefinitionParams;
 import org.eclipse.lsp4j.WillSaveTextDocumentParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.netbeans.modules.java.lsp.server.notebook.NotebookDocumentServiceHandler;
+import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 import org.netbeans.modules.java.lsp.server.protocol.ShowStatusMessageParams;
+import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -74,6 +80,12 @@ import org.openide.util.lookup.ServiceProvider;
  * @author atalati
  */
 @ServiceProvider(service = NotebookDocumentServiceHandler.class)
+@NbBundle.Messages({
+    "MSG_KernelInitializing=Intializing Java kernel for notebook",
+    "MSG_KernelInitializeSuccess=Java kernel initialized successfully.",
+    "# {0} - error message",
+    "MSG_KernelInitializeFailed=Java kernel initialization for the notebook failed. Error {0}"
+})
 public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServiceHandler {
 
     private static final Logger LOG = Logger.getLogger(NotebookDocumentServiceHandler.class.getName());
@@ -88,13 +100,13 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
             if (client == null) {
                 return;
             }
-            client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, "Intializing Java kernel for notebook."));
+            client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, Bundle.MSG_KernelInitializing()));
             NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()).whenComplete((JShell jshell, Throwable t) -> {
                 if (t == null) {
-                    client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, "Java kernel initialized successfully"));
+                    client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, Bundle.MSG_KernelInitializeSuccess()));
                 } else {
                     // if package import fails user is not informed ?
-                    client.showMessage(new MessageParams(MessageType.Error, "Error could not initialize Java kernel for the notebook."));
+                    client.showMessage(new MessageParams(MessageType.Error, Bundle.MSG_KernelInitializeFailed(t.getMessage())));
                     LOG.log(Level.SEVERE, "Error could not initialize Java kernel for the notebook. : {0}", t.getMessage());
                 }
             });
@@ -122,7 +134,14 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
 
     @Override
     public void didClose(DidCloseNotebookDocumentParams params) {
-        NotebookSessionManager.getInstance().closeSession(params.getNotebookDocument().getUri());
+        String notebookUri = params.getNotebookDocument().getUri();
+        NotebookSessionManager.getInstance().closeSession(notebookUri);
+        NotebookDocumentStateManager state = notebookStateMap.remove(notebookUri);
+        if (state != null) {
+            state.getCellsMap().keySet().forEach(notebookCellMap::remove);
+        } else {
+            notebookCellMap.values().removeIf(notebookUri::equals);
+        }
     }
 
     @Override
@@ -231,4 +250,13 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
         return CompletableFuture.completedFuture(null);
     }
 
+    @Override
+    public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
+        return CompletableFuture.completedFuture(new ArrayList<>());
+    }
+
+    @Override
+    public CompletableFuture<List<InlineValue>> inlineValue(InlineValueParams params) {
+        return CompletableFuture.completedFuture(new ArrayList<>());
+    }
 }

@@ -141,7 +141,6 @@ public class CellStateTest extends NbTestCase{
                 staleContentFromServer, staleVersionFromServer
         );
 
-        assertThrows(IllegalStateException.class, () -> cellState.setContent("a newer content", 3));
         assertEquals("Content should remain unchanged after failed fetch", INITIAL_CONTENT, cellState.getContent());
         assertEquals("Version should remain unchanged after failed fetch", 1, cellState.getVersionAwareContent().getVersion());
     }

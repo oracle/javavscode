@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,6 +23,9 @@ import * as vscode from 'vscode';
 import { errorNotebook, parseCell } from './utils';
 import { ICell, INotebook } from './types';
 import { Notebook } from './notebook';
+import { LOGGER } from '../logger';
+import { l10n } from '../localiser';
+import { isError } from '../utils';
 
 class IJNBNotebookSerializer implements vscode.NotebookSerializer {
   private readonly decoder = new TextDecoder();
@@ -33,7 +36,8 @@ class IJNBNotebookSerializer implements vscode.NotebookSerializer {
   ): Promise<vscode.NotebookData> {
     const raw = this.decoder.decode(content).trim();
     if (!raw) {
-      return errorNotebook('Empty Notebook', 'The notebook file appears to be empty.');
+      return errorNotebook(l10n.value("jdk.notebook.parsing.empty.file.error_msg.title"),
+        l10n.value("jdk.notebook.parsing.empty.file.error_msg.desc"));
     }
 
     let parsed: INotebook;
@@ -41,16 +45,17 @@ class IJNBNotebookSerializer implements vscode.NotebookSerializer {
       parsed = JSON.parse(raw) as INotebook;
       Notebook.assertValidNotebookJson(parsed);
     } catch (err) {
-      console.error('Failed to parse notebook content:', err);
-      vscode.window.showErrorMessage(`Failed to open notebook: ${(err as Error).message}`);
+      LOGGER.error('Failed to parse notebook content: ' + err);
+      vscode.window.showErrorMessage(l10n.value("jdk.notebook.parsing.error_msg.title"));
       return errorNotebook(
-        'Error Opening Notebook',
-        `Failed to parse notebook: ${(err as Error).message}`
+        l10n.value("jdk.notebook.parsing.error_msg.title"),
+        l10n.value("jdk.notebook.parsing.error_msg.desc", { message: err })
       );
     }
 
     if (!parsed || !Array.isArray(parsed.cells)) {
-      return errorNotebook('Invalid Notebook Structure', 'Missing or invalid `cells` array.');
+      return errorNotebook(l10n.value("jdk.notebook.parsing.invalid.structure.error_msg.title"),
+        l10n.value("jdk.notebook.parsing.invalid.structure.error_msg.desc"));
     }
 
     let cells: vscode.NotebookCellData[];
@@ -58,7 +63,7 @@ class IJNBNotebookSerializer implements vscode.NotebookSerializer {
       cells = parsed.cells.map((cell: ICell) => parseCell(cell));
     } catch (cellError) {
       return errorNotebook(
-        'Cell parsing error',
+        l10n.value("jdk.notebook.cell.parsing.error_msg.title"),
         (cellError as Error).message
       );
     }
@@ -74,8 +79,9 @@ class IJNBNotebookSerializer implements vscode.NotebookSerializer {
       notebook.assertValidNotebook();
       return notebook.toUint8Array();
     } catch (err) {
-      console.error('Unhandled error in serializeNotebook:', err);
-      vscode.window.showErrorMessage(`Failed to serialize notebook: ${(err as Error).message}`);
+      LOGGER.error('Unhandled error in serializeNotebook: ' + err);
+      const errorMessage = isError(err) ? err.message : err;
+      vscode.window.showErrorMessage(l10n.value("jdk.notebook.serializer.error_msg", { errorMessage }));
       throw err;
     }
   }

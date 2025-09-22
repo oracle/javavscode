@@ -3,6 +3,7 @@ package org.netbeans.modules.nbcode.java.notebook;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +32,7 @@ public class CustomInputStreamTest {
 
     @Test
     public void testReadNoClient() throws IOException {
-        inputStream.client = null;
+        inputStream = new CustomInputStream(null);
         assertEquals(-1, inputStream.read());
 
         byte[] buffer = new byte[10];
@@ -73,16 +74,6 @@ public class CustomInputStreamTest {
         int bytesRead2 = inputStream.read(buffer, 0, ("second" + System.lineSeparator()).length());
         String readString2 = new String(buffer, 0, bytesRead2, StandardCharsets.UTF_8);
         assertEquals("second" + System.lineSeparator(), readString2);
-    }
-    
-    @Test
-    public void testNullFutureInput() throws IOException {
-        mockClient.setNextInput(null);
-
-        assertEquals(-1, inputStream.read());
-
-        byte[] buffer = new byte[10];
-        assertEquals(-1, inputStream.read(buffer, 0, 10));
     }
     
     @Test

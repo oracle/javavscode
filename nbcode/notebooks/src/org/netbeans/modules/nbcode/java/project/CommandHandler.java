@@ -16,6 +16,7 @@
 package org.netbeans.modules.nbcode.java.project;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -23,6 +24,7 @@ import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.nbcode.java.notebook.NotebookSessionManager;
 import org.netbeans.modules.nbcode.java.notebook.NotebookUtils;
+import org.openide.filesystems.FileObject;
 
 /**
  *
@@ -32,7 +34,7 @@ public class CommandHandler {
 
     private static final Logger LOG = Logger.getLogger(CommandHandler.class.getName());
 
-    public static CompletableFuture<List<String>> openJshellInProjectContext(List<Object> args) {
+    public static CompletableFuture<OpenJshellResponse> openJshellInProjectContext(List<Object> args) {
         LOG.log(Level.FINER, "Request received for opening Jshell instance with project context {0}", args);
 
         String context = NotebookUtils.getArgument(args, 0, String.class);
@@ -48,21 +50,23 @@ public class CommandHandler {
                     : ProjectContext.getProject();
         }
         
-        return prjFuture.thenCompose(prj -> {
+        return prjFuture.thenCompose(prj -> {  
+            Collection<FileObject> installLocations = ProjectConfigurationUtils.findPlatform(prj).getInstallFolders();
+            FileObject installationFolder = installLocations.isEmpty() ? null : installLocations.toArray(new FileObject[0])[0];
+            String installationPath = installationFolder != null ? installationFolder.getPath() : null;
+            
             if (prj == null) {
-                return CompletableFuture.completedFuture(new ArrayList<>());
+                return CompletableFuture.completedFuture(new OpenJshellResponse(installationPath, new ArrayList<>()));
             }
             return ProjectConfigurationUtils.buildProject(prj)
                     .thenCompose(isBuildSuccess -> {
                         if (isBuildSuccess) {
-                            List<String> vmOptions = ProjectConfigurationUtils.launchVMOptions(prj);
-                            LOG.log(Level.INFO, "Opened Jshell instance with project context {0}", context);
-                            return CompletableFuture.completedFuture(vmOptions);
+                            LOG.log(Level.INFO, "Opened Jshell instance with build success status");
                         } else {
-                            CompletableFuture<List<String>> failed = new CompletableFuture<>();
-                            failed.completeExceptionally(new RuntimeException("Build failed"));
-                            return failed;
-                        }
+                            LOG.log(Level.WARNING, "Opened Jshell instance with build failed status");
+                        }                        
+                        List<String> vmOptions = ProjectConfigurationUtils.launchVMOptions(prj);
+                        return CompletableFuture.completedFuture(new OpenJshellResponse(installationPath, vmOptions));
                     });
         });
     }
@@ -74,5 +78,14 @@ public class CommandHandler {
         return ProjectContext.getProject(true, prjCxtInfo)
                 .thenApply(prj -> prj == null ? null : prj.getProjectDirectory().getPath());
     }
-
+    
+    public static class OpenJshellResponse {
+        private final List<String> vmOptions;
+        private final String jdkPath;
+        
+        public OpenJshellResponse(String jdkPath, List<String>vmOptions) {
+            this.jdkPath = jdkPath;
+            this.vmOptions = vmOptions;
+        }
+    }
 }

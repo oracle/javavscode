@@ -70,7 +70,7 @@ const multiStepInputRequestHandler = async (param: any) => {
 }
 
 const inputBoxRequestHandler = async (param: ShowInputBoxParams) => {
-    return await window.showInputBox({ title: param?.title, prompt: param.prompt, value: param.value, password: param?.password, ignoreFocusOut: param?.ignoreFocusOut });
+    return await window.showInputBox({ title: param?.title, prompt: param?.prompt, value: param?.value, password: param?.password, ignoreFocusOut: param?.ignoreFocusOut });
 }
 
 const saveDocumentRequestHandler = async (request: SaveDocumentRequestParams) => {

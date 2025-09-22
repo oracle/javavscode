@@ -33,11 +33,19 @@ import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
+import org.openide.util.NbBundle;
 
 /**
  *
  * @author atalati
  */
+@NbBundle.Messages({
+    "PROMPT_SelectProjectTitle=Select Project",
+    "# {0} - project name",
+    "LBL_CurrentProjectContext=Current project context: {0}",
+    "MSG_NoProjectFound=No projects found",
+    "MSG_NoProjectContextFound=No project context"
+})
 public class ProjectContext {
 
     public static Project getProject(String uri) {
@@ -67,7 +75,7 @@ public class ProjectContext {
         if (forceShowQuickPick) {
             return serverState.openedProjects()
                     .thenCompose(prjs -> selectFromMultipleProjects(prjs, prjCxtInfo).thenApply(res
-                    -> res.isEmpty() ? null : res.getFirst()));
+                    -> res.isEmpty() ? null : res.get(0)));
         }
         return serverState.openedProjects().thenCompose(prjs -> {
             switch (prjs.length) {
@@ -77,7 +85,7 @@ public class ProjectContext {
                     return CompletableFuture.completedFuture(prjs[0]);
                 default:
                     return selectFromMultipleProjects(prjs, prjCxtInfo).thenApply(res
-                            -> res.isEmpty() ? null : res.getFirst());
+                            -> res.isEmpty() ? null : res.get(0));
             }
         });
     }
@@ -87,7 +95,7 @@ public class ProjectContext {
         if (client == null) {
             return CompletableFuture.completedFuture(new ArrayList<>());
         }
-        String title = "Select Project";
+        String title = Bundle.PROMPT_SelectProjectTitle();
         List<QuickPickItem> items = new ArrayList<>();
         Map<String, Project> prjMap = new HashMap<>();
         for (Project prj : prjs) {
@@ -96,8 +104,8 @@ public class ProjectContext {
             prjMap.put(displayName, prj);
             items.add(item);
         }
-        String placeholder = defaultPrjSelected != null ? "Current project context: " + defaultPrjSelected.getName()
-                : items.isEmpty() ? "No projects found" : "No project context";
+        String placeholder = defaultPrjSelected != null ? Bundle.LBL_CurrentProjectContext(defaultPrjSelected.getName())
+                : items.isEmpty() ? Bundle.MSG_NoProjectFound() : Bundle.MSG_NoProjectFound();
 
         ShowQuickPickParams params = new ShowQuickPickParams(title, placeholder, false, items);
         return client.showQuickPick(params).thenApply(selected -> {

@@ -159,7 +159,7 @@ public class ProjectModulePathConfigurationUtils {
     private static ClassPath getRuntimeModulePath(Project project) {
         List<FileObject> roots = ProjectConfigurationUtils.getNonTestRoots(project);
         if (!roots.isEmpty()) {
-            return ClassPath.getClassPath(roots.getFirst(), JavaClassPathConstants.MODULE_EXECUTE_PATH);
+            return ClassPath.getClassPath(roots.get(0), JavaClassPathConstants.MODULE_EXECUTE_PATH);
         }
         return null;
     }
@@ -168,7 +168,7 @@ public class ProjectModulePathConfigurationUtils {
         List<FileObject> roots = ProjectConfigurationUtils.findProjectRoots(project);
 
         if (!roots.isEmpty()) {
-            ClasspathInfo cpi = ClasspathInfo.create(roots.getFirst());
+            ClasspathInfo cpi = ClasspathInfo.create(roots.get(0));
             return cpi.getClassPath(ClasspathInfo.PathKind.COMPILE);
         }
         return null;
