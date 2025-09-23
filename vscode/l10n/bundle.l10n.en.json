@@ -123,6 +123,6 @@
   "jdk.notebook.serializer.error_msg": "Failed to serialize notebook: {errorMessage}",
   "jdk.notebook.cell.serializer.error_msg": "Failed to serialize one or more cells",
   "jdk.notebook.validation.failed.error_msg": "Notebook JSON validation failed",
-  "jdk.notebook.mime_type.not.found.cell.output": "Mime Type: ${mimeType}, Content Length: {contentLength}",
-  "jdk.notebook.cell.language.not.found": "Doesn't support ${languageId} execution"
+  "jdk.notebook.mime_type.not.found.cell.output": "Mime Type: {mimeType}, Content Length: {contentLength}",
+  "jdk.notebook.cell.language.not.found": "Doesn't support {languageId} execution"
 }
