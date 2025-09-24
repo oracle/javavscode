@@ -1,0 +1,8 @@
+diff --git a/platform/openide.util.lookup/src/META-INF/gradle/incremental.annotation.processors b/platform/openide.util.lookup/src/META-INF/gradle/incremental.annotation.processors
+new file mode 100644
+index 000000000000..918b4bbf6505
+--- /dev/null
++++ b/platform/openide.util.lookup/src/META-INF/gradle/incremental.annotation.processors
+@@ -0,0 +1 @@
++org.netbeans.modules.openide.util.ServiceProviderProcessor,aggregating
+\ No newline at end of file
