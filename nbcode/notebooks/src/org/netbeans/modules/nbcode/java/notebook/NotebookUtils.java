@@ -22,40 +22,20 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import jdk.jshell.SourceCodeAnalysis;
 import org.eclipse.lsp4j.Position;
+import org.netbeans.api.annotations.common.NonNull;
 
 /**
  *
  * @author atalati
  */
 public class NotebookUtils {
+    private static final Pattern LINE_ENDINGS = Pattern.compile("\\R");
 
     public static String normalizeLineEndings(String text) {
-        if (text == null) {
-            return null;
-        }
-
-        if (text.indexOf('\r') == -1) {
-            return text;
-        }
-
-        StringBuilder normalized = new StringBuilder(text.length());
-        int len = text.length();
-
-        for (int i = 0; i < len; i++) {
-            char c = text.charAt(i);
-            if (c == '\r') {
-                if (i + 1 < len && text.charAt(i + 1) == '\n') {
-                    i++;
-                }
-                normalized.append('\n');
-            } else {
-                normalized.append(c);
-            }
-        }
-
-        return normalized.toString();
+        return text == null ? null : LINE_ENDINGS.matcher(text).replaceAll("\n");
     }
 
     public static int getOffset(String content, Position position) {
@@ -63,43 +43,48 @@ public class NotebookUtils {
             return 0;
         }
 
-        String[] lines = content.split("\n", -1);
-        int offset = 0;
         int targetLine = position.getLine();
-        int targetChar = position.getCharacter();
-
         if (targetLine < 0) {
             return 0;
         }
-        if (targetLine >= lines.length) {
-            return content.length();
-        }
+        int targetChar = Math.max(0, position.getCharacter());
 
-        for (int i = 0; i < targetLine; i++) {
-            offset += lines[i].length() + 1;
-        }
+        int lineStartIndex = -1;
+        int lineEndIndex = -1;
+        int line = -1;
 
-        String currentLine = lines[targetLine];
-        int charPosition = Math.min(Math.max(targetChar, 0), currentLine.length());
-        offset += charPosition;
+        // find the start line in content
+        do {
+            lineStartIndex = lineEndIndex + 1;
+            lineEndIndex = content.indexOf('\n', lineStartIndex);
+            line++;
+        } while (line < targetLine && lineEndIndex >= 0);
 
-        return Math.min(offset, content.length());
+        return line < targetLine ? content.length() : Math.min(lineStartIndex + targetChar, lineEndIndex < 0 ? content.length() : lineEndIndex);
     }
 
-    public static Position getPosition(String content, int offset) {
-        if (content == null || offset <= 0) {
+    public static Position getPosition(String text, int offset) {
+        if (text == null || offset < 0) {
             return new Position(0, 0);
         }
 
-        int clampedOffset = Math.min(offset, content.length());
+        offset = Math.min(offset, text.length());
+        int lineStartIndex = -1;
+        int lineEndIndex = -1;
+        int line = -1;
 
-        String textUpToOffset = content.substring(0, clampedOffset);
-        String[] lines = textUpToOffset.split("\n", -1);
-
-        int line = lines.length - 1;
-        int character = lines[line].length();
-
-        return new Position(line, character);
+        // count line endings in content upto offset
+        do {
+            lineStartIndex = lineEndIndex + 1;
+            lineEndIndex = text.indexOf('\n', lineStartIndex);
+            line++;
+        } while (lineEndIndex >= 0 && offset > lineEndIndex);
+        
+        if (offset == lineEndIndex) {
+            return new Position(line + 1, 0);
+        } else {
+            return new Position(line, offset - lineStartIndex);
+        }
     }
 
     public static boolean checkEmptyString(String input) {
@@ -157,5 +142,77 @@ public class NotebookUtils {
         }
 
         return codeSnippets;
+    }
+
+    /**
+     * Applies the supplied change, that is encoded as a diff
+     * i.e. `{range-start, range-end, text-replacement}`, to the supplied text.
+     *
+     * This diff format can encode additions, deletions and modifications at a
+     * single range in the text.
+     *
+     * The supplied text is expected to contain normalized line endings, and, the
+     * new text adheres to the line ending normalization.
+     *
+     * @param  text         existing text
+     * @param  start        start of the range of replaced text
+     * @param  end          end of the range of replaced text
+     * @param  replacement  text to be added at the supplied position in text
+     * @throws IllegalArgumentException - when the supplied diff range is invalid
+     */
+    public static String applyChange(@NonNull String text, @NonNull Position start, @NonNull Position end, @NonNull String replacement) throws IllegalArgumentException {
+        int startLine = start.getLine();
+        int startLineOffset = start.getCharacter();
+        int endLine = end.getLine();
+        int endLineOffset = end.getCharacter();
+
+        if (startLine < 0 || endLine < startLine || (endLine == startLine && endLineOffset < startLineOffset)) {
+            throw new IllegalArgumentException("Invalid range positions");
+        }
+        
+        if (replacement.length() == 0 && startLine == endLine && startLineOffset == endLineOffset) {
+            return text; // Nothing to be done; no addition nor deletion
+        }
+
+        final int textLength = text.length();
+
+        int lineStartIndex = -1;
+        int lineEndIndex = -1;
+        int line = -1;
+
+        // find the start line in content
+        do {
+            lineStartIndex = lineEndIndex + 1;
+            lineEndIndex = text.indexOf('\n', lineStartIndex);
+            line++;
+        } while (line < startLine && lineEndIndex >= 0);
+
+        if (line < startLine) {
+            throw new IllegalArgumentException("Invalid range start out of bounds");
+        }
+
+        StringBuilder result = new StringBuilder(textLength + replacement.length());
+
+        // append content before the change
+        result.append(text, 0, Math.min(lineStartIndex + startLineOffset, lineEndIndex < 0 ? textLength : lineEndIndex));
+        // append added text, with line ending normalization
+        result.append(LINE_ENDINGS.matcher(replacement).replaceAll("\n"));
+
+        // find the end line in content
+        while (line < endLine && lineEndIndex >= 0) {
+            lineStartIndex = lineEndIndex + 1;
+            lineEndIndex = text.indexOf('\n', lineStartIndex);
+            line++;
+        }
+
+        if (line < endLine) {
+            throw new IllegalArgumentException("Invalid range end out of bounds");
+        }
+
+        if (lineStartIndex >= 0) {
+            // append content after the change
+            result.append(text, Math.min(lineStartIndex + endLineOffset, lineEndIndex < 0 ? textLength : lineEndIndex), textLength);
+        }
+        return result.toString();
     }
 }

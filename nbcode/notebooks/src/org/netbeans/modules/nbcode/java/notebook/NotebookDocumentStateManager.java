@@ -30,7 +30,6 @@ import org.eclipse.lsp4j.NotebookDocument;
 import org.eclipse.lsp4j.NotebookDocumentChangeEvent;
 import org.eclipse.lsp4j.NotebookDocumentChangeEventCellStructure;
 import org.eclipse.lsp4j.NotebookDocumentChangeEventCellTextContent;
-import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
@@ -48,8 +47,14 @@ public class NotebookDocumentStateManager {
     private final NotebookDocument notebookDoc;
     private final Map<String, CellState> cellsMap = new ConcurrentHashMap<>();
     private final List<String> cellsOrder;
+    private final CellStateCreator cellStateCreator;
 
     public NotebookDocumentStateManager(NotebookDocument notebookDoc, List<TextDocumentItem> cells) {
+        this(notebookDoc, cells, null);
+    }
+    
+    public NotebookDocumentStateManager(NotebookDocument notebookDoc, List<TextDocumentItem> cells, CellStateCreator cellStateCreator) {
+        this.cellStateCreator = cellStateCreator != null ? cellStateCreator : CellState::new;
         this.notebookDoc = notebookDoc;
         this.cellsOrder = new ArrayList<>();
         Iterator<NotebookCell> notebookCellsIterator = notebookDoc.getCells().iterator();
@@ -193,7 +198,7 @@ public class NotebookDocumentStateManager {
             cellState.setContent(updatedContent, newVersion);
             LOG.log(Level.FINE, "Updated content for cell: {0}, version: {1}", new Object[]{uri, newVersion});
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "applyContentChanges failed, requesting full content: " + uri, e);
+            LOG.log(Level.WARNING, "applyContentChanges failed, requesting full content for cell: {0}. Error - {1}", new Object[]{uri, e});
             try {
                 cellState.requestContentAndSet();
             } catch (Exception ex) {
@@ -222,60 +227,33 @@ public class NotebookDocumentStateManager {
 
     private String applyRangeChange(String content, TextDocumentContentChangeEvent change) {
         Range range = change.getRange();
-        Position start = range.getStart();
-        Position end = range.getEnd();
-
-        String[] lines = content.split("\n", -1);
-
-        if (start.getLine() < 0 || start.getLine() >= lines.length
-                || end.getLine() < 0 || end.getLine() >= lines.length) {
-            throw new IllegalArgumentException("Invalid range positions");
-        }
-
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < start.getLine(); i++) {
-            result.append(lines[i]);
-            if (i < lines.length - 1) {
-                result.append("\n");
-            }
-        }
-
-        String startLine = lines[start.getLine()];
-        String beforeChange = startLine.substring(0, Math.min(start.getCharacter(), startLine.length()));
-        result.append(beforeChange);
-
-        result.append(change.getText());
-
-        String endLine = lines[end.getLine()];
-        String afterChange = endLine.substring(Math.min(end.getCharacter(), endLine.length()));
-        result.append(afterChange);
-
-        for (int i = end.getLine() + 1; i < lines.length; i++) {
-            result.append("\n").append(lines[i]);
-        }
-
-        return result.toString();
+        return NotebookUtils.applyChange(content, range.getStart(), range.getEnd(), change.getText());
     }
 
-    // protected methods for ease of unit testing
-    protected void addNewCellState(NotebookCell cell, TextDocumentItem item) {
+
+    private void addNewCellState(NotebookCell cell, TextDocumentItem item) {
         if (cell == null || item == null) {
             LOG.log(Level.WARNING, "Attempted to add null cell or item");
             return;
         }
 
+        CellState cellState;
         try {
-            CellState cellState = new CellState(cell, item, notebookDoc.getUri());
-            cellsMap.put(item.getUri(), cellState);
+            cellState = cellStateCreator.create(cell, item, notebookDoc.getUri());
             LOG.log(Level.FINE, "Added new cell state: {0}", item.getUri());
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to create cell state for: " + item.getUri(), e);
             throw new RuntimeException("Failed to create cell state", e);
         }
+        cellsMap.put(item.getUri(), cellState);
     }
 
     protected Map<String, CellState> getCellsMap() {
         return cellsMap;
+    }
+    
+    // protected methods for ease of unit testing
+    protected interface CellStateCreator {
+        CellState create(NotebookCell cell, TextDocumentItem item, String notebookDocUri);
     }
 }
