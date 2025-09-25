@@ -19,6 +19,7 @@ package org.netbeans.modules.nbcode.java.notebook;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -38,13 +39,14 @@ import static org.junit.Assert.*;
 
 /*
 Version 1 21/08/25
+Version 2 25/09/25  Inline with frontend sending arrays for CP,MP,Add modules
 */
 
 /**
  *  Mock LSP Client sending sample configurations
  *  Verifies that the NotebookConfigs class 
  *      parses and handles configurations appropriately 
- *  
+ *
  * @author shimadan
  */
 public class NotebookConfigsTest {
@@ -61,7 +63,7 @@ public class NotebookConfigsTest {
     public NotebookConfigsTest() {
     }
 
-    @Before 
+    @Before
     public void setUp() {
         setConfigObject();
         LanguageClientInstance.getInstance().
@@ -97,7 +99,7 @@ public class NotebookConfigsTest {
         System.out.println("getClassPath");
         try {
             initialized.get(5, TimeUnit.SECONDS);
-            String expResult = configsObj.get(CLASSPATH_KEY).getAsString();
+            String expResult = String.join(File.pathSeparator, (configsObj.get(CLASSPATH_KEY).getAsJsonArray()).asList().stream().map((elem) -> elem.getAsString()).toList());
             String result = instance.getClassPath();
             assertEquals(expResult, result);
         } catch (Exception ex) {
@@ -114,7 +116,7 @@ public class NotebookConfigsTest {
 
         try {
             initialized.get(5, TimeUnit.SECONDS);
-            String expResult = configsObj.get(MODULEPATH_KEY).getAsString();
+            String expResult = String.join(File.pathSeparator, (configsObj.get(MODULEPATH_KEY).getAsJsonArray()).asList().stream().map((elem) -> elem.getAsString()).toList());
             String result = instance.getModulePath();
             assertEquals(expResult, result);
         } catch (Exception ex) {
@@ -130,7 +132,7 @@ public class NotebookConfigsTest {
         System.out.println("getAddModules");
         try {
             initialized.get(5, TimeUnit.SECONDS);
-            String expResult = configsObj.get(ADD_MODULES_KEY).getAsString();
+            String expResult = String.join(",",(configsObj.get(ADD_MODULES_KEY).getAsJsonArray()).asList().stream().map((elem) -> elem.getAsString()).toList());
             String result = instance.getAddModules();
             assertEquals(expResult, result);
         } catch (Exception ex) {
@@ -177,10 +179,18 @@ public class NotebookConfigsTest {
         imports.add(new JsonPrimitive("java.math.*"));
         imports.add(new JsonPrimitive("javafx.scene.control.*"));
         configsObj.add(IMPLICIT_IMPORTS_KEY, imports);
-        configsObj.add(CLASSPATH_KEY, new JsonPrimitive("path/to/javafx-sdk-24.0.1/lib/javafx.base.jar"));
-        configsObj.add(MODULEPATH_KEY, new JsonPrimitive("/path/to/javafx-sdk/lib"));
+        JsonArray classpath = new JsonArray();
+        classpath.add(new JsonPrimitive(
+                "path/to/javafx-sdk-24.0.1/lib/javafx.base.jar"));
+        configsObj.add(CLASSPATH_KEY, classpath);
+        JsonArray modulepath = new JsonArray();
+        modulepath.add(new JsonPrimitive("/path/to/javafx-sdk/lib"));
+        configsObj.add(MODULEPATH_KEY, modulepath);
         configsObj.add(ENABLE_PREVIEW_KEY, new JsonPrimitive(false));
-        configsObj.add(ADD_MODULES_KEY, new JsonPrimitive("javafx.controls,javafx.graphics"));
+        JsonArray addModules = new JsonArray();
+        addModules.add(new JsonPrimitive("javafx.controls"));
+        addModules.add(new JsonPrimitive("javafx.graphics"));
+        configsObj.add(ADD_MODULES_KEY, addModules);
 
     }
 

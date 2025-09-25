@@ -18,6 +18,7 @@ package org.netbeans.modules.nbcode.java.notebook;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -117,13 +118,13 @@ public class NotebookConfigs {
             return configValues.thenAccept((c) -> {
                 if (c != null) {
                     if (c.get(0) != null) {
-                        classPath = ((JsonPrimitive) c.get(0)).getAsString();
+                        classPath = String.join(File.pathSeparator,((JsonArray) c.get(0)).asList().stream().map((elem) -> elem.getAsString()).toList());
                     }
                     if (c.get(1) != null) {
-                        modulePath = ((JsonPrimitive) c.get(1)).getAsString();
+                        modulePath = String.join(File.pathSeparator,((JsonArray) c.get(1)).asList().stream().map((elem) -> elem.getAsString()).toList());
                     }
                     if (c.get(2) != null) {
-                        addModules = ((JsonPrimitive) c.get(2)).getAsString();
+                        addModules = String.join(",",((JsonArray) c.get(2)).asList().stream().map((elem) -> elem.getAsString()).toList());
                     }
                     if (c.get(3) != null) {
                         enablePreview = ((JsonPrimitive) c.get(3)).getAsBoolean();
