@@ -121,13 +121,14 @@ public class NotebookDocumentStateManager {
         List<NotebookCell> cellsDetail = updatedStructure.getArray().getCells();
 
         if (cellsItem != null && cellsDetail != null) {
-            for (int i = 0; i < cellsDetail.size(); i++) {
-                TextDocumentItem cellItem = cellsItem.get(i);
+            Iterator<NotebookCell> details = cellsDetail.iterator();
+            for (TextDocumentItem cellItem: cellsItem) {
                 String uri = cellItem.getUri();
                 openedCellUris.add(uri);
-
-                addNewCellState(cellsDetail.get(i), cellItem);
                 cellsNotebookMap.put(uri, notebookDoc.getUri());
+                if (details.hasNext()) {
+                    addNewCellState(details.next(), cellItem);
+                }
             }
         }
 

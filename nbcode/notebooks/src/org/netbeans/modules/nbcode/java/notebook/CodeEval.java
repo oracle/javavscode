@@ -15,8 +15,8 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
-import jdk.jshell.JShell;
-import jdk.jshell.SnippetEvent;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,8 +29,11 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jdk.jshell.Diag;
+import jdk.jshell.EvalException;
+import jdk.jshell.JShell;
 import jdk.jshell.JShellException;
 import jdk.jshell.SourceCodeAnalysis;
+import jdk.jshell.SnippetEvent;
 import org.netbeans.modules.java.lsp.server.notebook.CellExecutionResult;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams.Builder;
@@ -228,15 +231,96 @@ public class CodeEval {
         JShellException jshellException = event.exception();
         if (jshellException != null) {
             String msg = jshellException.getMessage();
+            boolean msgAdded = false;
             if (msg != null && !msg.isBlank()) {
                 runtimeErrors.add(msg);
+                msgAdded = true;
             }
-            if (!jshellException.fillInStackTrace().toString().isBlank()) {
-                runtimeErrors.add(jshellException.fillInStackTrace().toString());
+            // Getting the exception stacktrace/details:
+            // stacktrace for EvalException provides the exception that the snippet code generated
+            // stacktrace for non-EvalException is not helpful as it is only internal details
+            String stacktrace = jshellException instanceof EvalException
+                    ? getStackTrace((EvalException) jshellException)
+                    : msgAdded ? "" : jshellException.toString();
+            if (!stacktrace.isBlank()) {
+                runtimeErrors.add(stacktrace);
             }
         }
 
         return runtimeErrors;
+    }
+
+    private String getStackTrace(EvalException exception) {
+        return printStackTrace(null, exception).toString();
+    }
+
+    private StringBuilder printStackTrace(StringBuilder output, EvalException exception) {
+        StringBuilder sb = printStackTrace(output, (Throwable) exception);
+
+        return correctExceptionName(sb, 0, exception);
+    }
+
+    private StringBuilder correctExceptionName(StringBuilder output, int startIndex, EvalException exception) {
+        // EvalException has the peculiarity that it replaces the actual cause,
+        // while retaining the name, stacktrace and subsequent causes.
+        // This is unhelpful since it hides the actual exception in the output.
+        // Note: jdk.internal.jshell.tool.JShellTool.displayEvalException() uses
+        // elaborate code to perform the user-friendly printing on console.
+        String actualName = exception.getExceptionClassName();
+        String wrapperName = exception.getClass().getName();
+        if (actualName != null && !wrapperName.equals(actualName)) {
+            int foundAt = output.indexOf(wrapperName, startIndex);
+            if (foundAt >= 0) {
+                output.replace(foundAt, foundAt + wrapperName.length(), actualName);
+                foundAt += actualName.length();
+                if (foundAt < output.length()) {
+                    Throwable cause = exception;
+                    Throwable cycleDetector = cause;
+                    do {
+                        cause = cause.getCause();
+
+                        if (cycleDetector != null) {
+                            // Check for loops in cause using a tortoise-hare detector.
+                            cycleDetector = cycleDetector.getCause();
+                            if (cycleDetector != null) {
+                                cycleDetector = cycleDetector.getCause();
+                                if (cycleDetector == cause) {
+                                    cause = null;   // Cycle has been detected; break
+                                }
+                            }
+                        }
+                    } while (cause != null && !(cause instanceof EvalException));
+                    if (cause != null) {
+                        correctExceptionName(output, foundAt, (EvalException) cause);
+                    }
+                }
+            }
+        }
+        return output;
+    }
+    
+    private StringBuilder printStackTrace(StringBuilder output, Throwable exception) {
+        if (exception == null) {
+            return output != null ? output : new StringBuilder(0);
+        }
+        StringBuilder sb = output != null ? output : new StringBuilder();
+        PrintWriter stackWriter = new PrintWriter(new Writer() {
+            @Override
+            public void write(char[] cbuf, int off, int len) {
+                sb.append(cbuf, off, len);
+            }
+            
+            @Override
+            public void flush() {
+            }
+            
+            @Override
+            public void close() {
+            }
+        });
+        exception.printStackTrace(stackWriter);
+        
+        return sb;
     }
 
     private List<String> getSnippetValue(SnippetEvent event) {
@@ -250,11 +334,11 @@ public class CodeEval {
         }
     }
 
-    // This method is directly taken from JShell tool implementation in jdk with some minor modifications
+    // Note: This method is taken from jdk.internal.jshell.tool.JShellTool with some simplifications
     private List<String> displayableDiagnostic(String source, Diag diag) {
         List<String> toDisplay = new ArrayList<>();
 
-        for (String line : diag.getMessage(null).split("\\r?\\n")) {
+        for (String line : diag.getMessage(null).split("\\R")) {
             if (!line.trim().startsWith("location:")) {
                 toDisplay.add(line);
             }

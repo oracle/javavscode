@@ -35,9 +35,6 @@ import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.DefinitionParams;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
-import org.netbeans.modules.java.lsp.server.notebook.NotebookDocumentServiceHandler;
 import org.eclipse.lsp4j.DidChangeNotebookDocumentParams;
 import org.eclipse.lsp4j.DidCloseNotebookDocumentParams;
 import org.eclipse.lsp4j.DidOpenNotebookDocumentParams;
@@ -71,6 +68,9 @@ import org.eclipse.lsp4j.TypeDefinitionParams;
 import org.eclipse.lsp4j.WillSaveTextDocumentParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.netbeans.modules.java.lsp.server.notebook.NotebookDocumentServiceHandler;
+import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 import org.netbeans.modules.java.lsp.server.protocol.ShowStatusMessageParams;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;
@@ -133,8 +133,12 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
     public void didClose(DidCloseNotebookDocumentParams params) {
         String notebookUri = params.getNotebookDocument().getUri();
         NotebookSessionManager.getInstance().closeSession(notebookUri);
-        notebookStateMap.remove(notebookUri);
-        notebookCellMap.entrySet().removeIf(entry -> notebookUri.equals(entry.getValue()));
+        NotebookDocumentStateManager state = notebookStateMap.remove(notebookUri);
+        if (state != null) {
+            state.getCellsMap().keySet().forEach(notebookCellMap::remove);
+        } else {
+            notebookCellMap.values().removeIf(notebookUri::equals);
+        }
     }
 
     @Override

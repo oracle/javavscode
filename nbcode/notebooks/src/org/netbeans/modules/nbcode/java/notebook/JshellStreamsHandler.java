@@ -61,14 +61,6 @@ public class JshellStreamsHandler implements AutoCloseable {
         return callback != null ? output -> callback.accept(notebookId, output) : null;
     }
 
-    public void setOutStreamCallback(BiConsumer<String, byte[]> callback) {
-        outStream.setCallback(createCallback(callback));
-    }
-
-    public void setErrStreamCallback(BiConsumer<String, byte[]> callback) {
-        errStream.setCallback(createCallback(callback));
-    }
-
     public PrintStream getPrintOutStream() {
         return printOutStream;
     }
@@ -89,12 +81,12 @@ public class JshellStreamsHandler implements AutoCloseable {
         try {
             outStream.flush();
         } catch (IOException exception) {
-            LOG.log(Level.WARNING, "IOException occurred while flushing out stream: {0}", exception.getMessage());
+            LOG.log(Level.WARNING, "IOException occurred while flushing out stream: {0}", exception.toString());
         }
         try {
             errStream.flush();
         } catch (IOException exception) {
-            LOG.log(Level.WARNING, "IOException occurred while flushing error stream: {0}", exception.getMessage());
+            LOG.log(Level.WARNING, "IOException occurred while flushing error stream: {0}", exception.toString());
         }
     }
 
@@ -102,24 +94,28 @@ public class JshellStreamsHandler implements AutoCloseable {
     public void close() {
         try {
             printOutStream.close();
+        } catch (Exception exception) {
+            LOG.log(Level.WARNING, "Exception occurred while closing print out stream: {0}", exception.toString());
+        }
+        try {
             printErrStream.close();
         } catch (Exception exception) {
-            LOG.log(Level.WARNING, "Exception occurred while closing print streams: {0}", exception.getMessage());
+            LOG.log(Level.WARNING, "Exception occurred while closing print err stream: {0}", exception.toString());
         }
         try {
             outStream.close();
         } catch (IOException exception) {
-            LOG.log(Level.WARNING, "IOException occurred while closing out stream: {0}", exception.getMessage());
+            LOG.log(Level.WARNING, "IOException occurred while closing out stream: {0}", exception.toString());
         }
         try {
             errStream.close();
         } catch (IOException exception) {
-            LOG.log(Level.WARNING, "IOException occurred while closing error stream: {0}", exception.getMessage());
+            LOG.log(Level.WARNING, "IOException occurred while closing error stream: {0}", exception.toString());
         }
         try {
             inputStream.close();
         } catch (IOException exception) {
-            LOG.log(Level.WARNING, "IOException occurred while closing input stream: {0}", exception.getMessage());
+            LOG.log(Level.WARNING, "IOException occurred while closing input stream: {0}", exception.toString());
         }
     }
 }

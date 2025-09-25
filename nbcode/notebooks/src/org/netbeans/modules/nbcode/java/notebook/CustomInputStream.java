@@ -47,13 +47,12 @@ public class CustomInputStream extends InputStream {
     @Override
     public synchronized int read(byte[] b, int off, int len) throws IOException {
         try {
-            NbCodeLanguageClient client = this.client.get();
-            if (client == null) {
-                LOG.log(Level.WARNING, "client is null");
-                return -1;
-            }
-
             if (currentStream == null || currentStream.available() == 0) {
+                NbCodeLanguageClient client = this.client.get();
+                if (client == null) {
+                    LOG.log(Level.WARNING, "client is null");
+                    return -1;
+                }
                 CompletableFuture<String> future = client.showInputBox(new ShowInputBoxParams(USER_PROMPT_REQUEST, "", true));
                 String userInput = future.get();
 

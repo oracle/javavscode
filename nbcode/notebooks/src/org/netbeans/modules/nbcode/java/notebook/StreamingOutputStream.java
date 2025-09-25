@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.openide.util.RequestProcessor;
 import org.openide.util.RequestProcessor.Task;
 
@@ -31,9 +30,10 @@ import org.openide.util.RequestProcessor.Task;
 public class StreamingOutputStream extends OutputStream {
 
     private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    private volatile Consumer<byte[]> callback;
+    private final Consumer<byte[]> callback;
     private static final int MAX_BUFFER_SIZE = 1024;
     private final AtomicBoolean isPeriodicFlushOutputStream;
+    private final boolean noop;
 
     static RequestProcessor getRequestProcessor() {
         return RPSingleton.instance;
@@ -50,19 +50,22 @@ public class StreamingOutputStream extends OutputStream {
     }
 
     public StreamingOutputStream(Consumer<byte[]> callback) {
+        this.noop = callback == null;
         this.callback = callback;
-        this.isPeriodicFlushOutputStream = new AtomicBoolean(true);
+        this.isPeriodicFlushOutputStream = new AtomicBoolean(!noop);
         createAndScheduleTask();
     }
 
     @Override
     public synchronized void write(int b) throws IOException {
+        if (noop) return;
         buffer.write(b);
         ifBufferOverflowFlush();
     }
 
     @Override
     public synchronized void write(byte[] b, int off, int len) throws IOException {
+        if (noop) return;
         if (len >= MAX_BUFFER_SIZE) {
             flushToCallback();
             byte[] chunk = new byte[len];
@@ -76,33 +79,34 @@ public class StreamingOutputStream extends OutputStream {
 
     @Override
     public synchronized void flush() throws IOException {
+        if (noop) return;
         flushToCallback();
     }
 
     @Override
     public synchronized void write(byte[] b) throws IOException {
+        if (noop) return;
         write(b, 0, b.length);
     }
 
     @Override
     public synchronized void close() throws IOException {
-        flushToCallback();
-        isPeriodicFlushOutputStream.set(false);
+        if (!noop) {
+            flushToCallback();
+            isPeriodicFlushOutputStream.set(false);
+        }
         super.close();
     }
 
-    @NonNull
-    public void setCallback(Consumer<byte[]> cb) {
-        this.callback = cb;
-    }
-
     private void ifBufferOverflowFlush() {
+        if (noop) return;
         if (buffer.size() > MAX_BUFFER_SIZE) {
             flushToCallback();
         }
     }
 
     private synchronized void flushToCallback() {
+        if (noop) return;
         if (buffer.size() > 0) {
             byte[] output = buffer.toByteArray();
             buffer.reset();

@@ -83,7 +83,6 @@ public class CellState {
     }
 
     public void setContent(String newContent, int newVersion) throws InterruptedException, ExecutionException {
-        String normalizedContent = NotebookUtils.normalizeLineEndings(newContent);
         VersionAwareContent currentContent = content.get();
 
         if (currentContent.getVersion() != newVersion - 1) {
@@ -100,13 +99,14 @@ public class CellState {
             int receivedVersion = newCellState.getVersion();
 
             if (receivedVersion > currentContent.getVersion()) {
-                VersionAwareContent newVersionContent = new VersionAwareContent(newCellState.getText(), receivedVersion);
+                VersionAwareContent newVersionContent = new VersionAwareContent(NotebookUtils.normalizeLineEndings(newCellState.getText()), receivedVersion);
                 content.updateAndGet(current -> current != currentContent && receivedVersion <= current.getVersion() ? current : newVersionContent);
             } else {
                 LOG.log(Level.WARNING, "Version mismatch: Received version to be greater than current version, received version:  {0}, current version: {1}", new Object[]{receivedVersion, currentContent.getVersion()});
             }
         } else {
-            VersionAwareContent newVersionContent = new VersionAwareContent(normalizedContent, newVersion);
+            // newContent is already normalized during applyChanges
+            VersionAwareContent newVersionContent = new VersionAwareContent(newContent, newVersion);
 
             if (!content.compareAndSet(currentContent, newVersionContent)) {
                 LOG.log(Level.WARNING, "Concurrent modification detected. Version expected: {0}, current: {1}", new Object[]{newVersion - 1, content.get().getVersion()});
