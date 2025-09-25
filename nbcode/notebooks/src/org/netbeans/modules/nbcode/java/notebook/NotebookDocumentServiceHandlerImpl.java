@@ -80,9 +80,12 @@ import org.openide.util.lookup.ServiceProvider;
  * @author atalati
  */
 @ServiceProvider(service = NotebookDocumentServiceHandler.class)
-@NbBundle.Messages({"kernel.initializing=Intializing Java kernel for notebook.",
-    "kernel.initialize.success=Java kernel initialized successfully.",
-    "kernel.initialize.failed=Error could not initialize Java kernel for the notebook."})
+@NbBundle.Messages({
+    "MSG_KernelInitializing=Intializing Java kernel for notebook",
+    "MSG_KernelInitializeSuccess=Java kernel initialized successfully.",
+    "# {0} - error message",
+    "MSG_KernelInitializeFailed=Java kernel initialization for the notebook failed. Error {0}"
+})
 public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServiceHandler {
 
     private static final Logger LOG = Logger.getLogger(NotebookDocumentServiceHandler.class.getName());
@@ -97,13 +100,13 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
             if (client == null) {
                 return;
             }
-            client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, Bundle.kernel_initializing()));
+            client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, Bundle.MSG_KernelInitializing()));
             NotebookSessionManager.getInstance().createSession(params.getNotebookDocument()).whenComplete((JShell jshell, Throwable t) -> {
                 if (t == null) {
-                    client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, Bundle.kernel_initialize_success()));
+                    client.showStatusBarMessage(new ShowStatusMessageParams(MessageType.Info, Bundle.MSG_KernelInitializeSuccess()));
                 } else {
                     // if package import fails user is not informed ?
-                    client.showMessage(new MessageParams(MessageType.Error, Bundle.kernel_initialize_failed()));
+                    client.showMessage(new MessageParams(MessageType.Error, Bundle.MSG_KernelInitializeFailed(t.getMessage())));
                     LOG.log(Level.SEVERE, "Error could not initialize Java kernel for the notebook. : {0}", t.getMessage());
                 }
             });

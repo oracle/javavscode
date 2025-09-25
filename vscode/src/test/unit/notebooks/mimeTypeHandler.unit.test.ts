@@ -136,7 +136,7 @@ describe('MimeTypeHandler', () => {
       };
 
       const items = MimeTypeHandler.itemsFromBundle(bundle);
-      expect(items).to.have.length(2);
+      expect(items).to.have.length(3);
 
       const textItem = items.find(i => (i as any).mime === mimeTypes.TEXT)!;
       expect(decodeData(textItem)).to.equal('foo');
@@ -144,6 +144,9 @@ describe('MimeTypeHandler', () => {
       const imgItem = items.find(i => (i as any).mime === 'image/png')!;
       const gotBytes = (imgItem as any).data as Uint8Array;
       expect(Array.from(gotBytes)).to.deep.equal(Array.from(rawImg));
+
+      const jsonItem = items.find(i => (i as any).mime === undefined)!;
+      expect(decodeData(jsonItem)).to.equal('jdk.notebook.mime_type.not.found.cell.output');
     });
 
     it('joins string-array values before creating the output item', () => {
@@ -180,7 +183,9 @@ describe('MimeTypeHandler', () => {
         'application/json': '[1,2,3]',
         'video/mp4': 'abcd',
       };
-      expect(MimeTypeHandler.itemsFromBundle(bundle)).to.be.empty;
+      const items = MimeTypeHandler.itemsFromBundle(bundle);
+      expect(items).to.have.length(2);
+      expect(items.filter(i => (i as any).mime === undefined)).to.have.length(2);
     });
   });
 });

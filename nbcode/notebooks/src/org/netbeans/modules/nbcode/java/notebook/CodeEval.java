@@ -46,13 +46,15 @@ import org.openide.util.RequestProcessor;
  *
  * @author atalati
  */
-@NbBundle.Messages({"InterruptCodeCell.exec.success=Code execution stopped successfully",
-"InterruptCodeCell.info.msg=Code execution stopped successfully"})
+@NbBundle.Messages({
+    "MSG_InterruptCodeCellExecSuccess=Code execution stopped successfully",
+    "MSG_InterruptCodeCellInfo=Code execution was interrupted"
+})
 public class CodeEval {
 
     private static final Logger LOG = Logger.getLogger(CodeEval.class.getName());
-    private static final String CODE_EXEC_INTERRUPT_SUCCESS_MESSAGE = Bundle.InterruptCodeCell_exec_success();
-    private static final String CODE_EXEC_INTERRUPTED_MESSAGE = Bundle.InterruptCodeCell_info_msg();
+    private static final String CODE_EXEC_INTERRUPT_SUCCESS_MESSAGE = Bundle.MSG_InterruptCodeCellExecSuccess();
+    private static final String CODE_EXEC_INTERRUPTED_MESSAGE = Bundle.MSG_InterruptCodeCellInfo();
     private static final Pattern LINEBREAK = Pattern.compile("\\R");
 
     private final Map<String, RequestProcessor> codeExecMap = new ConcurrentHashMap<>();

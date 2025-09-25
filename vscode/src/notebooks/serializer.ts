@@ -80,7 +80,8 @@ class IJNBNotebookSerializer implements vscode.NotebookSerializer {
       return notebook.toUint8Array();
     } catch (err) {
       LOGGER.error('Unhandled error in serializeNotebook: ' + err);
-      vscode.window.showErrorMessage(l10n.value("jdk.notebook.serializer.error_msg", { errorMessage: isError(err) ? err.message : err }));
+      const errorMessage = isError(err) ? err.message : err;
+      vscode.window.showErrorMessage(l10n.value("jdk.notebook.serializer.error_msg", { errorMessage }));
       throw err;
     }
   }

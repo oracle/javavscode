@@ -86,12 +86,12 @@ describe('WorkspaceChangeEvent', () => {
 
             cacheServiceGetStub.withArgs(oldId).returns(undefined);
             randomUUIDStub.returns(uuid);
-
             const event = new WorkspaceChangeEvent(payload);
+            const expectedCacheValue = new ProjectCacheValue(uuid);
             const result = event.getPayload;
 
             expect(result.projectInfo[0].id).to.equal(uuid);
-            sinon.assert.calledWith(cacheServicePutStub, oldId, new ProjectCacheValue(uuid));
+            sinon.assert.calledWith(cacheServicePutStub, oldId, expectedCacheValue);
             assertProject(result.projectInfo[0], { ...project, id: uuid });
         });
 

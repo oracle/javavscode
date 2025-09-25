@@ -93,7 +93,7 @@ export class IJNBKernel implements Disposable {
       const client: LanguageClient = await globalState.getClientPromise().client;
 
       if (!(await isNbCommandRegistered(nbCommands.executeNotebookCell))) {
-        throw l10n.value("jdk.extension.error_msg.doesntSupportNoteboookCellExecution", { client });
+        throw l10n.value("jdk.extension.error_msg.doesntSupportNotebookCellExecution", { client: client?.name });
       }
 
       const response = await commands.executeCommand<string>(nbCommands.executeNotebookCell,

@@ -135,7 +135,7 @@ const openJshellInContextOfProject = async (ctx: any) => {
             terminal.sendText(`jshell ${finalArgs.join(' ')}`, true);
             terminal.show();
         } else {
-            throw l10n.value("jdk.extension.error_msg.doesntSupportGoToTest", { client });
+            throw l10n.value("jdk.extension.error_msg.doesntSupportJShellExecution", { client: client?.name });
         }
     } catch (error) {
         window.showErrorMessage(l10n.value("jdk.jshell.open.error_msg.failed"));
@@ -171,7 +171,7 @@ const notebookChangeProjectContextHandler = async (ctx: INotebookToolbar) => {
                 { ...oldValue, [uri.fsPath]: res },
                 ConfigurationTarget.Workspace);
         } else {
-            throw l10n.value("jdk.extension.error_msg.doesntSupportNoteboookCellExecution", { client });
+            throw l10n.value("jdk.extension.error_msg.doesntSupportNotebookCellExecution", { client: client?.name });
         }
     } catch (error) {
         LOGGER.error(`Error occurred while opening notebook : ${isError(error) ? error.message : error}`);

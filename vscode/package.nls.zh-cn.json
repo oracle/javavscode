@@ -73,6 +73,7 @@
     "jdk.notebook.addmodules.description": "The specific modules for use in Java notebooks. Defaults to modules of the project context, when empty.",
     "jdk.notebook.enablePreview.description": "Enable the use of Java preview features in Java notebooks",
     "jdk.notebook.implicitImports.description": "List of elements to implicitly import in Java notebooks. Defaults to star-imports of java.util, java.io and java.math packages, when empty.",
+    "jdk.notebook.implicitImports.markdownDescription": "List of elements to implicitly import in Java notebooks. Defaults to star-imports of `java.util`, `java.io` and `java.math` packages, when empty.",
     "jdk.notebook.projects.mapping.description": "Mapping of Java notebook paths to the path of the project that provides it context.",
     "jdk.configuration.java.completion.commit.chars": "指定用于触发接受代码补全建议的字符。例如，要在键入点 (.) 时接受建议，请将该字符设为 [\".\"]",
     "jdk.initialConfigurations.launchJavaApp.name": "启动 Java 应用程序",

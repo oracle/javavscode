@@ -32,13 +32,15 @@ import org.openide.util.NbBundle;
  *
  * @author atalati
  */
-@NbBundle.Messages({"GetUserInput.msg=Please provide scanner input here"})
+@NbBundle.Messages({
+    "PROMPT_GetUserInput=Please provide scanner input here"
+})
 public class CustomInputStream extends InputStream {
 
     private static final Logger LOG = Logger.getLogger(CustomInputStream.class.getName());
     private ByteArrayInputStream currentStream;
     private final WeakReference<NbCodeLanguageClient> client;
-    private static final String USER_PROMPT_REQUEST = Bundle.GetUserInput_msg();
+    private static final String USER_PROMPT_REQUEST = Bundle.PROMPT_GetUserInput();
 
     public CustomInputStream(NbCodeLanguageClient client) {
         this.client = new WeakReference<>(client);

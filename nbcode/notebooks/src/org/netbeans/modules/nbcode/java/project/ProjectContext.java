@@ -39,10 +39,13 @@ import org.openide.util.NbBundle;
  *
  * @author atalati
  */
-@NbBundle.Messages({"Select.project.title=Select Project",
-"CurrentProjectContext.title=Current project context: ",
-"NoProjectFound.msg=No projects found",
-"NoProjectContextFound.msg=No project context"})
+@NbBundle.Messages({
+    "PROMPT_SelectProjectTitle=Select Project",
+    "# {0} - project name",
+    "LBL_CurrentProjectContext=Current project context: {0}",
+    "MSG_NoProjectFound=No projects found",
+    "MSG_NoProjectContextFound=No project context"
+})
 public class ProjectContext {
 
     public static Project getProject(String uri) {
@@ -92,7 +95,7 @@ public class ProjectContext {
         if (client == null) {
             return CompletableFuture.completedFuture(new ArrayList<>());
         }
-        String title = Bundle.Select_project_title();
+        String title = Bundle.PROMPT_SelectProjectTitle();
         List<QuickPickItem> items = new ArrayList<>();
         Map<String, Project> prjMap = new HashMap<>();
         for (Project prj : prjs) {
@@ -101,8 +104,8 @@ public class ProjectContext {
             prjMap.put(displayName, prj);
             items.add(item);
         }
-        String placeholder = defaultPrjSelected != null ? Bundle.CurrentProjectContext_title() + defaultPrjSelected.getName()
-                : items.isEmpty() ? Bundle.NoProjectFound_msg() : Bundle.NoProjectContextFound_msg();
+        String placeholder = defaultPrjSelected != null ? Bundle.LBL_CurrentProjectContext(defaultPrjSelected.getName())
+                : items.isEmpty() ? Bundle.MSG_NoProjectFound() : Bundle.MSG_NoProjectFound();
 
         ShowQuickPickParams params = new ShowQuickPickParams(title, placeholder, false, items);
         return client.showQuickPick(params).thenApply(selected -> {
