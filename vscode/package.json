@@ -248,8 +248,8 @@
 					"markdownDescription": "%jdk.configuration.telemetry.enabled.markdownDescription%",
 					"default": false,
 					"tags": [
-                        "telemetry"
-          			]
+						"telemetry"
+					]
 				},
 				"jdk.java.completion.commit.chars": {
 					"type": "array",
@@ -822,5 +822,22 @@
 		"@vscode/l10n": "^0.0.18",
 		"jsonc-parser": "3.3.1",
 		"vscode-languageclient": "^9.0.1"
+	},
+	"overrides": {
+		"brace-expansion": {
+			"balanced-match": "1.0.2"
+		},
+		"vscode-languageclient": {
+			"brace-expansion": "^2.0.2"
+		},
+		"glob": {
+			"brace-expansion": "^2.0.2"
+		},
+		"minimatch": {
+			"brace-expansion": "^2.0.2"
+		},
+		"mocha": {
+			"brace-expansion": "^2.0.2"
+		}
 	}
 }
