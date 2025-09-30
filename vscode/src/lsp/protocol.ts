@@ -112,6 +112,10 @@ export interface ShowInputBoxParams {
      * Controls if a password input is shown. Password input hides the typed text.
      */
     password?: boolean;
+    /**
+     * Controls if focus is changed from the input box whether it should close or not.
+     */
+    ignoreFocusOut?: boolean;
 }
 
 export namespace InputBoxRequest {
@@ -342,4 +346,45 @@ export namespace CloseOutputRequest {
 
 export namespace ResetOutputRequest {
     export const type = new ProtocolRequestType<string, void, void, void, void>('output/reset');
+}
+
+export namespace NotebookCellExecutionResult {
+    export enum STATUS {
+        QUEUED = "QUEUED",
+        EXECUTING = "EXECUTING",
+        SUCCESS = "SUCCESS",
+        FAILURE = "FAILURE",
+        INTERRUPTED = "INTERRUPTED"
+    }
+
+    export interface Result {
+        data: string;
+        mimeType: string;
+    }
+
+    export interface params {
+        notebookUri: string;
+        cellUri: string;
+        status: STATUS;
+        errorStream?: Result;
+        diagnostics?: string[];
+        errorDiagnostics?: string[];
+        outputStream?: Result;
+        metadata?: any;
+    }
+    export const type = new ProtocolNotificationType<params, void>('notebook/execution/progress');
+}
+
+export interface NotebookCellStateRequestParams {
+    notebookUri: string;
+    cellUri: string;
+}
+
+export interface NotebookCellStateResponse {
+    version: number;
+    text: string;
+}
+
+export namespace NotebookCellStateRequest {
+    export const type = new ProtocolRequestType<NotebookCellStateRequestParams, NotebookCellStateResponse, void, void, void>('notebook/cell/state');
 }
