@@ -15,8 +15,8 @@
 */
 import { LogMessageNotification, MessageType, TelemetryEventNotification } from "vscode-languageclient";
 import { notificationOrRequestListenerType } from "../../types";
-import { asRanges, ShowStatusMessageParams, StatusMessageRequest, TestProgressNotification, TextEditorDecorationDisposeNotification, TextEditorDecorationSetNotification } from "../../protocol";
-import { commands, window, workspace } from "vscode";
+import { asRanges, NotebookCellExecutionResult, ShowStatusMessageParams, StatusMessageRequest, TestProgressNotification, TextEditorDecorationDisposeNotification, TextEditorDecorationSetNotification } from "../../protocol";
+import { commands, window } from "vscode";
 import { isNbJavacDisabledHandler, updateConfigurationValue } from "../../../configurations/handlers";
 import { l10n } from "../../../localiser";
 import { configKeys } from "../../../configurations/configuration";
@@ -26,6 +26,7 @@ import { globalState } from "../../../globalState";
 import { WorkspaceChangeData, WorkspaceChangeEvent } from "../../../telemetry/events/workspaceChange";
 import { Telemetry } from "../../../telemetry/telemetry";
 import { JdkFeatureEvent, JdkFeatureEventData } from "../../../telemetry/events/jdkFeature";
+import { notebookKernel } from "../../../notebooks/kernel";
 
 const checkInstallNbJavac = (msg: string) => {
     const NO_JAVA_SUPPORT = "Cannot initialize Java support";
@@ -144,6 +145,10 @@ const telemetryEventHandler = (param: any) => {
     }
 }
 
+const notebookCellExecutionResultHandler = async (params: NotebookCellExecutionResult.params): Promise<void> => {
+    await notebookKernel.handleCellExecutionNotification(params);
+}
+
 export const notificationListeners: notificationOrRequestListenerType[] = [{
     type: StatusMessageRequest.type,
     handler: showStatusBarMessageHandler
@@ -162,4 +167,7 @@ export const notificationListeners: notificationOrRequestListenerType[] = [{
 }, {
     type: TelemetryEventNotification.type,
     handler: telemetryEventHandler
+}, {
+    type: NotebookCellExecutionResult.type,
+    handler: notebookCellExecutionResultHandler
 }];

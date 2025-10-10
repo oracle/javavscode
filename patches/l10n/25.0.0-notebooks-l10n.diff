@@ -1,0 +1,116 @@
+diff --git a/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_ja.properties
+new file mode 100644
+index 000000000..13780eb50
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_ja.properties
+@@ -0,0 +1,23 @@
++#
++# Copyright (c) 2025, Oracle and/or its affiliates.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    https://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++
++MSG_InterruptCodeCellExecSuccess=Code execution stopped successfully
++MSG_InterruptCodeCellInfo=Code execution was interrupted
++# {0} - error message
++MSG_KernelInitializeFailed=Java kernel initialization for the notebook failed. Error {0}
++MSG_KernelInitializeSuccess=Java kernel initialized successfully.
++MSG_KernelInitializing=Intializing Java kernel for notebook
++PROMPT_GetUserInput=Please provide scanner input here
+\ No newline at end of file
+diff --git a/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_ja.properties
+new file mode 100644
+index 000000000..95e2fb8fa
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_ja.properties
+@@ -0,0 +1,22 @@
++#
++# Copyright (c) 2025, Oracle and/or its affiliates.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    https://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++
++# {0} - project name
++LBL_CurrentProjectContext=Current project context: {0}
++MSG_NoProjectContextFound=No project context
++MSG_NoProjectFound=No projects found
++PROMPT_SelectProjectTitle=Select Project
++
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_zh_CN.properties
+new file mode 100644
+index 000000000..13780eb50
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_zh_CN.properties
+@@ -0,0 +1,23 @@
++#
++# Copyright (c) 2025, Oracle and/or its affiliates.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    https://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++
++MSG_InterruptCodeCellExecSuccess=Code execution stopped successfully
++MSG_InterruptCodeCellInfo=Code execution was interrupted
++# {0} - error message
++MSG_KernelInitializeFailed=Java kernel initialization for the notebook failed. Error {0}
++MSG_KernelInitializeSuccess=Java kernel initialized successfully.
++MSG_KernelInitializing=Intializing Java kernel for notebook
++PROMPT_GetUserInput=Please provide scanner input here
+\ No newline at end of file
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_zh_CN.properties
+new file mode 100644
+index 000000000..95e2fb8fa
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_zh_CN.properties
+@@ -0,0 +1,22 @@
++#
++# Copyright (c) 2025, Oracle and/or its affiliates.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    https://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++
++# {0} - project name
++LBL_CurrentProjectContext=Current project context: {0}
++MSG_NoProjectContextFound=No project context
++MSG_NoProjectFound=No projects found
++PROMPT_SelectProjectTitle=Select Project
++

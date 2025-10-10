@@ -37,6 +37,7 @@
             patches/l10n/adding-java.lsp.server-ja-and-zh_CN.diff
             patches/l10n/24.1.0-release-content-changes.diff
             patches/l10n/24.1.0-previous-issues-fix.diff
+            patches/l10n/25.0.0-notebooks-l10n.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
@@ -79,6 +80,9 @@
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
+            patches/upgrade-lsp4j.diff
+            patches/updated-show-input-params.diff
+            patches/java-notebooks.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
@@ -287,8 +291,17 @@
         </exec>
 
         <antcall target="setup-vsce" inheritAll="true" />
+        <delete includeemptydirs="false">
+            <fileset dir="${basedir}/vscode/node_modules" defaultexcludes="false">
+                <include name="**/.*"/>
+            </fileset>
+            <dirset dir="${basedir}/vscode/node_modules" defaultexcludes="false">
+               <include name="**/.git"/>
+               <include name="**/.github"/>
+            </dirset>
+        </delete>
         <move todir="${basedir}/vscode/node_modules" includeemptydirs="false">
-            <fileset dir="${basedir}/vscode/node_modules">
+            <fileset dir="${basedir}/vscode/node_modules" casesensitive="false">
                 <include name="**/LICENSE"/>
                 <include name="**/NOTICE"/>
             </fileset>

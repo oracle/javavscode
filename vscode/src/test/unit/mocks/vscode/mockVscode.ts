@@ -19,6 +19,7 @@ import { URI } from './uri';
 import { mockWindowNamespace } from './namespaces/window';
 import { mockEnvNamespace } from './namespaces/env';
 import { mockedEnums } from './vscodeHostedTypes';
+import { NotebookCellOutputItem } from './notebookCellOutputItem';
 
 type VSCode = typeof vscode;
 const mockedVSCode: Partial<VSCode> = {};
@@ -26,6 +27,7 @@ const mockedVSCode: Partial<VSCode> = {};
 const mockedVscodeClassesAndTypes = () => {
     mockedVSCode.Uri = URI as any;
     mockedVSCode.ViewColumn = mockedEnums.viewColumn;
+    mockedVSCode.NotebookCellOutputItem = NotebookCellOutputItem as any;
 }
 
 const mockNamespaces = () => {
