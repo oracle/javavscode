@@ -130,15 +130,11 @@ const openJshellInContextOfProject = async (ctx: any) => {
         if (await isNbCommandRegistered(nbCommands.openJshellInProject)) {
             const additionalContext = window.activeTextEditor?.document.uri.toString();
             const res = await commands.executeCommand<openJshellNbResponse>(nbCommands.openJshellInProject, ctx?.toString(), additionalContext);
-            const { envMap, finalArgs } = passArgsToTerminal(res.vmOptions);
-            const jshellPath = res.jdkPath ? path.join(res.jdkPath, "bin", "jshell") : "jshell";
-            // Direct sendText is not working since it truncates the command exceeding a certain length.
-            // Open issues on vscode: 130688, 134324 and many more
-            // So, workaround by setting env variables.
+            const jshell = os.type() === 'Windows_NT' ? 'jshell.exe' : 'jshell';
+            const jshellPath = res.jdkPath ? path.join(res.jdkPath, "bin", jshell) : "jshell";
             const terminal = window.createTerminal({
-                name: "Jshell instance", env: envMap
+                name: "Jshell instance", shellPath: jshellPath, shellArgs: res.vmOptions
             });
-            terminal.sendText(`${jshellPath} ${finalArgs.join(' ')}`, true);
             terminal.show();
         } else {
             throw l10n.value("jdk.extension.error_msg.doesntSupportJShellExecution", { client: client?.name });
@@ -148,20 +144,6 @@ const openJshellInContextOfProject = async (ctx: any) => {
         LOGGER.error(`Error occurred while launching jshell in project context : ${isError(error) ? error.message : error}`);
     }
 }
-
-const passArgsToTerminal = (args: string[]): { envMap: { [key: string]: string }, finalArgs: string[] } => {
-    const envMap: { [key: string]: string } = {};
-    const finalArgs = args.map((arg, index) => {
-        if (arg.startsWith('-') || arg.startsWith('--')) {
-            return arg;
-        }
-        const envName = `jshellArgsEnv${index}`;
-        envMap[envName] = arg;
-        return `$${envName}`;
-    });
-    return { envMap, finalArgs };
-}
-
 const notebookChangeProjectContextHandler = async (ctx: INotebookToolbar) => {
     try {
         const uri: Uri = ctx.notebookEditor.notebookUri;
