@@ -1,9 +1,9 @@
 diff --git a/java/java.hints/src/org/netbeans/modules/java/hints/bugs/MutableMethodsOnImmutableCollections.java b/java/java.hints/src/org/netbeans/modules/java/hints/bugs/MutableMethodsOnImmutableCollections.java
 new file mode 100644
-index 0000000000..6c6b1881f5
+index 0000000000..5d1b1f2fde
 --- /dev/null
 +++ b/java/java.hints/src/org/netbeans/modules/java/hints/bugs/MutableMethodsOnImmutableCollections.java
-@@ -0,0 +1,132 @@
+@@ -0,0 +1,129 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -24,16 +24,17 @@ index 0000000000..6c6b1881f5
 + */
 +package org.netbeans.modules.java.hints.bugs;
 +
-+import com.sun.source.tree.CompilationUnitTree;
++import com.sun.source.tree.IdentifierTree;
 +import com.sun.source.tree.MemberSelectTree;
 +import com.sun.source.tree.MethodInvocationTree;
 +import com.sun.source.tree.Tree;
 +import com.sun.source.util.TreePath;
 +import java.util.ArrayList;
-+import java.util.Collection;
-+import java.util.HashSet;
 +import java.util.List;
++import java.util.Optional;
 +import java.util.Set;
++import java.util.function.Function;
++import java.util.stream.Collectors;
 +import org.netbeans.api.java.source.CompilationInfo;
 +import org.netbeans.modules.java.hints.introduce.Flow;
 +import org.netbeans.modules.java.hints.introduce.Flow.FlowResult;
@@ -52,7 +53,7 @@ index 0000000000..6c6b1881f5
 +@Hint(displayName = "Track mutable methods on immutable collections",
 +        description = "Track mutable methods on immutable collections",
 +        category = "bugs",
-+        id = "ImmutableListCreation",
++        id = "MutableMethodsOnImmutableCollections",
 +        severity = Severity.WARNING,
 +        options = Options.QUERY)
 +
@@ -66,8 +67,6 @@ index 0000000000..6c6b1881f5
 +            "add", "addAll", "remove", "removeAll", "retainAll", "clear"
 +    );
 +
-+    public static final String SUPPRESS_WARNING_KEY = "immutable-collection-mutation";
-+
 +    @TriggerPattern(value = "java.util.List.of($args$)")
 +    public static List<ErrorDescription> immutableList(HintContext ctx) {
 +        return checkForMutableMethodInvocations(ctx, MUTATING_METHODS_IN_LIST, "Attempting to modify an immutable List created via List.of()");
@@ -80,8 +79,10 @@ index 0000000000..6c6b1881f5
 +
 +    private static List<ErrorDescription> checkForMutableMethodInvocations(HintContext ctx, Set<String> mutatingMethods, String warningMessage) {
 +        List<ErrorDescription> errors = new ArrayList<>();
++        FlowResult flow = Flow.assignmentsForUse(ctx.getInfo(), () -> ctx.isCanceled());
++        List<MemberSelectTree> invocations = checkForUsagesAndMarkInvocations(ctx.getInfo(), flow, ctx.getPath());
 +
-+        for (MemberSelectTree mst : getInvocations(ctx.getInfo(), ctx.getPath().getLeaf(), () -> ctx.isCanceled())) {
++        for (MemberSelectTree mst : invocations) {
 +            String method = mst.getIdentifier().toString();
 +            if (mutatingMethods.contains(method)) {
 +                errors.add(ErrorDescriptionFactory.forName(
@@ -95,43 +96,39 @@ index 0000000000..6c6b1881f5
 +        return errors;
 +    }
 +
-+    private static Tree getMit(CompilationUnitTree cut, Tree patternTriggered) {
-+        if (patternTriggered instanceof MethodInvocationTree mit) {
-+            return TreePath.getPath(cut, mit).getLeaf();
-+        } else {
-+            return null;
-+        }
-+
-+    }
-+
-+    private static List<MemberSelectTree> getInvocations(CompilationInfo info, Tree patternTriggered, Flow.Cancel cancel) {
-+        var initializerMit = getMit(info.getCompilationUnit(), patternTriggered);
-+        if (initializerMit != null) {
-+            FlowResult flow = Flow.assignmentsForUse(info, cancel);
-+            return checkForUsagesAndMarkInvocations(info, flow, initializerMit);
-+        }
-+        return List.of();
-+    }
-+
-+    private static List<MemberSelectTree> checkForUsagesAndMarkInvocations(CompilationInfo info, FlowResult flow, Tree invokedMethodPattern) {
++    private static List<MemberSelectTree> checkForUsagesAndMarkInvocations(CompilationInfo info, FlowResult flow, TreePath initPattern) {
 +        List<MemberSelectTree> usedInvocationsWithIdentifier = new ArrayList<>();
-+        Collection<Tree> variablesToCheck = Set.of(invokedMethodPattern);
-+        do {
-+            Set<Tree> nextSetOfVariablesToCheck = new HashSet<>();          
-+            for(var variable:variablesToCheck){
-+                markMethodInvocation(info, variable, usedInvocationsWithIdentifier);
-+                nextSetOfVariablesToCheck.addAll(flow.getValueUsers(variable));   
-+            }
-+            variablesToCheck = nextSetOfVariablesToCheck;
-+        } while (!variablesToCheck.isEmpty());
-+        return usedInvocationsWithIdentifier;
-+    }
-+
-+    private static void markMethodInvocation(CompilationInfo info, Tree tree, List<MemberSelectTree> usedInvocationsWithIdentifier) {
-+        var ancestor = TreePath.getPath(info.getCompilationUnit(), tree).getParentPath().getParentPath().getLeaf();
-+        if (ancestor instanceof MethodInvocationTree mit && mit.getMethodSelect() instanceof MemberSelectTree mst) {
-+            usedInvocationsWithIdentifier.add(mst);
++        Function<Tree, Set<TreePath>> findIdentifierTreePaths = (Tree tree) -> {
++            return flow.getValueUsers(tree)
++                    .stream()
++                    .filter(IdentifierTree.class::isInstance)
++                    .map(t -> flow.findPath(t, info.getCompilationUnit()))
++                    .filter(treePath -> treePath.getLeaf() instanceof IdentifierTree)
++                    .collect(Collectors.toSet());
++        };
++        Set<TreePath> identfiersPointingToInitializer = Optional.of(initPattern.getLeaf())
++                                                    .map(findIdentifierTreePaths)
++                                                    .orElse(Set.of());
++        while (!identfiersPointingToInitializer.isEmpty()) {
++            identfiersPointingToInitializer.forEach(indentifierPath -> {
++                var ancestorPath = Optional.of(indentifierPath)
++                        .map(tpath -> tpath.getParentPath())
++                        .map(tpath -> tpath.getParentPath())
++                        .map(tpath -> tpath.getLeaf());
++                ancestorPath.ifPresent(ancestor -> {
++                    if (ancestor instanceof MethodInvocationTree mit && mit.getMethodSelect() instanceof MemberSelectTree mst) {
++                        usedInvocationsWithIdentifier.add(mst);
++                    }
++                });
++            });
++           identfiersPointingToInitializer  =  identfiersPointingToInitializer
++                    .parallelStream()
++                    .map(tpath->tpath.getLeaf())
++                    .map(findIdentifierTreePaths)
++                    .flatMap(tpaths->tpaths.parallelStream())
++                    .collect(Collectors.toSet());
 +        }
++        return usedInvocationsWithIdentifier;
 +    }
 +    
 +
