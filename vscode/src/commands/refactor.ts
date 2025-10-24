@@ -13,7 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { commands, window, Uri, Range, Location, workspace, Position } from "vscode";
+import { commands, window, Range, Location, workspace, Position } from "vscode";
 import { ICommand } from "./types";
 import { extConstants } from "../constants";
 import { builtInCommands, extCommands, nbCommands } from "./commands";
@@ -21,6 +21,7 @@ import { l10n } from "../localiser";
 import { WorkspaceEdit } from 'vscode-languageserver-protocol';
 import { SymbolInformation } from 'vscode-languageclient';
 import { globalState } from "../globalState";
+import { FileUtils } from "../utils";
 
 const goToSuperImplementationHandler = async () => {
     if (window.activeTextEditor?.document.languageId !== extConstants.LANGUAGE_ID) {
@@ -30,7 +31,7 @@ const goToSuperImplementationHandler = async () => {
     const position = window.activeTextEditor.selection.active;
     const locations: any[] = await commands.executeCommand(nbCommands.superImpl, uri.toString(), position) || [];
     return commands.executeCommand(builtInCommands.goToEditorLocations, window.activeTextEditor.document.uri, position,
-        locations.map(location => new Location(Uri.parse(location.uri), new Range(location.range.start.line, location.range.start.character, location.range.end.line, location.range.end.character))),
+        locations.map(location => new Location(FileUtils.toUri(location.uri, true), new Range(location.range.start.line, location.range.start.character, location.range.end.line, location.range.end.character))),
         'peek', l10n.value('jdk.extension.error_msg.noSuperImpl'));
 }
 
