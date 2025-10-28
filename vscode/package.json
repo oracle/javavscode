@@ -923,7 +923,6 @@
 		"@types/node": "^18.19.64",
 		"@types/sinon": "^17.0.4",
 		"@types/vscode": "^1.84.0",
-		"@vscode/codicons": "0.0.36",
 		"@vscode/test-electron": "^2.5.2",
 		"chai": "^4.5.0",
 		"esbuild": "^0.25.3",
