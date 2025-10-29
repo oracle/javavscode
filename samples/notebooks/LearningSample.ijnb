@@ -1,0 +1,294 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 5,
+  "metadata": {
+    "language_info": {
+      "name": "java"
+    }
+  },
+  "cells": [
+    {
+      "id": "1c4583aa-a137-4e55-915e-5c218bc02744",
+      "cell_type": "markdown",
+      "source": "<!--\n  Copyright (c) 2025, Oracle and/or its affiliates.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0\n  \n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n-->\n***Sample Note:***\n\nThis notebook demonstrates the use of notebooks in helping learners explore some basic concepts of Java with small, self-contained examples.\n\n**What this sample shows:**\n\n- Markdown-formatted guidance with clearly organized sections\n- Running code cells displays output inline\n    - Optionally includes saved outputs from prior runs for reference\n\n**Prerequisites:**\n\nThis notebook requires Java 17+ to run all the cells successfully.",
+      "metadata": {
+        "language": "markdown",
+        "id": "1c4583aa-a137-4e55-915e-5c218bc02744"
+      }
+    },
+    {
+      "id": "21015b6e-8260-43d6-a629-4e7c2b5d6ff3",
+      "cell_type": "markdown",
+      "source": "# Learning Java Basics",
+      "metadata": {
+        "language": "markdown",
+        "id": "21015b6e-8260-43d6-a629-4e7c2b5d6ff3"
+      }
+    },
+    {
+      "id": "98ba9913-0b56-458d-ab0e-0bdad5744159",
+      "cell_type": "markdown",
+      "source": "## Lesson-1: Primitive Data Types\n### Learning Objectives:\n- Understand primitive data types in Java\n- Learn variable declaration and initialization\n\n### Key Concepts:\n- **Primitive Types**: byte, short, int, long, float, double, boolean, char\n- **Variable Declaration**: `dataType variableName = value;`\n\nLet's start with basic variable declarations and see how different data types work:",
+      "metadata": {
+        "language": "markdown",
+        "id": "98ba9913-0b56-458d-ab0e-0bdad5744159"
+      }
+    },
+    {
+      "id": "d996dd73-556b-4856-9a20-8f54da5615fc",
+      "cell_type": "markdown",
+      "source": "#### Primitive Types",
+      "metadata": {
+        "language": "markdown",
+        "id": "d996dd73-556b-4856-9a20-8f54da5615fc"
+      }
+    },
+    {
+      "id": "fcad594a-7c8f-42fe-ac06-7415cb734163",
+      "cell_type": "markdown",
+      "source": "##### Integer Types\n\n<small>\n\n| Type  | Size (bytes) | Range                         |\n|--------|--------------|-----------------------------|\n| `byte`  | 1   | -128 to 127                         |\n| `short` | 2  | -32,768 to 32,767                   |\n| `int`   | 4  | -2³¹ to 2³¹ − 1 |\n| `long`  | 8  | -2⁶³ to 2⁶³ − 1 |\n\n</small>\n",
+      "metadata": {
+        "language": "markdown",
+        "id": "fcad594a-7c8f-42fe-ac06-7415cb734163"
+      }
+    },
+    {
+      "id": "d5dcf964-eeb5-4966-9ac6-58352b3606a8",
+      "cell_type": "code",
+      "source": "byte smallNumber = 127;\nshort mediumNumber = 32000;\nint regularNumber = 2147483647; \nlong bigNumber = 9223372036854775807L;\n\nSystem.out.println(\"=== Integer data types Demo ===\");\nSystem.out.println(\"byte: \" + smallNumber);\nSystem.out.println(\"short: \" + mediumNumber);\nSystem.out.println(\"int: \" + regularNumber);\nSystem.out.println(\"long: \" + bigNumber);",
+      "metadata": {
+        "language": "java",
+        "id": "d5dcf964-eeb5-4966-9ac6-58352b3606a8",
+        "executionSummary": {
+          "executionOrder": 1,
+          "success": true
+        }
+      },
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": "=== Integer data types Demo ===\nbyte: 127\nshort: 32000\nint: 2147483647\nlong: 9223372036854775807\n"
+          },
+          "metadata": {},
+          "execution_count": 1
+        }
+      ]
+    },
+    {
+      "id": "a8d96d05-5a00-4322-91ca-aa2878e8c757",
+      "cell_type": "markdown",
+      "source": "##### Floating-Point Types\n\n<small>\n\n| Type    | Size (bytes) | Range |\n|----------|-------------|------------------------|\n| `float`  | 4  | ~6-7 significant decimal digits |\n| `double` | 8  | ~15-16 significant decimal digits |\n\n</small>",
+      "metadata": {
+        "language": "markdown",
+        "id": "a8d96d05-5a00-4322-91ca-aa2878e8c757"
+      }
+    },
+    {
+      "id": "71fbbad5-54d6-4d7a-8840-2101f61ca0a4",
+      "cell_type": "code",
+      "source": "\nfloat decimal1 = 3.14f;\ndouble decimal2 = 3.141592653589793;\n\nSystem.out.println(\"=== Floating point data types Demo ===\");\nSystem.out.println(\"float: \" + decimal1);\nSystem.out.println(\"double: \" + decimal2);\n",
+      "metadata": {
+        "language": "java",
+        "executionSummary": {
+          "executionOrder": 2,
+          "success": true
+        }
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": "=== Floating point data types Demo ===\nfloat: 3.14\ndouble: 3.141592653589793\n"
+          },
+          "metadata": {},
+          "execution_count": 2
+        }
+      ]
+    },
+    {
+      "id": "65548da3-5558-4683-97ac-5cdd341001a3",
+      "cell_type": "markdown",
+      "source": "##### Other primitive Types\n\n<small>\n\n| Type      | Size (bytes) | Range |\n|-----------|--------------|------------------------|\n| `char`    | 2            | (Unicode Values)  `\\u0000` (0) to `\\uFFFF` (65,535) |\n| `boolean` | JVM-dependent (typically 1 byte) | `true`, `false` |\n\n</small>",
+      "metadata": {
+        "language": "markdown",
+        "id": "65548da3-5558-4683-97ac-5cdd341001a3"
+      }
+    },
+    {
+      "id": "dff83078-4563-4831-b012-1f5e6c61df5d",
+      "cell_type": "code",
+      "source": "boolean isJavaFun = true;\nchar firstAlphabet = 'A'; \n\nSystem.out.println(\"=== Other primitive data types Demo ===\");\nSystem.out.println(\"boolean: \" + isJavaFun);\nSystem.out.println(\"char: \" + firstAlphabet);",
+      "metadata": {
+        "language": "java",
+        "executionSummary": {
+          "executionOrder": 4,
+          "success": true
+        }
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": "=== Other primitive data types Demo ===\nboolean: true\nchar: A\n"
+          },
+          "metadata": {},
+          "execution_count": 4
+        }
+      ]
+    },
+    {
+      "id": "686ef654-eae5-450f-82d3-716c1844a09d",
+      "cell_type": "markdown",
+      "source": "## Lesson 2: Control Structures\n\n### Learning Objectives:\n- Master conditional statements (if-else, switch)\n- Understand different types of loops (for, while, do-while)\n- Learn when to use each control structure\n- Practice nested structures and loop control\n\n### Key Concepts:\n- **Conditional Logic**: Making decisions in code\n- **Loops**: Repeating code blocks efficiently\n- **Loop Control**: break, continue statements\n- **Best Practices**: Choosing the right structure for the task",
+      "metadata": {
+        "language": "markdown",
+        "id": "686ef654-eae5-450f-82d3-716c1844a09d"
+      }
+    },
+    {
+      "id": "28fe4501-0c0e-4f10-ba51-521464c6f6f1",
+      "cell_type": "markdown",
+      "source": "#### Conditional Logic\nExplore `if-else` and `switch` expresssions below.",
+      "metadata": {
+        "language": "markdown",
+        "id": "28fe4501-0c0e-4f10-ba51-521464c6f6f1"
+      }
+    },
+    {
+      "id": "9d083943-839f-4ab1-b652-21d05f1827fe",
+      "cell_type": "code",
+      "source": "int age = 20;\nboolean hasID = true;\n\nSystem.out.println(\"=== Conditional if-else statement example ===\");\nif (age >= 18) {\n    if (hasID) {\n        System.out.println(\"You are allowed to enter.\");\n    } else {\n        System.out.println(\"You need to show your ID.\");\n    }\n} else {\n    System.out.println(\"You must be 18 or older to enter.\");\n}\n\n\nSystem.out.println(\"=== Conditional switch-case statement example ===\");\nint dayOfWeek = 3;\nString dayName;\n\nswitch (dayOfWeek) {\n    case 1 -> dayName = \"Monday\";\n    case 2 -> dayName = \"Tuesday\";\n    case 3 -> dayName = \"Wednesday\";\n    case 4 -> dayName = \"Thursday\";\n    case 5 -> dayName = \"Friday\";\n    case 6 -> dayName = \"Saturday\";\n    case 7 -> dayName = \"Sunday\";\n    default -> dayName = \"Invalid day\";\n}\n\nSystem.out.println(\"Day \" + dayOfWeek + \" is: \" + dayName);",
+      "metadata": {
+        "language": "java",
+        "id": "9d083943-839f-4ab1-b652-21d05f1827fe",
+        "executionSummary": {
+          "executionOrder": 2,
+          "success": true
+        }
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": "=== Conditional if-else statement example ===\nYou are allowed to enter.\n=== Conditional switch-case statement example ===\nDay 3 is: Wednesday\n"
+          },
+          "metadata": {},
+          "execution_count": 2
+        }
+      ]
+    },
+    {
+      "id": "325f07b7-e35c-440b-ae36-066d3c74d3f4",
+      "cell_type": "markdown",
+      "source": "#### Loops\nExplore different kinds of loops, using statements such as `for`, `enhanced-for` and `while` below.",
+      "metadata": {
+        "language": "markdown",
+        "id": "325f07b7-e35c-440b-ae36-066d3c74d3f4"
+      }
+    },
+    {
+      "id": "03405940-5dc9-4569-8f69-a320bebb1ffe",
+      "cell_type": "markdown",
+      "source": "##### `for` loop - counting",
+      "metadata": {
+        "language": "markdown",
+        "id": "03405940-5dc9-4569-8f69-a320bebb1ffe"
+      }
+    },
+    {
+      "id": "17fed500-4e81-49b5-9576-99bfd1bdeea7",
+      "cell_type": "code",
+      "source": "System.out.print(\"Counting 1-5: \");\nfor (int i = 1; i <= 5; i++) {\n    System.out.print(i + \" \");\n}\nSystem.out.println();",
+      "metadata": {
+        "language": "java",
+        "id": "17fed500-4e81-49b5-9576-99bfd1bdeea7",
+        "executionSummary": {
+          "executionOrder": 3,
+          "success": true
+        }
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": "Counting 1-5: 1 2 3 4 5 \n"
+          },
+          "metadata": {},
+          "execution_count": 3
+        }
+      ]
+    },
+    {
+      "id": "1272027a-b7d6-4db8-84da-0a97a5510f44",
+      "cell_type": "markdown",
+      "source": "##### `while` loop - with condition",
+      "metadata": {
+        "language": "markdown",
+        "id": "1272027a-b7d6-4db8-84da-0a97a5510f44"
+      }
+    },
+    {
+      "id": "f7135abb-43e7-4eb7-aa45-4f91f8dd485d",
+      "cell_type": "code",
+      "source": "int countdown = 5;\nSystem.out.print(\"Countdown: \");\nwhile (countdown > 0) {\n    System.out.print(countdown + \" \");\n    countdown--;\n}\nSystem.out.println(\"Countdown completed!\");",
+      "metadata": {
+        "language": "java",
+        "id": "f7135abb-43e7-4eb7-aa45-4f91f8dd485d",
+        "executionSummary": {
+          "executionOrder": 4,
+          "success": true
+        }
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": "Countdown: 5 4 3 2 1 Countdown completed!\n"
+          },
+          "metadata": {},
+          "execution_count": 4
+        }
+      ]
+    },
+    {
+      "id": "e5ab8d0b-dfd0-4d5e-a7f6-b9eee6be9bee",
+      "cell_type": "markdown",
+      "source": "##### Enhanced `for` loop with array",
+      "metadata": {
+        "language": "markdown",
+        "id": "e5ab8d0b-dfd0-4d5e-a7f6-b9eee6be9bee"
+      }
+    },
+    {
+      "id": "3b0d4c9f-b0d2-4e98-bb47-3af51693e0ba",
+      "cell_type": "code",
+      "source": "int[] numbers = {10, 20, 30, 40, 50};\nSystem.out.print(\"Array elements: \");\nfor (int num : numbers) {\n    System.out.print(num + \" \");\n}",
+      "metadata": {
+        "language": "java",
+        "id": "3b0d4c9f-b0d2-4e98-bb47-3af51693e0ba",
+        "executionSummary": {
+          "executionOrder": 5,
+          "success": true
+        }
+      },
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": "Array elements: 10 20 30 40 50 "
+          },
+          "metadata": {},
+          "execution_count": 5
+        }
+      ]
+    }
+  ]
+}
