@@ -13,15 +13,15 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { workspace, commands, Uri, window } from "vscode";
+import { workspace, commands, window } from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { nbCommands, builtInCommands, extCommands } from "./commands";
 import { l10n } from "../localiser";
 import * as os from 'os';
 import * as fs from 'fs';
 import { ICommand } from "./types";
-import { getContextUri, isNbCommandRegistered } from "./utils";
-import { isString } from "../utils";
+import { getContextUriFromFile, isNbCommandRegistered } from "./utils";
+import { FileUtils, isString } from "../utils";
 import { globalState } from "../globalState";
 
 const newFromTemplate = async (ctx: any, template: any) => {
@@ -40,7 +40,7 @@ const newFromTemplate = async (ctx: any, template: any) => {
             if (!fs.existsSync(folderPath)) {
                 await fs.promises.mkdir(folderPath);
             }
-            const folderPathUri = Uri.file(folderPath);
+            const folderPathUri = FileUtils.toUri(folderPath);
             await commands.executeCommand(nbCommands.newFromTemplate, folderPathUri.toString());
             await commands.executeCommand(builtInCommands.openFolder, folderPathUri);
 
@@ -52,16 +52,16 @@ const newFromTemplate = async (ctx: any, template: any) => {
         if (isString(template)) {
             params.push(template);
         }
-        params.push(getContextUri(ctx)?.toString(), window.activeTextEditor?.document?.uri?.toString());
+        params.push(getContextUriFromFile(ctx)?.toString(), window.activeTextEditor?.document?.uri?.toString());
         const res = await commands.executeCommand(nbCommands.newFromTemplate, ...params);
 
         if (isString(res)) {
-            let newFile = Uri.parse(res as string);
+            let newFile = FileUtils.toUri(res as string, true);
             await window.showTextDocument(newFile, { preview: false });
         } else if (Array.isArray(res)) {
             for (let r of res) {
                 if (isString(r)) {
-                    let newFile = Uri.parse(r as string);
+                    let newFile = FileUtils.toUri(r as string, true);
                     await window.showTextDocument(newFile, { preview: false });
                 }
             }
@@ -74,9 +74,9 @@ const newFromTemplate = async (ctx: any, template: any) => {
 const newProject = async (ctx: any) => {
     const client: LanguageClient = await globalState.getClientPromise().client;
     if (await isNbCommandRegistered(nbCommands.newProject)) {
-        const res = await commands.executeCommand(nbCommands.newProject, getContextUri(ctx)?.toString());
+        const res = await commands.executeCommand(nbCommands.newProject, getContextUriFromFile(ctx)?.toString());
         if (isString(res)) {
-            let newProject = Uri.parse(res as string);
+            let newProject = FileUtils.toUri(res as string, true);
 
             const OPEN_IN_NEW_WINDOW = l10n.value("jdk.extension.label.openInNewWindow");
             const ADD_TO_CURRENT_WORKSPACE = l10n.value("jdk.extension.label.addToWorkSpace");

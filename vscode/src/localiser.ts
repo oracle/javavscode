@@ -20,6 +20,7 @@ import * as l10nLib from '@vscode/l10n'
 
 import * as vscode from 'vscode';
 import { extConstants } from './constants';
+import { FileUtils } from './utils';
 
 const DEFAULT_LANGAUGE = "en";
 const DEFAULT_BUNDLE_FILE = `l10n/bundle.l10n.${DEFAULT_LANGAUGE}.json`;
@@ -36,7 +37,7 @@ class l10Wrapper implements l10n {
   private defaultTranslation: TranslatorFn;
 
     constructor(extensionId: string, defaultBundlePath: string) {
-      let defaultBundleAbsoluteFsPath = vscode.Uri.file(`${vscode.extensions.getExtension(extensionId)?.extensionPath}/${defaultBundlePath}`).fsPath
+      let defaultBundleAbsoluteFsPath = FileUtils.toUri(`${vscode.extensions.getExtension(extensionId)?.extensionPath}/${defaultBundlePath}`).fsPath;
       l10nLib.config({
         fsPath: defaultBundleAbsoluteFsPath
       });

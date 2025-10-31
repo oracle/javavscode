@@ -3,12 +3,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { LOGGER } from '../logger';
 import { commands, ConfigurationTarget, Uri, window, workspace } from 'vscode';
-import { isError } from '../utils';
+import { FileUtils, isError } from '../utils';
 import { extCommands, nbCommands } from './commands';
 import { ICommand } from './types';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { globalState } from '../globalState';
-import { getContextUri, isNbCommandRegistered } from './utils';
+import { getContextUriFromFile, isNbCommandRegistered } from './utils';
 import { l10n } from '../localiser';
 import { extConstants } from '../constants';
 import { Notebook } from '../notebooks/notebook';
@@ -26,7 +26,7 @@ const createNewNotebook = async (ctx?: any) => {
             const activeFilePath = window.activeTextEditor?.document.uri;
 
             if (activeFilePath) {
-                const parentDir = Uri.parse(path.dirname(activeFilePath.fsPath));
+                const parentDir = FileUtils.toUri(path.dirname(activeFilePath.fsPath));
                 if (workspace.getWorkspaceFolder(parentDir)) {
                     defaultUri = parentDir;
                 }
@@ -46,7 +46,7 @@ const createNewNotebook = async (ctx?: any) => {
                     }
                 }
                 if (defaultUri == null) {
-                    defaultUri = Uri.parse(os.homedir());
+                    defaultUri = FileUtils.toUri(os.homedir());
                 }
             }
 
@@ -63,7 +63,7 @@ const createNewNotebook = async (ctx?: any) => {
                 notebookDir = nbFolderPath[0];
             }
         } else {
-            notebookDir = getContextUri(ctx) || null;
+            notebookDir = getContextUriFromFile(ctx) || null;
         }
         if (notebookDir == null) {
             window.showErrorMessage(l10n.value("jdk.notebook.create.error_msg.path.not.selected"));
@@ -109,7 +109,7 @@ const createNewNotebook = async (ctx?: any) => {
 
         LOGGER.log(`Created notebook at: ${finalNotebookPath}`);
 
-        const notebookUri = Uri.file(finalNotebookPath);
+        const notebookUri = FileUtils.toUri(finalNotebookPath);
         const notebookDocument = await workspace.openNotebookDocument(notebookUri);
         await window.showNotebookDocument(notebookDocument);
     } catch (error) {

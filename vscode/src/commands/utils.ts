@@ -20,20 +20,17 @@ import { LanguageClient } from "vscode-languageclient/node";
 import { l10n } from "../localiser";
 import { LOGGER } from "../logger";
 import { globalState } from "../globalState";
+import { FileUtils, isString } from "../utils";
 
-export const getContextUri = (ctx: any): Uri | undefined => {
+export const getContextUriFromFile = (ctx: any): Uri | undefined => {
     if (ctx?.fsPath) {
         return ctx as Uri;
     }
     if (ctx?.resourceUri) {
         return ctx.resourceUri as Uri;
     }
-    if (typeof ctx == 'string') {
-        try {
-            return Uri.parse(ctx, true);
-        } catch (err) {
-            return Uri.file(ctx);
-        }
+    if (isString(ctx)) {
+        return FileUtils.toUri(ctx, true);
     }
 
     return window.activeTextEditor?.document?.uri;

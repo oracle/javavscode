@@ -15,10 +15,10 @@
 */
 
 import * as vscode from 'vscode';
-import { builtInCommands, extCommands } from "./commands";
+import { extCommands } from "./commands";
 import { ICommand } from "./types";
 import { extConstants } from '../constants';
-import { getContextUri } from './utils';
+import { getContextUriFromFile } from './utils';
 
 const runTest = async (uri: any, methodName? : string, launchConfiguration?: string) => {
     await runDebug(true, true, uri, methodName, launchConfiguration);
@@ -33,23 +33,23 @@ const debugSingle = async (uri: any, methodName? : string, launchConfiguration?:
     await runDebug(false, false, uri, methodName, launchConfiguration);
 }
 const projectRun = async (node: any, launchConfiguration? : string) => {
-    return runDebug(true, false, getContextUri(node)?.toString() || '',  undefined, launchConfiguration, true);
+    return runDebug(true, false, getContextUriFromFile(node)?.toString() || '',  undefined, launchConfiguration, true);
 }
 const projectDebug = async (node: any, launchConfiguration? : string) => {
-    return runDebug(false, false, getContextUri(node)?.toString() || '',  undefined, launchConfiguration, true);
+    return runDebug(false, false, getContextUriFromFile(node)?.toString() || '',  undefined, launchConfiguration, true);
 }
 const projectTest = async (node: any, launchConfiguration? : string) => {
-    return runDebug(true, true, getContextUri(node)?.toString() || '',  undefined, launchConfiguration, true);
+    return runDebug(true, true, getContextUriFromFile(node)?.toString() || '',  undefined, launchConfiguration, true);
 }
 const projectTestDebug = async (node: any, launchConfiguration? : string) => {
-    return runDebug(false, true, getContextUri(node)?.toString() || '',  undefined, launchConfiguration, true);
+    return runDebug(false, true, getContextUriFromFile(node)?.toString() || '',  undefined, launchConfiguration, true);
 }
 const packageTest = async (uri: any, launchConfiguration? : string) => {
     await runDebug(true, true, uri, undefined, launchConfiguration);
 }
 
 const runDebug = async (noDebug: boolean, testRun: boolean, uri: any, methodName?: string, launchConfiguration?: string, project : boolean = false, ) => {
-    const docUri = getContextUri(uri);
+    const docUri = getContextUriFromFile(uri);
     if (docUri) {
         let debugConfig : vscode.DebugConfiguration = {
             type: extConstants.COMMAND_PREFIX,
