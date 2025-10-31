@@ -1,0 +1,278 @@
+diff --git a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
+index 7ac61fb4370f..31bc75e99a54 100644
+--- a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
++++ b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
+@@ -731,10 +731,21 @@ private void insideImport(Env env) throws IOException {
+         ImportTree im = (ImportTree) env.getPath().getLeaf();
+         SourcePositions sourcePositions = env.getSourcePositions();
+         CompilationUnitTree root = env.getRoot();
++        if (im.isModule()) {
++            if (offset >= sourcePositions.getStartPosition(root, im.getQualifiedIdentifier())) {
++                addModuleNamesFromGraph(env, null);
++            }
++        } else {
+         if (offset <= sourcePositions.getStartPosition(root, im.getQualifiedIdentifier())) {
+             TokenSequence<JavaTokenId> last = findLastNonWhitespaceToken(env, im, offset);
+-            if (last != null && last.token().id() == JavaTokenId.IMPORT && Utilities.startsWith(STATIC_KEYWORD, prefix)) {
+-                addKeyword(env, STATIC_KEYWORD, SPACE, false);
++            if (last != null && last.token().id() == JavaTokenId.IMPORT) {
++                if (Utilities.startsWith(STATIC_KEYWORD, prefix)) {
++                    addKeyword(env, STATIC_KEYWORD, SPACE, false);
++                }
++                if (Utilities.startsWith(MODULE_KEYWORD, prefix) &&
++                    env.getController().getSourceVersion().compareTo(SourceVersion.RELEASE_25) >= 0) {
++                    addKeyword(env, MODULE_KEYWORD, SPACE, false);
++                }
+             }
+             if (options.contains(Options.ALL_COMPLETION) || options.contains(Options.COMBINED_COMPLETION)) {
+                 EnumSet<ElementKind> classKinds = EnumSet.of(CLASS, INTERFACE, ENUM, ANNOTATION_TYPE);
+@@ -746,6 +757,7 @@ private void insideImport(Env env) throws IOException {
+                 addPackages(env, null, false);
+             }
+         }
++        }
+     }
+ 
+     private void insideClass(Env env) throws IOException {
+@@ -1635,7 +1647,13 @@ private void insideMemberSelect(Env env) throws IOException {
+         }
+         if (!afterDot) {
+             if (expEndPos <= offset) {
+-                insideExpression(env, new TreePath(path, fa.getExpression()));
++                if (fa.getExpression().getKind() == Kind.IDENTIFIER &&
++                    ((IdentifierTree) fa.getExpression()).getName().contentEquals(MODULE_KEYWORD)) {
++                    controller.toPhase(Phase.ELEMENTS_RESOLVED);
++                    addModuleNamesFromGraph(env, null);
++                } else {
++                    insideExpression(env, new TreePath(path, fa.getExpression()));
++                }
+             }
+             return;
+         }
+@@ -1656,10 +1674,15 @@ private void insideMemberSelect(Env env) throws IOException {
+             }
+         } else if (lastNonWhitespaceTokenId != JavaTokenId.STAR) {
+             controller.toPhase(Phase.RESOLVED);
+-            if (withinModuleName(env)) {
++            boolean inModuleNameInImport = false;
++            if (withinModuleName(env) || (inModuleNameInImport = withinModuleNameInImport(env))) {
+                 String fqnPrefix = fa.getExpression().toString() + '.';
+                 anchorOffset = (int) sourcePositions.getStartPosition(root, fa);
+-                addModuleNames(env, fqnPrefix, true);
++                if (inModuleNameInImport) {
++                    addModuleNamesFromGraph(env, fqnPrefix);
++                } else {
++                    addModuleNames(env, fqnPrefix, true);
++                }
+                 return;
+             }
+             TreePath parentPath = path.getParentPath();
+@@ -4458,12 +4481,20 @@ private void addPackages(Env env, String fqnPrefix, boolean srcOnly) {
+     }
+     
+     private void addModuleNames(Env env, String fqnPrefix, boolean srcOnly) {
++        srcOnly = false;
++        addModuleNames(env, fqnPrefix, SourceUtils.getModuleNames(env.getController(), srcOnly ? EnumSet.of(ClassIndex.SearchScope.SOURCE) : EnumSet.allOf(ClassIndex.SearchScope.class)));
++    }
++
++    private void addModuleNamesFromGraph(Env env, String fqnPrefix) {
++        addModuleNames(env, fqnPrefix, env.getController().getElements().getAllModuleElements().stream().map(me -> me.getQualifiedName().toString()).toList());
++    }
++
++    private void addModuleNames(Env env, String fqnPrefix, Iterable<? extends String> modulesNames) {
+         if (fqnPrefix == null) {
+             fqnPrefix = EMPTY;
+         }
+-        srcOnly = false;
+         String prefix = env.getPrefix() != null ? fqnPrefix + env.getPrefix() : fqnPrefix;
+-        for (String name : SourceUtils.getModuleNames(env.getController(), srcOnly ? EnumSet.of(ClassIndex.SearchScope.SOURCE) : EnumSet.allOf(ClassIndex.SearchScope.class))) {
++        for (String name : modulesNames) {
+             if (startsWith(env, name, prefix) && itemFactory instanceof ModuleItemFactory) {
+                 results.add(((ModuleItemFactory<T>)itemFactory).createModuleItem(name, anchorOffset));
+             }
+@@ -6657,6 +6688,21 @@ private boolean withinModuleName(Env env) {
+         return false;
+     }
+     
++    private boolean withinModuleNameInImport(Env env) {
++        TreePath path = env.getPath();
++        Tree last = null;
++        while (path != null) {
++            Tree tree = path.getLeaf();
++            if (last != null
++                    && tree.getKind() == Tree.Kind.IMPORT && ((ImportTree) tree).isModule() && ((ImportTree) tree).getQualifiedIdentifier() == last) {
++                return true;
++            }
++            path = path.getParentPath();
++            last = tree;
++        }
++        return false;
++    }
++
+     private boolean withinProvidesService(Env env) {
+         TreePath path = env.getPath();
+         Tree last = null;
+diff --git a/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/importModuleListFull.pass b/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/importModuleListFull.pass
+new file mode 100644
+index 000000000000..c7fb77ebcdb5
+--- /dev/null
++++ b/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/importModuleListFull.pass
+@@ -0,0 +1,6 @@
++java.base
++java.compiler
++java.xml
++jdk.compiler
++jdk.jartool
++jdk.javadoc
+diff --git a/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/importModuleListFullJDKJPrefix.pass b/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/importModuleListFullJDKJPrefix.pass
+new file mode 100644
+index 000000000000..08f71672206c
+--- /dev/null
++++ b/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/importModuleListFullJDKJPrefix.pass
+@@ -0,0 +1,2 @@
++jdk.jartool
++jdk.javadoc
+diff --git a/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/importModuleListFullJDKPrefix.pass b/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/importModuleListFullJDKPrefix.pass
+new file mode 100644
+index 000000000000..5e15d03b7041
+--- /dev/null
++++ b/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/importModuleListFullJDKPrefix.pass
+@@ -0,0 +1,3 @@
++jdk.compiler
++jdk.jartool
++jdk.javadoc
+diff --git a/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/staticAndModuleKeywordAndAllPackages.pass b/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/staticAndModuleKeywordAndAllPackages.pass
+new file mode 100644
+index 000000000000..444f86a32452
+--- /dev/null
++++ b/java/java.completion/test/unit/data/goldenfiles/org/netbeans/modules/java/completion/JavaCompletionTaskTest/17/staticAndModuleKeywordAndAllPackages.pass
+@@ -0,0 +1,7 @@
++module
++static
++com
++java
++javax
++org
++sun
+diff --git a/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaCompletionTask125FeaturesTest.java b/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaCompletionTask125FeaturesTest.java
+index d019a4b018e6..18a1e371bd96 100644
+--- a/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaCompletionTask125FeaturesTest.java
++++ b/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaCompletionTask125FeaturesTest.java
+@@ -19,7 +19,13 @@
+ 
+ package org.netbeans.modules.java.completion;
+ 
++import java.util.ArrayList;
++import java.util.List;
++import javax.swing.event.ChangeListener;
+ import org.netbeans.modules.java.source.parsing.JavacParser;
++import org.netbeans.spi.java.queries.CompilerOptionsQueryImplementation;
++import org.openide.filesystems.FileObject;
++import org.openide.util.lookup.ServiceProvider;
+ 
+ public class JavaCompletionTask125FeaturesTest extends CompletionTestBase {
+ 
+@@ -41,7 +47,59 @@ public void testCompactSourceFilesEnd() throws Exception {
+         performTest("CompactSourceFile", 883, null, "compactSourceFilesInsideClass.pass", SOURCE_LEVEL);
+     }
+ 
++    public void testImportModuleKeyword() throws Exception {
++        performTest("Import", 823, "import ", "staticAndModuleKeywordAndAllPackages.pass", SOURCE_LEVEL);
++    }
++
++    public void testImportModuleNoModuleName() throws Exception {
++        TestCompilerOptionsQueryImplementation.EXTRA_OPTIONS.add("--limit-modules=java.base,jdk.compiler,jdk.javadoc,jdk.jartool");
++        performTest("Import", 823, "import module ", "importModuleListFull.pass", SOURCE_LEVEL);
++    }
++
++    public void testImportModulePrefix1() throws Exception {
++        TestCompilerOptionsQueryImplementation.EXTRA_OPTIONS.add("--limit-modules=java.base,jdk.compiler,jdk.javadoc,jdk.jartool");
++        performTest("Import", 823, "import module jd", "importModuleListFullJDKPrefix.pass", SOURCE_LEVEL);
++    }
++
++    public void testImportModulePrefix2() throws Exception {
++        TestCompilerOptionsQueryImplementation.EXTRA_OPTIONS.add("--limit-modules=java.base,jdk.compiler,jdk.javadoc,jdk.jartool");
++        performTest("Import", 823, "import module jdk.", "importModuleListFullJDKPrefix.pass", SOURCE_LEVEL);
++    }
++
++    public void testImportModulePrefix3() throws Exception {
++        TestCompilerOptionsQueryImplementation.EXTRA_OPTIONS.add("--limit-modules=java.base,jdk.compiler,jdk.javadoc,jdk.jartool");
++        performTest("Import", 823, "import module jdk.j", "importModuleListFullJDKJPrefix.pass", SOURCE_LEVEL);
++    }
++
++    @Override
++    protected void tearDown() throws Exception {
++        super.tearDown();
++        TestCompilerOptionsQueryImplementation.EXTRA_OPTIONS.clear();
++    }
++
+     static {
+         JavacParser.DISABLE_SOURCE_LEVEL_DOWNGRADE = true;
+     }
++
++    @ServiceProvider(service = CompilerOptionsQueryImplementation.class, position = 100)
++    public static class TestCompilerOptionsQueryImplementation implements CompilerOptionsQueryImplementation {
++
++        private static final List<String> EXTRA_OPTIONS = new ArrayList<>();
++
++        @Override
++        public CompilerOptionsQueryImplementation.Result getOptions(FileObject file) {
++            return new CompilerOptionsQueryImplementation.Result() {
++                @Override
++                public List<? extends String> getArguments() {
++                    return EXTRA_OPTIONS;
++                }
++
++                @Override
++                public void addChangeListener(ChangeListener listener) {}
++
++                @Override
++                public void removeChangeListener(ChangeListener listener) {}
++            };
++        }
++    }
+ }
+diff --git a/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaCompletionTaskBasicTest.java b/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaCompletionTaskBasicTest.java
+index 02a163326ed6..1a57584e5e74 100644
+--- a/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaCompletionTaskBasicTest.java
++++ b/java/java.completion/test/unit/src/org/netbeans/modules/java/completion/JavaCompletionTaskBasicTest.java
+@@ -140,15 +140,15 @@ public void testAfterImportKeyword() throws Exception {
+     }
+     
+     public void testEmptyFileBeforeTypingImportedPackage() throws Exception {
+-        performTest("Empty", 808, "import ", "staticKeywordAndAllPackages.pass");
++        performTest("Empty", 808, "import ", "staticKeywordAndAllPackages.pass", "24"); //24 - without "import module"
+     }
+     
+     public void testBeforeTypingImportedPackage() throws Exception {
+-        performTest("Simple", 823, "import ", "staticKeywordAndAllPackages.pass");
++        performTest("Simple", 823, "import ", "staticKeywordAndAllPackages.pass", "24"); //24 - without "import module"
+     }
+     
+     public void testBeforeImportedPackage() throws Exception {
+-        performTest("Import", 831, null, "staticKeywordAndAllPackages.pass");
++        performTest("Import", 831, null, "staticKeywordAndAllPackages.pass", "24"); //24 - without "import module"
+     }
+     
+     public void testEmptyFileTypingImportedPackage() throws Exception {
+@@ -264,7 +264,7 @@ public void testEmptyFileTypingImportedPackageAfterErrorInPackageDeclaration() t
+     }
+     
+     public void testTypingStaticImportAfterErrorInPackageDeclaration() throws Exception {
+-        performTest("SimpleNoPackage", 808, "package \nimport ", "staticKeywordAndAllPackages.pass");
++        performTest("SimpleNoPackage", 808, "package \nimport ", "staticKeywordAndAllPackages.pass", "24"); //24 - without "import module"
+     }
+ 
+     public void TODO_testTypingStaticImportAfterErrorInPreviousImportDeclaration() throws Exception {
+diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
+index 83c9aa8bd5fe..99a60193cb78 100644
+--- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
++++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
+@@ -373,6 +373,7 @@ public Completion createModuleItem(String moduleName, int substitutionOffset) {
+                     .kind(Completion.Kind.Folder)
+                     .sortText(String.format("%04d%s", 1950, moduleName))
+                     .insertTextFormat(Completion.TextFormat.PlainText)
++                    .textEdit(new TextEdit(substitutionOffset, offset, moduleName))
+                     .build();
+         }
+ 
