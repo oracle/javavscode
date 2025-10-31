@@ -27,12 +27,10 @@ export const showHtmlPage = async (params: HtmlPageParams): Promise<void> => {
         const match = /<title>(.*)<\/title>/i.exec(data);
         const name = match && match.length > 1 ? match[1] : '';
         const resourceDir = Uri.joinPath(extensionContext.getGlobalStorage(), params.id);
-        // TODO: @vscode/codeicons is a devDependency not a prod dependency. So do we ever reach this code?
-        const distPath = Uri.joinPath(extensionContext.getExtensionStorageUri(), 'node_modules', '@vscode/codicons', 'dist');
         workspace.fs.createDirectory(resourceDir);
         let view = window.createWebviewPanel('htmlView', name, ViewColumn.Beside, {
             enableScripts: true,
-            localResourceRoots: [resourceDir, distPath]
+            localResourceRoots: [resourceDir]
         });
         webviews.set(params.id, view.webview);
         const resources = params.resources;
@@ -44,8 +42,7 @@ export const showHtmlPage = async (params: HtmlPageParams): Promise<void> => {
                 data = data.replace(`href="${resourceName}"`, `href="${view.webview.asWebviewUri(resourceUri)}"`);
             }
         }
-        const codiconsUri = view.webview.asWebviewUri(Uri.joinPath(distPath, 'codicon.css'));
-        view.webview.html = data.replace('href="codicon.css"', `href="${codiconsUri}"`);
+        view.webview.html = data;
         view.webview.onDidReceiveMessage(message => {
             switch (message.command) {
                 case 'dispose':
