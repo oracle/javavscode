@@ -16,6 +16,7 @@
 package org.netbeans.modules.nbcode.java.notebook;
 
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -53,14 +54,16 @@ public class CustomInputStream extends InputStream {
                 NbCodeLanguageClient client = this.client.get();
                 if (client == null) {
                     LOG.log(Level.WARNING, "client is null");
-                    return -1;
+                    throw new EOFException("User input dismissed");
                 }
                 CompletableFuture<String> future = client.showInputBox(new ShowInputBoxParams(USER_PROMPT_REQUEST, "", true));
                 String userInput = future.get();
 
                 if (userInput == null) {
                     LOG.log(Level.WARNING, "User input is null");
-                    return -1;
+                    // Workaround: jshell closes the input stream when -1 is returned and provides no way to reset it.
+                    // This hack bypasses that behavior to prevent the stream from being closed.
+                    throw new EOFException("User input dismissed");
                 }
 
                 byte[] inputBytes = (userInput + System.lineSeparator()).getBytes(StandardCharsets.UTF_8);
@@ -80,6 +83,9 @@ public class CustomInputStream extends InputStream {
     public int read() throws IOException {
         byte[] oneByte = new byte[1];
         int n = read(oneByte, 0, 1);
-        return (n == -1) ? -1 : oneByte[0] & 0xFF;
+        if (n == -1) {
+            throw new EOFException("User input dismissed");
+        }
+        return oneByte[0] & 0xFF;
     }
 }
