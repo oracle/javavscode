@@ -1,8 +1,8 @@
+Oracle Java Platform Extension for Visual Studio Code
+Copyright (c) 2023-2025, Oracle and/or its affiliates.
+
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
-
-Oracle Java Platform Extension for Visual Studio Code
-Copyright (c) 2023-2024, Oracle and/or its affiliates.
 
 Apache NetBeans
 Copyright 2017-2024 The Apache Software Foundation
@@ -14,3 +14,9 @@ The code was Copyright 1997-2016 Oracle and/or its affiliates.  The Initial
 Developer of the Original Software was Sun Microsystems, Inc. Portions
 Copyright 1997-2006 Sun Microsystems, Inc.
 
+---
+
+vscode/src/localiser.ts
+This file includes portions derived from the Localization tooling for Visual Studio Code
+@vscode/l10n software developed at Microsoft Corporation licensed under the MIT License.
+Copyright (c) Microsoft Corporation

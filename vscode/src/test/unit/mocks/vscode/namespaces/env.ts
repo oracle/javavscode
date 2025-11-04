@@ -18,10 +18,10 @@ import * as vscode from 'vscode';
 import { mock, when, anyString, anyOfClass, anything, instance } from "ts-mockito";
 
 type VSCode = typeof vscode;
-
 let mockedEnv: typeof vscode.env;
-export const mockEnvNamespace = (mockedVSCode: Partial<VSCode>) => {
+export const mockEnvNamespace = (mockedVSCode: Partial<VSCode> & { mockedEnv?: typeof vscode.env }) => {
     mockedEnv = mock<typeof vscode.env>();
+    mockedVSCode.mockedEnv = mockedEnv;
     mockedVSCode.env = instance(mockedEnv);
     mockTelemetryFields();
 }
