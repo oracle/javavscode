@@ -1,0 +1,168 @@
+diff --git a/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/NetBeansRunSinglePlugin.java b/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/NetBeansRunSinglePlugin.java
+index e1e01c3aed..0ca4b052be 100644
+--- a/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/NetBeansRunSinglePlugin.java
++++ b/extide/gradle/netbeans-gradle-tooling/src/main/java/org/netbeans/modules/gradle/tooling/NetBeansRunSinglePlugin.java
+@@ -19,8 +19,10 @@
+ 
+ package org.netbeans.modules.gradle.tooling;
+ 
++import java.util.Arrays;
+ import static java.util.Arrays.asList;
+ import java.util.List;
++import java.util.Objects;
+ import java.util.Set;
+ import org.gradle.api.DefaultTask;
+ import org.gradle.api.logging.Logger;
+@@ -29,7 +31,9 @@ import org.gradle.api.logging.LogLevel;
+ import org.gradle.api.Plugin;
+ import org.gradle.api.Project;
+ import org.gradle.api.Task;
++import org.gradle.api.file.FileCollection;
+ import org.gradle.api.tasks.JavaExec;
++import org.gradle.api.tasks.SourceSet;
+ import org.gradle.api.tasks.SourceSetContainer;
+ import org.gradle.api.tasks.TaskProvider;
+ import org.gradle.process.CommandLineArgumentProvider;
+@@ -47,6 +51,7 @@ class NetBeansRunSinglePlugin implements Plugin<Project> {
+     private static final String RUN_SINGLE_ARGS = "runArgs";
+     private static final String RUN_SINGLE_JVM_ARGS = "runJvmArgs";
+     private static final String RUN_SINGLE_CWD = "runWorkingDir";
++    private static final String RUN_SINGLE_SOURCE_SET_NAMES = "runSourceSetNames";
+ 
+     private static final String DEPRECATE_RUN_SINGLE = 
+             "runSingle task is deprecated. Inspect your configuration and use just 'run' task instead of 'runSingle'";
+@@ -64,6 +69,20 @@ class NetBeansRunSinglePlugin implements Plugin<Project> {
+     }
+     
+     private void configureJavaExec(Project project, JavaExec je) {
++        Object sourceSetValue = project.findProperty(RUN_SINGLE_SOURCE_SET_NAMES);
++        if (sourceSetValue != null) {
++            SourceSetContainer sourceSets = project.getExtensions().findByType(SourceSetContainer.class);
++            if (sourceSets != null) {
++                FileCollection updatedClasspath = Arrays.stream(sourceSetValue.toString().split(","))
++                        .map(String::trim)
++                        .map(sourceSets::findByName)
++                        .filter(Objects::nonNull)
++                        .map(SourceSet::getRuntimeClasspath)
++                        .reduce(project.getObjects().fileCollection(), FileCollection::plus);
++
++                je.setClasspath(updatedClasspath);
++            }
++        }
+         if (project.hasProperty(RUN_SINGLE_MAIN)) {
+             String mainClass = project.property(RUN_SINGLE_MAIN).toString();
+             if (GRADLE_VERSION.compareTo(GradleVersion.version("6.4")) < 0) {
+diff --git a/java/gradle.java/src/org/netbeans/modules/gradle/java/GradleJavaTokenProvider.java b/java/gradle.java/src/org/netbeans/modules/gradle/java/GradleJavaTokenProvider.java
+index 84435b7fbc..418f3e603e 100644
+--- a/java/gradle.java/src/org/netbeans/modules/gradle/java/GradleJavaTokenProvider.java
++++ b/java/gradle.java/src/org/netbeans/modules/gradle/java/GradleJavaTokenProvider.java
+@@ -53,12 +53,14 @@ public class GradleJavaTokenProvider implements ReplaceTokenProvider {
+     private static final String AFFECTED_BUILD_TASK  = "affectedBuildTasks";//NOI18N
+     private static final String TEST_TASK_NAME       = "testTaskName";      //NOI18N
+     private static final String CLEAN_TEST_TASK_NAME = "cleanTestTaskName"; //NOI18N
++    private static final String SOURCE_SET_NAMES     = "sourceSetNames";    //NOI18N
+ 
+     private static final Set<String> SUPPORTED = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+             SELECTED_CLASS,
+             SELECTED_CLASS_NAME,
+             SELECTED_METHOD,
+             SELECTED_PACKAGE,
++            SOURCE_SET_NAMES,
+             AFFECTED_BUILD_TASK
+     )));
+ 
+@@ -123,6 +125,7 @@ public class GradleJavaTokenProvider implements ReplaceTokenProvider {
+                 GradleJavaSourceSet ss = gjp.containingSourceSet(f);
+                 if (ss != null) {
+                     Set<GradleJavaSourceSet.SourceType> types = ss.getSourceTypes(f);
++                    map.merge(SOURCE_SET_NAMES, ss.getName(), (oldVal, newVal) -> oldVal.trim() + "," + newVal.trim());
+                     for (GradleJavaSourceSet.SourceType type : types) {
+                         buildTasks.add(ss.getBuildTaskName(type));
+                     }
+diff --git a/java/gradle.java/src/org/netbeans/modules/gradle/java/action-mapping.xml b/java/gradle.java/src/org/netbeans/modules/gradle/java/action-mapping.xml
+index 97fadb9fee..8e27c5699b 100644
+--- a/java/gradle.java/src/org/netbeans/modules/gradle/java/action-mapping.xml
++++ b/java/gradle.java/src/org/netbeans/modules/gradle/java/action-mapping.xml
+@@ -53,11 +53,11 @@
+         </action>
+ 
+         <action name="run.single">
+-            <args>-PrunClassName=${selectedClass} ${javaExec.workingDir} ${javaExec.environment} run --stacktrace ${javaExec.jvmArgs} ${javaExec.args}</args>
++            <args>-PrunClassName=${selectedClass} -PrunSourceSetNames=${sourceSetNames} ${javaExec.workingDir} ${javaExec.environment} run --stacktrace ${javaExec.jvmArgs} ${javaExec.args}</args>
+         </action>
+ 
+         <action name="debug.single">
+-            <args>-PrunClassName=${selectedClass} ${javaExec.workingDir} ${javaExec.environment} run --stacktrace --debug-jvm  ${javaExec.jvmArgs} ${javaExec.args}</args>
++            <args>-PrunClassName=${selectedClass} -PrunSourceSetNames=${sourceSetNames} ${javaExec.workingDir} ${javaExec.environment} run --stacktrace --debug-jvm  ${javaExec.jvmArgs} ${javaExec.args}</args>
+         </action>
+     </apply-for>
+ 
+@@ -91,7 +91,7 @@
+             <actions>
+                 <apply-for plugins="java">
+                     <action name="run.single">
+-                        <args>-PrunClassName=${selectedClass} ${javaExec.workingDir} ${javaExec.environment} run --continuous ${javaExec.jvmArgs} ${javaExec.args}</args>
++                        <args>-PrunClassName=${selectedClass} -PrunSourceSetNames=${sourceSetNames} ${javaExec.workingDir} ${javaExec.environment} run --continuous ${javaExec.jvmArgs} ${javaExec.args}</args>
+                     </action>
+                     <action name="test.single">
+                         <args>"${cleanTestTaskName}" "${testTaskName}" --tests "${selectedClass}" --continuous</args>
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/launch/NbLaunchDelegate.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/launch/NbLaunchDelegate.java
+index e503da42bd..93cbc81339 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/launch/NbLaunchDelegate.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/launch/NbLaunchDelegate.java
+@@ -28,6 +28,7 @@ import java.util.Arrays;
+ import java.util.Collection;
+ import java.util.Collections;
+ import java.util.List;
++import java.util.Locale;
+ import java.util.Map;
+ import java.util.Objects;
+ import java.util.Optional;
+@@ -60,6 +61,8 @@ import org.netbeans.api.extexecution.ExecutionDescriptor;
+ import org.netbeans.api.extexecution.ExecutionService;
+ import org.netbeans.api.java.classpath.ClassPath;
+ import org.netbeans.api.java.queries.UnitTestForSourceQuery;
++import org.netbeans.api.java.source.ClasspathInfo;
++import org.netbeans.api.java.source.SourceUtils;
+ import org.netbeans.api.project.FileOwnerQuery;
+ import org.netbeans.api.project.Project;
+ import org.netbeans.api.project.ProjectUtils;
+@@ -84,6 +87,7 @@ import org.netbeans.spi.project.ProjectConfigurationProvider;
+ import org.netbeans.spi.project.SingleMethod;
+ 
+ import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
+ import org.openide.util.BaseUtilities;
+ import org.openide.util.Lookup;
+ import org.openide.util.NbBundle;
+@@ -114,6 +118,7 @@ public abstract class NbLaunchDelegate {
+ 
+     private final RequestProcessor requestProcessor = new RequestProcessor(NbLaunchDelegate.class);
+     private final Map<DebugAdapterContext, DebuggerManagerListener> debuggerListeners = new ConcurrentHashMap<>();
++    private final static String JAVA_FILE_EXT = ".java";
+ 
+     public abstract void preLaunch(Map<String, Object> launchArguments, DebugAdapterContext context);
+ 
+@@ -570,8 +575,20 @@ public abstract class NbLaunchDelegate {
+         } else if (launchType == LaunchType.RUN_TEST) {
+             mainSource = false;
+         } else {
+-            FileObject fileRoot = sourceCP != null ? sourceCP.findOwnerRoot(toRun) : null;
+-            mainSource = fileRoot == null || UnitTestForSourceQuery.findSources(fileRoot).length == 0;
++            mainSource = true;
++            if (sourceCP != null) {
++                FileObject root = sourceCP.findOwnerRoot(toRun);
++                if (root != null) {
++                    if (UnitTestForSourceQuery.findSources(root).length > 0) {
++                        String relativePath = FileUtil.getRelativePath(root, toRun);
++                        if (relativePath != null && relativePath.toLowerCase(Locale.ENGLISH).endsWith(JAVA_FILE_EXT)) {
++                            String className = relativePath.substring(0, relativePath.length() - JAVA_FILE_EXT.length()).replace('/', '.');
++                            ClasspathInfo cpi = ClasspathInfo.create(toRun);
++                            mainSource = SourceUtils.isMainClass(className, cpi, true);
++                        }
++                    }
++                }
++            }
+         }
+         ActionProvider provider = null;
+         String command = null;
