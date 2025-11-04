@@ -15,8 +15,10 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.net.URI;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -252,11 +254,19 @@ public class NotebookSessionManager {
 
     private CompletableFuture<Project> getProjectContextForNotebook(String notebookUri) {
         JsonObject mapping = NotebookConfigs.getInstance().getNotebookProjectMapping();
-        String notebookPath = URI.create(notebookUri).getPath();
-        String projectKey = mapping.has(notebookPath)
-                ? Paths.get(mapping.get(notebookPath).getAsString()).toUri().toString()
-                : notebookUri;
 
+        URI uri = URI.create(notebookUri);
+        String path = Path.of(uri).toAbsolutePath().toString();
+        JsonElement el = mapping.get(path);
+
+        String value = null;
+        if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
+            value = Paths.get(el.getAsString()).toUri().toString();
+        }
+
+        String projectKey = value != null ? value : notebookUri;
+
+        LOG.log(Level.FINE, "projectKey: {0}", projectKey);
         Project prj = ProjectContext.getProject(projectKey);
 
         if (prj == null) {
