@@ -13,21 +13,22 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { commands, Position, window, Selection, Range, Uri } from "vscode";
+import { commands, Position, window, Selection, Range } from "vscode";
 import { builtInCommands, extCommands, nbCommands } from "./commands";
 import { l10n } from "../localiser";
 import * as path from 'path';
 import { ICommand } from "./types";
 import { LanguageClient } from "vscode-languageclient/node";
 import { LOGGER } from '../logger';
-import { getContextUri, isNbCommandRegistered, wrapCommandWithProgress } from "./utils";
+import { getContextUriFromFile, isNbCommandRegistered, wrapCommandWithProgress } from "./utils";
 import { globalState } from "../globalState";
+import { FileUtils } from "../utils";
 
 const goToTest = async (ctx: any) => {
     let client: LanguageClient = await globalState.getClientPromise().client;
     if (await isNbCommandRegistered(nbCommands.goToTest)) {
         try {
-            const res: any = await commands.executeCommand(nbCommands.goToTest, getContextUri(ctx)?.toString());
+            const res: any = await commands.executeCommand(nbCommands.goToTest, getContextUriFromFile(ctx)?.toString());
             if ("errorMessage" in res) {
                 throw new Error(res.errorMessage);
             }
@@ -39,7 +40,8 @@ const goToTest = async (ctx: any) => {
             if (res?.locations?.length) {
                 if (res.locations.length === 1) {
                     const { file, offset } = res.locations[0];
-                    const filePath = Uri.parse(file);
+                    // If in the future the GoToTest returns URI locations then pass true as an extra parameter to FileUtils.toUri 
+                    const filePath = FileUtils.toUri(file);
                     const editor = await window.showTextDocument(filePath, { preview: false });
                     if (offset != -1) {
                         const pos: Position = editor.document.positionAt(offset);
@@ -61,7 +63,8 @@ const goToTest = async (ctx: any) => {
                     });
                     if (selected) {
                         for await (const filePath of selected) {
-                            let file = Uri.parse(filePath);
+                            // If in the future the GoToTest returns URI locations then pass true as an extra parameter to FileUtils.toUri 
+                            let file = FileUtils.toUri(filePath);
                             await window.showTextDocument(file, { preview: false });
                         }
                     } else {
@@ -87,7 +90,7 @@ const openStackHandler = async (uri: any, methodName: any, fileName: any, line: 
     const location: string | undefined = uri ? await commands.executeCommand(nbCommands.resolveStackLocation, uri, methodName, fileName) : undefined;
     if (location) {
         const lNum = line - 1;
-        window.showTextDocument(Uri.parse(location), { selection: new Range(new Position(lNum, 0), new Position(lNum, 0)) });
+        window.showTextDocument(FileUtils.toUri(location, true), { selection: new Range(new Position(lNum, 0), new Position(lNum, 0)) });
     } else {
         if (methodName) {
             const fqn: string = methodName.substring(0, methodName.lastIndexOf('.'));

@@ -26,6 +26,7 @@ import * as path from 'path';
 import { asRange, TestCase, TestSuite } from "../lsp/protocol";
 import { extCommands, builtInCommands, nbCommands } from "../commands/commands"
 import { extConstants } from "../constants";
+import { FileUtils } from "../utils";
 
 export class NbTestAdapter {
 
@@ -210,7 +211,7 @@ export class NbTestAdapter {
 
     updateTests(suite: TestSuite, testExecution?: boolean): void {
         let currentSuite = this.testController.items.get(suite.name);
-        const suiteUri = suite.file ? Uri.parse(suite.file) : undefined;
+        const suiteUri = suite.file ?  FileUtils.toUri(suite.file, true) : undefined;
         if (!currentSuite || suiteUri && currentSuite.uri?.toString() !== suiteUri.toString()) {
             currentSuite = this.testController.createTestItem(suite.name, suite.name, suiteUri);
             this.testController.items.add(currentSuite);
@@ -222,7 +223,7 @@ export class NbTestAdapter {
         const children: TestItem[] = []
         suite.tests?.forEach(testCase => {
             let currentTest = currentSuite?.children.get(testCase.id);
-            const testUri = testCase.file ? Uri.parse(testCase.file) : undefined;
+            const testUri = testCase.file ? FileUtils.toUri(testCase.file, true) : undefined;
             if (currentTest) {
                 if (testUri && currentTest.uri?.toString() !== testUri?.toString()) {
                     currentTest = this.testController.createTestItem(testCase.id, testCase.name, testUri);

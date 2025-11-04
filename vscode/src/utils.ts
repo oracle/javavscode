@@ -24,6 +24,7 @@ import { promisify } from "util";
 import * as crypto from 'crypto';
 import { l10n } from './localiser';
 import { extConstants } from './constants';
+import { LOGGER } from './logger';
 
 class InputFlowAction {
 	static back = new InputFlowAction();
@@ -342,3 +343,40 @@ export const parseArguments = (input: string): string[] => {
 	return result;
 }
 
+export namespace FileUtils {
+	const FILE_SCHEME = "file:";
+
+	/**
+	 * Converts a given file system path or URI-like string into a {@link vscode.Uri} instance.
+	 *
+	 * This utility attempts to correctly handle both raw file paths and strings that may
+	 * already represent a valid file URI.
+	 *
+	 * ### Behavior
+	 * - If `treatAsUriIfPossible` is **true** and the input starts with the `"file:"` scheme:
+	 *   - Attempts to parse the input using `vscode.Uri.parse(path, true)`.
+	 *   - If parsing fails, logs the error and throws a generic error.
+	 * - Otherwise:
+	 *   - Treats the input as a standard file system path and returns `vscode.Uri.file(path)`.
+	 *
+	 * Any unexpected errors during URI creation are logged through the `LOGGER` and
+	 * rethrown as a generic error.
+	 *
+	 * @param {string} path - The input file system path or URI-like string.
+	 * @param {boolean} [treatAsUriIfPossible=false] - When `true`, attempts to parse the input as a URI
+	 * if it starts with the `"file:"` scheme before falling back to `vscode.Uri.file`.
+	 * @returns {vscode.Uri} The resulting {@link vscode.Uri} object.
+	 * @throws {Error} When both URI parsing and file wrapping fail.
+	 */
+	export const toUri = (path: string, treatAsUriIfPossible: boolean = false): vscode.Uri => {
+		try {
+			if (treatAsUriIfPossible && path.startsWith(FILE_SCHEME)) {
+					return vscode.Uri.parse(path, true);
+			}
+			return vscode.Uri.file(path);
+		} catch (err: any) {
+			LOGGER.log(`Error while parsing uri: ${isError(err) ? err.message : err}`);
+			throw new Error("Error while parsing URI");
+		}
+	}
+}

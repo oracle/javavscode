@@ -16,7 +16,7 @@
 import * as crypto from 'crypto';
 import { Uri, workspace } from 'vscode';
 import * as os from 'os';
-import { isObject, isString } from '../utils';
+import { FileUtils, isObject, isString } from '../utils';
 
 export const getCurrentUTCDateInSeconds = () => {
     const date = Date.now();
@@ -70,7 +70,7 @@ const getUri = (pathOrUri: Uri | string): Uri => {
     if (pathOrUri instanceof Uri) {
         return pathOrUri;
     }
-    return Uri.file(pathOrUri);
+    return FileUtils.toUri(pathOrUri);
 }
 
 export const getValuesToBeTransformed = (): string[] => {
