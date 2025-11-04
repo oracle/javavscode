@@ -1,10 +1,11 @@
 package org.netbeans.modules.nbcode.java.notebook;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,10 +34,10 @@ public class CustomInputStreamTest {
     @Test
     public void testReadNoClient() throws IOException {
         inputStream = new CustomInputStream(null);
-        assertEquals(-1, inputStream.read());
+        Assert.assertThrows(EOFException.class, ()-> inputStream.read());            
 
         byte[] buffer = new byte[10];
-        assertEquals(-1, inputStream.read(buffer, 0, 10));
+        Assert.assertThrows(EOFException.class, ()-> inputStream.read(buffer, 0, 10));
     }
 
     @Test
