@@ -14,6 +14,8 @@
     "workbench.action.debug.start": "Start Debugging",
     "jdk.notebook.new": "Create New Notebook...",
     "jdk.notebook.change.project": "Project Context",
+    "jdk.notebook.restart.kernel": "Restart Kernel",
+    "jdk.notebook.restart.kernel.short.title": "Restart",
     "jdk.project.run": "Run Project Without Debugging",
     "jdk.project.debug": "Debug Project",
     "jdk.project.test": "Test Project",

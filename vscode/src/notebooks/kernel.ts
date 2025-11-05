@@ -23,7 +23,7 @@ import { globalState } from '../globalState';
 import { isNbCommandRegistered } from '../commands/utils';
 import { nbCommands } from '../commands/commands';
 import { NotebookCellExecutionResult } from '../lsp/protocol';
-import { NotebookCell, NotebookController, NotebookDocument, Disposable, notebooks, commands, NotebookCellOutput, workspace } from 'vscode';
+import { NotebookCell, NotebookController, NotebookDocument, Disposable, notebooks, commands, NotebookCellOutput, workspace, Uri } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { l10n } from '../localiser';
 import { ijnbConstants, ipynbConstants, supportLanguages } from './constants';
@@ -176,10 +176,14 @@ export class IJNBKernel implements Disposable {
   }
 
   cleanUpKernel = workspace.onDidCloseNotebookDocument(doc => {
-    if (doc.notebookType === ijnbConstants.NOTEBOOK_TYPE) {
+    if (doc.notebookType === ijnbConstants.NOTEBOOK_TYPE || doc.notebookType === ipynbConstants.NOTEBOOK_TYPE) {
       IJNBKernel.executionCounter.delete(doc.uri.toString());
     }
   });
+
+  public resetKernelCounter(notebookUri: Uri): void {
+    IJNBKernel.executionCounter.delete(notebookUri.toString());
+  }
 }
 
 export const notebookKernel = new IJNBKernel();
