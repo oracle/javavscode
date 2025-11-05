@@ -1,5 +1,5 @@
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUI.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUI.java
-index 891bfa328d..91172fda4b 100644
+index 891bfa328d..e7359322b6 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUI.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUI.java
 @@ -27,6 +27,7 @@ import java.net.MalformedURLException;
@@ -10,15 +10,20 @@ index 891bfa328d..91172fda4b 100644
  import java.util.ArrayList;
  import java.util.Arrays;
  import java.util.Collections;
-@@ -39,6 +40,7 @@ import java.util.function.Function;
+@@ -39,9 +40,12 @@ import java.util.function.Function;
  import java.util.logging.Level;
  import java.util.logging.Logger;
  import java.util.stream.Collectors;
 +import javax.lang.model.SourceVersion;
  import org.eclipse.lsp4j.ExecuteCommandParams;
++import org.eclipse.lsp4j.MessageActionItem;
  import org.eclipse.lsp4j.MessageParams;
  import org.eclipse.lsp4j.MessageType;
-@@ -73,14 +75,21 @@ import org.openide.util.Utilities;
++import org.eclipse.lsp4j.ShowMessageRequestParams;
+ import org.eclipse.lsp4j.WorkspaceFolder;
+ import org.netbeans.api.project.FileOwnerQuery;
+ import org.netbeans.api.project.Project;
+@@ -73,14 +77,25 @@ import org.openide.util.Utilities;
      "CTL_TemplateUI_SelectGroup=Select Template Type",
      "CTL_TemplateUI_SelectTemplate=Select Template",
      "CTL_TemplateUI_SelectTarget=Where to put the object?",
@@ -27,6 +32,10 @@ index 891bfa328d..91172fda4b 100644
      "CTL_TemplateUI_SelectPackageName=Package name of your project?",
      "CTL_TemplateUI_SelectPackageNameSuggestion=org.yourcompany.yourproject",
      "CTL_TemplateUI_SelectName=Name of the object?",
++    "PROMPT_AskObjectNameWarningConfirmation=Object name contains '$'. This is not recommended for user defined objects. "
++            + "Do you want to continue with the current name or try again?",
++    "PROMPT_AskObjectNameWarningConfirmation_Continue=Continue",
++    "PROMPT_AskObjectNameWarningConfirmation_TryAgain=Try again",
      "# {0} - path",
 -    "ERR_InvalidPath={0} isn't valid folder",
 +    "ERR_InvalidPath={0} isn't a valid folder or is read-only",
@@ -42,7 +51,7 @@ index 891bfa328d..91172fda4b 100644
  })
  final class LspTemplateUI {
      /**
-@@ -165,8 +174,20 @@ final class LspTemplateUI {
+@@ -165,8 +180,20 @@ final class LspTemplateUI {
      }
  
      private static CompletionStage<String> findPackage(CompletionStage<?> uiBefore, NbCodeLanguageClient client) {
@@ -65,7 +74,7 @@ index 891bfa328d..91172fda4b 100644
          );
      }
  
-@@ -188,8 +209,9 @@ final class LspTemplateUI {
+@@ -188,8 +215,9 @@ final class LspTemplateUI {
                          if (path == null) {
                              throw raise(RuntimeException.class, new UserCancelException(path));
                          }
@@ -77,7 +86,7 @@ index 891bfa328d..91172fda4b 100644
                              client.showMessage(new MessageParams(MessageType.Error, Bundle.ERR_InvalidPath(path)));
                              return client.showInputBox(new ShowInputBoxParams(Bundle.CTL_TemplateUI_SelectTarget(), suggestion.getPrimaryFile().getPath())).thenCompose(this);
                          }
-@@ -202,7 +224,7 @@ final class LspTemplateUI {
+@@ -202,7 +230,7 @@ final class LspTemplateUI {
  
      private static CompletionStage<Pair<DataFolder, String>> findTargetAndNameForProject(CompletionStage<DataObject> findTemplate, NbCodeLanguageClient client) {
          return findTemplate.thenCompose(__ -> client.workspaceFolders()).thenCompose(folders -> {
@@ -86,7 +95,7 @@ index 891bfa328d..91172fda4b 100644
                  @Override
                  public CompletionStage<Pair<DataFolder,String>> apply(String path) {
                      if (path == null) {
-@@ -215,12 +237,14 @@ final class LspTemplateUI {
+@@ -215,12 +243,14 @@ final class LspTemplateUI {
                      }
                      targetPath.getParentFile().mkdirs();
                      FileObject fo = FileUtil.toFileObject(targetPath.getParentFile());
@@ -103,7 +112,7 @@ index 891bfa328d..91172fda4b 100644
          });
      }
  
-@@ -229,9 +253,23 @@ final class LspTemplateUI {
+@@ -229,9 +259,35 @@ final class LspTemplateUI {
          FileObject template = desc.getTemplate();
          Object handler = template.getAttribute(FileBuilder.ATTR_TEMPLATE_HANDLER);
          if (handler == null) {
@@ -119,6 +128,18 @@ index 891bfa328d..91172fda4b 100644
 +                    {
 +                        client.showMessage(new MessageParams(MessageType.Error,Bundle.ERR_InvalidObjectName(name)));
 +                        return client.showInputBox(new ShowInputBoxParams(Bundle.CTL_TemplateUI_SelectName(), desc.getProposedName())).thenCompose(this);
++                    } else if (name.contains("$")) {
++                        final MessageActionItem continueAction = new MessageActionItem(Bundle.PROMPT_AskObjectNameWarningConfirmation_Continue());
++                        final MessageActionItem tryAgain = new MessageActionItem(Bundle.PROMPT_AskObjectNameWarningConfirmation_TryAgain());
++                        ShowMessageRequestParams smrp = new ShowMessageRequestParams(Arrays.asList(continueAction, tryAgain));
++                        smrp.setMessage(Bundle.PROMPT_AskObjectNameWarningConfirmation());
++                        smrp.setType(MessageType.Warning);
++                        return client.showMessageRequest(smrp).thenCompose(ai -> {
++                            if(ai==null) throw raise(RuntimeException.class, new UserCancelException(""));
++                            return ai.equals(continueAction) ? 
++                                    CompletableFuture.completedFuture(name) : 
++                                   client.showInputBox(new ShowInputBoxParams(Bundle.CTL_TemplateUI_SelectName(), desc.getProposedName())).thenCompose(this);
++                                });
 +                    }
 +                    return CompletableFuture.completedFuture(name);
 +                }
@@ -130,7 +151,7 @@ index 891bfa328d..91172fda4b 100644
          }
          return CompletableFuture.completedFuture(builder);
      }
-@@ -242,7 +280,7 @@ final class LspTemplateUI {
+@@ -242,7 +298,7 @@ final class LspTemplateUI {
              suggestion = Utilities.toFile(new URI(folders.get(0).getUri())).getParent();
          } catch (URISyntaxException ex) {
          }
