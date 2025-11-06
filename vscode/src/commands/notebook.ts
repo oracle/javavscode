@@ -16,6 +16,7 @@ import { ICodeCell, INotebookToolbar } from '../notebooks/types';
 import { randomUUID } from 'crypto';
 import { getConfigurationValue, updateConfigurationValue } from '../configurations/handlers';
 import { configKeys } from '../configurations/configuration';
+import { notebookKernel } from '../notebooks/kernel';
 
 const createNewNotebook = async (ctx?: any) => {
     try {
@@ -167,6 +168,31 @@ const notebookChangeProjectContextHandler = async (ctx: INotebookToolbar) => {
     }
 }
 
+const restartKernel = async (ctx: INotebookToolbar) => {
+    try {
+        const uri: Uri = ctx.notebookEditor.notebookUri;
+
+        const yes = l10n.value("jdk.extension.cache.label.confirmation.yes")
+        const cancel = l10n.value("jdk.extension.cache.label.confirmation.cancel")
+        const confirmation = await window.showWarningMessage(l10n.value("jdk.notebook.restart.kernel.msg.consent"),
+            yes, cancel);
+
+        if (confirmation === yes) {
+            let client: LanguageClient = await globalState.getClientPromise().client;
+            if (!(await isNbCommandRegistered(nbCommands.resetNotebookSession))) {
+                throw new Error(`Language Server for ${client?.name} doesn't support notebook restart kernel`);
+            }
+
+            await commands.executeCommand<null>(nbCommands.resetNotebookSession, uri.toString());
+            notebookKernel.resetKernelCounter(uri);
+            window.showInformationMessage(l10n.value("jdk.notebook.restart.kernel.msg.success"));
+        }
+    } catch (error) {
+        LOGGER.error(`Error occurred while restarting kernel: ${isError(error) ? error.message : error}`);
+        window.showErrorMessage(l10n.value("jdk.notebook.restart.kernel.error_msg.failed"));
+    }
+}
+
 
 export const registerNotebookCommands: ICommand[] = [
     {
@@ -180,5 +206,9 @@ export const registerNotebookCommands: ICommand[] = [
     {
         command: extCommands.notebookChangeProjectContext,
         handler: notebookChangeProjectContextHandler
+    },
+    {
+        command: extCommands.resetNotebookSession,
+        handler: restartKernel
     }
 ];

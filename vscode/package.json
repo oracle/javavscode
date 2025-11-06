@@ -616,6 +616,13 @@
 				"title": "%jdk.notebook.change.project%",
 				"category": "Java",
 				"icon": "$(pencil)"
+			},
+			{
+				"command": "jdk.notebook.restart.kernel",
+				"shortTitle": "%jdk.notebook.restart.kernel.short.title%",
+				"title": "%jdk.notebook.restart.kernel%",
+				"category": "Java",
+				"icon": "$(refresh)"
 			}
 		],
 		"keybindings": [
@@ -738,6 +745,10 @@
 				{
 					"command": "jdk.notebook.change.project",
 					"when": "false"
+				},
+				{
+					"command": "jdk.notebook.restart.kernel",
+					"when": "false"
 				}
 			],
 			"view/title": [
@@ -817,6 +828,11 @@
 				{
 					"command": "jdk.notebook.change.project",
 					"group": "navigation@1",
+					"when": "nbJdkReady && resourceExtname == .ijnb"
+				},
+				{
+					"command": "jdk.notebook.restart.kernel",
+					"group": "navigation/execute@5",
 					"when": "nbJdkReady && resourceExtname == .ijnb"
 				}
 			]

@@ -14,6 +14,8 @@
     "workbench.action.debug.start": "启动调试",
     "jdk.notebook.new": "创建新记事本...",
     "jdk.notebook.change.project": "项目上下文",
+    "jdk.notebook.restart.kernel": "Restart Kernel",
+    "jdk.notebook.restart.kernel.short.title": "Restart",
     "jdk.project.run": "运行项目但不调试",
     "jdk.project.debug": "调试项目",
     "jdk.project.test": "测试项目",

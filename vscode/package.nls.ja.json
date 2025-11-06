@@ -14,6 +14,8 @@
     "workbench.action.debug.start": "デバッグの開始",
     "jdk.notebook.new": "新規ノートブックを作成...",
     "jdk.notebook.change.project": "プロジェクト・コンテキスト",
+    "jdk.notebook.restart.kernel": "Restart Kernel",
+    "jdk.notebook.restart.kernel.short.title": "Restart",
     "jdk.project.run": "デバッグなしでプロジェクトの実行",
     "jdk.project.debug": "プロジェクトのデバッグ",
     "jdk.project.test": "プロジェクトのテスト",

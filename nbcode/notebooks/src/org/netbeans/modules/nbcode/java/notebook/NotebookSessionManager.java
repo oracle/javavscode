@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
@@ -38,11 +39,15 @@ import static org.netbeans.modules.nbcode.java.notebook.NotebookUtils.checkEmpty
 import org.netbeans.modules.nbcode.java.project.ProjectConfigurationUtils;
 import org.netbeans.modules.nbcode.java.project.ProjectContext;
 import org.netbeans.modules.nbcode.java.project.ProjectContextInfo;
+import org.openide.util.NbBundle;
 
 /**
  *
  * @author atalati
  */
+@NbBundle.Messages({
+    "MSG_JshellResetError=Some internal error occurred while trying to reset notebook session"
+})
 public class NotebookSessionManager {
 
     private static final Logger LOG = Logger.getLogger(NotebookSessionManager.class.getName());
@@ -101,12 +106,15 @@ public class NotebookSessionManager {
 
     public CompletableFuture<JShell> createSession(NotebookDocument notebookDoc) {
         String notebookId = notebookDoc.getUri();
+        return createSession(notebookId);
+    }
 
+    public CompletableFuture<JShell> createSession(String notebookId) {
         return sessions.computeIfAbsent(notebookId, id -> {
             JshellStreamsHandler handler = new JshellStreamsHandler(id, CodeEval.getInstance().outStreamFlushCb, CodeEval.getInstance().errStreamFlushCb);
             jshellStreamsMap.put(id, handler);
 
-            CompletableFuture<JShell> future = jshellBuilder(notebookDoc.getUri(), handler);
+            CompletableFuture<JShell> future = jshellBuilder(notebookId, handler);
 
             future.thenAccept(jshell -> onJshellInit(notebookId, jshell))
                     .exceptionally(ex -> {
@@ -241,15 +249,17 @@ public class NotebookSessionManager {
 
     public void closeSession(String notebookUri) {
         CompletableFuture<JShell> future = sessions.remove(notebookUri);
-        JShell jshell = future.getNow(null);
-        if (jshell != null) {
-            jshell.close();
+        if (future != null) {
+            JShell jshell = future.getNow(null);
+            if (jshell != null) {
+                jshell.close();
+            }
+            JshellStreamsHandler handler = jshellStreamsMap.remove(notebookUri);
+            if (handler != null) {
+                handler.close();
+            }
+            notebookPrjMap.remove(notebookUri);
         }
-        JshellStreamsHandler handler = jshellStreamsMap.remove(notebookUri);
-        if (handler != null) {
-            handler.close();
-        }
-        notebookPrjMap.remove(notebookUri);
     }
 
     private CompletableFuture<Project> getProjectContextForNotebook(String notebookUri) {
@@ -282,5 +292,15 @@ public class NotebookSessionManager {
             return prj;
         });
 
+    }
+
+    public CompletableFuture<Void> resetSession(String notebookUri) {
+        closeSession(notebookUri);
+        return createSession(notebookUri)
+                .thenApply(jshell -> (Void) null)
+                .exceptionally(ex -> {
+                    LOG.log(Level.SEVERE, "Error creating new session after reset", ex);
+                    throw new CompletionException(Bundle.MSG_JshellResetError(), ex);
+                });
     }
 }
