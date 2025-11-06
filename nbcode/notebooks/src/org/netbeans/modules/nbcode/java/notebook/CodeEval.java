@@ -28,12 +28,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import jdk.jshell.DeclarationSnippet;
 import jdk.jshell.Diag;
 import jdk.jshell.EvalException;
 import jdk.jshell.JShell;
 import jdk.jshell.JShellException;
+import jdk.jshell.Snippet.SubKind;
 import jdk.jshell.SourceCodeAnalysis;
 import jdk.jshell.SnippetEvent;
+import org.eclipse.lsp4j.MessageParams;
+import org.eclipse.lsp4j.MessageType;
 import org.netbeans.modules.java.lsp.server.notebook.CellExecutionResult;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams.Builder;
@@ -48,13 +52,28 @@ import org.openide.util.RequestProcessor;
  */
 @NbBundle.Messages({
     "MSG_InterruptCodeCellExecSuccess=Code execution stopped successfully",
-    "MSG_InterruptCodeCellInfo=Code execution was interrupted"
+    "MSG_InterruptCodeCellInfo=Code execution was interrupted",
+    "MSG_NotebookRestartSession=Notebook session unavailable. Please restart the notebook kernel.",
+    "LBL_method=method",
+    "LBL_variable=variable",
+    "LBL_class=class",
+    "LBL_enum=enum",
+    "LBL_interface=interface",
+    "LBL_annotation=annotation interface",
+    "# {0} - declaration type and snippet name combination",
+    "# {1} - unresolved dependencies list",
+    "MSG_UnresolvedDepsRecoverableDefined=Created {0}. However, it cannot be invoked or used or instantiated until {1} is declared",
+    "# {0} - declaration type and snippet name combination",
+    "# {1} - unresolved dependencies list",
+    "MSG_UnresolvedDepsRecoverableNotDefined=Created {0}. However, it cannot be referenced until {1} is declared",
+    "MSG_ListCombine=, "
 })
 public class CodeEval {
 
     private static final Logger LOG = Logger.getLogger(CodeEval.class.getName());
     private static final String CODE_EXEC_INTERRUPT_SUCCESS_MESSAGE = Bundle.MSG_InterruptCodeCellExecSuccess();
     private static final String CODE_EXEC_INTERRUPTED_MESSAGE = Bundle.MSG_InterruptCodeCellInfo();
+    private static final String RESTART_NOTEBOOK_SESSION_MESSAGE = Bundle.MSG_NotebookRestartSession();
     private static final Pattern LINEBREAK = Pattern.compile("\\R");
 
     private final Map<String, RequestProcessor> codeExecMap = new ConcurrentHashMap<>();
@@ -146,6 +165,10 @@ public class CodeEval {
         CompletableFuture<JShell> sessionFuture = NotebookSessionManager.getInstance().getSessionFuture(notebookId);
         if (sessionFuture == null) {
             LOG.warning("notebook session not found");
+            NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
+            if (client != null) {
+                client.showMessage(new MessageParams(MessageType.Error, RESTART_NOTEBOOK_SESSION_MESSAGE));
+            }
             return CompletableFuture.completedFuture(false);
         }
 
@@ -218,14 +241,68 @@ public class CodeEval {
             return new RequestProcessor("Jshell Code Evaluator for notebookId: " + id, 1, true, true);
         });
     }
-
-    private List<String> getCompilationErrors(JShell jshell, SnippetEvent event) {
+    
+    // Made package-private for easy unit test
+    List<String> getCompilationErrors(JShell jshell, SnippetEvent event) {
         List<String> compilationErrors = new ArrayList<>();
         jshell.diagnostics(event.snippet()).forEach(diag -> {
             compilationErrors.addAll(displayableDiagnostic(event.snippet().source(), diag));
         });
 
+        if (event.snippet() instanceof DeclarationSnippet) {
+            DeclarationSnippet declSnippet = (DeclarationSnippet) event.snippet();
+            List<String> unresolvedDeps = jshell.unresolvedDependencies(declSnippet).toList();
+            if (!unresolvedDeps.isEmpty()) {
+                String msg = getUnresolvedDependencyMsg(event, declSnippet, unresolvedDeps);
+                compilationErrors.add(msg);
+            }
+        }
+
         return compilationErrors;
+    }
+
+    private String getUnresolvedDependencyMsg(SnippetEvent event, DeclarationSnippet snippet, List<String> unresolvedDeps) {
+        String declarationType = getDeclarationType(snippet);
+        String prefix = declarationType.isEmpty()
+                ? snippet.name()
+                : declarationType + " " + snippet.name();
+
+        String dependencies = String.join(Bundle.MSG_ListCombine(), unresolvedDeps);
+
+        if (event.status().isDefined()) {
+            return Bundle.MSG_UnresolvedDepsRecoverableDefined(prefix, dependencies);
+        }
+        return Bundle.MSG_UnresolvedDepsRecoverableNotDefined(prefix, dependencies);
+    }
+
+    private String getDeclarationType(DeclarationSnippet snippet) {
+        switch (snippet.kind()) {
+            case METHOD:
+                return Bundle.LBL_method();
+            case VAR:
+                return Bundle.LBL_variable();
+            case TYPE_DECL:
+                return getTypeDeclarationType(snippet.subKind());
+            default:
+                LOG.warning("Cannot find declaration type of the snippet");
+                return "";
+        }
+    }
+
+    private String getTypeDeclarationType(SubKind subKind) {
+        switch (subKind) {
+            case CLASS_SUBKIND:
+                return Bundle.LBL_class();
+            case INTERFACE_SUBKIND:
+                return Bundle.LBL_interface();
+            case ENUM_SUBKIND:
+                return Bundle.LBL_enum();
+            case ANNOTATION_TYPE_SUBKIND:
+                return Bundle.LBL_annotation();
+            default:
+                LOG.warning("Cannot find declaration sub-type of the snippet");
+                return "";
+        }
     }
 
     private List<String> getRuntimeErrors(SnippetEvent event) {
@@ -300,7 +377,7 @@ public class CodeEval {
         }
         return output;
     }
-    
+
     private StringBuilder printStackTrace(StringBuilder output, Throwable exception) {
         if (exception == null) {
             return output != null ? output : new StringBuilder(0);
@@ -311,17 +388,17 @@ public class CodeEval {
             public void write(char[] cbuf, int off, int len) {
                 sb.append(cbuf, off, len);
             }
-            
+
             @Override
             public void flush() {
             }
-            
+
             @Override
             public void close() {
             }
         });
         exception.printStackTrace(stackWriter);
-        
+
         return sb;
     }
 
