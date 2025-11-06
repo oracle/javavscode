@@ -18,6 +18,8 @@ package org.netbeans.modules.nbcode.java.notebook;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.net.URI;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -56,6 +58,7 @@ public class NotebookSessionManager {
     private static final String CLASS_PATH = "--class-path";
     private static final String MODULE_PATH = "--module-path";
     private static final String ADD_MODULES = "--add-modules";
+    private static final String USER_DIR_PROP = "-Duser.dir=";
 
     private final Map<String, CompletableFuture<JShell>> sessions = new ConcurrentHashMap<>();
     private final Map<String, JshellStreamsHandler> jshellStreamsMap = new ConcurrentHashMap<>();
@@ -80,16 +83,17 @@ public class NotebookSessionManager {
                     if (prj != null) {
                         notebookPrjMap.put(notebookUri, new ProjectContextInfo(prj));
                     }
-                    return jshellBuildWithProject(prj, streamsHandler);
+                    return jshellBuildWithProject(notebookUri, prj, streamsHandler);
                 })).exceptionally(throwable -> {
             LOG.log(Level.WARNING, "Failed to get project context, using default JShell configuration", throwable);
-            return jshellBuildWithProject(null, streamsHandler);
+            return jshellBuildWithProject(notebookUri, null, streamsHandler);
         });
     }
 
-    private JShell jshellBuildWithProject(Project prj, JshellStreamsHandler streamsHandler) {
+    private JShell jshellBuildWithProject(String notebookUri, Project prj, JshellStreamsHandler streamsHandler) {
         List<String> compilerOptions = getCompilerOptions(prj);
         List<String> remoteOptions = getRemoteVmOptions(prj);
+        setSystemPropertiesForRemoteVm(remoteOptions, notebookUri);
 
         JShell.Builder builder = JShell.builder()
                 .out(streamsHandler.getPrintOutStream())
@@ -99,9 +103,24 @@ public class NotebookSessionManager {
         if (!compilerOptions.isEmpty()) {
             builder.compilerOptions(compilerOptions.toArray(new String[0]))
                     .remoteVMOptions(remoteOptions.toArray(new String[0]));
+        } else if (!remoteOptions.isEmpty()) {
+            builder.remoteVMOptions(remoteOptions.toArray(new String[0]));
         }
 
         return builder.build();
+    }
+
+    private void setSystemPropertiesForRemoteVm(List<String> remoteOptions, String notebookUri) {
+        try {
+            URI uri = URI.create(notebookUri);
+            Path parentPath = Path.of(uri).getParent();
+            if (parentPath != null && Files.isDirectory(parentPath)) {
+                remoteOptions.add(USER_DIR_PROP + parentPath.toString());
+                LOG.log(Level.FINE, "Setting user.dir for JShell: {0}", parentPath);
+            }
+        } catch (IllegalArgumentException | FileSystemNotFoundException e) {
+            LOG.log(Level.WARNING, "Could not parse notebook URI to set user.dir: " + notebookUri, e);
+        }
     }
 
     public CompletableFuture<JShell> createSession(NotebookDocument notebookDoc) {
