@@ -14,7 +14,7 @@ steps:
     name: "Install dependencies & cyclonedx-node-npm package"
     command: |
       cd vscode
-      npm install && npm install --save-dev @cyclonedx/cyclonedx-npm
+      npm install && npm install --save-dev @cyclonedx/cyclonedx-npm@1.19.3 
   - type: Command
     name: "Run cyclonedx-node-npm package"
     command: |
