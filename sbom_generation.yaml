@@ -6,22 +6,96 @@
 
 version: 0.1
 component: build
-timeoutInSeconds: 1000
+timeoutInSeconds: 3600
 shell: bash
 
 steps:
   - type: Command
+    name: "Install Java 17 "
+    command: |
+     wget https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.17+10/OpenJDK17U-jdk_x64_linux_hotspot_17.0.17_10.tar.gz
+     tar xzf OpenJDK17U-jdk_x64_linux_hotspot_17.0.17_10.tar.gz -C ${OCI_PRIMARY_SOURCE_DIR}
+  - type: Command
+    name: "Install Ant "
+    command: |
+      wget https://dlcdn.apache.org//ant/binaries/apache-ant-1.10.15-bin.tar.gz
+      tar xzf apache-ant-1.10.15-bin.tar.gz -C ${OCI_PRIMARY_SOURCE_DIR}
+  - type: Command
+    name: "Update git"
+    command: |
+      yum update git
+  - type: Command
+    name: "Checkout submodules"
+    command: |
+      git submodule update --init --recursive
+  - type: Command
+    name: "Build netbeans"
+    command: |
+      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17.0.17+10
+      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/apache-ant-1.10.15
+      export PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$PATH
+      ant apply-patches
+      ant build-netbeans
+  - type: Command
+    name: "Build vscode extension "
+    command: |
+      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17.0.17+10
+      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/apache-ant-1.10.15
+      export PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$PATH
+      ant build-lsp-server
+  - type: Command
+    name: "Download the version 10.10.0 of cdxgen globally"
+    command: |
+      npm install -g @cyclonedx/cdxgen@10.10.0
+  - type: Command
+    name: "Workaround to let cdxgen run on nodejs 16"
+    command: |
+      # cdxgen relies on a fourth-party dependency that cannot be executed in a Node.js environment running version 16
+      # (as installed on the build runner instance)
+      # This is a workaround to ensure cdxgen functions correctly, even in an older Node.js environment.
+      cd /node/node-v16.14.2-linux-x64/lib/node_modules/@cyclonedx/cdxgen && \
+      npm install cheerio@v1.0.0-rc.12
+  - type: Command
+    name: "Generate sbom for the nbcode part"
+    command: |
+      cd vscode
+      # For more details, visit https://github.com/CycloneDX/cdxgen/blob/master/README.md
+      npx @cyclonedx/cdxgen nbcode/ -r --required-only -o ../bom-nbcode.json --json-pretty --spec-version 1.4
+  - type: Command
     name: "Install dependencies & cyclonedx-node-npm package"
     command: |
       cd vscode
-      npm install && npm install --save-dev @cyclonedx/cyclonedx-npm@1.19.3 
+      npm install && npm install --save-dev @cyclonedx/cyclonedx-npm@1.19.3
   - type: Command
     name: "Run cyclonedx-node-npm package"
     command: |
       cd vscode
       # For more details, visit https://github.com/CycloneDX/cyclonedx-node-npm/blob/main/README.md
-      npx @cyclonedx/cyclonedx-npm --omit dev --output-format JSON --output-file ../artifactSBOM.json --spec-version 1.4
+      npx @cyclonedx/cyclonedx-npm --omit dev --output-format JSON --output-file ../bom-vscode.json --spec-version 1.4
+  - type: Command
+    name: "Download CycloneDx-cli executable and install dependencies"
+    command: |
+      wget https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.24.2/cyclonedx-linux-x64
+      yum install -y libicu
+  - type: Command
+    name: "Merge multiple SBOMs using CycloneDX-cli"
+    command: |
+      # For more details, visit https://github.com/CycloneDX/cyclonedx-cli/blob/main/README.md
+      chmod +x cyclonedx-linux-x64
+      ./cyclonedx-linux-x64 merge --input-files bom-vscode.json bom-nbcode.json --output-file merged-bom.json
+  # This step is optional for when you need to specify the name of your modules
+  - type: Command
+    name: "Detect the metadata components of the SBOMs"
+    command: |
+      yum install -y jq
+      for path in  bom-vscode.json bom-nbcode.json; do
+         jq -r '.metadata.component.purl' "path" >> ${OCI_PRIMARY_SOURCE_DIR}/metadataComponentPurls.txt;
+      done
 outputArtifacts:
   - name: artifactSBOM
     type: BINARY
-    location: ${OCI_PRIMARY_SOURCE_DIR}/artifactSBOM.json
+    location: ${OCI_PRIMARY_SOURCE_DIR}/merged-bom.json
+  # This step is optional for when you need to specify the name of your modules
+  - name: metadataComponentPurls
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/metadataComponentPurls.txt
