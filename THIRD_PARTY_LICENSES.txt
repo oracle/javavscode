@@ -1850,7 +1850,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Julian Seward, jseward@acm.org
 
 Apache Commons Lang
-Copyright 2001-2021 The Apache Software Foundation
+Copyright 2001-2025 The Apache Software Foundation
 
 
 ValidationAPI version 1.14.1
