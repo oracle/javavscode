@@ -1,0 +1,878 @@
+diff --git a/java/testng.ant/nbproject/project.xml b/java/testng.ant/nbproject/project.xml
+index 29f4ab28cc..64a65d6bfe 100644
+--- a/java/testng.ant/nbproject/project.xml
++++ b/java/testng.ant/nbproject/project.xml
+@@ -184,6 +184,10 @@
+             <test-dependencies>
+                 <test-type>
+                     <name>unit</name>
++                    <test-dependency>
++                        <code-name-base>org.netbeans.insane</code-name-base>
++                        <compile-dependency/>
++                    </test-dependency>
+                     <test-dependency>
+                         <code-name-base>org.netbeans.libs.junit4</code-name-base>
+                         <compile-dependency/>
+diff --git a/java/testng.ant/src/org/netbeans/modules/testng/ant/RegexpUtils.java b/java/testng.ant/src/org/netbeans/modules/testng/ant/RegexpUtils.java
+index 589c5b7e28..6507a55298 100644
+--- a/java/testng.ant/src/org/netbeans/modules/testng/ant/RegexpUtils.java
++++ b/java/testng.ant/src/org/netbeans/modules/testng/ant/RegexpUtils.java
+@@ -22,7 +22,6 @@ package org.netbeans.modules.testng.ant;
+ import java.lang.ref.Reference;
+ import java.lang.ref.WeakReference;
+ import java.util.regex.Pattern;
+-import org.testng.reporters.VerboseReporter;
+ 
+ /**
+  * Utility class providing various parsing routines for parsing TestNG output.
+@@ -49,7 +48,7 @@ final class RegexpUtils {
+     static final String TEST_REGEX = "[^\"]*\"([^\"]+)\" - ([^\\(]+)(\\(([^\\)]*)\\)([^:]+: (.*)\\))?( finished in (\\d+) ms)?)?( \\((\\d+) of (\\d+)\\))?( success: (\\d+)%)?";
+     static final String TEST_REGEX_2 = "[^\"]*\"([^\"]+)\" - ([^\\(]+)(\\(([^\\)]*)\\))(.)*";
+     static final String TEST_REGEX_3 = "(.)*( \\((\\d+) of (\\d+)\\))$";
+-    static final String STATS_REGEX = "\\D+(\\d+)\\D+(\\d+)(\\D+(\\d+))?";
++    static final String STATS_REGEX = "\\D+(\\d+)\\D+(\\d+)(\\D+((?:\\d+)|(?:\\[.*\\])))?";
+ 
+     /** */
+     static final String TESTSUITE_PREFIX = "[TestNGAntTask]";//"Testsuite: ";               //NOI18N
+@@ -141,7 +140,7 @@ final class RegexpUtils {
+                   + XML_SPACE_REGEX + '*' + "\\?>";                     //NOI18N
+ 
+     /** */
+-    static final String TEST_LISTENER_PREFIX = VerboseReporter.LISTENER_PREFIX;
++    static final String TEST_LISTENER_PREFIX = "[TestNG] ";             //NOI18N
+     /** */
+     static final String TESTS_COUNT_PREFIX = "tests to run: ";          //NOI18N
+     /** */
+diff --git a/java/testng.ant/src/org/netbeans/modules/testng/ant/TestNGOutputReader.java b/java/testng.ant/src/org/netbeans/modules/testng/ant/TestNGOutputReader.java
+index 889be368a5..aeba647a49 100644
+--- a/java/testng.ant/src/org/netbeans/modules/testng/ant/TestNGOutputReader.java
++++ b/java/testng.ant/src/org/netbeans/modules/testng/ant/TestNGOutputReader.java
+@@ -183,10 +183,12 @@ final class TestNGOutputReader {
+     private long elapsedTime = 0;
+     // TestNG version > 6.5.2 does not by default add the org.testng.reporters.VerboseReporter listener to the testng task,
+     // see https://github.com/cbeust/testng/commit/6fc192911c8c58f38583a657c1edac20e6508004
+-    // This brakes the "Test" project action as the TestNGAntLogger does not get notified about any output. This leads to
++    // Further, TestNG version >= 7.0.0 adds the org.testng.reporters.VerboseReporter listener to the testng task
++    // only when "-verbose" > 4.
++    // This breaks the "Test" project action as the TestNGAntLogger does not get notified about any output. This leads to
+     // waiting to read the results from the build/test/results/testng-results.xml file, which leads to no on-line results 
+     // visualization in the Test Results Window. So, the org.testng.reporters.VerboseReporter listener is added to build-impl.xsl
+-    // file for all project types. This fixes the "Test" project action for TestNG version > 6.5.2 but produces dublicate output
++    // file for all project types by setting verbose = 5. This fixes the "Test" project action for TestNG version > 6.5.2 but produces dublicate output
+     // for version <= 6.5.2 that need to be escaped. This will happen if old project uses "Dedicated Folder for Storing Libraries",
+     // which means that the testng dependency for that project will not be automatically updated while the build-impl.xml file will.
+     // These two new variables come to the rescue.
+@@ -297,7 +299,22 @@ final class TestNGOutputReader {
+                     if (m.matches()) {
+                         suiteStat.testRun = Integer.valueOf(m.group(1));
+                         suiteStat.testFail = Integer.valueOf(m.group(2));
+-                        suiteStat.testSkip = Integer.valueOf(m.group(4));
++                        String skipGroup = m.group(4);
++                        if (skipGroup.startsWith("[") && skipGroup.endsWith("]")) {
++                            if (skipGroup.length() == 2) {
++                                suiteStat.testSkip = 0;
++                            } else {
++                                int idx = 0;
++                                int count = 0;
++                                // Count end parenthesis of method signature, followed by starting brace of priority, parameters etc.
++                                while ((idx = skipGroup.indexOf(")[pri:", idx)) > 0) {
++                                    count++;
++                                }
++                                suiteStat.testSkip = count;
++                            }
++                        } else {
++                            suiteStat.testSkip = Integer.parseInt(skipGroup);
++                        }
+                     } else {
+                         assert false : "Cannot match: '" + in + "'.";
+                     }
+diff --git a/java/testng.ant/src/org/netbeans/modules/testng/ant/testng-build.xml b/java/testng.ant/src/org/netbeans/modules/testng/ant/testng-build.xml
+index 42d282a117..1e55c60623 100644
+--- a/java/testng.ant/src/org/netbeans/modules/testng/ant/testng-build.xml
++++ b/java/testng.ant/src/org/netbeans/modules/testng/ant/testng-build.xml
+@@ -46,7 +46,7 @@
+                     <filename name="@{testincludes}"/>
+                 </fileset>
+                 <taskdef name="testng" classname="org.testng.TestNGAntTask" classpath="${run.test.classpath}"/>
+-                <testng mode="mixed" classfilesetref="mixed.tests" workingDir="${basedir}" failureProperty="tests.failed" outputdir="${build.test.results.dir}">
++                <testng mode="mixed" classfilesetref="mixed.tests" workingDir="${basedir}" failureProperty="tests.failed" outputdir="${build.test.results.dir}" verbose="5">
+                     <classpath>
+                         <pathelement path="${run.test.classpath}"/>
+                         <pathelement path="${j2ee.platform.classpath}"/>
+@@ -65,7 +65,7 @@
+             <attribute name="testSuite" default="${build.dir}/generated/testng/temp-testng-customsuite.xml"/>
+             <sequential>
+                 <taskdef name="testng" classname="org.testng.TestNGAntTask" classpath="${run.test.classpath}"/>
+-                <testng workingDir="${basedir}" failureProperty="tests.failed" outputdir="${build.test.results.dir}">
++                <testng workingDir="${basedir}" failureProperty="tests.failed" outputdir="${build.test.results.dir}" verbose="5">
+                     <classpath>
+                         <pathelement path="${run.test.classpath}"/>
+                         <pathelement path="${j2ee.platform.classpath}"/>
+@@ -189,7 +189,7 @@
+                 <jvmarg value="-ea"/>
+                 <arg line="-mixed"/>
+                 <arg line="-d ${build.test.results.dir}"/>
+-                <arg line="-listener org.testng.reporters.VerboseReporter"/>
++                <arg line="-verbose 5"/>
+                 <arg line="${test.name.arg}"/>
+                 <arg line="${test.class.or.method}"/>
+             </customize>
+diff --git a/java/testng.ant/test/unit/data/antOut/log.txt b/java/testng.ant/test/unit/data/antOut/log.txt
+new file mode 100644
+index 0000000000..9d39755a86
+--- /dev/null
++++ b/java/testng.ant/test/unit/data/antOut/log.txt
+@@ -0,0 +1,77 @@
++SLF4J(W): No SLF4J providers were found.
++SLF4J(W): Defaulting to no-operation (NOP) logger implementation
++SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-exports
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: package com.sun.java.swing.plaf.windows not in java.desktop
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: package sun.awt.X11 not in java.desktop
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: package com.sun.java.swing.plaf.gtk not in java.desktop
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++WARNING: Unknown module: jdk.compiler specified to --add-opens
++java.io.FileNotFoundException: netbeans/java/testng/build/test/unit/results/test (No such file or directory)
++	at java.base/java.io.FileInputStream.open0(Native Method)
++	at java.base/java.io.FileInputStream.open(FileInputStream.java:213)
++	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:152)
++	at org.testng.xml.internal.Parser.parse(Parser.java:151)
++	at org.testng.xml.internal.Parser.parse(Parser.java:241)
++	at org.testng.TestNG.parseSuite(TestNG.java:330)
++	at org.testng.TestNG.initializeSuitesAndJarFile(TestNG.java:394)
++	at org.testng.TestNG.initializeEverything(TestNG.java:1059)
++	at org.testng.TestNG.run(TestNG.java:1071)
++	at org.testng.TestNG.privateMain(TestNG.java:1430)
++	at org.testng.TestNG.main(TestNG.java:1394)
++SLF4J(W): No SLF4J providers were found.
++SLF4J(W): Defaulting to no-operation (NOP) logger implementation
++SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
++[TestNG] RUNNING: Suite: "UnitTest" containing "3" Tests (config: null)
++[TestNG] INVOKING: "UnitTest" - org.netbeans.modules.testng.api.XmlOutputParserTest.testParseSimpleXmlOutput()
++Nov 11, 2025 2:07:39 AM org.netbeans.modules.masterfs.watcher.Watcher getNotifierForPlatform
++INFO: Native file watcher is disabled
++[TestNG] PASSED: "UnitTest" - org.netbeans.modules.testng.api.XmlOutputParserTest.testParseSimpleXmlOutput() finished in 22010 ms
++[TestNG] INVOKING: "UnitTest" - org.netbeans.modules.testng.api.XmlOutputParserTest.testParseXmlOutput()
++[TestNG] PASSED: "UnitTest" - org.netbeans.modules.testng.api.XmlOutputParserTest.testParseXmlOutput() finished in 600 ms
++[TestNG] INVOKING: "UnitTest" - org.netbeans.modules.testng.api.XmlOutputParserTest.testParseXmlOutput2()
++[TestNG] PASSED: "UnitTest" - org.netbeans.modules.testng.api.XmlOutputParserTest.testParseXmlOutput2() finished in 505 ms
++===== Invoked methods
++    XmlOutputParserTest.testParseSimpleXmlOutput()[pri:0, instance:UnitTest(org.netbeans.modules.testng.api.XmlOutputParserTest)]
++    XmlOutputParserTest.testParseXmlOutput()[pri:0, instance:UnitTest(org.netbeans.modules.testng.api.XmlOutputParserTest)]
++    XmlOutputParserTest.testParseXmlOutput2()[pri:0, instance:UnitTest(org.netbeans.modules.testng.api.XmlOutputParserTest)]
++=====
++[TestNG] 
++[TestNG] ===============================================
++[TestNG]     UnitTest
++[TestNG]     Tests run: 3, Failures: 0, Skips: []
++[TestNG] ===============================================
++PASSED: org.netbeans.modules.testng.api.XmlOutputParserTest.testParseXmlOutput
++PASSED: org.netbeans.modules.testng.api.XmlOutputParserTest.testParseXmlOutput2
++PASSED: org.netbeans.modules.testng.api.XmlOutputParserTest.testParseSimpleXmlOutput
++
++===============================================
++    UnitTest
++    Tests run: 3, Failures: 0, Skips: 0
++===============================================
++
++
++===============================================
++org.netbeans.modules.testng
++Total tests run: 3, Passes: 3, Failures: 0, Skips: 0
++===============================================
++
+diff --git a/java/testng.ui/nbproject/project.xml b/java/testng.ui/nbproject/project.xml
+index 65c7364426..49aebaed99 100644
+--- a/java/testng.ui/nbproject/project.xml
++++ b/java/testng.ui/nbproject/project.xml
+@@ -109,7 +109,7 @@
+                     <compile-dependency/>
+                     <run-dependency>
+                         <release-version>1</release-version>
+-                        <specification-version>1.11</specification-version>
++                        <specification-version>1.44</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+@@ -432,6 +432,10 @@
+                         <code-name-base>org.netbeans.modules.java.lexer</code-name-base>
+                         <compile-dependency/>
+                     </test-dependency>
++                    <test-dependency>
++                        <code-name-base>org.netbeans.modules.java.j2seplatform</code-name-base>
++                        <compile-dependency/>
++                    </test-dependency>
+                     <test-dependency>
+                         <code-name-base>org.netbeans.modules.java.project</code-name-base>
+                         <compile-dependency/>
+diff --git a/java/testng.ui/src/org/netbeans/modules/testng/ui/XmlSuiteHandler.java b/java/testng.ui/src/org/netbeans/modules/testng/ui/XmlSuiteHandler.java
+index ef2ce1db7d..6ee59e69a3 100644
+--- a/java/testng.ui/src/org/netbeans/modules/testng/ui/XmlSuiteHandler.java
++++ b/java/testng.ui/src/org/netbeans/modules/testng/ui/XmlSuiteHandler.java
+@@ -52,9 +52,7 @@ public class XmlSuiteHandler extends TestNGContentHandler {
+             r.parse(new InputSource(suiteFile.getInputStream()));
+             location[0] = sl.getLine();
+             location[1] = sl.getColumn();
+-        } catch (IOException ex) {
+-            LOGGER.log(Level.WARNING, null, ex);
+-        } catch (SAXException ex) {
++        } catch (IOException | SAXException ex) {
+             LOGGER.log(Level.WARNING, null, ex);
+         }
+         return location;
+@@ -66,7 +64,7 @@ public class XmlSuiteHandler extends TestNGContentHandler {
+     }
+ 
+     @Override
+-    public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
++    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+         if ("test".equals(qName) && attributes != null && suite.equals(attributes.getValue("name"))) {
+             line = loc.getLineNumber();
+             column = loc.getColumnNumber() - suite.length() - 3;
+@@ -74,7 +72,7 @@ public class XmlSuiteHandler extends TestNGContentHandler {
+     }
+ 
+     @Override
+-    public void endElement(String uri, String localName, String qName) throws SAXException {
++    public void endElement(String uri, String localName, String qName) {
+     }
+ 
+     public int getLine() {
+diff --git a/java/testng.ui/test/unit/src/org/netbeans/modules/testng/ui/actions/RetoucheTestBase.java b/java/testng.ui/test/unit/src/org/netbeans/modules/testng/ui/actions/RetoucheTestBase.java
+index 11afdedbc4..49508b1507 100644
+--- a/java/testng.ui/test/unit/src/org/netbeans/modules/testng/ui/actions/RetoucheTestBase.java
++++ b/java/testng.ui/test/unit/src/org/netbeans/modules/testng/ui/actions/RetoucheTestBase.java
+@@ -21,16 +21,12 @@ package org.netbeans.modules.testng.ui.actions;
+ import java.io.File;
+ import java.net.MalformedURLException;
+ import java.net.URL;
+-import java.util.ArrayList;
+-import java.util.List;
+-import java.util.StringTokenizer;
+ import org.netbeans.api.java.classpath.ClassPath;
+ import org.netbeans.api.java.source.SourceUtilsTestUtil;
+-import org.netbeans.api.java.source.TestUtilities;
+ import org.netbeans.junit.NbTestCase;
+ import org.netbeans.modules.java.JavaDataLoader;
++import org.netbeans.modules.java.source.BootClassPathUtil;
+ import org.netbeans.spi.java.classpath.ClassPathProvider;
+-import org.netbeans.spi.java.classpath.PathResourceImplementation;
+ import org.netbeans.spi.java.classpath.support.ClassPathSupport;
+ import org.openide.filesystems.FileObject;
+ import org.openide.filesystems.FileUtil;
+@@ -62,7 +58,7 @@ public class RetoucheTestBase extends NbTestCase {
+                     return ClassPathSupport.createClassPath(new FileObject[0]);
+                 }
+                 if (type.equals(ClassPath.BOOT)) {
+-                    return createClassPath(System.getProperty("sun.boot.class.path"));
++                    return BootClassPathUtil.getBootClassPath();
+                 }
+                 return null;
+             }
+@@ -80,20 +76,6 @@ public class RetoucheTestBase extends NbTestCase {
+         return testFO;
+     }
+ 
+-    private static ClassPath createClassPath(String classpath) {
+-        StringTokenizer tokenizer = new StringTokenizer(classpath, File.pathSeparator);
+-        List<PathResourceImplementation> list = new ArrayList<PathResourceImplementation>();
+-        while (tokenizer.hasMoreTokens()) {
+-            String item = tokenizer.nextToken();
+-            File f = FileUtil.normalizeFile(new File(item));
+-            URL url = getRootURL(f);
+-            if (url != null) {
+-                list.add(ClassPathSupport.createResource(url));
+-            }
+-        }
+-        return ClassPathSupport.createClassPath(list);
+-    }
+-
+     private static URL getRootURL(File f) {
+         URL url = null;
+         try {
+diff --git a/java/testng/nbproject/project.xml b/java/testng/nbproject/project.xml
+index de6d32ff03..23011feb62 100644
+--- a/java/testng/nbproject/project.xml
++++ b/java/testng/nbproject/project.xml
+@@ -92,7 +92,7 @@
+                     <compile-dependency/>
+                     <run-dependency>
+                         <release-version>1</release-version>
+-                        <specification-version>1.0</specification-version>
++                        <specification-version>1.44</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+diff --git a/java/testng/src/org/netbeans/modules/testng/spi/XMLSuiteSupport.java b/java/testng/src/org/netbeans/modules/testng/spi/XMLSuiteSupport.java
+index 1c30d02d29..66cabfb9c1 100644
+--- a/java/testng/src/org/netbeans/modules/testng/spi/XMLSuiteSupport.java
++++ b/java/testng/src/org/netbeans/modules/testng/spi/XMLSuiteSupport.java
+@@ -19,20 +19,25 @@
+ package org.netbeans.modules.testng.spi;
+ 
+ import java.io.File;
+-import java.util.Collection;
+-import java.util.HashMap;
+-import java.util.HashSet;
+-import java.util.Map;
+-import java.util.Set;
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.nio.file.StandardOpenOption;
++import java.util.Collections;
++import java.util.logging.Level;
++import java.util.logging.Logger;
+ import org.openide.filesystems.FileUtil;
+-import org.testng.xml.LaunchSuite;
+-import org.testng.xml.SuiteGenerator;
++import org.testng.xml.XmlClass;
++import org.testng.xml.XmlInclude;
++import org.testng.xml.XmlSuite;
++import org.testng.xml.XmlTest;
+ 
+ /**
+  *
+  * @author lukas
+  */
+ public final class XMLSuiteSupport {
++    private static final Logger LOGGER = Logger.getLogger(XMLSuiteSupport.class.getName());
+ 
+     private XMLSuiteSupport() {
+     }
+@@ -41,17 +46,29 @@ public final class XMLSuiteSupport {
+         if (!targetFolder.isDirectory()) {
+             throw new IllegalArgumentException(targetFolder.getAbsolutePath() + " is not a directory"); //NOI18N
+         }
+-        Map<String, Collection<String>> classes = new HashMap<String, Collection<String>>();
+-        Set<String> methods = null;
++        String packageName = pkgName.trim();
++        String fqClassName = packageName.isEmpty() ? className : packageName + "." + className;
++        XmlSuite xmlSuite = new XmlSuite();
++        // Maintain parity with testng-6.14.3:org.testng.xml.LaunchSuite.ClassesAndMethodsSuite
++        xmlSuite.setName("Custom suite");   //NO18N
++        XmlTest xmlTest = new XmlTest(xmlSuite);
++        xmlTest.setName(projectName);
++        XmlClass xmlClass = new XmlClass(fqClassName);
+         if (methodName != null) {
+-            methods = new HashSet<String>();
+-            methods.add(methodName);
++            xmlClass.setIncludedMethods(Collections.singletonList(new XmlInclude(methodName)));
+         }
+-        pkgName = pkgName.trim();
+-        classes.put("".equals(pkgName) ? className : pkgName + "." + className, methods); //NOI18N
+-        LaunchSuite suite = SuiteGenerator.createSuite(projectName, null, classes, null, null, null, 1);
+-        File f = suite.save(targetFolder);
+-        FileUtil.refreshFor(targetFolder);
+-        return f;
++        xmlTest.setXmlClasses(Collections.singletonList(xmlClass));
++        String xml = xmlSuite.toXml();
++        // Maintain parity with testng-6.14.3:org.testng.xml.LaunchSuite.ClassesAndMethodsSuite
++        String fileName = "temp-testng-customsuite.xml";    //NOI18N
++
++        Path f = targetFolder.toPath().resolve(fileName);
++        try {
++            f = Files.writeString(f, xml, StandardOpenOption.CREATE);
++            FileUtil.refreshFor(targetFolder);
++        } catch (IOException ex) {
++            LOGGER.log(Level.SEVERE, "Failed to write TestNG XMLSuite to file.", ex);
++        }
++        return f.toFile();
+     }
+ }
+diff --git a/nbbuild/templates/common.xml b/nbbuild/templates/common.xml
+index 240ed93945..86153557a9 100644
+--- a/nbbuild/templates/common.xml
++++ b/nbbuild/templates/common.xml
+@@ -787,7 +787,7 @@
+                         outputdir="${build.test.@{test.type}.results.dir}"
+                         workingDir="${build.test.@{test.type}.results.dir}"
+                         suitename="${code.name.base}"
+-                        listener="org.testng.reporters.VerboseReporter"
++                        verbose="5"
+                         jvm="${test.nbjdk.java}"
+                 >
+                     <classfileset dir="${build.test.@{test.type}.classes.dir}" excludes="${test.excludes}" includes="${test.includes}"/>
+@@ -890,7 +890,7 @@
+                          outputdir="${build.test.@{test.type}.results.dir}"
+                          workingDir="${build.test.@{test.type}.results.dir}"
+                          suitename="${code.name.base}"
+-                         listener="org.testng.reporters.VerboseReporter"
++                         verbose="5"
+                          jvm="${test.nbjdk.java}"
+                 >
+                     <propertyset refid="test.@{test.type}.properties"/>
+@@ -919,7 +919,7 @@
+                          outputdir="${build.test.@{test.type}.results.dir}"
+                          workingDir="${build.test.@{test.type}.results.dir}"
+                          suitename="${code.name.base}"
+-                         listener="org.testng.reporters.VerboseReporter"
++                         verbose="5"
+                          jvm="${test.nbjdk.java}"
+                 >
+                     <propertyset refid="test.@{test.type}.properties"/>
+@@ -1012,7 +1012,7 @@
+                     <jvmarg value="-ea"/>
+                     <arg line="-mixed"/>
+                     <arg line="-d ${build.test.@{test.type}.results.dir}"/>
+-                    <arg line="-listener org.testng.reporters.VerboseReporter"/>
++                    <arg line="-verbose 5"/>
+                     <arg line="-suitename ${code.name.base}"/>
+                     <arg line="-testname ${test.class}"/>
+                     <arg line="${testng.args.line}"/>
+@@ -1034,7 +1034,7 @@
+                          outputdir="${build.test.@{test.type}.results.dir}"
+                          workingDir="${build.test.@{test.type}.results.dir}"
+                          suitename="${code.name.base}"
+-                         listener="org.testng.reporters.VerboseReporter"
++                         verbose="5"
+                          jvm="${test.nbjdk.java}"
+                 >
+                     <propertyset refid="test.@{test.type}.properties"/>
+@@ -1126,7 +1126,7 @@
+                         outputdir="${build.test.@{test.type}.results.dir}"
+                         workingDir="${build.test.@{test.type}.results.dir}"
+                         suitename="${code.name.base}"
+-                        listener="org.testng.reporters.VerboseReporter"
++                        verbose="5"
+                         jvm="${test.nbjdk.java}"
+                 >
+                     <propertyset refid="test.@{test.type}.properties"/>
+diff --git a/platform/libs.testng/external/binaries-list b/platform/libs.testng/external/binaries-list
+index 6f81672472..746964c4f2 100644
+--- a/platform/libs.testng/external/binaries-list
++++ b/platform/libs.testng/external/binaries-list
+@@ -14,6 +14,8 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-D24515DC253E77E54B73DF97E1FB2EB7FAF34FDD org.testng:testng:6.14.3
+-A3927DE9BD6F351429BCF763712C9890629D8F51 com.beust:jcommander:1.78
+-650BE4AF41D397EB818393068E03C595576CF1B9 org.testng:testng:6.13.1:javadoc
++C75EE639E6FC9C0A406D32608D532D9EE9341941 org.testng:testng:7.11.0
++C6A75D1D1720C69A4CBB5409ADEE506BD5421F38 org.jcommander:jcommander:1.85
++26E5A09DF9563617CBDA97261B3F14FFB983A4CE org.testng:testng-ant:1.0.0
++D9E58AC9C7779BA3BF8142AFF6C830617A7FE60F org.slf4j:slf4j-api:2.0.17
++C2E2AE93FB66A26DA2B4AE647DED8F8B5CC84CB7 org.testng:testng:7.11.0:javadoc
+diff --git a/platform/libs.testng/external/jcommander-1.78-license.txt b/platform/libs.testng/external/jcommander-1.85-license.txt
+similarity index 98%
+rename from platform/libs.testng/external/jcommander-1.78-license.txt
+rename to platform/libs.testng/external/jcommander-1.85-license.txt
+index 0d7cadb179..e9a236811e 100644
+--- a/platform/libs.testng/external/jcommander-1.78-license.txt
++++ b/platform/libs.testng/external/jcommander-1.85-license.txt
+@@ -1,14 +1,14 @@
+ Name: JCommander
+-Version: 1.78
++Version: 1.85
+ Description: Parse command line parameters
+ License: Apache-2.0
+ Origin: Cédric Beust
+ URL: https://jcommander.org
+-Files: jcommander-1.78.jar
++Files: jcommander-1.85.jar
+ 
+                                  Apache License
+                            Version 2.0, January 2004
+-                        http://www.apache.org/licenses/
++                        https://www.apache.org/licenses/
+ 
+    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+ 
+@@ -200,7 +200,7 @@ Files: jcommander-1.78.jar
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+ 
+-       http://www.apache.org/licenses/LICENSE-2.0
++       https://www.apache.org/licenses/LICENSE-2.0
+ 
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+diff --git a/platform/libs.testng/external/slf4j-api-2.0.17-license.txt b/platform/libs.testng/external/slf4j-api-2.0.17-license.txt
+new file mode 100644
+index 0000000000..c050705692
+--- /dev/null
++++ b/platform/libs.testng/external/slf4j-api-2.0.17-license.txt
+@@ -0,0 +1,27 @@
++Name: SLF4J
++Version: 2.0.17
++License: MIT-slf4j-22
++Origin: https://www.slf4j.org/
++Description: Simple Logging Facade for Java (SLF4J).
++
++Copyright (c) 2004-2022 QOS.ch Sarl (Switzerland)
++All rights reserved.
++
++Permission is hereby granted, free  of charge, to any person obtaining
++a  copy  of this  software  and  associated  documentation files  (the
++"Software"), to  deal in  the Software without  restriction, including
++without limitation  the rights to  use, copy, modify,  merge, publish,
++distribute,  sublicense, and/or sell  copies of  the Software,  and to
++permit persons to whom the Software  is furnished to do so, subject to
++the following conditions:
++
++The  above  copyright  notice  and  this permission  notice  shall  be
++included in all copies or substantial portions of the Software.
++
++THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
++EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
++MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
++NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
++LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
++OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
++WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+diff --git a/platform/libs.testng/external/testng-6.14.3-license.txt b/platform/libs.testng/external/testng-7.11.0-license.txt
+similarity index 97%
+rename from platform/libs.testng/external/testng-6.14.3-license.txt
+rename to platform/libs.testng/external/testng-7.11.0-license.txt
+index 46e886385e..cf44e1031e 100644
+--- a/platform/libs.testng/external/testng-6.14.3-license.txt
++++ b/platform/libs.testng/external/testng-7.11.0-license.txt
+@@ -1,10 +1,10 @@
+ Name: TestNG
+-Version: 6.14.3
++Version: 7.11.0
+ Description: Java testing framework.
+ License: Apache-2.0+MIT+testng
+ Origin: TestNG
+-URL: http://testng.org/doc/download.html
+-Files: testng-6.14.3.jar, testng-6.13.1-javadoc.jar
++URL: https://testng.org/doc/download.html
++Files: testng-7.11.0.jar, testng-7.11.0-javadoc.jar
+ 
+ Parts of this work are licensed:
+ 
+@@ -12,10 +12,10 @@ The MIT License (MIT)
+ 
+ Copyright 2011, John Resig
+ Dual licensed under the MIT or GPL Version 2 licenses.
+-http://jquery.org/license
++https://jquery.org/license
+ 
+ Includes Sizzle.js
+-http://sizzlejs.com/
++https://sizzlejs.com/
+ Copyright 2011, The Dojo Foundation
+ Released under the MIT, BSD, and GPL Licenses.
+ 
+@@ -41,7 +41,7 @@ Parts of this work are licensed:
+ 
+                                 Apache License
+                            Version 2.0, January 2004
+-                        http://www.apache.org/licenses/
++                        https://www.apache.org/licenses/
+ 
+    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+ 
+@@ -233,7 +233,7 @@ Parts of this work are licensed:
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+ 
+-       http://www.apache.org/licenses/LICENSE-2.0
++       https://www.apache.org/licenses/LICENSE-2.0
+ 
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+diff --git a/platform/libs.testng/external/testng-6.14.3-notice.txt b/platform/libs.testng/external/testng-7.11.0-notice.txt
+similarity index 100%
+rename from platform/libs.testng/external/testng-6.14.3-notice.txt
+rename to platform/libs.testng/external/testng-7.11.0-notice.txt
+diff --git a/platform/libs.testng/external/testng-ant-1.0.0-license.txt b/platform/libs.testng/external/testng-ant-1.0.0-license.txt
+new file mode 100644
+index 0000000000..96e924ce7e
+--- /dev/null
++++ b/platform/libs.testng/external/testng-ant-1.0.0-license.txt
+@@ -0,0 +1,211 @@
++Name: TestNG Ant Integration
++Version: 1.0.0
++Description: Java testing framework.
++License: Apache-2.0
++Origin: TestNG Ant Integration
++URL: https://github.com/testng-team/testng-ant
++Files: testng-ant-1.0.0.jar
++
++                                Apache License
++                           Version 2.0, January 2004
++                        https://www.apache.org/licenses/
++
++   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
++
++   1. Definitions.
++
++      "License" shall mean the terms and conditions for use, reproduction,
++      and distribution as defined by Sections 1 through 9 of this document.
++
++      "Licensor" shall mean the copyright owner or entity authorized by
++      the copyright owner that is granting the License.
++
++      "Legal Entity" shall mean the union of the acting entity and all
++      other entities that control, are controlled by, or are under common
++      control with that entity. For the purposes of this definition,
++      "control" means (i) the power, direct or indirect, to cause the
++      direction or management of such entity, whether by contract or
++      otherwise, or (ii) ownership of fifty percent (50%) or more of the
++      outstanding shares, or (iii) beneficial ownership of such entity.
++
++      "You" (or "Your") shall mean an individual or Legal Entity
++      exercising permissions granted by this License.
++
++      "Source" form shall mean the preferred form for making modifications,
++      including but not limited to software source code, documentation
++      source, and configuration files.
++
++      "Object" form shall mean any form resulting from mechanical
++      transformation or translation of a Source form, including but
++      not limited to compiled object code, generated documentation,
++      and conversions to other media types.
++
++      "Work" shall mean the work of authorship, whether in Source or
++      Object form, made available under the License, as indicated by a
++      copyright notice that is included in or attached to the work
++      (an example is provided in the Appendix below).
++
++      "Derivative Works" shall mean any work, whether in Source or Object
++      form, that is based on (or derived from) the Work and for which the
++      editorial revisions, annotations, elaborations, or other modifications
++      represent, as a whole, an original work of authorship. For the purposes
++      of this License, Derivative Works shall not include works that remain
++      separable from, or merely link (or bind by name) to the interfaces of,
++      the Work and Derivative Works thereof.
++
++      "Contribution" shall mean any work of authorship, including
++      the original version of the Work and any modifications or additions
++      to that Work or Derivative Works thereof, that is intentionally
++      submitted to Licensor for inclusion in the Work by the copyright owner
++      or by an individual or Legal Entity authorized to submit on behalf of
++      the copyright owner. For the purposes of this definition, "submitted"
++      means any form of electronic, verbal, or written communication sent
++      to the Licensor or its representatives, including but not limited to
++      communication on electronic mailing lists, source code control systems,
++      and issue tracking systems that are managed by, or on behalf of, the
++      Licensor for the purpose of discussing and improving the Work, but
++      excluding communication that is conspicuously marked or otherwise
++      designated in writing by the copyright owner as "Not a Contribution."
++
++      "Contributor" shall mean Licensor and any individual or Legal Entity
++      on behalf of whom a Contribution has been received by Licensor and
++      subsequently incorporated within the Work.
++
++   2. Grant of Copyright License. Subject to the terms and conditions of
++      this License, each Contributor hereby grants to You a perpetual,
++      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++      copyright license to reproduce, prepare Derivative Works of,
++      publicly display, publicly perform, sublicense, and distribute the
++      Work and such Derivative Works in Source or Object form.
++
++   3. Grant of Patent License. Subject to the terms and conditions of
++      this License, each Contributor hereby grants to You a perpetual,
++      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++      (except as stated in this section) patent license to make, have made,
++      use, offer to sell, sell, import, and otherwise transfer the Work,
++      where such license applies only to those patent claims licensable
++      by such Contributor that are necessarily infringed by their
++      Contribution(s) alone or by combination of their Contribution(s)
++      with the Work to which such Contribution(s) was submitted. If You
++      institute patent litigation against any entity (including a
++      cross-claim or counterclaim in a lawsuit) alleging that the Work
++      or a Contribution incorporated within the Work constitutes direct
++      or contributory patent infringement, then any patent licenses
++      granted to You under this License for that Work shall terminate
++      as of the date such litigation is filed.
++
++   4. Redistribution. You may reproduce and distribute copies of the
++      Work or Derivative Works thereof in any medium, with or without
++      modifications, and in Source or Object form, provided that You
++      meet the following conditions:
++
++      (a) You must give any other recipients of the Work or
++          Derivative Works a copy of this License; and
++
++      (b) You must cause any modified files to carry prominent notices
++          stating that You changed the files; and
++
++      (c) You must retain, in the Source form of any Derivative Works
++          that You distribute, all copyright, patent, trademark, and
++          attribution notices from the Source form of the Work,
++          excluding those notices that do not pertain to any part of
++          the Derivative Works; and
++
++      (d) If the Work includes a "NOTICE" text file as part of its
++          distribution, then any Derivative Works that You distribute must
++          include a readable copy of the attribution notices contained
++          within such NOTICE file, excluding those notices that do not
++          pertain to any part of the Derivative Works, in at least one
++          of the following places: within a NOTICE text file distributed
++          as part of the Derivative Works; within the Source form or
++          documentation, if provided along with the Derivative Works; or,
++          within a display generated by the Derivative Works, if and
++          wherever such third-party notices normally appear. The contents
++          of the NOTICE file are for informational purposes only and
++          do not modify the License. You may add Your own attribution
++          notices within Derivative Works that You distribute, alongside
++          or as an addendum to the NOTICE text from the Work, provided
++          that such additional attribution notices cannot be construed
++          as modifying the License.
++
++      You may add Your own copyright statement to Your modifications and
++      may provide additional or different license terms and conditions
++      for use, reproduction, or distribution of Your modifications, or
++      for any such Derivative Works as a whole, provided Your use,
++      reproduction, and distribution of the Work otherwise complies with
++      the conditions stated in this License.
++
++   5. Submission of Contributions. Unless You explicitly state otherwise,
++      any Contribution intentionally submitted for inclusion in the Work
++      by You to the Licensor shall be under the terms and conditions of
++      this License, without any additional terms or conditions.
++      Notwithstanding the above, nothing herein shall supersede or modify
++      the terms of any separate license agreement you may have executed
++      with Licensor regarding such Contributions.
++
++   6. Trademarks. This License does not grant permission to use the trade
++      names, trademarks, service marks, or product names of the Licensor,
++      except as required for reasonable and customary use in describing the
++      origin of the Work and reproducing the content of the NOTICE file.
++
++   7. Disclaimer of Warranty. Unless required by applicable law or
++      agreed to in writing, Licensor provides the Work (and each
++      Contributor provides its Contributions) on an "AS IS" BASIS,
++      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++      implied, including, without limitation, any warranties or conditions
++      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
++      PARTICULAR PURPOSE. You are solely responsible for determining the
++      appropriateness of using or redistributing the Work and assume any
++      risks associated with Your exercise of permissions under this License.
++
++   8. Limitation of Liability. In no event and under no legal theory,
++      whether in tort (including negligence), contract, or otherwise,
++      unless required by applicable law (such as deliberate and grossly
++      negligent acts) or agreed to in writing, shall any Contributor be
++      liable to You for damages, including any direct, indirect, special,
++      incidental, or consequential damages of any character arising as a
++      result of this License or out of the use or inability to use the
++      Work (including but not limited to damages for loss of goodwill,
++      work stoppage, computer failure or malfunction, or any and all
++      other commercial damages or losses), even if such Contributor
++      has been advised of the possibility of such damages.
++
++   9. Accepting Warranty or Additional Liability. While redistributing
++      the Work or Derivative Works thereof, You may choose to offer,
++      and charge a fee for, acceptance of support, warranty, indemnity,
++      or other liability obligations and/or rights consistent with this
++      License. However, in accepting such obligations, You may act only
++      on Your own behalf and on Your sole responsibility, not on behalf
++      of any other Contributor, and only if You agree to indemnify,
++      defend, and hold each Contributor harmless for any liability
++      incurred by, or claims asserted against, such Contributor by reason
++      of your accepting any such warranty or additional liability.
++
++   END OF TERMS AND CONDITIONS
++
++   APPENDIX: How to apply the Apache License to your work.
++
++      To apply the Apache License to your work, attach the following
++      boilerplate notice, with the fields enclosed by brackets "[]"
++      replaced with your own identifying information. (Don't include
++      the brackets!)  The text should be enclosed in the appropriate
++      comment syntax for the file format. We also recommend that a
++      file or class name and description of purpose be included on the
++      same "printed page" as the copyright notice for easier
++      identification within third-party archives.
++
++   Copyright [yyyy] [name of copyright owner]
++
++   Licensed under the Apache License, Version 2.0 (the "License");
++   you may not use this file except in compliance with the License.
++   You may obtain a copy of the License at
++
++       https://www.apache.org/licenses/LICENSE-2.0
++
++   Unless required by applicable law or agreed to in writing, software
++   distributed under the License is distributed on an "AS IS" BASIS,
++   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++   See the License for the specific language governing permissions and
++   limitations under the License.
++
++
+diff --git a/platform/libs.testng/manifest.mf b/platform/libs.testng/manifest.mf
+index 9d9366b8ed..865a51372b 100644
+--- a/platform/libs.testng/manifest.mf
++++ b/platform/libs.testng/manifest.mf
+@@ -1,5 +1,5 @@
+ Manifest-Version: 1.0
+ AutoUpdate-Show-In-Client: true
+ OpenIDE-Module: org.netbeans.libs.testng/1
+-OpenIDE-Module-Specification-Version: 1.43
++OpenIDE-Module-Specification-Version: 1.44
+ OpenIDE-Module-Localizing-Bundle: org/netbeans/libs/testng/Bundle.properties
+diff --git a/platform/libs.testng/nbproject/project.properties b/platform/libs.testng/nbproject/project.properties
+index acf60e81ec..bd9a1ab6de 100644
+--- a/platform/libs.testng/nbproject/project.properties
++++ b/platform/libs.testng/nbproject/project.properties
+@@ -18,11 +18,13 @@
+ javac.compilerargs=-Xlint -Xlint:-serial
+ javac.source=1.8
+ is.autoload=true
+-release.external/testng-6.14.3.jar=modules/ext/testng-6.14.3.jar
+-release.external/jcommander-1.78.jar=modules/ext/jcommander-1.78.jar
+-release.external/testng-6.13.1-javadoc.jar=docs/testng-6.13.1-javadoc.jar
++release.external/testng-7.11.0.jar=modules/ext/testng-7.11.0.jar
++release.external/jcommander-1.85.jar=modules/ext/jcommander-1.85.jar
++release.external/testng-ant-1.0.0.jar=modules/ext/testng-ant-1.0.0.jar
++release.external/slf4j-api-2.0.17.jar=modules/ext/slf4j-api-2.0.17.jar
++release.external/testng-7.11.0-javadoc.jar=docs/testng-7.11.0-javadoc.jar
+ sigtest.skip.check=true
+ sigtest.fail.on.error=false
+ jnlp.indirect.jars=\
+-    docs/testng-6.13.1-javadoc.jar,\
+-    modules/ext/testng-6.14.3.jar
++    docs/testng-7.11.0-javadoc.jar,\
++    modules/ext/testng-7.11.0.jar
+diff --git a/platform/libs.testng/nbproject/project.xml b/platform/libs.testng/nbproject/project.xml
+index 56922cde74..0ec81fb850 100644
+--- a/platform/libs.testng/nbproject/project.xml
++++ b/platform/libs.testng/nbproject/project.xml
+@@ -37,12 +37,20 @@
+                 <package>org.testng.xml</package>
+             </public-packages>
+             <class-path-extension>
+-                <runtime-relative-path>ext/testng-6.14.3.jar</runtime-relative-path>
+-                <binary-origin>external/testng-6.14.3.jar</binary-origin>
++                <runtime-relative-path>ext/testng-7.11.0.jar</runtime-relative-path>
++                <binary-origin>external/testng-7.11.0.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/jcommander-1.78.jar</runtime-relative-path>
+-                <binary-origin>external/jcommander-1.78.jar</binary-origin>
++                <runtime-relative-path>ext/jcommander-1.85.jar</runtime-relative-path>
++                <binary-origin>external/jcommander-1.85.jar</binary-origin>
++            </class-path-extension>
++            <class-path-extension>
++                <runtime-relative-path>ext/testng-ant-1.0.0.jar</runtime-relative-path>
++                <binary-origin>external/testng-ant-1.0.0.jar</binary-origin>
++            </class-path-extension>
++            <class-path-extension>
++                <runtime-relative-path>ext/slf4j-api-2.0.17.jar</runtime-relative-path>
++                <binary-origin>external/slf4j-api-2.0.17.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
