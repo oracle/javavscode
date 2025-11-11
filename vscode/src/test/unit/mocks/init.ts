@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -35,10 +35,11 @@ export const initMocks = () => {
 
 const replaceImportsWithMocks = (mocks: any) => {
     Module._load = function (request: any, _parent: any) {
+        var isLocaliserUnitTest = ['localiser.unit.test.ts','localiser.unit.test.js'].find(it=>request.includes(it)||_parent?.filename.includes(it))
         if (request === 'vscode') {
             return mocks.vscode;
-        } else if (request.includes('localiser')) {
-            return mocks.localiser;
+        } else if (request.includes('localiser') && !isLocaliserUnitTest) {
+           return mocks.localiser;
         }
 
         if (/\.less$/.test(request)) {
