@@ -28,6 +28,7 @@
     "jdk.download.jdk": "JDKのダウンロード、インストールおよび使用",
     "jdk.open.test": "テスト/テスト済のクラスへ移動...",
     "jdk.delete.cache": "このワークスペースのOracle Java拡張キャッシュの削除",
+    "jdk.open.userDir": "Open Oracle Java extension cache directory for this workspace",
     "jdk.configuration.specifyJdk.description": "Oracle Visual Studio Code拡張機能のJDKを指定します",
     "jdk.configuration.specifyProjectJdk.description": "ユーザーのプロジェクトが実行されるJDKを指定します。値はデフォルトでjdk.jdkhomeに設定されます",
     "jdk.configuration.verbose.description": "Oracle Visual Studio Code拡張機能からの詳細メッセージを有効化します",

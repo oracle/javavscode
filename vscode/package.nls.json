@@ -28,6 +28,7 @@
     "jdk.download.jdk": "Download, install and use JDK",
     "jdk.open.test": "Go To Test/Tested class...",
     "jdk.delete.cache": "Delete Oracle Java extension cache for this workspace",
+    "jdk.open.userDir": "Open Oracle Java extension cache directory for this workspace",
     "jdk.configuration.specifyJdk.description": "Specifies JDK for the Oracle Visual Studio Code Extension",
     "jdk.configuration.specifyProjectJdk.description": "Specifies the JDK on which user's project will be run. Defaults to the value of jdk.jdkhome",
     "jdk.configuration.verbose.description": "Enables verbose messages from the Oracle Visual Studio Code Extension",

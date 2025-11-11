@@ -606,6 +606,10 @@
 				"title": "%jdk.delete.cache%"
 			},
 			{
+				"command": "jdk.open.userDir",
+				"title": "%jdk.open.userDir%"
+			},
+			{
 				"command": "jdk.notebook.new",
 				"title": "%jdk.notebook.new%",
 				"category": "Java",
