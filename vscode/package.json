@@ -40,11 +40,23 @@
 		"workspaceContains:pom.xml",
 		"workspaceContains:build.gradle",
 		"onDebug",
-		"onDebugDynamicConfigurations"
+		"onDebugDynamicConfigurations",
+		"onNotebook:ijnb-notebook"
 	],
 	"main": "./out/extension.js",
 	"l10n": "./l10n",
 	"contributes": {
+		"notebooks": [
+			{
+				"type": "ijnb-notebook",
+				"displayName": "IJNB Notebook",
+				"selector": [
+					{
+						"filenamePattern": "*.ijnb"
+					}
+				]
+			}
+		],
 		"languages": [
 			{
 				"id": "java",
@@ -242,6 +254,52 @@
 					"default": 10000,
 					"description": "%jdk.debugger.configuration.completion.warning.time.description%"
 				},
+				"jdk.notebook.classpath": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "%jdk.notebook.classpath.description%"
+				},
+				"jdk.notebook.modulepath": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "%jdk.notebook.modulepath.description%"
+				},
+				"jdk.notebook.addmodules": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "%jdk.notebook.addmodules.description%"
+				},
+				"jdk.notebook.enablePreview": {
+					"type": "boolean",
+					"default": false,
+					"description": "%jdk.notebook.enablePreview.description%"
+				},
+				"jdk.notebook.implicitImports": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [
+						"java.util.*",
+						"java.io.*",
+						"java.math.*"
+					],
+					"description": "%jdk.notebook.implicitImports.description%"
+				},
+				"jdk.notebook.projects.mapping": {
+					"type": "object",
+					"default": {},
+					"description": "%jdk.notebook.projects.mapping.description%"
+				},
 				"jdk.telemetry.enabled": {
 					"type": "boolean",
 					"description": "%jdk.configuration.telemetry.enabled.description%",
@@ -255,6 +313,24 @@
 					"type": "array",
 					"default": [],
 					"description": "%jdk.configuration.java.completion.commit.chars%"
+				},
+				"jdk.inlay.enabled": {
+					"description": "%jdk.configuration.inlay.enabled.description%",
+					"type": "array",
+					"default": [],
+					"items": {
+						"type": "string",
+						"enum": [
+							"chained",
+							"parameter",
+							"var"
+						],
+						"markdownEnumDescriptions": [
+							"%jdk.configuration.inlay.enabled.enum.chained.markdownDescription%",
+							"%jdk.configuration.inlay.enabled.enum.parameter.markdownDescription%",
+							"%jdk.configuration.inlay.enabled.enum.var.markdownDescription%"
+						]
+					}
 				}
 			}
 		},
@@ -422,6 +498,11 @@
 				"icon": "$(new-folder)"
 			},
 			{
+				"command": "jdk.jshell.project",
+				"title": "%jdk.jshell.project%",
+				"category": "Java"
+			},
+			{
 				"command": "jdk.java.goto.super.implementation",
 				"title": "%jdk.java.goto.super.implementation%",
 				"category": "Java"
@@ -523,6 +604,25 @@
 			{
 				"command": "jdk.delete.cache",
 				"title": "%jdk.delete.cache%"
+			},
+			{
+				"command": "jdk.notebook.new",
+				"title": "%jdk.notebook.new%",
+				"category": "Java",
+				"icon": "$(new-file)"
+			},
+			{
+				"command": "jdk.notebook.change.project",
+				"title": "%jdk.notebook.change.project%",
+				"category": "Java",
+				"icon": "$(pencil)"
+			},
+			{
+				"command": "jdk.notebook.restart.kernel",
+				"shortTitle": "%jdk.notebook.restart.kernel.short.title%",
+				"title": "%jdk.notebook.restart.kernel%",
+				"category": "Java",
+				"icon": "$(refresh)"
 			}
 		],
 		"keybindings": [
@@ -565,11 +665,21 @@
 					"command": "jdk.project.debug",
 					"when": "nbJdkReady && editorLangId == java && resourceExtname == .java",
 					"group": "javadebug@2"
+				},
+				{
+					"command": "jdk.jshell.project",
+					"when": "nbJdkReady && editorLangId == java && resourceExtname == .java",
+					"group": "javadebug@3"
 				}
 			],
 			"explorer/context": [
 				{
 					"command": "jdk.workspace.new",
+					"when": "nbJdkReady && explorerResourceIsFolder",
+					"group": "navigation@3"
+				},
+				{
+					"command": "jdk.notebook.new",
 					"when": "nbJdkReady && explorerResourceIsFolder",
 					"group": "navigation@3"
 				},
@@ -587,6 +697,11 @@
 					"command": "jdk.project.debug",
 					"when": "nbJdkReady && resourceExtname == .java",
 					"group": "javadebug@2"
+				},
+				{
+					"command": "jdk.jshell.project",
+					"when": "nbJdkReady && resourceExtname == .java",
+					"group": "javadebug@3"
 				}
 			],
 			"commandPalette": [
@@ -625,6 +740,14 @@
 				},
 				{
 					"command": "jdk.addEventListener",
+					"when": "false"
+				},
+				{
+					"command": "jdk.notebook.change.project",
+					"when": "false"
+				},
+				{
+					"command": "jdk.notebook.restart.kernel",
 					"when": "false"
 				}
 			],
@@ -699,6 +822,18 @@
 					"command": "jdk.workspace.configureRunSettings",
 					"when": "view == run-config && viewItem == configureRunSettings",
 					"group": "inline@1"
+				}
+			],
+			"notebook/toolbar": [
+				{
+					"command": "jdk.notebook.change.project",
+					"group": "navigation@1",
+					"when": "nbJdkReady && resourceExtname == .ijnb"
+				},
+				{
+					"command": "jdk.notebook.restart.kernel",
+					"group": "navigation/execute@5",
+					"when": "nbJdkReady && resourceExtname == .ijnb"
 				}
 			]
 		},
@@ -800,12 +935,10 @@
 	"devDependencies": {
 		"@istanbuljs/nyc-config-typescript": "^1.0.2",
 		"@types/chai": "^4.3.17",
-		"@types/glob": "^8.1.0",
 		"@types/mocha": "^10.0.10",
 		"@types/node": "^18.19.64",
 		"@types/sinon": "^17.0.4",
 		"@types/vscode": "^1.84.0",
-		"@vscode/codicons": "0.0.36",
 		"@vscode/test-electron": "^2.5.2",
 		"chai": "^4.5.0",
 		"esbuild": "^0.25.3",
@@ -815,11 +948,12 @@
 		"sinon": "^20.0.0",
 		"ts-mockito": "^2.6.1",
 		"ts-node": "^10.9.2",
-		"typescript": "^5.8.3"
+		"typescript": "^5.8.3",
+		"vscode-uri": "^3.1.0"
 	},
 	"dependencies": {
 		"@vscode/debugadapter": "^1.68.0",
-		"@vscode/l10n": "^0.0.18",
+		"ajv": "^8.17.1",
 		"jsonc-parser": "3.3.1",
 		"vscode-languageclient": "^9.0.1"
 	},

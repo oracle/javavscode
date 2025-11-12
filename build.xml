@@ -37,6 +37,7 @@
             patches/l10n/adding-java.lsp.server-ja-and-zh_CN.diff
             patches/l10n/24.1.0-release-content-changes.diff
             patches/l10n/24.1.0-previous-issues-fix.diff
+            patches/l10n/25.0.0-notebooks-l10n.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
@@ -48,23 +49,30 @@
         <string>
             patches/6330.diff
             patches/7610.diff
-            patches/8036-draft.diff
             patches/8038-draft.diff
-            patches/8210.diff
-            patches/8237.diff
-            patches/8242.diff
-            patches/8245.diff
-            patches/8255.diff
-            patches/8260.diff
-            patches/8280.diff
-            patches/8289.diff
-            patches/8690.diff
             patches/7893-draft.diff
-            patches/8442-draft.diff
             patches/8460-draft.diff
-            patches/8470.diff
-            patches/8484.diff
-            patches/8745-draft.diff
+            patches/8662.diff
+            patches/8664.diff
+            patches/8690.diff
+            patches/8694.diff
+            patches/8745.diff
+            patches/8748.diff
+            patches/8760.diff
+            patches/8770.diff
+            patches/8762.diff
+            patches/8769.diff
+            patches/8797.diff
+            patches/8816.diff
+            patches/8821.diff
+            patches/8827.diff
+            patches/8828.diff
+            patches/8829.diff
+            patches/8897.diff
+            patches/8856-draft.diff
+            patches/8952-draft.diff
+            patches/8974-draft.diff
+            patches/8975.diff
             patches/disable-error-notification.diff
             patches/mvn-sh.diff
             patches/project-marker-jdk.diff
@@ -76,7 +84,9 @@
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
-            patches/javavscode-375.diff
+            patches/upgrade-lsp4j.diff
+            patches/updated-show-input-params.diff
+            patches/java-notebooks.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
@@ -285,8 +295,17 @@
         </exec>
 
         <antcall target="setup-vsce" inheritAll="true" />
+        <delete includeemptydirs="false">
+            <fileset dir="${basedir}/vscode/node_modules" defaultexcludes="false">
+                <include name="**/.*"/>
+            </fileset>
+            <dirset dir="${basedir}/vscode/node_modules" defaultexcludes="false">
+               <include name="**/.git"/>
+               <include name="**/.github"/>
+            </dirset>
+        </delete>
         <move todir="${basedir}/vscode/node_modules" includeemptydirs="false">
-            <fileset dir="${basedir}/vscode/node_modules">
+            <fileset dir="${basedir}/vscode/node_modules" casesensitive="false">
                 <include name="**/LICENSE"/>
                 <include name="**/NOTICE"/>
             </fileset>

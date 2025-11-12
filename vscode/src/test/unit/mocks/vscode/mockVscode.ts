@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -15,28 +15,33 @@
 */
 
 import * as vscode from 'vscode';
-import { URI } from './uri';
+import { URI } from 'vscode-uri';
 import { mockWindowNamespace } from './namespaces/window';
 import { mockEnvNamespace } from './namespaces/env';
 import { mockedEnums } from './vscodeHostedTypes';
-
+import { NotebookCellOutputItem } from './notebookCellOutputItem';
+import { mock,instance } from "ts-mockito";
 type VSCode = typeof vscode;
-const mockedVSCode: Partial<VSCode> = {};
+const mockedVSCode: Partial<VSCode> & { mockedExtns?: typeof vscode.extensions, mockedL10n?: typeof vscode.l10n } = {};
 
 const mockedVscodeClassesAndTypes = () => {
     mockedVSCode.Uri = URI as any;
     mockedVSCode.ViewColumn = mockedEnums.viewColumn;
+    mockedVSCode.NotebookCellOutputItem = NotebookCellOutputItem as any;
 }
 
 const mockNamespaces = () => {
     mockWindowNamespace(mockedVSCode);
     mockEnvNamespace(mockedVSCode);
+    mockedVSCode.mockedExtns =  mock<typeof vscode.extensions>();
+    mockedVSCode.mockedL10n =  mock<typeof vscode.l10n>();
+    mockedVSCode.extensions = instance(mockedVSCode.mockedExtns);
+    mockedVSCode.l10n = instance(mockedVSCode.mockedL10n);
 }
 
 export const initMockedVSCode = () => {
     mockedVscodeClassesAndTypes();
-    mockNamespaces();
-
+    mockNamespaces();    
     return mockedVSCode;
 }
 

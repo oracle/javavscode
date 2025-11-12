@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    # Look for `package.json` and `lock` files in the `vscode` directory
+    directory: "/vscode"
+    # Check the npm registry for updates every week
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0

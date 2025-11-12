@@ -33,6 +33,7 @@ import { registerFileProviders } from './lsp/listeners/textDocumentContentProvid
 import { ExtensionContextInfo } from './extensionContextInfo';
 import { ClientPromise } from './lsp/clientPromise';
 import { globalState } from './globalState';
+import { registerNotebookProviders } from './notebooks/register';
 import { Telemetry } from './telemetry/telemetry';
 
 export function activate(context: ExtensionContext): VSNetBeansAPI {
@@ -47,6 +48,7 @@ export function activate(context: ExtensionContext): VSNetBeansAPI {
     registerDebugger(context);
     subscribeCommands(context);
     registerFileProviders(context);
+    registerNotebookProviders(context);
 
     launchConfigurations.updateLaunchConfig();
 

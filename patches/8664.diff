@@ -1,0 +1,1049 @@
+diff --git a/ide/projectapi/nbproject/project.properties b/ide/projectapi/nbproject/project.properties
+index 735ab72a9111..ca962f553e5c 100644
+--- a/ide/projectapi/nbproject/project.properties
++++ b/ide/projectapi/nbproject/project.properties
+@@ -18,7 +18,7 @@
+ is.autoload=true
+ 
+ javac.compilerargs=-Xlint -Xlint:-serial
+-javac.source=1.8
++javac.release=17
+ javadoc.arch=${basedir}/arch.xml
+ javadoc.apichanges=${basedir}/apichanges.xml
+ 
+diff --git a/ide/projectapi/src/org/netbeans/spi/project/NestedClass.java b/ide/projectapi/src/org/netbeans/spi/project/NestedClass.java
+index 5df90f2a7104..14f97cf0b8c6 100644
+--- a/ide/projectapi/src/org/netbeans/spi/project/NestedClass.java
++++ b/ide/projectapi/src/org/netbeans/spi/project/NestedClass.java
+@@ -46,11 +46,16 @@ public final class NestedClass {
+      * Creates a new instance holding the specified identification
+      * of a nested class.
+      *
+-     * @param className name of a class inside the file
+-     * @param topLevelClassName top level name of a class inside the file
++     * @param className name of a class inside the file. Can be an empty string
++     * if this NestedClass represents a top level element in the source file.
++     * This is relevant for Java, which allows multiple top level class
++     * declarations as long as they are not public. The class assumes, that the
++     * {@code className} follows java convention (i.e. is separated by dots).
++     * @param topLevelClassName top level name of a class inside the file.  This
++     * is the simple name without package qualification.
+      * @param file file to be kept in the object
+      * @exception  java.lang.IllegalArgumentException
+-     *             if the file or class name is {@code null}
++     *             if the file, topLevelClassName or class name is {@code null}
+      * @since 1.99
+      */
+     public NestedClass(String className, String topLevelClassName, FileObject file) {
+@@ -90,7 +95,8 @@ public String getClassName() {
+     }
+     
+     /**
+-     * Returns name of a top level class within a file.
++     * Returns name of a top level class within a file. This is the simple name
++     * without package qualification.
+      *
+      * @return top level class name held by this object
+      * @since 1.99
+@@ -108,9 +114,19 @@ public String getTopLevelClassName() {
+      * @since 1.99
+      */
+     public String getFQN(String packageName) {
+-        return String.join(".", packageName, topLevelClassName, className);
++        String classNameSuffix;
++        if (className.isBlank()) {
++            classNameSuffix = topLevelClassName;
++        } else {
++            classNameSuffix = topLevelClassName + "." + className;
++        }
++        if (packageName.isBlank()) {
++            return classNameSuffix;
++        } else {
++            return String.join(".", packageName, classNameSuffix);
++        }
+     }
+-    
++
+     /**
+      * Returns fully qualified name.
+      *
+@@ -121,9 +137,19 @@ public String getFQN(String packageName) {
+      * @since 1.99
+      */
+     public String getFQN(String packageName, String nestedClassSeparator) {
+-        return String.join(".", packageName, String.join(nestedClassSeparator, topLevelClassName, className.replace(".", nestedClassSeparator)));
++        String classNameSuffix;
++        if (className.isBlank()) {
++            classNameSuffix = topLevelClassName;
++        } else {
++            classNameSuffix = topLevelClassName + nestedClassSeparator + className.replace(".", nestedClassSeparator);
++        }
++        if (packageName.isBlank()) {
++            return classNameSuffix;
++        } else {
++            return String.join(".", packageName, classNameSuffix);
++        }
+     }
+-    
++
+     @Override
+     public int hashCode() {
+         int hash = 3;
+diff --git a/java/gradle.test/nbproject/project.properties b/java/gradle.test/nbproject/project.properties
+index f39ff4a02687..6ef89b565a6b 100644
+--- a/java/gradle.test/nbproject/project.properties
++++ b/java/gradle.test/nbproject/project.properties
+@@ -16,6 +16,6 @@
+ # under the License.
+ 
+ is.eager=true
+-javac.source=1.8
++javac.release=17
+ javac.compilerargs=-Xlint -Xlint:-serial
+ nbm.module.author=Laszlo Kishalmi
+diff --git a/java/gradle.test/nbproject/project.xml b/java/gradle.test/nbproject/project.xml
+index efe3ef690ebb..b796e54b21b0 100644
+--- a/java/gradle.test/nbproject/project.xml
++++ b/java/gradle.test/nbproject/project.xml
+@@ -26,46 +26,46 @@
+             <code-name-base>org.netbeans.modules.gradle.test</code-name-base>
+             <module-dependencies>
+                 <dependency>
+-                    <code-name-base>org.netbeans.modules.libs.gradle</code-name-base>
++                    <code-name-base>org.netbeans.api.java.classpath</code-name-base>
++                    <build-prerequisite/>
+                     <compile-dependency/>
+                     <run-dependency>
+-                        <release-version>8</release-version>
+-                        <specification-version>8.0.1</specification-version>
++                        <release-version>1</release-version>
++                        <specification-version>1.41.1</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+-                    <code-name-base>org.netbeans.modules.gradle</code-name-base>
++                    <code-name-base>org.netbeans.libs.javacapi</code-name-base>
+                     <build-prerequisite/>
+                     <compile-dependency/>
+                     <run-dependency>
+-                        <release-version>2</release-version>
+-                        <specification-version>2.0</specification-version>
++                        <specification-version>8.53</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+-                    <code-name-base>org.netbeans.modules.gradle.java</code-name-base>
++                    <code-name-base>org.netbeans.modules.extexecution</code-name-base>
+                     <build-prerequisite/>
+                     <compile-dependency/>
+                     <run-dependency>
+-                        <specification-version>1.17</specification-version>
++                        <release-version>2</release-version>
++                        <specification-version>1.45</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+-                    <code-name-base>org.netbeans.api.java.classpath</code-name-base>
++                    <code-name-base>org.netbeans.modules.gradle</code-name-base>
+                     <build-prerequisite/>
+                     <compile-dependency/>
+                     <run-dependency>
+-                        <release-version>1</release-version>
+-                        <specification-version>1.41.1</specification-version>
++                        <release-version>2</release-version>
++                        <specification-version>2.0</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+-                    <code-name-base>org.netbeans.modules.extexecution</code-name-base>
++                    <code-name-base>org.netbeans.modules.gradle.java</code-name-base>
+                     <build-prerequisite/>
+                     <compile-dependency/>
+                     <run-dependency>
+-                        <release-version>2</release-version>
+-                        <specification-version>1.45</specification-version>
++                        <specification-version>1.17</specification-version>
+                     </run-dependency>
+                 </dependency>
+                 <dependency>
+@@ -118,6 +118,14 @@
+                         <specification-version>1.3.1</specification-version>
+                     </run-dependency>
+                 </dependency>
++                <dependency>
++                    <code-name-base>org.netbeans.modules.libs.gradle</code-name-base>
++                    <compile-dependency/>
++                    <run-dependency>
++                        <release-version>8</release-version>
++                        <specification-version>8.0.1</specification-version>
++                    </run-dependency>
++                </dependency>
+                 <dependency>
+                     <code-name-base>org.netbeans.modules.projectapi</code-name-base>
+                     <build-prerequisite/>
+diff --git a/java/gradle.test/src/org/netbeans/modules/gradle/test/GradleTestProgressListener.java b/java/gradle.test/src/org/netbeans/modules/gradle/test/GradleTestProgressListener.java
+index a45f9d20176d..cacf2c8d43e1 100644
+--- a/java/gradle.test/src/org/netbeans/modules/gradle/test/GradleTestProgressListener.java
++++ b/java/gradle.test/src/org/netbeans/modules/gradle/test/GradleTestProgressListener.java
+@@ -19,16 +19,17 @@
+ 
+ package org.netbeans.modules.gradle.test;
+ 
++import java.nio.file.Path;
+ import java.util.Arrays;
+-import org.netbeans.modules.gradle.api.NbGradleProject;
+ import java.util.Collection;
+-import org.netbeans.modules.gradle.spi.GradleProgressListenerProvider;
+ import java.util.EnumSet;
+ import java.util.Map;
+ import java.util.Set;
+ import java.util.concurrent.ConcurrentHashMap;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
++import java.util.stream.Collectors;
++import javax.lang.model.element.ElementKind;
+ import org.gradle.tooling.Failure;
+ import org.gradle.tooling.events.OperationDescriptor;
+ import org.gradle.tooling.events.OperationType;
+@@ -46,8 +47,15 @@
+ import org.gradle.tooling.events.test.TestSkippedResult;
+ import org.gradle.tooling.events.test.TestStartEvent;
+ import org.gradle.tooling.events.test.TestSuccessResult;
++import org.netbeans.api.java.source.ClasspathInfo;
++import org.netbeans.api.java.source.ElementHandle;
++import org.netbeans.api.java.source.SourceUtils;
+ import org.netbeans.api.project.Project;
+ import org.netbeans.api.project.ProjectUtils;
++import org.netbeans.modules.gradle.api.NbGradleProject;
++import org.netbeans.modules.gradle.java.api.GradleJavaProject;
++import org.netbeans.modules.gradle.java.api.GradleJavaSourceSet.SourceType;
++import org.netbeans.modules.gradle.spi.GradleProgressListenerProvider;
+ import org.netbeans.modules.gsf.testrunner.api.CommonUtils;
+ import org.netbeans.modules.gsf.testrunner.api.CoreManager;
+ import org.netbeans.modules.gsf.testrunner.api.Report;
+@@ -57,6 +65,8 @@
+ import org.netbeans.modules.gsf.testrunner.api.Testcase;
+ import org.netbeans.modules.gsf.testrunner.api.Trouble;
+ import org.netbeans.spi.project.ProjectServiceProvider;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
+ import org.openide.util.Lookup;
+ 
+ /**
+@@ -68,8 +78,8 @@ public final class GradleTestProgressListener implements ProgressListener, Gradl
+ 
+     private final Project project;
+     private final Map<String, TestSession> sessions = new ConcurrentHashMap<>();
+-
+-    private Map<TestSession, Map<String, Testcase>> runningTests = new ConcurrentHashMap<>();
++    private final Map<TestSession, Map<String, TestSuite>> runningSuites = new ConcurrentHashMap<>();
++    private final Map<TestSession, Map<String, Testcase>> runningTests = new ConcurrentHashMap<>();
+ 
+     public GradleTestProgressListener(Project project) {
+         this.project = project;
+@@ -190,13 +200,21 @@ private void suiteFinish(TestFinishEvent evt, JvmTestOperationDescriptor op) {
+         TestSession session = sessions.get(getSessionKey(evt.getDescriptor()));
+         assert session != null;
+         TestOperationResult result = evt.getResult();
+-        TestSuite currentSuite = session.getCurrentSuite();
+         String suiteName = GradleTestSuite.suiteName(op);
+-        if (suiteName.equals(currentSuite.getName())) {
++        // In the NetBeans wording a testsuite is the class grouping multiple
++        // methods (testcase). In the gradle wording a suite can be nested, for
++        // example the hieararchy can be:
++        // - Gradle Test Executor <Number> started
++        // - Test class <Class> started
++        // => We flatten the list (suites are registered base on executed
++        //    cases (see caseStart)
++        TestSuite testSuite = runningSuites.get(session).remove(suiteName);
++        if (testSuite != null) {
+             Report report = session.getReport(result.getEndTime() - result.getStartTime());
+-            session.finishSuite(currentSuite);
++            session.finishSuite(testSuite);
+             CoreManager manager = getManager();
+             if (manager != null) {
++                manager.displaySuiteRunning(session, testSuite);
+                 manager.displayReport(session, report, true);
+             }
+         }
+@@ -206,19 +224,21 @@ private void caseStart(TestStartEvent evt, JvmTestOperationDescriptor op) {
+         TestSession session = sessions.get(getSessionKey(evt.getDescriptor()));
+         assert session != null;
+         assert op.getParent() != null;
+-        TestSuite currentSuite = session.getCurrentSuite();
+-        TestSuite newSuite = new GradleTestSuite(getSuiteOpDesc((JvmTestOperationDescriptor) op.getParent(), op.getClassName()));
+-        if ((currentSuite == null) || !currentSuite.equals(newSuite)) {
+-            session.addSuite(newSuite);
+-            CoreManager manager = getManager();
+-            if (manager != null) {
+-                manager.displaySuiteRunning(session, newSuite);
+-            }
++        String suiteName = GradleTestSuite.suiteName(op.getParent());
++        Map<String, TestSuite> sessionSuites = runningSuites.computeIfAbsent(session, s -> new ConcurrentHashMap<>());
++        TestSuite ts = sessionSuites.computeIfAbsent(suiteName, s -> {
++                    TestSuite suite = new GradleTestSuite(getSuiteOpDesc((JvmTestOperationDescriptor) op.getParent(), op.getClassName()));
++                    session.addSuite(suite);
++                    return suite;
++                });
++        CoreManager manager = getManager();
++        if (manager != null && sessionSuites.size() == 1) {
++            manager.displaySuiteRunning(session, ts);
+         }
+         Testcase tc = new GradleTestcase(op, session);
+-        synchronized (this) {  
++        synchronized (this) {
+             runningTests.get(session).put(getTestOpKey(op), tc);
+-            session.addTestCase(tc);   
++            session.addTestCase(tc);
+         }
+     }
+ 
+@@ -233,7 +253,7 @@ private void caseFinish(TestFinishEvent evt, JvmTestOperationDescriptor op) {
+             TestOperationResult result = evt.getResult();
+             long time = result.getEndTime() - result.getStartTime();
+             tc.setTimeMillis(time);
+-            tc.setLocation(searchLocation(op.getClassName(), op.getMethodName(), null));
++            tc.setLocation(searchLocation(tc, op.getClassName(), op.getMethodName(), null));
+             if (result instanceof TestSuccessResult) {
+                 tc.setStatus(Status.PASSED);
+             }
+@@ -261,7 +281,7 @@ private void caseFinish(TestFinishEvent evt, JvmTestOperationDescriptor op) {
+                         stackTrace = desc.split("\\n");
+                         trouble.setStackTrace(stackTrace);
+                     }
+-                    tc.setLocation(searchLocation(op.getClassName(), op.getMethodName(), stackTrace));
++                    tc.setLocation(searchLocation(tc, op.getClassName(), op.getMethodName(), stackTrace));
+                     tc.setTrouble(trouble);
+                 }
+ 
+@@ -322,7 +342,39 @@ private static CoreManager getManager() {
+ 
+     }
+ 
+-    private String searchLocation(String className, String methodName, String[] stackTrace) {
++    private String searchLocation(Testcase tc, String className, String methodName, String[] stackTrace) {
++        Map<ClasspathInfo, Path> classpathInfo = Map.of();
++        NbGradleProject nbGradleProject = tc.getSession()
++                .getProject()
++                .getLookup()
++                .lookup(NbGradleProject.class);
++        GradleJavaProject gradleJavaProject = nbGradleProject != null ? nbGradleProject.projectLookup(GradleJavaProject.class) : null;
++        if (gradleJavaProject != null) {
++            classpathInfo = gradleJavaProject
++                    .getSourceSets()
++                    .values()
++                    .stream()
++                    .flatMap(gradleJavaSourceSet -> gradleJavaSourceSet.getSourceDirs(SourceType.JAVA).stream())
++                    .collect(
++                            Collectors.toMap(
++                                    f -> ClasspathInfo.create(f),
++                                    f -> f.toPath()
++                            )
++                    );
++        }
++
++        String relativePath = null;
++        for (Map.Entry<ClasspathInfo, Path> ci : classpathInfo.entrySet()) {
++            FileObject fo = SourceUtils.getFile(ElementHandle.createTypeElementHandle(ElementKind.CLASS, className), ci.getKey());
++            if (fo != null) {
++                relativePath = ci.getValue().relativize(FileUtil.toFile(fo).toPath()).toString();
++                break;
++            }
++        }
++        if (relativePath != null) {
++            return relativePath;
++        }
++
+         StringBuilder ret = new StringBuilder(className.length() + methodName.length() + 10);
+         String fileName = null;
+         String line = null;
+diff --git a/java/gradle.test/src/org/netbeans/modules/gradle/test/ui/nodes/GradleTestMethodNode.java b/java/gradle.test/src/org/netbeans/modules/gradle/test/ui/nodes/GradleTestMethodNode.java
+index 4e11099aff07..13733d9445c5 100644
+--- a/java/gradle.test/src/org/netbeans/modules/gradle/test/ui/nodes/GradleTestMethodNode.java
++++ b/java/gradle.test/src/org/netbeans/modules/gradle/test/ui/nodes/GradleTestMethodNode.java
+@@ -19,10 +19,6 @@
+ 
+ package org.netbeans.modules.gradle.test.ui.nodes;
+ 
+-import org.netbeans.modules.gradle.api.execute.RunUtils;
+-import org.netbeans.modules.gradle.java.api.output.Location;
+-import org.netbeans.modules.gradle.test.ui.nodes.Bundle;
+-import org.netbeans.modules.gradle.test.GradleTestcase;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.List;
+@@ -30,16 +26,21 @@
+ import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
+ import org.netbeans.api.extexecution.print.LineConvertors;
+ import org.netbeans.api.project.Project;
++import org.netbeans.modules.gradle.java.api.output.Location;
++import org.netbeans.modules.gradle.test.GradleTestcase;
+ import org.netbeans.modules.gsf.testrunner.api.Testcase;
+ import org.netbeans.modules.junit.ui.api.JUnitTestMethodNode;
+ import org.netbeans.spi.project.ActionProvider;
+-import static org.netbeans.spi.project.SingleMethod.COMMAND_DEBUG_SINGLE_METHOD;
+-import static org.netbeans.spi.project.SingleMethod.COMMAND_RUN_SINGLE_METHOD;
++import org.netbeans.spi.project.NestedClass;
++import org.netbeans.spi.project.SingleMethod;
+ import org.openide.filesystems.FileObject;
+ import org.openide.util.Lookup;
+ import org.openide.util.NbBundle;
+ import org.openide.util.lookup.Lookups;
+ 
++import static org.netbeans.spi.project.SingleMethod.COMMAND_DEBUG_SINGLE_METHOD;
++import static org.netbeans.spi.project.SingleMethod.COMMAND_RUN_SINGLE_METHOD;
++
+ /**
+  *
+  * @author Laszlo Kishalmi
+@@ -66,14 +67,39 @@ public Action[] getActions(boolean context) {
+             actions.add(getPreferredAction());
+         }
+         ActionProvider actionProvider = getProject().getLookup().lookup(ActionProvider.class);
+-        if ((actionProvider != null) && (testcase instanceof GradleTestcase)) {
++        if ((actionProvider != null) && testcase instanceof GradleTestcase gradleTestcase) {
+             List<String> supportedActions = Arrays.asList(actionProvider.getSupportedActions());
+             boolean runSupported = supportedActions.contains(COMMAND_RUN_SINGLE_METHOD);
+             boolean debugSupported = supportedActions.contains(COMMAND_DEBUG_SINGLE_METHOD);
+ 
+-            JvmTestOperationDescriptor op = ((GradleTestcase) testcase).getOperation();
+-            String tcName = op.getClassName() + '.' + op.getMethodName();
+-            Lookup nodeContext = Lookups.singleton(RunUtils.simpleReplaceTokenProvider("selectedMethod", tcName));
++            FileObject testFO = findFileObject(getTestLocation());
++            JvmTestOperationDescriptor op = gradleTestcase.getOperation();
++            // reporting adds signature to method name, this needs to be stripped away
++            String mName = op.getMethodName();
++            if(mName != null) {
++                mName = mName.replaceFirst("[^\\p{javaJavaIdentifierPart}].*", "");
++            }
++            String tcName = op.getClassName();
++
++            SingleMethod methodSpec;
++            if (tcName != null && tcName.contains("$")) {
++                String[] nestedSplit = tcName.split("\\$", 2);
++                String[] topLevelSplit = nestedSplit[0].split("\\.");
++                methodSpec = new SingleMethod(mName, new NestedClass(nestedSplit[1].replace("$", "."), topLevelSplit[topLevelSplit.length - 1], testFO));
++            } else {
++                if (tcName != null) {
++                    String[] topLevelSplit = tcName.split("\\.");
++                    if (!testFO.getName().equals(topLevelSplit[topLevelSplit.length - 1])) {
++                        methodSpec = new SingleMethod(mName, new NestedClass("", topLevelSplit[topLevelSplit.length - 1], testFO));
++                    } else {
++                        methodSpec = new SingleMethod(testFO, mName);
++                    }
++                } else {
++                    methodSpec = new SingleMethod(testFO, mName);
++                }
++            }
++
++            Lookup nodeContext = Lookups.fixed(methodSpec);
+ 
+             if (runSupported) {
+                 actions.add(new ReRunTestAction(actionProvider, nodeContext, COMMAND_RUN_SINGLE_METHOD, Bundle.LBL_RerunTest()));
+@@ -83,7 +109,7 @@ public Action[] getActions(boolean context) {
+                 actions.add(new ReRunTestAction(actionProvider, nodeContext, COMMAND_DEBUG_SINGLE_METHOD, Bundle.LBL_DebugTest()));
+             }
+         }
+-        return actions.toArray(new Action[0]);
++        return actions.toArray(Action[]::new);
+     }
+ 
+     @Override
+diff --git a/java/java.source.base/src/org/netbeans/api/java/source/SourceUtils.java b/java/java.source.base/src/org/netbeans/api/java/source/SourceUtils.java
+index 90f5131ff935..c725dbd1d699 100644
+--- a/java/java.source.base/src/org/netbeans/api/java/source/SourceUtils.java
++++ b/java/java.source.base/src/org/netbeans/api/java/source/SourceUtils.java
+@@ -1490,20 +1490,33 @@ public static String classNameFor(ClasspathInfo info, String relativePath, Neste
+         String className = rel.replace('/', '.');
+         int lastDotIndex = className.lastIndexOf('.');
+         String fqnForNestedClass = null;
+-        if (lastDotIndex > -1 && nestedClass != null) {
+-            String packageName = className.substring(0, lastDotIndex);
++        String topLevelClass = null;
++        if (nestedClass != null) {
++            String packageName;
++            if(lastDotIndex >= 0) {
++                packageName = className.substring(0, lastDotIndex);
++            } else {
++                packageName = "";
++            }
+             fqnForNestedClass = nestedClass.getFQN(packageName, "$");
++            topLevelClass = packageName + ( packageName.isBlank() ? "" : "." ) + nestedClass.getTopLevelClassName();
+         }
++        // This is really an ugly hack. It is pure luck, that the cache directory
++        // is placed on the CP, nothing guarantes that or at least that is non
++        // obvious. This also makes it hard/impossible to test.
+         FileObject rsFile = cachedCP.findResource(rel + '.' + FileObjects.RS);
+         if (rsFile != null) {
+             List<String> lines = new ArrayList<>();
+             try (BufferedReader in = new BufferedReader(new InputStreamReader(rsFile.getInputStream(), StandardCharsets.UTF_8))) {
+                 String line;
+-                while ((line = in.readLine())!=null) {
+-                    if (className.equals(line)) {
++                while ((line = in.readLine()) != null) {
++                    if (topLevelClass == null && className.equals(line)) {
+                         return className;
+-                    } else if (fqnForNestedClass != null && fqnForNestedClass.equals(line)) {
+-                        return line;
++                    } else if (topLevelClass != null && topLevelClass.equals(line)) {
++                        // The "RS" Index holds only toplevel classes, so we
++                        // assume, that if the toplevel is found here, the FQN
++                        // based on NestedClass is also present
++                        return fqnForNestedClass;
+                     }
+                     lines.add(line);
+                 }
+@@ -1512,6 +1525,10 @@ public static String classNameFor(ClasspathInfo info, String relativePath, Neste
+                 return lines.get(0);
+             }
+         }
+-        return className;
++        if(fqnForNestedClass != null) {
++            return fqnForNestedClass;
++        } else {
++            return className;
++        }
+     }
+ }
+diff --git a/java/junit.ui/src/org/netbeans/modules/junit/ui/actions/TestClassInfoTask.java b/java/junit.ui/src/org/netbeans/modules/junit/ui/actions/TestClassInfoTask.java
+index 00103e9b961d..d73a7f403ce8 100644
+--- a/java/junit.ui/src/org/netbeans/modules/junit/ui/actions/TestClassInfoTask.java
++++ b/java/junit.ui/src/org/netbeans/modules/junit/ui/actions/TestClassInfoTask.java
+@@ -57,6 +57,7 @@
+ import org.netbeans.modules.java.testrunner.ui.spi.ComputeTestMethods.Factory;
+ import org.netbeans.modules.parsing.spi.Parser;
+ import org.netbeans.spi.java.hints.unused.UsedDetector;
++import org.netbeans.spi.project.NestedClass;
+ import org.netbeans.spi.project.SingleMethod;
+ import org.openide.filesystems.FileObject;
+ import org.openide.util.Exceptions;
+@@ -94,14 +95,17 @@ public static List<TestMethod> computeTestMethods(CompilationInfo info, AtomicBo
+     private static List<TestMethod> doComputeTestMethods(CompilationInfo info, AtomicBoolean cancel, int caretPosIfAny) {
+         List<TestMethod> result = new ArrayList<>();
+         if (caretPosIfAny == (-1)) {
+-            Optional<? extends Tree> anyClass = info.getCompilationUnit().getTypeDecls().stream().filter(t -> t.getKind() == Kind.CLASS).findAny();
+-            if (!anyClass.isPresent()) {
+-                return Collections.emptyList();
++            List<ClassTree> clazzes = info.getCompilationUnit()
++                    .getTypeDecls()
++                    .stream()
++                    .filter(t -> t.getKind() == Kind.CLASS)
++                    .map(t -> (ClassTree) t)
++                    .collect(Collectors.toList());
++            for (ClassTree clazz : clazzes) {
++                TreePath pathToClass = new TreePath(new TreePath(info.getCompilationUnit()), clazz);
++                List<TreePath> methods = clazz.getMembers().stream().filter(m -> m.getKind() == Kind.METHOD).map(m -> new TreePath(pathToClass, m)).collect(Collectors.toList());
++                collect(info, pathToClass, methods, true, cancel, result);
+             }
+-            ClassTree clazz = (ClassTree) anyClass.get();
+-            TreePath pathToClass = new TreePath(new TreePath(info.getCompilationUnit()), clazz);
+-            List<TreePath> methods = clazz.getMembers().stream().filter(m -> m.getKind() == Kind.METHOD).map(m -> new TreePath(pathToClass, m)).collect(Collectors.toList());
+-            collect(info, pathToClass, methods, true, cancel, result);
+             return result;
+         }
+         TreePath tp = info.getTreeUtilities().pathFor(caretPosIfAny);
+@@ -126,6 +130,7 @@ private static void collect(CompilationInfo info, TreePath clazz, List<TreePath>
+         int clazzPreferred = treeUtilities.findNameSpan((ClassTree) clazz.getLeaf())[0];
+         TypeElement typeElement = (TypeElement) trees.getElement(clazz);
+         TypeElement testcase = elements.getTypeElement(TESTCASE);
++        NestedClass nc = getNestedClass(info, typeElement);
+         boolean junit3 = (testcase != null && typeElement != null) ? info.getTypes().isSubtype(typeElement.asType(), testcase.asType()) : false;
+         for (TreePath tp : methods) {
+             if (cancel.get()) {
+@@ -152,7 +157,7 @@ private static void collect(CompilationInfo info, TreePath clazz, List<TreePath>
+                     try {
+                         result.add(new TestMethod(elements.getBinaryName(typeElement).toString(),
+                                 doc != null ? doc.createPosition(clazzPreferred) : new SimplePosition(clazzPreferred),
+-                                new SingleMethod(info.getFileObject(), mn),
++                                nc == null ? new SingleMethod(info.getFileObject(), mn) : new SingleMethod(mn, nc),
+                                 doc != null ? doc.createPosition(start) : new SimplePosition(start),
+                                 doc != null ? doc.createPosition(preferred) : new SimplePosition(preferred),
+                                 doc != null ? doc.createPosition(end) : new SimplePosition(end)));
+@@ -178,6 +183,24 @@ private static void collect(CompilationInfo info, TreePath clazz, List<TreePath>
+         }
+     }
+ 
++    private static NestedClass getNestedClass(CompilationInfo ci, TypeElement te) {
++        List<String> nesting = new ArrayList<>();
++        Element currentElement = te;
++        while (currentElement != null && currentElement.getKind() == ElementKind.CLASS) {
++            nesting.add(0, currentElement.getSimpleName().toString());
++            currentElement = currentElement.getEnclosingElement();
++        }
++        if(nesting.size() < 1 || (nesting.size() == 1 && nesting.get(0).equals(ci.getFileObject().getName()))) {
++            return null;
++        } else {
++            return new NestedClass(
++                    nesting.subList(1, nesting.size()).stream().collect(Collectors.joining(".")),
++                    nesting.get(0),
++                    ci.getFileObject()
++            );
++        }
++    }
++
+     private static boolean isTestSource(FileObject fo) {
+         ClassPath cp = ClassPath.getClassPath(fo, ClassPath.SOURCE);
+         if (cp != null) {
+diff --git a/java/maven.junit.ui/nbproject/project.properties b/java/maven.junit.ui/nbproject/project.properties
+index 26aa41b5ff22..ea24dfd387a4 100644
+--- a/java/maven.junit.ui/nbproject/project.properties
++++ b/java/maven.junit.ui/nbproject/project.properties
+@@ -15,6 +15,6 @@
+ # specific language governing permissions and limitations
+ # under the License.
+ is.eager=true
+-javac.source=1.8
++javac.release=17
+ javac.compilerargs=-Xlint -Xlint:-serial
+ requires.nb.javac=true
+diff --git a/java/maven.junit.ui/src/org/netbeans/modules/maven/junit/ui/MavenJUnitNodeOpener.java b/java/maven.junit.ui/src/org/netbeans/modules/maven/junit/ui/MavenJUnitNodeOpener.java
+index daf44d4eb19c..d4d36712c3f7 100644
+--- a/java/maven.junit.ui/src/org/netbeans/modules/maven/junit/ui/MavenJUnitNodeOpener.java
++++ b/java/maven.junit.ui/src/org/netbeans/modules/maven/junit/ui/MavenJUnitNodeOpener.java
+@@ -29,25 +29,25 @@
+ import javax.lang.model.element.ElementKind;
+ import javax.lang.model.element.ExecutableElement;
+ import javax.lang.model.util.ElementFilter;
+-import javax.swing.Action;
+ import org.netbeans.api.annotations.common.NonNull;
+ import org.netbeans.api.extexecution.print.LineConvertors.FileLocator;
+-import org.netbeans.api.java.source.CompilationController;
+ import org.netbeans.api.java.source.JavaSource;
+ import org.netbeans.api.java.source.JavaSource.Phase;
+-import org.netbeans.api.java.source.Task;
+ import org.netbeans.modules.gsf.testrunner.api.CommonUtils;
+ import org.netbeans.modules.gsf.testrunner.ui.api.TestMethodNode;
+ import org.netbeans.modules.gsf.testrunner.ui.api.TestsuiteNode;
+ import org.netbeans.modules.junit.ui.api.JUnitTestMethodNode;
+ import org.netbeans.modules.java.testrunner.ui.api.NodeOpener;
+ import org.netbeans.modules.java.testrunner.ui.api.UIJavaUtils;
++import org.netbeans.modules.junit.api.JUnitTestcase;
+ import org.netbeans.modules.junit.ui.api.JUnitCallstackFrameNode;
+ import org.openide.ErrorManager;
+ import org.openide.filesystems.FileObject;
+ import org.openide.nodes.Children;
+ import org.openide.nodes.Node;
+ 
++import static java.util.Arrays.asList;
++
+ /**
+  *
+  * @author Marian Petras
+@@ -57,33 +57,31 @@ public final class MavenJUnitNodeOpener extends NodeOpener {
+ 
+     private static final Logger LOG = Logger.getLogger(MavenJUnitNodeOpener.class.getName());
+ 
+-    static final Action[] NO_ACTIONS = new Action[0];
+-
++    @Override
+     public void openTestsuite(TestsuiteNode node) {
+         Children childrens = node.getChildren();
+         if (childrens != null) {
+             Node child = childrens.getNodeAt(0);
+-            if (child instanceof MavenJUnitTestMethodNode) {
+-                final FileObject fo = ((MavenJUnitTestMethodNode) child).getTestcaseFileObject();
++            if (child instanceof MavenJUnitTestMethodNode junitMethodNode) {
++                final FileObject fo = junitMethodNode.getTestcaseFileObject();
++                final MethodInfo mi = MethodInfo.fromTestCase(junitMethodNode.getTestcase());
+                 if (fo != null) {
+                     final long[] line = new long[]{0};
+                     JavaSource javaSource = JavaSource.forFileObject(fo);
+                     if (javaSource != null) {
+                         try {
+-                            javaSource.runUserActionTask(new Task<CompilationController>() {
+-                                @Override
+-                                public void run(CompilationController compilationController) throws Exception {
+-                                    compilationController.toPhase(Phase.ELEMENTS_RESOLVED);
+-                                    Trees trees = compilationController.getTrees();
+-                                    CompilationUnitTree compilationUnitTree = compilationController.getCompilationUnit();
+-                                    List<? extends Tree> typeDecls = compilationUnitTree.getTypeDecls();
+-                                    for (Tree tree : typeDecls) {
+-                                        Element element = trees.getElement(trees.getPath(compilationUnitTree, tree));
+-                                        if (element != null && element.getKind() == ElementKind.CLASS && element.getSimpleName().contentEquals(fo.getName())) {
+-                                            long pos = trees.getSourcePositions().getStartPosition(compilationUnitTree, tree);
+-                                            line[0] = compilationUnitTree.getLineMap().getLineNumber(pos);
+-                                            break;
+-                                        }
++                            javaSource.runUserActionTask(compilationController -> {
++                                compilationController.toPhase(Phase.ELEMENTS_RESOLVED);
++                                Trees trees = compilationController.getTrees();
++                                CompilationUnitTree compilationUnitTree = compilationController.getCompilationUnit();
++                                List<? extends Tree> typeDecls = compilationUnitTree.getTypeDecls();
++                                for (Tree tree : typeDecls) {
++                                    Element element = trees.getElement(trees.getPath(compilationUnitTree, tree));
++                                    if (element != null && element.getKind() == ElementKind.CLASS && element.getSimpleName().contentEquals(mi.topLevelClass())) {
++                                        element = resolveNestedClass(mi.nestedClasses(), element);
++                                        long pos = trees.getSourcePositions().getStartPosition(compilationUnitTree, trees.getTree(element));
++                                        line[0] = compilationUnitTree.getLineMap().getLineNumber(pos);
++                                        break;
+                                     }
+                                 }
+                             }, true);
+@@ -97,42 +95,43 @@ public void run(CompilationController compilationController) throws Exception {
+         }
+     }
+ 
++    @Override
+     public void openTestMethod(final TestMethodNode node) {
+         if (!(node instanceof MavenJUnitTestMethodNode)) {
+             return;
+         }
+-        final FileObject fo = ((MavenJUnitTestMethodNode) node).getTestcaseFileObject();
++        MavenJUnitTestMethodNode mtn = (MavenJUnitTestMethodNode) node;
++        final FileObject fo = mtn.getTestcaseFileObject();
++        final MethodInfo mi = MethodInfo.fromTestCase(mtn.getTestcase());
+         if (fo != null) {
+             final FileObject[] fo2open = new FileObject[]{fo};
+             final long[] line = new long[]{0};
+             JavaSource javaSource = JavaSource.forFileObject(fo2open[0]);
+             if (javaSource != null) {
+                 try {
+-                    javaSource.runUserActionTask(new Task<CompilationController>() {
+-                        @Override
+-                        public void run(CompilationController compilationController) throws Exception {
+-                            compilationController.toPhase(Phase.ELEMENTS_RESOLVED);
+-                            Trees trees = compilationController.getTrees();
+-                            CompilationUnitTree compilationUnitTree = compilationController.getCompilationUnit();
+-                            List<? extends Tree> typeDecls = compilationUnitTree.getTypeDecls();
+-                            for (Tree tree : typeDecls) {
+-                                Element element = trees.getElement(trees.getPath(compilationUnitTree, tree));
+-                                if (element != null && element.getKind() == ElementKind.CLASS && element.getSimpleName().contentEquals(fo2open[0].getName())) {
+-                                    List<? extends ExecutableElement> methodElements = ElementFilter.methodsIn(element.getEnclosedElements());
+-                                    for (Element child : methodElements) {
+-                                        String name = node.getTestcase().getName(); // package.name.method.name
+-                                        if (child.getSimpleName().contentEquals(name.substring(name.lastIndexOf(".") + 1))) {
+-                                            long pos = trees.getSourcePositions().getStartPosition(compilationUnitTree, trees.getTree(child));
+-                                            line[0] = compilationUnitTree.getLineMap().getLineNumber(pos);
+-                                            break;
+-                                        }
++                    javaSource.runUserActionTask(compilationController -> {
++                        compilationController.toPhase(Phase.ELEMENTS_RESOLVED);
++                        Trees trees = compilationController.getTrees();
++                        CompilationUnitTree compilationUnitTree = compilationController.getCompilationUnit();
++                        List<? extends Tree> typeDecls = compilationUnitTree.getTypeDecls();
++                        for (Tree tree : typeDecls) {
++                            Element element = trees.getElement(trees.getPath(compilationUnitTree, tree));
++                            if (element != null && element.getKind() == ElementKind.CLASS && element.getSimpleName().contentEquals(mi.topLevelClass())) {
++                                element = resolveNestedClass(mi.nestedClasses(), element);
++                                List<? extends ExecutableElement> methodElements = ElementFilter.methodsIn(element.getEnclosedElements());
++                                for (Element child : methodElements) {
++                                    String name = node.getTestcase().getName(); // package.name.method.name
++                                    if (child.getSimpleName().contentEquals(name.substring(name.lastIndexOf(".") + 1))) {
++                                        long pos = trees.getSourcePositions().getStartPosition(compilationUnitTree, trees.getTree(child));
++                                        line[0] = compilationUnitTree.getLineMap().getLineNumber(pos);
++                                        break;
+                                     }
+-                                    // method not found in this FO, so try to find where this method belongs
+-                                    if (line[0] == 0) {
+-                                        UIJavaUtils.searchAllMethods(node, fo2open, line, compilationController, element);
+-                                    }
+-                                    break;
+                                 }
++                                // method not found in this FO, so try to find where this method belongs
++                                if (line[0] == 0) {
++                                    UIJavaUtils.searchAllMethods(node, fo2open, line, compilationController, element);
++                                }
++                                break;
+                             }
+                         }
+                     }, true);
+@@ -145,6 +144,7 @@ public void run(CompilationController compilationController) throws Exception {
+         }
+     }
+ 
++    @Override
+     public void openCallstackFrame(Node node, @NonNull String frameInfo) {
+         if(frameInfo.isEmpty()) { // user probably clicked on a failed test method node, find failing line within the testMethod using the stacktrace
+             if (!(node instanceof JUnitTestMethodNode)) {
+@@ -195,7 +195,7 @@ public void openCallstackFrame(Node node, @NonNull String frameInfo) {
+                 // and ignore the infrastructure stack lines in the process
+                 while (!testfo.equals(file) && index != -1) {
+                     file = UIJavaUtils.getFile(st[index], lineNumStorage, locator);
+-                    index = index - 1;
++                    index -= 1;
+                 }
+             }
+         }
+@@ -206,4 +206,35 @@ public void openCallstackFrame(Node node, @NonNull String frameInfo) {
+         UIJavaUtils.openFile(file, lineNumStorage[0]);
+     }
+ 
++    private Element resolveNestedClass(List<String> nestedClasses, Element e) {
++        if(nestedClasses.isEmpty()) {
++            return e;
++        } else {
++            String simpleName = nestedClasses.get(0);
++            for(Element childElement: e.getEnclosedElements()) {
++                if(childElement.getSimpleName().contentEquals(simpleName)) {
++                    return resolveNestedClass(nestedClasses.subList(1, nestedClasses.size()), childElement);
++                }
++            }
++            return e;
++        }
++    }
++
++    private record MethodInfo (String packageName, String topLevelClass, List<String> nestedClasses, String method) {
++        public static MethodInfo fromTestCase(JUnitTestcase testcase) {
++            String className = testcase.getClassName();
++            String[] nestedClasses = className.split("\\$");
++            String packageName = null;
++            int lastDotInTopLevelClass = nestedClasses[0].lastIndexOf(".");
++            if (lastDotInTopLevelClass >= 0) {
++                packageName = nestedClasses[0].substring(0, lastDotInTopLevelClass);
++                nestedClasses[0] = nestedClasses[0].substring(lastDotInTopLevelClass + 1);
++            }
++            String method = null;
++            if(testcase.getName().startsWith(className)) {
++                method = testcase.getName().substring(className.length() + 1);
++            }
++            return new MethodInfo(packageName, nestedClasses[0], asList(nestedClasses).subList(1, nestedClasses.length), method);
++        }
++    }
+ }
+diff --git a/java/maven.junit.ui/src/org/netbeans/modules/maven/junit/ui/MavenJUnitTestMethodNode.java b/java/maven.junit.ui/src/org/netbeans/modules/maven/junit/ui/MavenJUnitTestMethodNode.java
+index bb0b7f1af117..67ce0eecf6e3 100644
+--- a/java/maven.junit.ui/src/org/netbeans/modules/maven/junit/ui/MavenJUnitTestMethodNode.java
++++ b/java/maven.junit.ui/src/org/netbeans/modules/maven/junit/ui/MavenJUnitTestMethodNode.java
+@@ -28,18 +28,20 @@
+ import org.netbeans.api.extexecution.print.LineConvertors;
+ import org.netbeans.api.project.FileOwnerQuery;
+ import org.netbeans.api.project.Project;
+-import org.netbeans.modules.gsf.testrunner.api.Testcase;
+ import org.netbeans.modules.gsf.testrunner.api.TestMethodNodeAction;
++import org.netbeans.modules.gsf.testrunner.api.Testcase;
+ import org.netbeans.modules.junit.ui.api.JUnitTestMethodNode;
+ import org.netbeans.spi.project.ActionProvider;
++import org.netbeans.spi.project.NestedClass;
+ import org.netbeans.spi.project.SingleMethod;
+-import static org.netbeans.spi.project.SingleMethod.COMMAND_DEBUG_SINGLE_METHOD;
+-import static org.netbeans.spi.project.SingleMethod.COMMAND_RUN_SINGLE_METHOD;
+ import org.openide.filesystems.FileObject;
+ import org.openide.util.Lookup;
+ import org.openide.util.NbBundle.Messages;
+ import org.openide.util.lookup.Lookups;
+ 
++import static org.netbeans.spi.project.SingleMethod.COMMAND_DEBUG_SINGLE_METHOD;
++import static org.netbeans.spi.project.SingleMethod.COMMAND_RUN_SINGLE_METHOD;
++
+ /**
+  * mkleint: copied from junit module
+  *
+@@ -72,13 +74,29 @@ public Action[] getActions(boolean context) {
+                 if (actionProvider != null) {
+                     String mName = testcase.getName();
+                     String tcName= testcase.getClassName();
+-                    if (tcName!=null
++                    if (tcName != null
+                             && mName.startsWith(tcName)
+-                            && mName.charAt(tcName.length())=='.'){
+-                        mName= mName.substring(tcName.length()+1);
++                            && mName.charAt(tcName.length()) == '.') {
++                        mName = mName.substring(tcName.length() + 1);
++                    }
++                    SingleMethod methodSpec;
++                    if (tcName != null && tcName.contains("$")) {
++                        String[] nestedSplit = tcName.split("\\$", 2);
++                        String[] topLevelSplit = nestedSplit[0].split("\\.");
++                        methodSpec = new SingleMethod(mName, new NestedClass(nestedSplit[1].replace("$", "."), topLevelSplit[topLevelSplit.length - 1], testFO));
++                    } else {
++                        if(tcName != null) {
++                            String[] topLevelSplit = tcName.split("\\.");
++                            if(! testFO.getName().equals(topLevelSplit[topLevelSplit.length - 1])) {
++                                methodSpec = new SingleMethod(mName, new NestedClass("", topLevelSplit[topLevelSplit.length - 1], testFO));
++                            } else {
++                                methodSpec = new SingleMethod(testFO, mName);
++                            }
++                        } else {
++                            methodSpec = new SingleMethod(testFO, mName);
++                        }
+                     }
+-                    SingleMethod methodSpec = new SingleMethod(testFO, mName);
+-                    Lookup nodeContext = Lookups.singleton(methodSpec);
++                    Lookup nodeContext = Lookups.fixed(methodSpec);
+ 
+                     for (String action : actionProvider.getSupportedActions()) {
+                         if (unitTest
+diff --git a/java/maven.junit/nbproject/project.xml b/java/maven.junit/nbproject/project.xml
+index 9d92e0b37134..27429dc43a6c 100644
+--- a/java/maven.junit/nbproject/project.xml
++++ b/java/maven.junit/nbproject/project.xml
+@@ -34,6 +34,14 @@
+                         <specification-version>1.24</specification-version>
+                     </run-dependency>
+                 </dependency>
++                <dependency>
++                    <code-name-base>org.netbeans.libs.javacapi</code-name-base>
++                    <build-prerequisite/>
++                    <compile-dependency/>
++                    <run-dependency>
++                        <specification-version>8.53</specification-version>
++                    </run-dependency>
++                </dependency>
+                 <dependency>
+                     <code-name-base>org.netbeans.modules.gsf.testrunner</code-name-base>
+                     <build-prerequisite/>
+diff --git a/java/maven.junit/src/org/netbeans/modules/maven/junit/JUnitOutputListenerProvider.java b/java/maven.junit/src/org/netbeans/modules/maven/junit/JUnitOutputListenerProvider.java
+index bfa3aed455b5..2802ade19611 100644
+--- a/java/maven.junit/src/org/netbeans/modules/maven/junit/JUnitOutputListenerProvider.java
++++ b/java/maven.junit/src/org/netbeans/modules/maven/junit/JUnitOutputListenerProvider.java
+@@ -20,6 +20,7 @@
+ 
+ import java.io.File;
+ import java.io.IOException;
++import java.nio.file.Path;
+ import java.text.NumberFormat;
+ import java.text.ParseException;
+ import java.util.ArrayList;
+@@ -30,6 +31,7 @@
+ import java.util.List;
+ import java.util.Locale;
+ import java.util.Map;
++import java.util.Map.Entry;
+ import java.util.Objects;
+ import java.util.Set;
+ import java.util.StringTokenizer;
+@@ -37,6 +39,8 @@
+ import java.util.logging.Logger;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
++import java.util.stream.Collectors;
++import javax.lang.model.element.ElementKind;
+ import javax.swing.event.ChangeListener;
+ import org.apache.maven.project.MavenProject;
+ import org.apache.maven.artifact.Artifact;
+@@ -50,6 +54,9 @@
+ import org.jdom2.input.SAXBuilder;
+ import org.netbeans.api.annotations.common.NonNull;
+ import org.netbeans.api.annotations.common.NullAllowed;
++import org.netbeans.api.java.source.ClasspathInfo;
++import org.netbeans.api.java.source.ElementHandle;
++import org.netbeans.api.java.source.SourceUtils;
+ import org.netbeans.api.project.FileOwnerQuery;
+ import org.netbeans.api.project.Project;
+ import org.netbeans.modules.gsf.testrunner.api.RerunHandler;
+@@ -71,6 +78,7 @@
+ import org.netbeans.modules.maven.api.execute.RunUtils;
+ import org.netbeans.modules.maven.api.output.OutputProcessor;
+ import org.netbeans.modules.maven.api.output.OutputVisitor;
++import org.openide.filesystems.FileObject;
+ import org.openide.filesystems.FileUtil;
+ import org.openide.util.Exceptions;
+ import org.openide.util.Lookup;
+@@ -700,15 +708,20 @@ static Trouble constructTrouble(@NonNull String type, @NullAllowed String messag
+     
+     private File locateOutputDirAndWait(String candidateClass, boolean consume) {
+         String suffix = reportNameSuffix == null ? "" : "-" + reportNameSuffix;
+-        File outputDir = locateOutputDir(candidateClass, suffix, consume);
+-        if (outputDir == null && surefireRunningInParallel) {
+-            // try waiting a bit to give time for the result file to be created
+-            try {
++        File outputDir = null;
++        // Test report might be in flight, so scan for it multiple times.
++        // Problems were observed with surefire running tests in parallel and
++        // also single threaded mode at leat on linus.
++        try {
++            for (int i = 1; i <= 40; i++) {
++                outputDir = locateOutputDir(candidateClass, suffix, consume);
++                if (outputDir != null) {
++                    LOG.log(Level.FINE, "Found output dir for test {0} in {1}. iteration ", new Object[]{candidateClass, i});
++                    break;
++                }
+                 Thread.sleep(500);
+-            } catch (InterruptedException ex) {
+-                Exceptions.printStackTrace(ex);
+             }
+-            outputDir = locateOutputDir(candidateClass, suffix, consume);
++        } catch (InterruptedException ex) {
+         }
+         return outputDir;
+     }
+@@ -730,6 +743,22 @@ private void generateTest() {
+             LOG.log(Level.FINE, "No session for outdir {0}", outputDir);
+             return;
+         }
++        Map<ClasspathInfo,Path> classpathInfo = Map.of();
++        NbMavenProject nbMavenProject = session.getProject()
++                .getLookup()
++                .lookup(NbMavenProject.class);
++        if(nbMavenProject != null) {
++            classpathInfo = nbMavenProject
++                    .getMavenProject()
++                    .getTestCompileSourceRoots()
++                    .stream()
++                    .map(p -> (p.endsWith("/") || p.endsWith("\\")) ? p : (p + "/"))
++                    .map(p -> new File(p))
++                    .collect(Collectors.toMap(
++                        f -> ClasspathInfo.create(f),
++                        f -> f.toPath()
++                    ));
++        }
+         if (report.length() > 50 * 1024 * 1024) {
+             LOG.log(Level.INFO, "Skipping report file as size is too big (> 50MB): {0}", report.getPath());
+             return;
+@@ -826,7 +855,19 @@ private void generateTest() {
+                         classname = classname.substring(0, classname.length() - nameSuffix.length());
+                     }
+                     test.setClassName(classname);
+-                    test.setLocation(test.getClassName().replace('.', '/') + ".java");
++                    String relativePath = null;
++                    for (Entry<ClasspathInfo, Path> ci : classpathInfo.entrySet()) {
++                        FileObject fo = SourceUtils.getFile(ElementHandle.createTypeElementHandle(ElementKind.CLASS, classname), ci.getKey());
++                        if (fo != null) {
++                            relativePath = ci.getValue().relativize(FileUtil.toFile(fo).toPath()).toString();
++                            break;
++                        }
++                    }
++                    if (relativePath != null) {
++                        test.setLocation(relativePath);
++                    } else {
++                        test.setLocation(classname.replace('.', '/').split("\\$")[0] + ".java");
++                    }
+                 }
+                 session.addTestCase(test);
+             }
+diff --git a/java/maven/src/org/netbeans/modules/maven/ActionProviderImpl.java b/java/maven/src/org/netbeans/modules/maven/ActionProviderImpl.java
+index 1ebff0ee4680..183f2790f478 100644
+--- a/java/maven/src/org/netbeans/modules/maven/ActionProviderImpl.java
++++ b/java/maven/src/org/netbeans/modules/maven/ActionProviderImpl.java
+@@ -226,8 +226,11 @@ private boolean usingJUnit4() { // SUREFIRE-724
+     private boolean usingJUnit5() {
+         return proj.getLookup().lookup(NbMavenProject.class).getMavenProject().getArtifacts()
+                 .stream()
+-                .anyMatch((a) -> ("org.junit.jupiter".equals(a.getGroupId()) && "junit-jupiter-engine".equals(a.getArtifactId()) ||
+-                        "org.junit.platform".equals(a.getGroupId()) && "junit-platform-engine".equals(a.getArtifactId())));
++                .anyMatch((a) -> (
++                        "org.junit.jupiter".equals(a.getGroupId()) && "junit-jupiter-engine".equals(a.getArtifactId()) ||
++                        "org.junit.jupiter".equals(a.getGroupId()) && "junit-jupiter-api".equals(a.getArtifactId()) ||
++                        "org.junit.platform".equals(a.getGroupId()) && "junit-platform-engine".equals(a.getArtifactId()))
++                );
+     }
+ 
+     private boolean usingTestNG() {
+diff --git a/java/maven/src/org/netbeans/modules/maven/execute/DefaultReplaceTokenProvider.java b/java/maven/src/org/netbeans/modules/maven/execute/DefaultReplaceTokenProvider.java
+index e6c05cbf9ab8..e3ed61429aa8 100644
+--- a/java/maven/src/org/netbeans/modules/maven/execute/DefaultReplaceTokenProvider.java
++++ b/java/maven/src/org/netbeans/modules/maven/execute/DefaultReplaceTokenProvider.java
+@@ -102,8 +102,22 @@ private static FileObject[] extractFileObjectsfromLookup(Lookup lookup) {
+         return files.toArray(new FileObject[0]);
+     }
+ 
+-    @Override public Map<String, String> createReplacements(String actionName, Lookup lookup) {
++    private static NestedClass extractNestedClassFromLookup(Lookup lookup) {
+         NestedClass nestedClass = lookup.lookup(NestedClass.class);
++        if (nestedClass != null) {
++            return nestedClass;
++        }
++
++        SingleMethod sm = lookup.lookup(SingleMethod.class);
++        if (sm != null) {
++            return sm.getNestedClass();
++        }
++
++        return null;
++    }
++
++    @Override public Map<String, String> createReplacements(String actionName, Lookup lookup) {
++        NestedClass nestedClass = extractNestedClassFromLookup(lookup);
+         FileObject[] fos = extractFileObjectsfromLookup(lookup);
+         List<Project> projects = extractProjectsFromLookup(lookup);
+         

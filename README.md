@@ -51,6 +51,8 @@ In the VS Code command palette :
     * Java - broad selection of various predefined Java classes
     * Unit tests - JUnit and TestNG templates for test suites and test cases
     * Other - various templates for Javascript, JSON, YAML, properties, ... files
+* __Java: Create New Notebook...__ command to create a new [Java notebook](#interactive-java-notebooks)(`.ijnb` file)
+* __Java: Open JShell...__  command to open [JShell](#jshell) .
 * __Java: Compile Workspace__ - invoke Maven or Gradle build
 * __Java: Clean Workspace__ - clean Maven or Gradle build
 * __Download, install and Use JDK__ - allows download and installation of JDK binaries 
@@ -62,6 +64,41 @@ In the VS Code command palette :
 ## Project Explorer
 Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.  
 ![Project Explorer](vscode/images/project-explorer.png)
+
+## Interactive Java Notebooks
+### Introduction
+ * Experience interactive coding with Java notebooks.
+  Use the __Java: Create New Notebook...__ command to create a new Java notebook(`.ijnb` file)
+   ![Java Notebook](vscode/images/java_notebook.gif)
+ * Jupyter-style notebooks let you combine Java code snippets with markdown-formatted text cells.
+ * Run individual code cells or execute the entire notebook.
+ * Save outputs alongside code cells.
+ * Sharing notebooks
+    * Share as `.ijnb` files for use with Oracle Java extension.
+    * Rename with `.ipynb` for viewing in other IDEs Jupyter etc.
+* Download the [sample notebooks](https://github.com/oracle/javavscode/blob/main/samples/notebooks) and open  in VSCode to get started.
+
+### Java Notebooks for Java Projects
+ * Document Java projects with interactive Java notebooks.
+    * Open/Create a  Java notebook in your workspace folder loaded with classes from your project.
+    ![Java Notebook For Project](vscode/images/project_notebook.gif)
+    * Use `Project Context` options incase you want to change to a different project context .
+     ![Switch Project Context](vscode/images/project_context.png)
+ * Provide code snippets, markdown explanations, and expected outputs.
+
+### Notebook Configurations
+ * Following configuration settings are available
+    * `jdk.notebook.classpath`
+    * `jdk.notebook.modulepath`
+    * `jdk.notebook.addmodules`
+    * `jdk.notebook.enablepreview`
+    * `jdk.notebook.implicitimports`
+ * Note : These settings *override* any settings inferred from project context 
+
+## JShell
+ * Use the __Java: Open JShell...__ command to open JShell .
+ * Project classes from currently open project are automatically loaded.
+ ![JShell](vscode/images/jshell.gif)
 
 ## Debugger and Launch Configurations
 Language Server __Java+ ...__ launch configuration supports debugging and running Java applications using JDK11 or newer. 
@@ -196,9 +233,11 @@ If your extension is not starting and throwing some error like no JDK found even
 The extension will analyze the content of the opened workspace, and relevant other files. If the workspace contains a lot of data, this may take a long time. It is therefore recommended to avoid adding unnecessarily big folders in a workspace. Specifically, it is not recommended to open user's home directory as a part of the workspace.
 
 ## Known Issue
-If an action has been applied to the Maven `pom.xml` file through the extension, such as enabling a preview feature or adding a test runner framework, subsequent compile or run operations may fail. To resolve this issue, please follow the steps below:
-1. Check the `pom.xml` file for any duplicated tags.
-2. If duplicated tags are found, remove the extra tags and attempt to compile again.
+1. If an action has been applied to the Maven `pom.xml` file through the extension, such as enabling a preview feature or adding a test runner framework, subsequent compile or run operations may fail. To resolve this issue, please follow the steps below:
+    1. Check the `pom.xml` file for any duplicated tags.
+    2. If duplicated tags are found, remove the extra tags and attempt to compile again.
+    3. Add the `--enable-preview` VM argument to the *exec-maven-plugin* or *maven-surefile-plugin* configurations if they are used execution or test runs.
+2. The *Project: Test Project* command executes the project's tests but does not update the Testing or the Tests Results panels. The test output is present only in the Terminal or Debug Console panel.
 
 ## Telemetry
 

@@ -15,6 +15,7 @@
 */
 import { OutputChannel, window } from "vscode";
 import { extConstants } from "./constants";
+import { isError } from "./utils";
 
 enum LogLevel {
     INFO = 'INFO',
@@ -52,6 +53,15 @@ export class ExtensionLogger {
             const formattedMessage = `[${LogLevel.DEBUG}]: ${message}`;
             this.printLog(formattedMessage);
         }
+    }
+
+   public logAndThrowError (message: string, err: unknown) {
+      let errMsg = "";
+      if (isError(err)) {
+        errMsg = err?.message
+      }
+      LOGGER.error(message + errMsg);
+      throw err;
     }
 
     public logNoNL(message: string): void {

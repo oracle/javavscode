@@ -24,6 +24,7 @@ import { registerRefactorCommands } from "./refactor";
 import { registerUtilCommands } from "./utilCommands";
 import { registerDebugCommands } from "./debug";
 import { registerRunConfigurationCommands } from "./runConfiguration";
+import { registerNotebookCommands } from "./notebook";
 
 type ICommandModules = Record<string, ICommand[]>;
 
@@ -36,7 +37,8 @@ const commandModules: ICommandModules = {
     refactor: registerRefactorCommands,
     util: registerUtilCommands,
     debug: registerDebugCommands,
-    runConfiguration: registerRunConfigurationCommands
+    runConfiguration: registerRunConfigurationCommands,
+    notebook: registerNotebookCommands
 }
 
 export const subscribeCommands = (context: ExtensionContext) => {

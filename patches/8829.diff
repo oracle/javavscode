@@ -1,0 +1,46 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters.html b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters.html
+index 57d4508acee0..0f289cb1485f 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters.html
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters.html
+@@ -63,7 +63,7 @@
+         </div>
+     </div>
+     <div class="add-param flex">
+-        <button id="addParam" class="silent-button codicon codicon-add full-width flex-grow" data-bind="click: addParameter"><span class="button-text vscode-font">Add Parameter</span></button>
++        <button id="addParam" class="silent-button codicon codicon-add full-width flex-grow" data-bind="click: addParameter"><span class="button-text vscode-font"> Add Parameter</span></button>
+     </div>
+     <div class="section">
+         <label>Signature preview:</label>
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ui/refactoring.css b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ui/refactoring.css
+index c1c7f0fcf2dd..c725eb85e60c 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ui/refactoring.css
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ui/refactoring.css
+@@ -115,19 +115,22 @@ label {
+ }
+ .action-button {
+     border: none;
+-    border-radius: 4px;
+-	padding: 2px;
+-	margin: 3px 0px;
++    padding: 4px 10px 4px 10px;
++    margin: 2px;
+     color: var(--vscode-input-foreground);
+-    background-color: transparent;
++    background-color: var(--vscode-list-hoverBackground);
+ }
++
+ .action-button:hover {
+-	background-color: var(--vscode-list-inactiveSelectionBackground);
++    color: var(--vscode-button-foreground);
++    background-color: var(--vscode-button-hoverBackground);
+ }
++
+ .action-button:focus, .action-button:hover:focus {
+     color: var(--vscode-button-foreground);
+     background-color: var(--vscode-button-hoverBackground);
+-    outline: none;
++    outline: 1px solid var(--vscode-button-hoverBackground);
++    outline-offset: 2px;
+ }
+ .checkbox-label {
+     align-self: center;

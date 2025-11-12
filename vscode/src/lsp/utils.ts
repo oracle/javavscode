@@ -44,7 +44,7 @@ export const enableDisableModules = (
 
 export const findNbcode = (extensionPath: string): string => {
     let nbcode = os.platform() === 'win32' ?
-        os.arch() === 'x64' ? 'nbcode64.exe' : 'nbcode.exe'
+        os.arch() === 'x64' || os.arch() === 'arm64' ? 'nbcode64.exe' : 'nbcode.exe'
         : 'nbcode.sh';
     let nbcodePath = path.join(extensionPath, "nbcode", "bin", nbcode);
 

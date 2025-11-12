@@ -27,13 +27,24 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { extensions, window } from 'vscode';
+import { l10n } from '../../../../localiser'
 import { DEFAULT_BUNDLE_FILE_NAME, DEFAULT_PACKAGE_FILE_NAME, EXTENSION_NAME, SUPPORTED_LANGUAGES } from '../../constants';
 import { checkCommandsLocalisation, checkConfigurationLocalisation, checkDebuggersLocalisation, checkL10nUsageInFiles, checkViewsLocalisation, getKeysFromJSON, matchKeys, matchValuesTemplate } from '../../testutils';
 
 
 suite("Extension localisation tests", function () {
     window.showInformationMessage("Starting Localisation tests");
-    // Check the consistency of the keys and value templates across the bundle files for the supported languages 
+    test("localiser lib tests", async () => {
+        assert.equal(
+            l10n.value("jdk.downloader.message.downloadCompleted", { "jdkVersion": "25", "osType": "macOS", "jdkType": "OpenJDK" }),
+            "OpenJDK 25 for macOS download completed!"
+        )
+        assert.equal(
+            l10n.value("jdk.downloader.error_message.installationCleanup"),
+            "Error while installation cleanup"
+        )
+    })
+    // Check the consistency of the keys and value templates across the bundle files for the supported languages
     test("Consistency of keys across bundle.l10n.lang.json files for supported languages", async () => {
         const extension = extensions.getExtension(EXTENSION_NAME);
         assert(extension);

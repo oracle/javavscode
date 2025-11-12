@@ -22,6 +22,36 @@
     under the License.
 
 -->
+## Version 25.0.0
+### What's Changed
+
+
+#### Enhancements
+* Introduction of Java Notebook  [#464](https://github.com/oracle/javavscode/pull/464)
+* Open JShell in project context [#464](https://github.com/oracle/javavscode/pull/464)
+* Upgrade to NB-27 [#456](https://github.com/oracle/javavscode/pull/456)
+    * Full JDK 25 support
+    * Inlined values inside debugger
+    * Improved Gradle 9 support 
+    * And more ...
+* Improved support for JDK 25
+    * Improved support for Module imports  [#474](https://github.com/oracle/javavscode/pull/474)
+    * Improved support for Compact source files [#466](https://github.com/oracle/javavscode/pull/466)
+* Backport of important patches from NB28  [#473](https://github.com/oracle/javavscode/pull/473)
+
+#### Bug Fixes
+* Fixed Run and Debug hanging when more than 2 main classes  in the project [#468](https://github.com/oracle/javavscode/pull/468)
+* Fixed "Launch Java App" related to launch app [#468](https://github.com/oracle/javavscode/pull/468)
+
+#### Other Changes
+* Updated openjdk25 URL to 25.0.1 [#488](https://github.com/oracle/javavscode/pull/488)
+* Translation of new messages to ja and zh-cn [#464](https://github.com/oracle/javavscode/pull/464) 
+* Graceful close handler implementation in Netbeans Language Server [#458](https://github.com/oracle/javavscode/pull/458)
+* Message labels updates and improvements [#471](https://github.com/oracle/javavscode/pull/471)
+
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v24.1.1...v25.0.0
+
 ## Version 24.1.1
 ### What's Changed
 
@@ -37,6 +67,7 @@
 
 #### Other Changes
 * Updated openjdk24 URL to 24.0.2 [#442](https://github.com/oracle/javavscode/pull/442)
+* Updated openjdk25 URL to 25 [#465](https://github.com/oracle/javavscode/pull/465)
 
 **Full Changelog**: https://github.com/oracle/javavscode/compare/v24.1.0...v24.1.1
 

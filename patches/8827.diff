@@ -1,0 +1,1266 @@
+diff --git a/java/java.hints/src/org/netbeans/modules/java/hints/OrganizeImports.java b/java/java.hints/src/org/netbeans/modules/java/hints/OrganizeImports.java
+index 3f89bb551319..417aa8f2df54 100644
+--- a/java/java.hints/src/org/netbeans/modules/java/hints/OrganizeImports.java
++++ b/java/java.hints/src/org/netbeans/modules/java/hints/OrganizeImports.java
+@@ -22,14 +22,18 @@
+ import java.awt.event.ActionEvent;
+ import java.util.Collections;
+ import java.util.Comparator;
++import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.LinkedList;
+ import java.util.List;
++import java.util.Map;
+ import java.util.Set;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ 
+ import javax.lang.model.element.Element;
+ import javax.lang.model.element.Modifier;
++import javax.lang.model.element.ModuleElement;
++import javax.lang.model.element.PackageElement;
+ import javax.lang.model.type.TypeKind;
+ import javax.lang.model.util.Types;
+ import javax.swing.text.JTextComponent;
+@@ -37,6 +41,7 @@
+ 
+ import com.sun.source.tree.ClassTree;
+ import com.sun.source.tree.CompilationUnitTree;
++import com.sun.source.tree.ExpressionTree;
+ import com.sun.source.tree.IdentifierTree;
+ import com.sun.source.tree.ImportTree;
+ import com.sun.source.tree.MemberSelectTree;
+@@ -80,6 +85,7 @@
+ import org.netbeans.spi.java.hints.TriggerTreeKind;
+ import org.openide.util.Exceptions;
+ import org.openide.util.NbBundle;
++import org.openide.util.Pair;
+ 
+ /**
+  *
+@@ -160,10 +166,11 @@ public static void doOrganizeImports(WorkingCopy copy, Set<Element> addImports,
+             }
+         }
+         final CodeStyle cs = CodeStyle.getDefault(copy.getFileObject());
+-        Set<Element> starImports = new HashSet<Element>();
+-        Set<Element> staticStarImports = new HashSet<Element>();
+-        Set<Element> toImport = getUsedElements(copy, cu, starImports, staticStarImports);
+-        List<ImportTree> imps = new LinkedList<ImportTree>();  
++        final Set<Element> starImports = new HashSet<>();
++        final Set<Element> staticStarImports = new HashSet<>();
++        final Set<Element> moduleImports = new HashSet<>();
++        Set<Element> toImport = getUsedElements(copy, cu, starImports, staticStarImports, moduleImports);
++        final List<ImportTree> imps = new LinkedList<>();  
+         TreeMaker maker = copy.getTreeMaker();
+         
+         if (addImports != null) {
+@@ -173,6 +180,7 @@ public static void doOrganizeImports(WorkingCopy copy, Set<Element> addImports,
+         } else if (!toImport.isEmpty() || isBulkMode) {
+             // track import star import scopes, so only one star import/scope appears in imps - #251977
+             Set<Element> starImportScopes = new HashSet<>();
++            Map<ModuleElement, Pair<ExpressionTree, ModuleElement>> transitiveScopeToModuleImport = new HashMap<>();
+             Trees trees = copy.getTrees();
+             for (ImportTree importTree : cu.getImports()) {
+                 Tree qualIdent = importTree.getQualifiedIdentifier();
+@@ -181,13 +189,13 @@ public static void doOrganizeImports(WorkingCopy copy, Set<Element> addImports,
+                     Element importedScope = trees.getElement(TreePath.getPath(cu, ((MemberSelectTree)qualIdent).getExpression()));
+                     
+                     if (importTree.isStatic()) {
+-                        if (staticStarImports != null && 
++                        if (!staticStarImports.isEmpty() && 
+                             staticStarImports.contains(importedScope) &&
+                             !starImportScopes.contains(importedScope)) {
+                             imp = maker.Import(qualIdent, true);
+                         }
+                     } else {
+-                        if (starImports != null && 
++                        if (!starImports.isEmpty() && 
+                             starImports.contains(importedScope) &&
+                             !starImportScopes.contains(importedScope)) {
+                             imp = maker.Import(qualIdent, false);
+@@ -197,6 +205,28 @@ public static void doOrganizeImports(WorkingCopy copy, Set<Element> addImports,
+                         starImportScopes.add(importedScope);
+                         imps.add(imp);
+                     }
++                } else if (importTree.isModule()) {
++                    ModuleElement importedScope = copy.getElements().getModuleElement(qualIdent.toString());
++                    if (qualIdent instanceof ExpressionTree moduleIdentifier) {
++                        if (importedScope == null) {
++                            //do not mark unresolvable element imports as unused
++                            imps.add(maker.ImportModule(moduleIdentifier));
++                        } else if (!moduleImports.isEmpty() && !starImportScopes.contains(importedScope)) {
++                            if (moduleImports.contains(importedScope)) {
++                                imps.add(maker.ImportModule(moduleIdentifier));
++                                starImportScopes.add(importedScope);
++                            } else {
++                                collectTransitivelyUsedModules(importedScope, moduleIdentifier, moduleImports, copy, transitiveScopeToModuleImport);
++                            }
++                        }
++                    }
++                }
++            }
++            // Add any used modules that are only referred by a transitive import
++            for (Map.Entry<ModuleElement, Pair<ExpressionTree, ModuleElement>> t : transitiveScopeToModuleImport.entrySet()) {
++                if (!starImportScopes.contains(t.getKey()) && !starImportScopes.contains(t.getValue().second())) {
++                    imps.add(maker.ImportModule(t.getValue().first()));
++                    starImportScopes.add(t.getValue().second());
+                 }
+             }
+         } else {
+@@ -213,21 +243,42 @@ public int compare(ImportTree o1, ImportTree o2) {
+                         return 0;
+                     String s1 = o1.getQualifiedIdentifier().toString();
+                     String s2 = o2.getQualifiedIdentifier().toString();
+-                    int bal = groups.getGroupId(s1, o1.isStatic()) - groups.getGroupId(s2, o2.isStatic());
++                    int bal;
++                    if (o1.isModule()) {
++                        bal = o2.isModule() ? 0 : 1; // Place element imports last
++                    } else if (o2.isModule()) {
++                        bal = -1;                    // Place element imports last
++                    } else {
++                        bal = groups.getGroupId(s1, o1.isStatic()) - groups.getGroupId(s2, o2.isStatic());
++                    }
+                     return bal == 0 ? s1.compareTo(s2) : bal;
+                 }
+             });
+         }
+         CompilationUnitTree cut = maker.CompilationUnit(cu.getPackageAnnotations(), cu.getPackageName(), imps, cu.getTypeDecls(), cu.getSourceFile());
+         ((JCCompilationUnit)cut).packge = ((JCCompilationUnit)cu).packge;
+-        if (starImports != null || staticStarImports != null) {
+-            ((JCCompilationUnit)cut).starImportScope = ((JCCompilationUnit)cu).starImportScope;
++        ((JCCompilationUnit)cut).starImportScope = ((JCCompilationUnit)cu).starImportScope;
++        if (!moduleImports.isEmpty()) {
++            ((JCCompilationUnit)cut).moduleImportScope = ((JCCompilationUnit)cu).moduleImportScope;
+         }
+         CompilationUnitTree ncu = toImport.isEmpty() ? cut : GeneratorUtilities.get(copy).addImports(cut, toImport);
+         copy.rewrite(cu, ncu);
+     }
++        
++    private static void collectTransitivelyUsedModules(final ModuleElement importedModule, final ExpressionTree importIdentifier, final Set<Element> usedModules, final CompilationInfo info, final Map<ModuleElement, Pair<ExpressionTree, ModuleElement>> transitiveModulesToImportingIdentifier) {
++        if (importedModule != null) {
++            if (usedModules.contains(importedModule))
++                return;
++            Pair<ExpressionTree, ModuleElement> root = Pair.of(importIdentifier, importedModule);            
++            for (PackageElement pack : info.getElementUtilities().transitivelyExportedPackages(importedModule)) {
++                if ((pack.getEnclosingElement() instanceof ModuleElement transitiveModule) && transitiveModule != importedModule && usedModules.contains(transitiveModule)) {
++                    transitiveModulesToImportingIdentifier.putIfAbsent(transitiveModule, root);
++                }
++            }
++        }
++    }
+ 
+-    private static Set<Element> getUsedElements(final CompilationInfo info, final CompilationUnitTree cut, final Set<Element> starImports, final Set<Element> staticStarImports) {
++    private static Set<Element> getUsedElements(final CompilationInfo info, final CompilationUnitTree cut, final Set<Element> starImports, final Set<Element> staticStarImports, final Set<Element> moduleImports) {
+         final Set<Element> ret = new HashSet<Element>();
+         final Trees trees = info.getTrees();
+         final Types types = info.getTypes();
+@@ -273,7 +324,7 @@ private void addElement(Element element) {
+                         case FIELD:
+                         case METHOD:
+                             if (element.getModifiers().contains(Modifier.STATIC)) {
+-                                Element glob = global(element, staticStarImports);
++                                Element glob = global(element, staticStarImports, moduleImports);
+                                 if (glob != null)
+                                     ret.add(glob);
+                             }
+@@ -283,14 +334,14 @@ private void addElement(Element element) {
+                         case RECORD:
+                         case ENUM:
+                         case INTERFACE:
+-                            Element glob = global(element, starImports);
++                            Element glob = global(element, starImports, moduleImports);
+                             if (glob != null)
+                                 ret.add(glob);
+                     }
+                 }
+             }
+ 
+-            private Element global(Element element, Set<Element> stars) {
++            private Element global(Element element, Set<Element> stars, Set<Element> modules) {
+                 for (Symbol sym : ((JCCompilationUnit)cut).namedImportScope.getSymbolsByName((Name)element.getSimpleName())) {
+                     if (element == sym || element.asType().getKind() == TypeKind.ERROR && element.getKind() == sym.getKind())
+                         return sym;
+@@ -307,6 +358,14 @@ private Element global(Element element, Set<Element> stars) {
+                         return sym;
+                     }
+                 }
++                for (Symbol sym : ((JCCompilationUnit)cut).moduleImportScope.getSymbolsByName((Name)element.getSimpleName())) {
++                    if (element == sym || element.asType().getKind() == TypeKind.ERROR && element.getKind() == sym.getKind()) {
++                        if (modules != null) {
++                            modules.add(sym.packge().modle);
++                        }
++                        return sym;
++                    }
++                }
+                 return null;
+             }
+         }.scan(cut, null);
+diff --git a/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/OrganizeImportsTest.java b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/OrganizeImportsTest.java
+index 7c651dd8353b..7a8f40885c66 100644
+--- a/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/OrganizeImportsTest.java
++++ b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/OrganizeImportsTest.java
+@@ -72,4 +72,286 @@ public void testClashing() throws Exception {
+                               "     Button b;\n" +
+                               "}\n");
+     }
++    
++    public void testModuleSimple() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import module java.base;
++                       import java.util.ArrayList;
++                       public class Test {
++                            List l = new ArrayList();
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("2:0-2:27:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import module java.base;
++                              public class Test {
++                                   List l = new ArrayList();
++                              }
++                              """);
++    }
++    
++    public void testModuleSimpleNoUsage() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import module java.base;
++                       import java.awt.*;
++                       public class Test {
++                            java.util.List l = java.util.Arrays.asList(1,2,3);
++                            List ui;
++                            Button b;
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("1:0-1:24:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import java.awt.*;
++                              public class Test {
++                                  java.util.List l = java.util.Arrays.asList(1,2,3);
++                                  List ui;
++                                  Button b;
++                              }
++                              """);
++    }
++    
++    public void testModuleTransitiveSimple() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import java.lang.Thread;
++                       import module java.desktop;
++                       public class Test {
++                           java.util.List l = java.util.List.of(XMLConstants.XML_NS_URI);
++                           List ui;
++                           Button b;
++                           Clipboard cp;
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("1:0-1:24:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import module java.desktop;
++                              public class Test {
++                                  java.util.List l = java.util.List.of(XMLConstants.XML_NS_URI);
++                                  List ui;
++                                  Button b;
++                                  Clipboard cp;
++                              }
++                              """);
++    }
++    
++    public void testModuleTransitiveCommon() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import module java.sql;
++                       import module java.desktop;
++                       public class Test {
++                           java.util.List l = java.util.List.of(XMLConstants.XML_NS_URI);
++                           List ui;
++                           Button b;
++                           Clipboard cp;
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("1:0-1:23:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import module java.desktop;
++                              import module java.sql;
++                              public class Test {
++                                  java.util.List l = java.util.List.of(XMLConstants.XML_NS_URI);
++                                  List ui;
++                                  Button b;
++                                  Clipboard cp;
++                              }
++                              """);
++    }
++    
++    public void testModuleSimpleAllNamed() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import java.util.List;
++                       import module java.base;
++                       import java.util.ArrayList;
++                       public class Test {
++                            List l = new ArrayList();
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("1:0-1:22:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import java.util.ArrayList;
++                              import java.util.List;
++                              public class Test {
++                                   List l = new ArrayList();
++                              }
++                              """);
++    }
++    
++    public void testModuleSimpleAllStar() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import java.util.List;
++                       import module java.base;
++                       import java.util.*;
++                       public class Test {
++                            List l = new ArrayList();
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("1:0-1:22:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import java.util.*;
++                              public class Test {
++                                   List l = new ArrayList();
++                              }
++                              """);
++    }
++
++    public void testModuleSimpleWithStar() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import java.util.List;
++                       import module java.base;
++                       import java.util.*;
++                       public class Test {
++                            Consumer<String> print = System.out::println;
++                            List<String> l = new ArrayList<>();
++                            private void printAll() { l.forEach(print); }
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("1:0-1:22:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import java.util.*;
++                              import module java.base;
++                              public class Test {
++                                   Consumer<String> print = System.out::println;
++                                   List<String> l = new ArrayList<>();
++                                   private void printAll() { l.forEach(print); }
++                              }
++                              """);
++    }
++
++    public void testModuleSimpleWithStarAndStatic() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import java.util.List;
++                       import module java.base;
++                       import static java.util.List.of;
++                       import java.util.*;
++                       public class Test {
++                            Consumer<String> print = System.out::println;
++                            List<String> l = new ArrayList<>();
++                            private void printAll() { of("abc","def").forEach(print); }
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("1:0-1:22:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import java.util.*;
++                              import static java.util.List.of;
++                              import module java.base;
++                              public class Test {
++                                   Consumer<String> print = System.out::println;
++                                   List<String> l = new ArrayList<>();
++                                   private void printAll() { of("abc","def").forEach(print); }
++                              }
++                              """);
++    }
++
++    public void testModuleClashing() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import module java.desktop;
++                       import java.util.List;
++                       import module java.base;
++                       public class Test {
++                            List l = new ArrayList();
++                            Button b;
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("1:0-1:27:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import java.util.List;
++                              import module java.base;
++                              import module java.desktop;
++                              public class Test {
++                                   List l = new ArrayList();
++                                   Button b;
++                              }
++                              """);
++    }
++
++    public void testModuleClashing2() throws Exception {
++        HintTest.create()
++                .sourceLevel(25)
++                .input("""
++                       package test;
++                       import module java.desktop;
++                       import java.util.List;
++                       import static java.util.List.of;
++                       import module java.base;
++                       public class Test {
++                           List<String> l = new ArrayList<>(of("abc", "xyz", "def"));
++                           Button b;
++                           public Test() {
++                               l.sort(Comparator.naturalOrder());
++                           }
++                       }
++                       """)
++                .run(OrganizeImports.class)
++                .findWarning("1:0-1:27:verifier:MSG_OragnizeImports")
++                .applyFix()
++                .assertOutput("""
++                              package test;
++                              import java.util.List;
++                              import static java.util.List.of;
++                              import module java.base;
++                              import module java.desktop;
++                              public class Test {
++                                  List<String> l = new ArrayList<>(of("abc", "xyz", "def"));
++                                  Button b;
++                                  public Test() {
++                                      l.sort(Comparator.naturalOrder());
++                                  }
++                              }
++                              """);
++    }
+ }
+diff --git a/java/java.source.base/src/org/netbeans/api/java/source/GeneratorUtilities.java b/java/java.source.base/src/org/netbeans/api/java/source/GeneratorUtilities.java
+index 2dbf656fbfdb..ad9e2d5c2039 100644
+--- a/java/java.source.base/src/org/netbeans/api/java/source/GeneratorUtilities.java
++++ b/java/java.source.base/src/org/netbeans/api/java/source/GeneratorUtilities.java
+@@ -83,16 +83,19 @@
+ import java.util.IdentityHashMap;
+ import java.util.Iterator;
+ import java.util.LinkedHashMap;
++import java.util.LinkedHashSet;
+ import java.util.LinkedList;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
++import java.util.function.Function;
+ 
+ import javax.lang.model.SourceVersion;
+ import javax.lang.model.element.Element;
+ import javax.lang.model.element.ElementKind;
+ import javax.lang.model.element.ExecutableElement;
+ import javax.lang.model.element.Modifier;
++import javax.lang.model.element.ModuleElement;
+ import javax.lang.model.element.Name;
+ import javax.lang.model.element.PackageElement;
+ import javax.lang.model.element.TypeElement;
+@@ -1084,19 +1087,24 @@ private boolean isStarImport(ImportTree imp) {
+      * @since 0.86
+      */
+     public CompilationUnitTree addImports(CompilationUnitTree cut, Set<? extends Element> toImport) {
+-        return addImports(cut, cut.getImports(), toImport);
++        return addImports(cut, cut.getImports(), toImport, copy.getElements()::getModuleOf);
+     }
+ 
+-    private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends ImportTree> cutImports, Set<? extends Element> toImport) {
+-        assert cut != null && toImport != null && toImport.size() > 0;
++    private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends ImportTree> cutImports, Set<? extends Element> toImport, Function<Element, ModuleElement> moduleOf) {
++        assert cut != null && toImport != null && !toImport.isEmpty();
+ 
+-        ArrayList<Element> elementsToImport = new ArrayList<Element>(toImport.size());
+-        Set<String> staticImportNames = new HashSet<String>();
++        ArrayList<Element> elementsToImport = new ArrayList<>(toImport.size());
++        Set<ModuleElement> modulesToImport = new LinkedHashSet<>();
++        Set<String> staticImportNames = new HashSet<>();
+         for (Element e : toImport) {
+             if (e == null) {
+                 continue;
+             }
+             switch (e.getKind()) {
++                case MODULE:
++                    modulesToImport.add((ModuleElement)e);
++                    elementsToImport.add(e);
++                    break;
+                 case METHOD:
+                 case ENUM_CONSTANT:
+                 case FIELD:
+@@ -1117,7 +1125,7 @@ private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends I
+         // check weather any conversions to star imports are needed
+         int treshold = cs.useSingleClassImport() ? cs.countForUsingStarImport() : 1;
+         int staticTreshold = cs.countForUsingStaticStarImport();        
+-        Map<PackageElement, Integer> pkgCounts = new LinkedHashMap<PackageElement, Integer>();
++        Map<PackageElement, Integer> pkgCounts = new LinkedHashMap<>();
+         PackageElement pkg = elements.getPackageElement("java.lang"); //NOI18N
+         if (pkg != null) {
+             pkgCounts.put(pkg, -2);
+@@ -1131,17 +1139,24 @@ private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends I
+             pkg = elements.getPackageElement(elements.getName("")); //NOI18N
+         }
+         pkgCounts.put(pkg, -2);
+-        Map<TypeElement, Integer> typeCounts = new LinkedHashMap<TypeElement, Integer>();
++        Map<TypeElement, Integer> typeCounts = new LinkedHashMap<>();
+         // initially the import scope has no symbols. We must fill it in by:
+-        // existing CUT named imports, package members AND then star imports, in this specific order
++        // existing CUT named imports, package members AND then star imports AND then module imports, in this specific order
+         JCCompilationUnit jcut = (JCCompilationUnit)cut;
+         StarImportScope importScope = new StarImportScope((Symbol)pkg);
++        if (jcut.moduleImportScope != null) {
++            importScope.prependSubScope(((JCCompilationUnit)cut).moduleImportScope);
++        }
+         if (jcut.starImportScope != null) {
+             importScope.prependSubScope(((JCCompilationUnit)cut).starImportScope);
+         }
+         if (jcut.packge != null) {
+             importScope.prependSubScope(jcut.packge.members_field);
+         }
++        // capture module counts if module imports are present
++        Map<ModuleElement, Integer> modCounts = jcut.moduleImportScope != null || !modulesToImport.isEmpty() ? new LinkedHashMap<>() : null;
++        Set<ModuleElement> transitivelyImportedUsedModules = modCounts != null ? new HashSet<>() : null;
++
+         for (Element e : elementsToImport) {
+             boolean isStatic = false;
+             Element el = null;
+@@ -1163,6 +1178,10 @@ private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends I
+                     isStatic = true;
+                     el = e.getEnclosingElement();
+                     break;
++                case MODULE:
++                    if (modCounts != null)
++                        modCounts.merge((ModuleElement)e, 1, Integer::sum);
++                    break;
+                 default:
+                     assert false : "Illegal element kind: " + e.getKind(); //NOI18N
+             }
+@@ -1187,11 +1206,32 @@ private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends I
+                     typeCounts.put((TypeElement)el, cnt);
+                 } else {
+                     pkgCounts.put((PackageElement)el, cnt);
++                    if (cnt >= -1 && modCounts != null) {
++                        ModuleElement ml = moduleOf.apply(e);
++                        if (ml != null) {
++                            modCounts.merge(ml, 1, Integer::sum);
++                        }
++                    }
+                 }
+             }
+         }
+-        List<ImportTree> imports = new ArrayList<ImportTree>(cutImports);
++        List<ImportTree> imports = new ArrayList<>(cutImports);
+         for (ImportTree imp : imports) {
++            if (imp.isModule()) {
++                // For module imports, no conversion thresholds to be checked, unlike star imports.
++                // The module imports should be retained, if in use; 
++                // even when the current usage is covered by existing named/star imports, 
++                // because more module classes may be used in the future.
++                if (modCounts != null) {
++                    ModuleElement m = elements.getModuleElement(imp.getQualifiedIdentifier().toString());
++                    if (m != null) {
++                        modCounts.put(m, -2); // -2 = do not touch the module import
++                        collectTransitivelyImportedUsedModules(m, modCounts.keySet(), copy, transitivelyImportedUsedModules);
++                        modulesToImport.remove(m);
++                    }
++                    continue;
++                }
++            }
+             Element e = getImportedElement(cut, imp);
+             if (!elementsToImport.contains(e)) {
+                 if (imp.isStatic()) {
+@@ -1253,6 +1293,9 @@ private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends I
+         // remove those star imports that do not satisfy the thresholds
+         for (Iterator<ImportTree> ii = imports.iterator(); ii.hasNext();) {
+             ImportTree imp = ii.next();
++            if (imp.isModule()) {                
++                continue;   // The module imports should be retained
++            }
+             if (!isStarImport(imp)) {
+                 continue;
+             }
+@@ -1268,8 +1311,29 @@ private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends I
+             }
+         }
+         
+-        // check for possible name clashes originating from adding the package imports
+-        Set<Element> explicitNamedImports = new HashSet<Element>();
++        // Add modulesToImport to the importScope, to check name clashes, if any
++        if (!modulesToImport.isEmpty()) {
++            assert modCounts != null && transitivelyImportedUsedModules != null;
++            modulesToImport.removeIf(transitivelyImportedUsedModules::contains);
++            for (ModuleElement m : modulesToImport) {
++                for (PackageElement e : elementUtilities.transitivelyExportedPackages(m)) {
++                    if (e instanceof Symbol p) {
++                        importScope.appendSubScope(p.members());
++                    }
++                    collectTransitivelyImportedUsedModule(e, m, modCounts.keySet(), transitivelyImportedUsedModules);
++                }
++                modCounts.replace(m, -1);
++            }
++        }        
++        if (transitivelyImportedUsedModules != null && modCounts != null) {
++            // Mark all transitively imported modules as already imported,
++            // and skip importing it or its members. This is done by setting the 
++            // value for it to -2 in modCounts.
++            transitivelyImportedUsedModules.forEach(m -> modCounts.computeIfPresent(m, (k, old) -> old != null && old < 0 ? old : Integer.valueOf(-2)));
++        }
++
++        // check for possible name clashes originating from adding the package or module imports
++        Set<Element> explicitNamedImports = new HashSet<>();
+         for (Element element : elementsToImport) {
+             if (element.getEnclosingElement() != pkg && (element.getKind().isClass() || element.getKind().isInterface())) {
+                 for (Symbol sym : importScope.getSymbolsByName((com.sun.tools.javac.util.Name)element.getSimpleName())) {
+@@ -1355,13 +1419,47 @@ private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends I
+                     el = currentToImportElement.getEnclosingElement();
+                     break;
+             }
+-            Integer cnt = el == null ? Integer.valueOf(0) : isStatic ? typeCounts.get((TypeElement)el) : pkgCounts.get((PackageElement)el);
+-            if (explicitNamedImports.contains(currentToImportElement))
+-                cnt = 0;
++            final int cnt;  // Count of imports that may replace the currentToImportElement
++            if (explicitNamedImports.contains(currentToImportElement)) {
++                cnt = 0;    // Explicit named imports must not be replaced by another
++            } else {
++                /// Check if the import is replaced by a star import or module import
++                ///
++                /// Logic:
++                /// - This refers to the count of imports of the enclosing element, if any.
++                /// - A replacing star import or module import is indicated by a negative count.
++                ///     - If the replacement has already been included in the imports, the count is set as -2.
++                ///     - If the replacement is yet to be included in the imports, the count is set as -1.
++                /// - Otherwise, a non-negative count indicates that the import is below the threshold for replacement.
++
++                Integer enclosingStarCnt = el == null ? null : isStatic ? typeCounts.get((TypeElement)el) :  pkgCounts.get((PackageElement)el);
++                if (isStatic) {
++                    cnt = enclosingStarCnt == null ? 0 : enclosingStarCnt;
++                } else {
++                    int modCount = 0;
++                    if (modCounts != null) {
++                        ModuleElement m = moduleOf.apply(currentToImportElement);
++                        Integer mc = m == null ? null : modCounts.get(m);
++                        if (mc != null && mc < 0) {
++                            modCount = mc;
++                            if (modCount == -1) {
++                                // Import the module
++                                currentToImportElement = m;
++                                el = null;
++                                // Mark to skip importing this module subsequently.
++                                modCounts.put(m, -2);
++                            }
++                            // Else, no need to add the current import as its module has already been imported.
++                        }
++                    }
++                    cnt = modCount < 0 ? modCount : enclosingStarCnt == null ? 0 : enclosingStarCnt;
++                }
++            }
++
+             if (cnt == -2) {
+                 currentToImport--;
+             } else {
+-                if (cnt == -1) {
++                if (cnt == -1 && el != null) {
+                     currentToImportElement = el;
+                     if (isStatic) {
+                         typeCounts.put((TypeElement)el, -2);
+@@ -1375,7 +1473,7 @@ private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends I
+                 if (isStar) {
+                     qualIdent = make.MemberSelect(qualIdent, elements.getName("*")); //NOI18N
+                 }
+-                ImportTree nImport = make.Import(qualIdent, isStatic);
++                ImportTree nImport = currentToImportElement.getKind() == ElementKind.MODULE ? make.ImportModule(qualIdent) : make.Import(qualIdent, isStatic);
+                 while (currentExisting >= 0) {
+                     ImportTree imp = imports.get(currentExisting);
+                     Element impElement = getImportedElement(cut, imp);
+@@ -1400,6 +1498,22 @@ private CompilationUnitTree addImports(CompilationUnitTree cut, List<? extends I
+         return make.CompilationUnit(cut.getPackage(), imports, cut.getTypeDecls(), cut.getSourceFile());
+     }
+ 
++    private static void collectTransitivelyImportedUsedModules(final ModuleElement importedModule, final Set<ModuleElement> usedModules, final CompilationInfo info, final Set<ModuleElement> transitivelyImportedUsedModules) {
++        if (importedModule != null) {
++            if (transitivelyImportedUsedModules.contains(importedModule))
++                return;
++            for (PackageElement pack : info.getElementUtilities().transitivelyExportedPackages(importedModule)) {
++                collectTransitivelyImportedUsedModule(pack, importedModule, usedModules, transitivelyImportedUsedModules);
++            }
++        }
++    }
++
++    private static void collectTransitivelyImportedUsedModule(final PackageElement transitivePackage, final ModuleElement importedModule, final Set<ModuleElement> usedModules, final Set<ModuleElement> transitivelyImportedUsedModules) {
++        if ((transitivePackage.getEnclosingElement() instanceof ModuleElement transitiveModule) && transitiveModule != importedModule && usedModules.contains(transitiveModule)) {
++            transitivelyImportedUsedModules.add(transitiveModule);
++        }
++    }
++
+     /**
+      * Take a tree as a parameter, replace resolved fully qualified names with
+      * simple names and add imports to compilation unit during task commit.
+@@ -1903,7 +2017,9 @@ public Void visitCompilationUnit(CompilationUnitTree node, Void p) {
+     
+     private ExpressionTree qualIdentFor(Element e) {
+         TreeMaker tm = copy.getTreeMaker();
+-        if (e.getKind() == ElementKind.PACKAGE) {
++        if (e.getKind() == ElementKind.MODULE) {
++            return qualIdentFor(((ModuleElement)e).getQualifiedName().toString());
++        } else if (e.getKind() == ElementKind.PACKAGE) {
+             String name = ((PackageElement)e).getQualifiedName().toString();
+             if (e instanceof Symbol) {
+                 int lastDot = name.lastIndexOf('.');
+@@ -2124,12 +2240,13 @@ public int compare(Object o1, Object o2) {
+                 return 0;
+             
+             boolean isStatic1 = false;
++            boolean isModule1 = false;
+             StringBuilder sb1 = new StringBuilder();
+-            if (o1 instanceof ImportTree) {
+-                isStatic1 = ((ImportTree)o1).isStatic();
+-                sb1.append(((ImportTree)o1).getQualifiedIdentifier().toString());
+-            } else if (o1 instanceof Element) {
+-                Element e1 = (Element)o1;
++            if (o1 instanceof ImportTree it1) {
++                isStatic1 = it1.isStatic();
++                isModule1 = it1.isModule();
++                sb1.append(it1.getQualifiedIdentifier().toString());
++            } else if (o1 instanceof Element e1) {
+                 if (e1.getKind().isField() || e1.getKind() == ElementKind.METHOD) {
+                     sb1.append('.').append(e1.getSimpleName());
+                     e1 = e1.getEnclosingElement();
+@@ -2139,17 +2256,21 @@ public int compare(Object o1, Object o2) {
+                     sb1.insert(0, ((TypeElement)e1).getQualifiedName());
+                 } else if (e1.getKind() == ElementKind.PACKAGE) {
+                     sb1.insert(0, ((PackageElement)e1).getQualifiedName());
++                } else if (e1.getKind() == ElementKind.MODULE) {
++                    isModule1 = true;
++                    sb1.insert(0, ((ModuleElement)e1).getQualifiedName());
+                 }
+             }
+             String s1 = sb1.toString();
+                 
+             boolean isStatic2 = false;
++            boolean isModule2 = false;
+             StringBuilder sb2 = new StringBuilder();
+-            if (o2 instanceof ImportTree) {
+-                isStatic2 = ((ImportTree)o2).isStatic();
+-                sb2.append(((ImportTree)o2).getQualifiedIdentifier().toString());
+-            } else if (o2 instanceof Element) {
+-                Element e2 = (Element)o2;
++            if (o2 instanceof ImportTree it2) {
++                isStatic2 = it2.isStatic();
++                isModule2 = it2.isModule();
++                sb2.append(it2.getQualifiedIdentifier().toString());
++            } else if (o2 instanceof Element e2) {
+                 if (e2.getKind().isField() || e2.getKind() == ElementKind.METHOD) {
+                     sb2.append('.').append(e2.getSimpleName());
+                     e2 = e2.getEnclosingElement();
+@@ -2159,12 +2280,21 @@ public int compare(Object o1, Object o2) {
+                     sb2.insert(0, ((TypeElement)e2).getQualifiedName());
+                 } else if (e2.getKind() == ElementKind.PACKAGE) {
+                     sb2.insert(0, ((PackageElement)e2).getQualifiedName());
++                } else if (e2.getKind() == ElementKind.MODULE) {
++                    isModule2 = true;
++                    sb2.insert(0, ((ModuleElement)e2).getQualifiedName());
+                 }
+             }
+             String s2 = sb2.toString();
+ 
+-            int bal = groups.getGroupId(s1, isStatic1) - groups.getGroupId(s2, isStatic2);
+-
++            int bal;
++            if (isModule1) {
++                bal = isModule2 ? 0 : 1;    // Place module imports last
++            } else if (isModule2) {
++                bal = -1;                   // Place module imports last
++            } else {
++                bal = groups.getGroupId(s1, isStatic1) - groups.getGroupId(s2, isStatic2);
++            }
+             return bal == 0 ? s1.compareTo(s2) : bal;
+         }
+     }
+@@ -2270,8 +2400,8 @@ public Boolean scan(Tree node, Boolean p) {
+     static {
+         GeneratorUtilitiesAccessor.setInstance(new GeneratorUtilitiesAccessor() {
+             @Override
+-            public CompilationUnitTree addImports(GeneratorUtilities gu, CompilationUnitTree cut, List<? extends ImportTree> cutImports, Set<? extends Element> toImport) {
+-                return gu.addImports(cut, cutImports, toImport);
++            public CompilationUnitTree addImports(GeneratorUtilities gu, CompilationUnitTree cut, List<? extends ImportTree> cutImports, Set<? extends Element> toImport, Function<Element, ModuleElement> moduleOf) {
++                return gu.addImports(cut, cutImports, toImport, moduleOf);
+             }
+         });
+     }
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/GeneratorUtilitiesAccessor.java b/java/java.source.base/src/org/netbeans/modules/java/source/GeneratorUtilitiesAccessor.java
+index 3e96b8d5fda9..75041ca8a826 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/GeneratorUtilitiesAccessor.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/GeneratorUtilitiesAccessor.java
+@@ -22,7 +22,9 @@
+ import com.sun.source.tree.ImportTree;
+ import java.util.List;
+ import java.util.Set;
++import java.util.function.Function;
+ import javax.lang.model.element.Element;
++import javax.lang.model.element.ModuleElement;
+ import org.netbeans.api.java.source.GeneratorUtilities;
+ 
+ public abstract class GeneratorUtilitiesAccessor {
+@@ -60,6 +62,6 @@ public static void setInstance(GeneratorUtilitiesAccessor instance) {
+     protected GeneratorUtilitiesAccessor() {
+     }
+ 
+-    public abstract CompilationUnitTree addImports(GeneratorUtilities gu, CompilationUnitTree cut, List<? extends ImportTree> cutImports, Set<? extends Element> toImport);
++    public abstract CompilationUnitTree addImports(GeneratorUtilities gu, CompilationUnitTree cut, List<? extends ImportTree> cutImports, Set<? extends Element> toImport, Function<Element, ModuleElement> moduleOf);
+ 
+ }
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java b/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java
+index acb7f0fcbcd3..0e70ff3ab7ab 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/save/CasualDiff.java
+@@ -100,6 +100,7 @@
+ import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+ import com.sun.tools.javac.tree.JCTree.JCModifiers;
+ import com.sun.tools.javac.tree.JCTree.JCModuleDecl;
++import com.sun.tools.javac.tree.JCTree.JCModuleImport;
+ import com.sun.tools.javac.tree.JCTree.JCNewArray;
+ import com.sun.tools.javac.tree.JCTree.JCNewClass;
+ import com.sun.tools.javac.tree.JCTree.JCOpens;
+@@ -940,6 +941,18 @@ protected int diffImport(JCImport oldT, JCImport newT, int[] bounds) {
+         return bounds[1];
+     }
+ 
++    protected int diffModuleImport(JCModuleImport oldT, JCModuleImport newT, int[] bounds) {
++        int localPointer = bounds[0];
++
++        int[] qualBounds = getBounds(oldT.getQualifiedIdentifier());
++        assert oldT.isModule() == newT.isModule();
++        copyTo(localPointer, qualBounds[0]);
++        localPointer = diffTree(oldT.getQualifiedIdentifier(), newT.getQualifiedIdentifier(), qualBounds);
++        copyTo(localPointer, bounds[1]);
++
++        return bounds[1];
++    }
++
+     // TODO: should be here printer.enclClassName be used?
+     private Name origClassName = null;
+     private Name newClassName = null;
+@@ -3287,6 +3300,8 @@ public boolean treesMatch(JCTree t1, JCTree t2, boolean deepMatch) {
+               return ((JCCompilationUnit)t1).sourcefile.equals(((JCCompilationUnit)t2).sourcefile);
+           case IMPORT:
+               return matchImport((JCImport)t1, (JCImport)t2);
++          case MODULEIMPORT:
++              return matchModuleImport((JCModuleImport)t1, (JCModuleImport)t2);
+           case CLASSDEF:
+               return ((JCClassDecl)t1).sym == ((JCClassDecl)t2).sym;
+           case METHODDEF:
+@@ -5676,6 +5691,9 @@ private int diffTreeImpl0(JCTree oldT, JCTree newT, JCTree parent /*used only fo
+           case IMPORT:
+               retVal = diffImport((JCImport)oldT, (JCImport)newT, elementBounds);
+               break;
++          case MODULEIMPORT:
++              retVal = diffModuleImport((JCModuleImport)oldT, (JCModuleImport)newT, elementBounds);
++              break;
+           case CLASSDEF:
+               retVal = diffClassDef((JCClassDecl)oldT, (JCClassDecl)newT, elementBounds);
+               break;
+@@ -5978,6 +5996,10 @@ private boolean matchImport(JCImport t1, JCImport t2) {
+         return t1.staticImport == t2.staticImport && treesMatch(t1.qualid, t2.qualid);
+     }
+ 
++    private boolean matchModuleImport(JCModuleImport t1, JCModuleImport t2) {
++        return treesMatch(t1.getQualifiedIdentifier(), t2.getQualifiedIdentifier());
++    }
++
+     private boolean matchBlock(JCBlock t1, JCBlock t2) {
+         return t1.flags == t2.flags && listsMatch(t1.stats, t2.stats);
+     }
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/save/ElementOverlay.java b/java/java.source.base/src/org/netbeans/modules/java/source/save/ElementOverlay.java
+index 3c6144151f98..7692df5a45a2 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/save/ElementOverlay.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/save/ElementOverlay.java
+@@ -432,7 +432,7 @@ public PackageElement unnamedPackage(ASTService ast, Elements elements, ModuleEl
+         return (PackageElement) resolve(ast, elements, "", modle);
+     }
+     
+-    private ModuleElement moduleOf(Elements elements, Element el) {
++    public ModuleElement moduleOf(Elements elements, Element el) {
+         if (el instanceof TypeElementWrapper)
+             return moduleOf(elements, ((TypeElementWrapper) el).delegateTo);
+         if (el instanceof FakeTypeElement)
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/transform/ImmutableTreeTranslator.java b/java/java.source.base/src/org/netbeans/modules/java/source/transform/ImmutableTreeTranslator.java
+index 463f4a5b9183..d2fd9688387f 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/transform/ImmutableTreeTranslator.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/transform/ImmutableTreeTranslator.java
+@@ -35,7 +35,6 @@
+ import javax.lang.model.element.Element;
+ import javax.lang.model.element.ElementKind;
+ import javax.lang.model.element.QualifiedNameable;
+-import javax.lang.model.element.TypeElement;
+ import javax.lang.model.util.Elements;
+ import org.netbeans.api.java.source.GeneratorUtilities;
+ import org.netbeans.api.java.source.TreeMaker;
+@@ -651,7 +650,7 @@ protected final CompilationUnitTree rewriteChildren(CompilationUnitTree tree) {
+         Set<? extends Element> newImports = importAnalysis.getImports();
+         if (copy != null && newImports != null && !newImports.isEmpty()) {
+             imps = GeneratorUtilitiesAccessor.getInstance()
+-                                             .addImports(GeneratorUtilities.get(copy), tree, imps, newImports)
++                                             .addImports(GeneratorUtilities.get(copy), tree, imps, newImports, el -> overlay.moduleOf(elements, el))
+                                              .getImports();
+         }
+         
+diff --git a/java/java.source.base/test/unit/src/org/netbeans/api/java/source/GeneratorUtilitiesTest.java b/java/java.source.base/test/unit/src/org/netbeans/api/java/source/GeneratorUtilitiesTest.java
+index d32c1d4ca96a..2381e9dc6e99 100644
+--- a/java/java.source.base/test/unit/src/org/netbeans/api/java/source/GeneratorUtilitiesTest.java
++++ b/java/java.source.base/test/unit/src/org/netbeans/api/java/source/GeneratorUtilitiesTest.java
+@@ -610,6 +610,159 @@ public void validate(CompilationInfo info) {
+         }, false);
+     }
+ 
++    public void testAddImportsWithModule1() throws Exception {
++        performTest("test/Process.java",
++                """
++                package test;
++                import java.util.Collections;
++                public class Process {
++                    public static void main(String... args) {
++                        Collections.singleton(Process.class).forEach(System.out::println);
++                    }
++                }
++                """,
++                "25", new AddImportsTask(false, List.of("java.base"), "test.Process"),
++                (CompilationInfo info) -> {
++                    assertEquals(0, info.getDiagnostics().size());
++                    List<? extends ImportTree> imports = info.getCompilationUnit().getImports();
++                    assertEquals(2, imports.size());
++                    assertEquals("java.util.Collections", imports.get(0).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(1).isModule());
++                    assertEquals("java.base", imports.get(1).getQualifiedIdentifier().toString());
++                }, false);
++    }
++
++    public void testAddImportsWithModule2() throws Exception {
++        performTest(
++                """
++                package test;
++                import java.util.List;
++                import javax.swing.JLabel;
++                public class Test { }
++                """,
++                "25", new AddImportsTask(false, List.of("java.base", "java.desktop"), "javax.swing.JTable", "java.util.ArrayList"),
++                (CompilationInfo info) -> {
++                    assertEquals(0, info.getDiagnostics().size());
++                    List<? extends ImportTree> imports = info.getCompilationUnit().getImports();
++                    assertEquals(4, imports.size());
++                    assertEquals("java.util.List", imports.get(0).getQualifiedIdentifier().toString());
++                    assertEquals("javax.swing.JLabel", imports.get(1).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(2).isModule());
++                    assertEquals("java.base", imports.get(2).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(3).isModule());
++                    assertEquals("java.desktop", imports.get(3).getQualifiedIdentifier().toString());
++                }, false);
++    }
++
++    public void testAddImportsWithModule3() throws Exception {
++        performTest(
++                """
++                package test;
++                import javax.swing.JLabel;
++                import module java.base;
++                public class Test { }
++                """,
++                "25", new AddImportsTask(false, List.of("java.base", "java.desktop"), "java.util.List", "java.util.ArrayList"),
++                (CompilationInfo info) -> {
++                    assertEquals(0, info.getDiagnostics().size());
++                    List<? extends ImportTree> imports = info.getCompilationUnit().getImports();
++                    assertEquals(4, imports.size());
++                    assertEquals("java.util.List", imports.get(0).getQualifiedIdentifier().toString());
++                    assertEquals("javax.swing.JLabel", imports.get(1).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(2).isModule());
++                    assertEquals("java.base", imports.get(2).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(3).isModule());
++                    assertEquals("java.desktop", imports.get(3).getQualifiedIdentifier().toString());
++                }, false);
++    }
++
++    public void testAddImportsWithModule4() throws Exception {
++        Preferences preferences = MimeLookup.getLookup(JavaTokenId.language().mimeType()).lookup(Preferences.class);
++        preferences.putBoolean("allowConvertToStarImport", true);
++        performTest(
++                """
++                package test;
++                import java.awt.*;
++                import java.util.List;
++                import module java.base;
++                public class Test {
++                    private void op(List list) {
++                        int size = list.size();
++                    }
++                }
++                """,
++                "25", new AddImportsTask("java.util.AbstractList", "java.util.ArrayList", "java.util.Collection", "java.util.Collections"),
++                (CompilationInfo info) -> {
++                    assertEquals(0, info.getDiagnostics().size());
++                    List<? extends ImportTree> imports = info.getCompilationUnit().getImports();
++                    assertEquals(3, imports.size());
++                    assertEquals("java.awt.*", imports.get(0).getQualifiedIdentifier().toString());
++                    assertEquals("java.util.List", imports.get(1).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(2).isModule());
++                    assertEquals("java.base", imports.get(2).getQualifiedIdentifier().toString());
++                }, false);
++        preferences.putBoolean("allowConvertToStarImport", false);
++    }
++
++    public void testAddImportsWithModule5() throws Exception {
++        Preferences preferences = MimeLookup.getLookup(JavaTokenId.language().mimeType()).lookup(Preferences.class);
++        preferences.putBoolean("allowConvertToStarImport", true);
++        performTest(
++                """
++                package test;
++                import java.util.List;
++                public class Test {
++                    private List l = new ArrayList<>();
++                    private Button b;
++                    private void op(List list) {
++                        int size = list.size();
++                    }
++                }
++                """,
++                "25", new AddImportsTask(false, List.of("java.desktop", "java.base"), "java.awt.Button", "java.util.AbstractList", "java.util.ArrayList", "java.util.Collection", "java.util.Collections"),
++                (CompilationInfo info) -> {
++                    assertEquals(0, info.getDiagnostics().size());
++                    List<? extends ImportTree> imports = info.getCompilationUnit().getImports();
++                    assertEquals(3, imports.size());
++                    assertEquals("java.util.List", imports.get(0).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(1).isModule());
++                    assertEquals("java.base", imports.get(1).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(2).isModule());
++                    assertEquals("java.desktop", imports.get(2).getQualifiedIdentifier().toString());
++                }, false);
++        preferences.putBoolean("allowConvertToStarImport", false);
++    }
++
++    public void testAddImportsWithModule6() throws Exception {
++        Preferences preferences = MimeLookup.getLookup(JavaTokenId.language().mimeType()).lookup(Preferences.class);
++        preferences.putBoolean("allowConvertToStarImport", true);
++        performTest(
++                """
++                package test;
++                import java.util.List;
++                public class Test {
++                    private List l = new ArrayList<>();
++                    private Button b;
++                    private void op(List list) {
++                        int size = list.size();
++                    }
++                }
++                """,
++                "25", new AddImportsTask(false, List.of("java.desktop", "java.sql"), "java.awt.Button", "java.util.AbstractList", "java.util.ArrayList", "java.util.Collection", "java.util.Collections", "javax.xml.XMLConstants", "java.sql.PreparedStatement", "java.awt.datatransfer.Clipboard"),
++                (CompilationInfo info) -> {
++                    assertEquals(0, info.getDiagnostics().size());
++                    List<? extends ImportTree> imports = info.getCompilationUnit().getImports();
++                    assertEquals(4, imports.size());
++                    assertEquals("java.util.*", imports.get(0).getQualifiedIdentifier().toString());
++                    assertEquals("java.util.List", imports.get(1).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(2).isModule());
++                    assertEquals("java.desktop", imports.get(2).getQualifiedIdentifier().toString());
++                    assertTrue(imports.get(3).isModule());
++                    assertEquals("java.sql", imports.get(3).getQualifiedIdentifier().toString());
++                }, false);
++        preferences.putBoolean("allowConvertToStarImport", false);
++    }
++
+     public void testGetterNamingConvention0() throws Exception {//#165241
+         performTest("package test;\npublic class Test {\nprivate int eMai;\npublic Test(){\n}\n }\n", new GetterSetterTask(34, false), new Validator() {
+ 
+@@ -1156,6 +1309,7 @@ private static class AddImportsTask implements CancellableTask<WorkingCopy> {
+ 
+         private final boolean incremental;
+         private String[] toImport;
++        private List<String> toImportModules;
+         
+         public AddImportsTask(String... toImport) {
+             this(false, toImport);
+@@ -1164,6 +1318,13 @@ public AddImportsTask(String... toImport) {
+         public AddImportsTask(boolean incremental, String... toImport) {
+             this.incremental = incremental;
+             this.toImport = toImport;
++            this.toImportModules = List.of();
++        }
++
++        public AddImportsTask(boolean incremental, List<String> toImportModules, String... toImport) {
++            this.incremental = incremental;
++            this.toImport = toImport;
++            this.toImportModules = toImportModules == null ? List.of() : toImportModules;
+         }
+ 
+         public void cancel() {
+@@ -1205,6 +1366,12 @@ public void run(WorkingCopy copy) throws Exception {
+                     imports.add(el);
+                 }
+             }
++            for (String imp : toImportModules) {
++                Element el = elements.getModuleElement(imp);
++                if (el != null) {
++                    imports.add(el);
++                }
++            }
+             if (!imports.isEmpty()) {
+                 newCut = utilities.addImports(newCut, imports);
+             }
+diff --git a/java/java.source.base/test/unit/src/org/netbeans/api/java/source/gen/ImportsTest.java b/java/java.source.base/test/unit/src/org/netbeans/api/java/source/gen/ImportsTest.java
+index 934b453db7a9..7497a38c5345 100644
+--- a/java/java.source.base/test/unit/src/org/netbeans/api/java/source/gen/ImportsTest.java
++++ b/java/java.source.base/test/unit/src/org/netbeans/api/java/source/gen/ImportsTest.java
+@@ -29,9 +29,11 @@
+ import com.sun.source.tree.VariableTree;
+ import java.io.File;
+ import java.io.IOException;
++import java.util.ArrayList;
+ 
+ import java.util.Collections;
+ import java.util.EnumSet;
++import java.util.List;
+ import javax.lang.model.element.Modifier;
+ import javax.lang.model.element.TypeElement;
+ import org.netbeans.api.java.source.Task;
+@@ -1554,6 +1556,93 @@ public void run(WorkingCopy workingCopy) throws IOException {
+         assertEquals(golden, res);
+     }
+ 
++    public void testReorderModuleImports() throws Exception {
++        testFile = new File(getWorkDir(), "Test.java");
++        TestUtilities.copyStringToFile(
++                testFile,
++                """
++                package test;
++                import module java.desktop;                
++                import module java.base;
++                public class Test {
++                }
++                """
++        );
++        String golden = 
++            """
++            package test;
++            import module java.base;
++            import module java.desktop;
++            public class Test {
++            }
++            """;
++
++        JavaSource src = getJavaSource(testFile);
++        Task<WorkingCopy> task = (WorkingCopy workingCopy) -> {
++            workingCopy.toPhase(Phase.RESOLVED);
++            TreeMaker make = workingCopy.getTreeMaker();
++            CompilationUnitTree node = workingCopy.getCompilationUnit();
++            List<? extends ImportTree> imports = node.getImports();
++            List<ImportTree> newImports = new ArrayList<>(imports);
++            newImports.set(0, (ImportTree) make.asReplacementOf(make.ImportModule((ExpressionTree)imports.get(1).getQualifiedIdentifier()), imports.get(0)));
++            newImports.set(1, (ImportTree) make.asReplacementOf(make.ImportModule((ExpressionTree)imports.get(0).getQualifiedIdentifier()), imports.get(1)));
++            CompilationUnitTree nueNode = make.CompilationUnit(node.getPackageName(), newImports, node.getTypeDecls(), node.getSourceFile());
++            workingCopy.rewrite(node, nueNode);
++        };
++        src.runModificationTask(task).commit();
++        String res = TestUtilities.copyFileToString(testFile);
++        //System.err.println(res);
++        assertEquals(golden, res);
++    }
++
++    public void testReorderImportsWithStaticAndModuleKinds() throws Exception {
++        testFile = new File(getWorkDir(), "Test.java");
++        TestUtilities.copyStringToFile(
++                testFile,
++                """
++                package test;
++                import module java.desktop;
++                import static java.awt.*;
++                import java.util.List;
++                import static java.util.function.*;
++                import module java.base;
++                public class Test {
++                }
++                """
++        );
++        String golden = 
++            """
++            package test;
++            import java.util.List;
++            import static java.awt.*;
++            import static java.util.function.*;
++                        
++            import module java.base;
++            import module java.desktop;
++            public class Test {
++            }
++            """;
++
++        JavaSource src = getJavaSource(testFile);
++        Task<WorkingCopy> task = (WorkingCopy workingCopy) -> {
++            workingCopy.toPhase(Phase.RESOLVED);
++            TreeMaker make = workingCopy.getTreeMaker();
++            CompilationUnitTree node = workingCopy.getCompilationUnit();
++            List<? extends ImportTree> imports = node.getImports();
++            List<ImportTree> newImports = new ArrayList<>(imports);
++            newImports.set(0, (ImportTree) make.asReplacementOf(make.Import((ExpressionTree)imports.get(2).getQualifiedIdentifier(), false), imports.get(0)));
++            newImports.set(2, (ImportTree) make.asReplacementOf(make.Import((ExpressionTree)imports.get(3).getQualifiedIdentifier(), true), imports.get(2)));
++            newImports.set(3, (ImportTree) make.asReplacementOf(make.ImportModule((ExpressionTree)imports.get(4).getQualifiedIdentifier()), imports.get(3)));
++            newImports.set(4, (ImportTree) make.asReplacementOf(make.ImportModule((ExpressionTree)imports.get(0).getQualifiedIdentifier()), imports.get(4)));
++            CompilationUnitTree nueNode = make.CompilationUnit(node.getPackageName(), newImports, node.getTypeDecls(), node.getSourceFile());
++            workingCopy.rewrite(node, nueNode);
++        };
++        src.runModificationTask(task).commit();
++        String res = TestUtilities.copyFileToString(testFile);
++        //System.err.println(res);
++        assertEquals(golden, res);
++    }
++
+     String getGoldenPckg() {
+         return "";
+     }
