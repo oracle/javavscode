@@ -306,5 +306,10 @@ suite('Extension Test Suite', function () {
     const formattedContents = editor.document.getText().trim();
     assert.ok(formattedContents == FORMATTED_POM_XML.trim(), "pom.xml is not formatted");
   });
-
+  // Check if open  language server  user directory command is excuted succesfully
+  test("Open Oracle Java Language Server user directory  ", async () => {
+    const opened = await commands.executeCommand('jdk.open.userDir');
+    assert.ok(opened, "Open Oracle Java Language Server user directory command not working");
+  });
+  // Check if delete cache  command is executed succesfully
 });
