@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2025, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -13,23 +13,29 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { commands, window } from "vscode";
+import { commands, window, env } from "vscode";
 import { builtInCommands, extCommands } from "./commands";
 import { ICommand } from "./types";
 import { l10n } from "../localiser";
 import * as fs from 'fs';
 import * as path from 'path';
 import { globalState } from "../globalState";
+import { getConfigurationValue } from "../configurations/handlers";
+import { configKeys } from "../configurations/configuration";
+import { LOGGER } from "../logger";
+import { FileUtils, isError } from "../utils";
 
+const getLanguageServerUserDir = () => {
+    const userdirScope = process.env['nbcode_userdir'] || getConfigurationValue(configKeys.userdir, "local");
+    const workspaceStoragePath = globalState.getExtensionContextInfo().getWorkspaceStorage()?.fsPath;
+    const userdirParentDir = userdirScope === "local" && workspaceStoragePath
+        ? workspaceStoragePath
+        : globalState.getExtensionContextInfo().getGlobalStorage().fsPath;
+    const userDir = path.join(userdirParentDir, "userdir");
+    return userDir;
+}
 const deleteCache = async () => {
-    // TODO: Change workspace path to userdir path
-    const storagePath = globalState.getExtensionContextInfo().getWorkspaceStorage()?.fsPath;
-    if (!storagePath) {
-        window.showErrorMessage(l10n.value("jdk.extension.cache.error_msg.cannotFindWrkSpacePath"));
-        return;
-    }
-
-    const userDir = path.join(storagePath, "userdir");
+    const userDir = getLanguageServerUserDir();
     if (userDir && fs.existsSync(userDir)) {
         const yes = l10n.value("jdk.extension.cache.label.confirmation.yes")
         const cancel = l10n.value("jdk.extension.cache.label.confirmation.cancel")
@@ -44,7 +50,16 @@ const deleteCache = async () => {
                 await fs.promises.rm(userDir, { recursive: true });
                 await window.showInformationMessage(l10n.value("jdk.extension.message.cacheDeleted"), reloadWindowActionLabel);
             } catch (err) {
-                await window.showErrorMessage(l10n.value("jdk.extension.error_msg.cacheDeletionError"), reloadWindowActionLabel);
+                LOGGER.error(`Error while deleting the cache  : ${isError(err) ? err.message : err}`);
+                const openLSUserDirLabel = l10n.value("jdk.extension.cache.label.openLSUserDir");
+                const selectedAction = await window.showErrorMessage(l10n.value("jdk.extension.error_msg.cacheDeletionError"), openLSUserDirLabel);
+                if (selectedAction === openLSUserDirLabel) {
+                    const opened = await openLanguageServerUserDir();
+                    if (opened)
+                        await window.showInformationMessage(l10n.value("jdk.extension.cache.message.reloadWindow.afterUserDirDeletion"), reloadWindowActionLabel);
+                    else
+                        await window.showErrorMessage(l10n.value("jdk.extension.error_msg.cacheDeletion.notOpenUserDir", { userDir }), reloadWindowActionLabel);
+                }
             } finally {
                 commands.executeCommand(builtInCommands.reloadWindow);
             }
@@ -53,8 +68,22 @@ const deleteCache = async () => {
         window.showErrorMessage(l10n.value("jdk.extension.cache.message.noUserDir"));
     }
 }
+const openLanguageServerUserDir = async () => {
+    const userDir = getLanguageServerUserDir();
+    if (userDir && fs.existsSync(userDir)) {
+        return env.openExternal(FileUtils.toUri(userDir));
+    } else {
+        window.showErrorMessage(l10n.value("jdk.extension.cache.message.noUserDir"));
+        return false;
+    }
+}
 
-export const registerCacheCommands: ICommand[] = [{
-    command: extCommands.deleteCache,
-    handler: deleteCache
-}];
+export const registerCacheCommands: ICommand[] = [
+    {
+        command: extCommands.deleteCache,
+        handler: deleteCache
+    }, {
+        command: extCommands.openLanguageServerUserDir,
+        handler: openLanguageServerUserDir
+    },
+];

@@ -22,6 +22,7 @@ export const extCommands = {
     newProject: appendPrefixToCommand('workspace.newproject'),
     openTest: appendPrefixToCommand('open.test'),
     deleteCache: appendPrefixToCommand('delete.cache'),
+    openLanguageServerUserDir: appendPrefixToCommand('open.userDir'),
     downloadJdk: appendPrefixToCommand('download.jdk'),
     compileWorkspace: appendPrefixToCommand('workspace.compile'),
     cleanWorkspace: appendPrefixToCommand('workspace.clean'),
