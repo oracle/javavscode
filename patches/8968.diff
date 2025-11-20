@@ -1,0 +1,241 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java
+index ecba2107a2..8e64caa63e 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ChangeMethodParametersRefactoring.java
+@@ -40,7 +40,6 @@ import net.java.html.json.Function;
+ import net.java.html.json.Model;
+ import net.java.html.json.ModelOperation;
+ import net.java.html.json.Property;
+-import org.eclipse.lsp4j.ApplyWorkspaceEditParams;
+ import org.eclipse.lsp4j.CodeAction;
+ import org.eclipse.lsp4j.CodeActionKind;
+ import org.eclipse.lsp4j.CodeActionParams;
+@@ -281,7 +280,7 @@ public final class ChangeMethodParametersRefactoring extends CodeRefactoring {
+                 }
+                 refactoring.setParameterInfo(params);
+                 refactoring.getContext().add(JavaRefactoringUtils.getClasspathInfoFor(file));
+-                client.applyEdit(new ApplyWorkspaceEditParams(perform(refactoring, "ChangeMethodParameters")));
++                sendRefactoringChanges(client, refactoring, "ChangeMethodParameters");
+             } catch (Exception ex) {
+                 if (client == null) {
+                     Exceptions.printStackTrace(
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/CodeRefactoring.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/CodeRefactoring.java
+index 15545494df..dcdeee1eb5 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/CodeRefactoring.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/CodeRefactoring.java
+@@ -21,17 +21,24 @@ package org.netbeans.modules.java.lsp.server.refactoring;
+ import java.io.File;
+ import java.net.URL;
+ import java.util.ArrayList;
++import java.util.Arrays;
+ import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
++import java.util.logging.Level;
++import org.eclipse.lsp4j.ApplyWorkspaceEditParams;
+ import org.eclipse.lsp4j.CreateFile;
+ import org.eclipse.lsp4j.DeleteFile;
++import org.eclipse.lsp4j.MessageActionItem;
++import org.eclipse.lsp4j.MessageParams;
++import org.eclipse.lsp4j.MessageType;
+ import org.eclipse.lsp4j.Position;
+ import org.eclipse.lsp4j.Range;
+ import org.eclipse.lsp4j.RenameFile;
+ import org.eclipse.lsp4j.ResourceOperation;
++import org.eclipse.lsp4j.ShowMessageRequestParams;
+ import org.eclipse.lsp4j.TextDocumentEdit;
+ import org.eclipse.lsp4j.TextEdit;
+ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
+@@ -40,17 +47,21 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
+ import org.netbeans.api.java.source.ModificationResult;
+ import org.netbeans.modules.java.lsp.server.Utils;
+ import org.netbeans.modules.java.lsp.server.protocol.CodeActionsProvider;
++import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
+ import org.netbeans.modules.refactoring.api.AbstractRefactoring;
+ import org.netbeans.modules.refactoring.api.Problem;
+ import org.netbeans.modules.refactoring.api.RefactoringSession;
+ import org.netbeans.modules.refactoring.api.impl.APIAccessor;
+ import org.netbeans.modules.refactoring.api.impl.SPIAccessor;
++import org.netbeans.modules.refactoring.java.plugins.JavaPluginUtils;
+ import org.netbeans.modules.refactoring.java.spi.hooks.JavaModificationResult;
+ import org.netbeans.modules.refactoring.plugins.FileMovePlugin;
+ import org.netbeans.modules.refactoring.spi.RefactoringCommit;
+ import org.netbeans.modules.refactoring.spi.RefactoringElementImplementation;
+ import org.netbeans.modules.refactoring.spi.Transaction;
+ import org.openide.filesystems.FileObject;
++import org.openide.util.Exceptions;
++import org.openide.util.NbBundle;
+ 
+ /**
+  *
+@@ -58,20 +69,7 @@ import org.openide.filesystems.FileObject;
+  */
+ public abstract class CodeRefactoring extends CodeActionsProvider {
+ 
+-    protected static final WorkspaceEdit perform(AbstractRefactoring refactoring, String name) throws Exception {
+-        RefactoringSession session = RefactoringSession.create(name);
+-        Problem p = refactoring.checkParameters();
+-        if (p != null && p.isFatal()) {
+-            throw new IllegalStateException(p.getMessage());
+-        }
+-        p = refactoring.preCheck();
+-        if (p != null && p.isFatal()) {
+-            throw new IllegalStateException(p.getMessage());
+-        }
+-        p = refactoring.prepare(session);
+-        if (p != null && p.isFatal()) {
+-            throw new IllegalStateException(p.getMessage());
+-        }
++    private static WorkspaceEdit perform(AbstractRefactoring refactoring, RefactoringSession session) throws Exception {
+         List<Either<TextDocumentEdit, ResourceOperation>> resultChanges = new ArrayList<>();
+         Map<String, String> renames = new HashMap<>();
+         List<RefactoringElementImplementation> fileChanges = APIAccessor.DEFAULT.getFileChanges(session);
+@@ -136,4 +134,62 @@ public abstract class CodeRefactoring extends CodeActionsProvider {
+         session.finished();
+         return new WorkspaceEdit(resultChanges);
+     }
++
++    private static Problem prepare(AbstractRefactoring refactoring, RefactoringSession session) {
++        Problem p = refactoring.checkParameters();
++        p = JavaPluginUtils.chainProblems(p, refactoring.preCheck());
++        p = JavaPluginUtils.chainProblems(p, refactoring.prepare(session));
++        return p;
++    }
++
++    @NbBundle.Messages({
++        "# {0} - problems message",
++        "PROMPT_AskProceedWithRefactoringProblems=Refactoring may lead to following problems: {0}.\nDo you still want to proceed with the refactoring?",
++        "PROMPT_AskProceedWithRefactoringProblems_Yes=Yes",
++        "PROMPT_AskProceedWithRefactoringProblems_No=No",
++    })
++    private static ShowMessageRequestParams warningsMessageParams(
++            Problem p) {
++        final MessageActionItem yes = new MessageActionItem(Bundle.PROMPT_AskProceedWithRefactoringProblems_Yes());
++        final MessageActionItem no = new MessageActionItem(Bundle.PROMPT_AskProceedWithRefactoringProblems_No());
++        ShowMessageRequestParams smrp = new ShowMessageRequestParams(Arrays.asList(yes, no));
++        StringBuilder msgs = new StringBuilder();
++        while (p != null) {
++            msgs.append(p.getMessage());
++            msgs.append('\n');
++            p = p.getNext();
++        }
++        smrp.setMessage(Bundle.PROMPT_AskProceedWithRefactoringProblems(msgs.toString()));
++        smrp.setType(MessageType.Warning);
++        return smrp;
++    }
++
++    private static void showRefactoringWarnings(NbCodeLanguageClient client,AbstractRefactoring refactoring,RefactoringSession session,Problem p) {
++        ShowMessageRequestParams smrp = warningsMessageParams(p);
++        client.showMessageRequest(smrp).thenAccept(ai -> {
++            if (ai.getTitle().equalsIgnoreCase(Bundle.PROMPT_AskProceedWithRefactoringProblems_Yes())) {
++                try {
++                    client.applyEdit(new ApplyWorkspaceEditParams(perform(refactoring, session)));
++                } catch (Exception ex) {
++                    if (client == null) {
++                        Exceptions.printStackTrace(Exceptions.attachSeverity(ex, Level.SEVERE));
++                    } else {
++                        client.showMessage(new MessageParams(MessageType.Error, ex.getLocalizedMessage()));
++                    }
++                }
++            }
++        });
++    }
++
++    protected static void sendRefactoringChanges(NbCodeLanguageClient client, AbstractRefactoring refactoring, String name) throws Exception {
++        RefactoringSession session = RefactoringSession.create(name);
++        Problem p = prepare(refactoring, session);
++        if (p == null) {
++            client.applyEdit(new ApplyWorkspaceEditParams(perform(refactoring, session)));
++        } else if (p.isFatal()) {
++            throw new IllegalStateException(p.getMessage());
++        } else {
++            showRefactoringWarnings(client, refactoring, session, p);
++        }
++    }
+ }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ExtractSuperclassOrInterfaceRefactoring.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ExtractSuperclassOrInterfaceRefactoring.java
+index 03708dd92e..ee83ac175a 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ExtractSuperclassOrInterfaceRefactoring.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/ExtractSuperclassOrInterfaceRefactoring.java
+@@ -40,7 +40,6 @@ import javax.lang.model.element.ExecutableElement;
+ import javax.lang.model.element.Modifier;
+ import javax.lang.model.element.TypeElement;
+ import javax.lang.model.element.VariableElement;
+-import org.eclipse.lsp4j.ApplyWorkspaceEditParams;
+ import org.eclipse.lsp4j.CodeAction;
+ import org.eclipse.lsp4j.CodeActionKind;
+ import org.eclipse.lsp4j.CodeActionParams;
+@@ -244,7 +243,7 @@ public final class ExtractSuperclassOrInterfaceRefactoring extends CodeRefactori
+                 refactoring = r;
+             }
+             refactoring.getContext().add(JavaRefactoringUtils.getClasspathInfoFor(file));
+-            client.applyEdit(new ApplyWorkspaceEditParams(perform(refactoring, EXTRACT_SUPERCLASS_REFACTORING_COMMAND.equals(command) ? "Extract Superclass" : "Extract Interface")));
++            sendRefactoringChanges(client, refactoring, EXTRACT_SUPERCLASS_REFACTORING_COMMAND.equals(command) ? "Extract Superclass" : "Extract Interface");
+         } catch (Exception ex) {
+             client.showMessage(new MessageParams(MessageType.Error, ex.getLocalizedMessage()));
+         }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/MoveRefactoring.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/MoveRefactoring.java
+index 12acbc7081..52da2e9b0d 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/MoveRefactoring.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/MoveRefactoring.java
+@@ -47,7 +47,6 @@ import net.java.html.json.Function;
+ import net.java.html.json.Model;
+ import net.java.html.json.ModelOperation;
+ import net.java.html.json.Property;
+-import org.eclipse.lsp4j.ApplyWorkspaceEditParams;
+ import org.eclipse.lsp4j.CodeAction;
+ import org.eclipse.lsp4j.CodeActionKind;
+ import org.eclipse.lsp4j.CodeActionParams;
+@@ -407,7 +406,7 @@ public final class MoveRefactoring extends CodeRefactoring {
+                 } else {
+                     refactoring.setTarget(Lookup.EMPTY);
+                 }
+-                client.applyEdit(new ApplyWorkspaceEditParams(perform(refactoring, "Move")));
++                sendRefactoringChanges(client, refactoring, "Move");
+             } catch (Exception ex) {
+                 if (client == null) {
+                     Exceptions.printStackTrace(
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/PullUpRefactoring.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/PullUpRefactoring.java
+index dde9fedd4f..83f53f9c7e 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/PullUpRefactoring.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/PullUpRefactoring.java
+@@ -40,7 +40,6 @@ import javax.lang.model.type.DeclaredType;
+ import javax.lang.model.type.ExecutableType;
+ import javax.lang.model.type.TypeMirror;
+ import javax.lang.model.util.Types;
+-import org.eclipse.lsp4j.ApplyWorkspaceEditParams;
+ import org.eclipse.lsp4j.CodeAction;
+ import org.eclipse.lsp4j.CodeActionKind;
+ import org.eclipse.lsp4j.CodeActionParams;
+@@ -246,7 +245,7 @@ public final class PullUpRefactoring extends CodeRefactoring {
+             refactoring.setTargetType(targetHandle);
+             refactoring.setMembers(memberHandles.toArray(new MemberInfo[0]));
+             refactoring.getContext().add(JavaRefactoringUtils.getClasspathInfoFor(file));
+-            client.applyEdit(new ApplyWorkspaceEditParams(perform(refactoring, "PullUp")));
++            sendRefactoringChanges(client, refactoring, "PullUp");
+         } catch (Exception ex) {
+             client.showMessage(new MessageParams(MessageType.Error, ex.getLocalizedMessage()));
+         }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/PushDownRefactoring.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/PushDownRefactoring.java
+index 3bff795f53..8902e79810 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/PushDownRefactoring.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/refactoring/PushDownRefactoring.java
+@@ -36,7 +36,6 @@ import javax.lang.model.element.Element;
+ import javax.lang.model.element.ElementKind;
+ import javax.lang.model.element.TypeElement;
+ import javax.lang.model.util.Types;
+-import org.eclipse.lsp4j.ApplyWorkspaceEditParams;
+ import org.eclipse.lsp4j.CodeAction;
+ import org.eclipse.lsp4j.CodeActionKind;
+ import org.eclipse.lsp4j.CodeActionParams;
+@@ -189,7 +188,7 @@ public final class PushDownRefactoring extends CodeRefactoring {
+             org.netbeans.modules.refactoring.java.api.PushDownRefactoring refactoring = new org.netbeans.modules.refactoring.java.api.PushDownRefactoring(TreePathHandle.from(sourceHandle, info));
+             refactoring.setMembers(memberHandles.toArray(new MemberInfo[0]));
+             refactoring.getContext().add(JavaRefactoringUtils.getClasspathInfoFor(file));
+-            client.applyEdit(new ApplyWorkspaceEditParams(perform(refactoring, "PushDown")));
++            sendRefactoringChanges(client, refactoring, "PushDown");
+         } catch (Exception ex) {
+             client.showMessage(new MessageParams(MessageType.Error, ex.getLocalizedMessage()));
+         }
