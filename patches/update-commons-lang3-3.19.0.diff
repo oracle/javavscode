@@ -1,3 +1,28 @@
+diff --git a/platform/o.apache.commons.lang3/build.xml b/platform/o.apache.commons.lang3/build.xml
+index 126afe6fbc..3ae696c40e 100644
+--- a/platform/o.apache.commons.lang3/build.xml
++++ b/platform/o.apache.commons.lang3/build.xml
+@@ -21,5 +21,19 @@
+ -->
+ <project name="platform/o.apache.commons.lang3" default="build" basedir=".">
+     <import file="../../nbbuild/templates/projectized.xml"/>
+-    <target name="jar"/>
++    <!--
++        The NetBeans module org.apache.commons.lang3 is just a repackaging
++        of the original bundle, with problematic elements relating to OSGI
++        and Netbinox replaced in the MANIFEST.
++    -->
++    <target name="jar" depends="-define-FileCRC32Calculator">
++        <FileCRC32Calculator file="external/commons-lang3-3.19.0.jar" property="o.apache.commons.lang3.crc32" />
++        <jar jarfile="${cluster}/${module.jar}" filesetmanifest="merge">
++            <zipfileset src="external/commons-lang3-3.19.0.jar"/>
++            <manifest>
++                <attribute name="Import-Package" value="org.apache.commons.lang3"/>
++                <attribute name="NB-Original-CRC" value="${o.apache.commons.lang3.crc32}"/>
++            </manifest>
++        </jar>
++    </target>
+ </project>
 diff --git a/platform/o.apache.commons.lang3/external/binaries-list b/platform/o.apache.commons.lang3/external/binaries-list
 index 36dd1b04ee..2598b53be9 100644
 --- a/platform/o.apache.commons.lang3/external/binaries-list
