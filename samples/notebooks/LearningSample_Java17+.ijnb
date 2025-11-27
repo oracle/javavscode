@@ -10,7 +10,7 @@
     {
       "id": "1c4583aa-a137-4e55-915e-5c218bc02744",
       "cell_type": "markdown",
-      "source": "<!--\n  Copyright (c) 2025, Oracle and/or its affiliates.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0\n  \n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n-->\n***Sample Note:***\n\nThis notebook demonstrates the use of notebooks in helping learners explore some basic concepts of Java with small, self-contained examples.\n\n**What this sample shows:**\n\n- Markdown-formatted guidance with clearly organized sections\n- Running code cells displays output inline\n    - Optionally includes saved outputs from prior runs for reference\n\n**Prerequisites:**\n\nThis notebook requires Java 25+ to run all the cells successfully.",
+      "source": "<!--\n  Copyright (c) 2025, Oracle and/or its affiliates.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0\n  \n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n-->\n***Sample Note:***\n\nThis notebook demonstrates the use of notebooks in helping learners explore some basic concepts of Java with small, self-contained examples.\n\n**What this sample shows:**\n\n- Markdown-formatted guidance with clearly organized sections\n- Running code cells displays output inline\n    - Optionally includes saved outputs from prior runs for reference\n\n**Prerequisites:**\n\nThis notebook requires Java 17+ to run all the cells successfully.",
       "metadata": {
         "language": "markdown",
         "id": "1c4583aa-a137-4e55-915e-5c218bc02744"
@@ -26,21 +26,21 @@
       }
     },
     {
-      "id": "9de98c25-6285-416d-8a56-d9cad1675efa",
+      "id": "2ae1546a-0b98-492f-9b0f-2680cef59aa5",
       "cell_type": "markdown",
-      "source": "### Greetings !!\nExecute the code snippet below and enter your name in the input box that opens at the top of your screen.",
+      "source": "### Greetings !!\nExecute the below code snippet and enter you name in the input box at the top of the screen ",
       "metadata": {
         "language": "markdown",
-        "id": "9de98c25-6285-416d-8a56-d9cad1675efa"
+        "id": "2ae1546a-0b98-492f-9b0f-2680cef59aa5"
       }
     },
     {
-      "id": "3df5b924-bc0e-47fd-a556-dcf71eeabfb8",
+      "id": "49827505-b57d-4827-bdd6-a9ffdf27e80b",
       "cell_type": "code",
-      "source": "\nString name = IO.readln(\"Enter your name:\\n\");\nIO.println(\"Hello \"+name+\" !!\");",
+      "source": "Scanner s = new Scanner(System.in);\nSystem.out.println(\"Enter your name:\");\nString name = s.nextLine();\nSystem.out.println(\"Hello \"+name+\" !\");",
       "metadata": {
         "language": "java",
-        "id": "3df5b924-bc0e-47fd-a556-dcf71eeabfb8",
+        "id": "49827505-b57d-4827-bdd6-a9ffdf27e80b",
         "executionSummary": {
           "executionOrder": 1,
           "success": true
@@ -51,7 +51,7 @@
         {
           "output_type": "execute_result",
           "data": {
-            "text/plain": "Enter your name:\nHello <name> !!\n"
+            "text/plain": "Enter your name:\nHello <name> !\n"
           },
           "metadata": {},
           "execution_count": 1
@@ -88,7 +88,7 @@
     {
       "id": "d5dcf964-eeb5-4966-9ac6-58352b3606a8",
       "cell_type": "code",
-      "source": "byte smallNumber = 127;\nshort mediumNumber = 32000;\nint regularNumber = 2147483647; \nlong bigNumber = 9223372036854775807L;\n\nIO.println(\"=== Integer data types Demo ===\");\nIO.println(\"byte: \" + smallNumber);\nIO.println(\"short: \" + mediumNumber);\nIO.println(\"int: \" + regularNumber);\nIO.println(\"long: \" + bigNumber);",
+      "source": "byte smallNumber = 127;\nshort mediumNumber = 32000;\nint regularNumber = 2147483647; \nlong bigNumber = 9223372036854775807L;\n\nSystem.out.println(\"=== Integer data types Demo ===\");\nSystem.out.println(\"byte: \" + smallNumber);\nSystem.out.println(\"short: \" + mediumNumber);\nSystem.out.println(\"int: \" + regularNumber);\nSystem.out.println(\"long: \" + bigNumber);",
       "metadata": {
         "language": "java",
         "id": "d5dcf964-eeb5-4966-9ac6-58352b3606a8",
@@ -121,7 +121,7 @@
     {
       "id": "71fbbad5-54d6-4d7a-8840-2101f61ca0a4",
       "cell_type": "code",
-      "source": "\nfloat decimal1 = 3.14f;\ndouble decimal2 = 3.141592653589793;\n\nIO.println(\"=== Floating point data types Demo ===\");\nIO.println(\"float: \" + decimal1);\nIO.println(\"double: \" + decimal2);\n",
+      "source": "\nfloat decimal1 = 3.14f;\ndouble decimal2 = 3.141592653589793;\n\nSystem.out.println(\"=== Floating point data types Demo ===\");\nSystem.out.println(\"float: \" + decimal1);\nSystem.out.println(\"double: \" + decimal2);\n",
       "metadata": {
         "language": "java",
         "id": "71fbbad5-54d6-4d7a-8840-2101f61ca0a4",
@@ -154,7 +154,7 @@
     {
       "id": "dff83078-4563-4831-b012-1f5e6c61df5d",
       "cell_type": "code",
-      "source": "boolean isJavaFun = true;\nchar firstAlphabet = 'A'; \n\nIO.println(\"=== Other primitive data types Demo ===\");\nIO.println(\"boolean: \" + isJavaFun);\nIO.println(\"char: \" + firstAlphabet);",
+      "source": "boolean isJavaFun = true;\nchar firstAlphabet = 'A'; \n\nSystem.out.println(\"=== Other primitive data types Demo ===\");\nSystem.out.println(\"boolean: \" + isJavaFun);\nSystem.out.println(\"char: \" + firstAlphabet);",
       "metadata": {
         "language": "java",
         "id": "dff83078-4563-4831-b012-1f5e6c61df5d",
@@ -196,7 +196,7 @@
     {
       "id": "9d083943-839f-4ab1-b652-21d05f1827fe",
       "cell_type": "code",
-      "source": "int age = 20;\nboolean hasID = true;\n\nIO.println(\"=== Conditional if-else statement example ===\");\nif (age >= 18) {\n    if (hasID) {\n        IO.println(\"You are allowed to enter.\");\n    } else {\n        IO.println(\"You need to show your ID.\");\n    }\n} else {\n    IO.println(\"You must be 18 or older to enter.\");\n}\n\n\nIO.println(\"=== Conditional switch-case statement example ===\");\nint dayOfWeek = 3;\nString dayName;\n\nswitch (dayOfWeek) {\n    case 1 -> dayName = \"Monday\";\n    case 2 -> dayName = \"Tuesday\";\n    case 3 -> dayName = \"Wednesday\";\n    case 4 -> dayName = \"Thursday\";\n    case 5 -> dayName = \"Friday\";\n    case 6 -> dayName = \"Saturday\";\n    case 7 -> dayName = \"Sunday\";\n    default -> dayName = \"Invalid day\";\n}\n\nIO.println(\"Day \" + dayOfWeek + \" is: \" + dayName);",
+      "source": "int age = 20;\nboolean hasID = true;\n\nSystem.out.println(\"=== Conditional if-else statement example ===\");\nif (age >= 18) {\n    if (hasID) {\n        System.out.println(\"You are allowed to enter.\");\n    } else {\n        System.out.println(\"You need to show your ID.\");\n    }\n} else {\n    System.out.println(\"You must be 18 or older to enter.\");\n}\n\n\nSystem.out.println(\"=== Conditional switch-case statement example ===\");\nint dayOfWeek = 3;\nString dayName;\n\nswitch (dayOfWeek) {\n    case 1 -> dayName = \"Monday\";\n    case 2 -> dayName = \"Tuesday\";\n    case 3 -> dayName = \"Wednesday\";\n    case 4 -> dayName = \"Thursday\";\n    case 5 -> dayName = \"Friday\";\n    case 6 -> dayName = \"Saturday\";\n    case 7 -> dayName = \"Sunday\";\n    default -> dayName = \"Invalid day\";\n}\n\nSystem.out.println(\"Day \" + dayOfWeek + \" is: \" + dayName);",
       "metadata": {
         "language": "java",
         "id": "9d083943-839f-4ab1-b652-21d05f1827fe",
@@ -238,7 +238,7 @@
     {
       "id": "17fed500-4e81-49b5-9576-99bfd1bdeea7",
       "cell_type": "code",
-      "source": "IO.print(\"Counting 1-5: \");\nfor (int i = 1; i <= 5; i++) {\n    IO.print(i + \" \");\n}\nIO.println();",
+      "source": "System.out.print(\"Counting 1-5: \");\nfor (int i = 1; i <= 5; i++) {\n    System.out.print(i + \" \");\n}\nSystem.out.println();",
       "metadata": {
         "language": "java",
         "id": "17fed500-4e81-49b5-9576-99bfd1bdeea7",
@@ -271,7 +271,7 @@
     {
       "id": "f7135abb-43e7-4eb7-aa45-4f91f8dd485d",
       "cell_type": "code",
-      "source": "int countdown = 5;\nIO.print(\"Countdown: \");\nwhile (countdown > 0) {\n    IO.print(countdown + \" \");\n    countdown--;\n}\nIO.println(\"Countdown completed!\");",
+      "source": "int countdown = 5;\nSystem.out.print(\"Countdown: \");\nwhile (countdown > 0) {\n    System.out.print(countdown + \" \");\n    countdown--;\n}\nSystem.out.println(\"Countdown completed!\");",
       "metadata": {
         "language": "java",
         "id": "f7135abb-43e7-4eb7-aa45-4f91f8dd485d",
@@ -304,7 +304,7 @@
     {
       "id": "3b0d4c9f-b0d2-4e98-bb47-3af51693e0ba",
       "cell_type": "code",
-      "source": "var numbers = List.of(10, 20, 30, 40, 50);\nIO.print(\"List elements: \");\nfor (var num : numbers) {\n    IO.print(num + \" \");\n}",
+      "source": "var numbers = List.of(10, 20, 30, 40, 50);\nSystem.out.print(\"Array elements: \");\nfor (var num : numbers) {\n    System.out.print(num + \" \");\n}",
       "metadata": {
         "language": "java",
         "id": "3b0d4c9f-b0d2-4e98-bb47-3af51693e0ba",
@@ -318,7 +318,7 @@
         {
           "output_type": "execute_result",
           "data": {
-            "text/plain": "List elements: 10 20 30 40 50 "
+            "text/plain": "Array elements: 10 20 30 40 50 "
           },
           "metadata": {},
           "execution_count": 8
