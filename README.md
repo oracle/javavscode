@@ -65,7 +65,7 @@ In the VS Code command palette:
 * __Java: Create New Notebook...__ command to create a new [Java notebook](#interactive-java-notebooks) (`.ijnb` file)
 * __Java: Open JShell...__ command to open [JShell](#jshell).
 * __Java: Compile Workspace__ - invoke Maven or Gradle build
-* __Java: Clean Workspace__ - clean Maven or Gradle buildc
+* __Java: Clean Workspace__ - clean Maven or Gradle build
 * __Download, install and Use JDK__ - allows download and installation of JDK binaries
 * Debugger __Java+...__ - start main class or test on selected JDK. More in [Debugger section](#debugger-and-launch-configurations)
 * __Test Explorer__ for Java tests results visualization and execution including editor code Lenses.
@@ -88,7 +88,7 @@ Project Explorer provides an overview of logical project structure, groups sourc
  * **Sharing notebooks:**
     * Share as `.ijnb` files for use with the Oracle Java extension.
     * Rename with a `.ipynb` extension for viewing in other IDEs, such as Jupyter.
-* Download the [sample notebooks](https://github.com/oracle/javavscode/blob/main/samples/notebooks) and open them in VSCode to get started.
+* Download the [sample notebooks](https://github.com/oracle/javavscode/blob/main/samples/notebooks) and open them in VS Code to get started.
 
 ### Java Notebooks for Java Projects
  * Document Java projects with interactive Java notebooks.
@@ -143,7 +143,7 @@ When using preview features use the quick fix action option to easily enable the
 ![Enable Preview](vscode/images/enable_preview.gif)
 ## Supported Refactorings
 
-Class level refactorings as well as variable refactorings are supported in VS Code via the Oracle Java Platform extension. See the following screenshots:
+Class level refactorings, as well as variable refactorings are supported in VS Code via Oracle Java Platform extension. See the following screenshots:
 
 ### Source Action ... context menu
 ![Class Source Actions](vscode/images/Source_actions.png)
@@ -190,19 +190,19 @@ Move members refactoring provides dedicated form as well.
 ## Formatter Preferences
 Easily update default formatter preferences by adjusting a simple configuration option to tailor settings according to specific needs.
 
-Go to VSCode `Open Settings | Extensions | Java` and set `Jdk › Format: Settings Path:` option to the formatter preferences file.
+Go to VS Code `Open Settings | Extensions | Java` and set `Jdk › Format: Settings Path:` option to the formatter preferences file.
 
 Please refer to [Java formatting preferences](https://github.com/oracle/javavscode/wiki/Java-formatting-preferences) wiki for more info.
 
 ## Hints Preferences
 Easily update default hint preferences by adjusting a simple configuration option to tailor hint preferences to specific needs.
 
-Go to VSCode `Open Settings | Extensions | Java` and set `Jdk › Hints: Preferences:` option to the xml hint preferences file.
+Go to VS Code `Open Settings | Extensions | Java` and set `Jdk › Hints: Preferences:` option to the xml hint preferences file.
 
 ## Organize Imports
 Out of the box support for organizing imports in Java sources is available. It removes unused imports, groups imports by packages and updates your imports whenever a file is saved. In addition to the defaults, there is a rich set of configuration options.
 
-Go to VSCode `Open Settings | Extensions | Java` and search for _Jdk_ to set `Jdk > Java > Imports:` options:
+Go to VS Code `Open Settings | Extensions | Java` and search for _Jdk_ to set `Jdk > Java > Imports:` options:
 * `Count For Using Star Import` - Class count to use a star-import, 999 is the default value
 * `Count For Using Static Star Import` - Members count to use a static star-import, 999 is the default value
 * `Groups` - Groups of import statements (specified by their package prefixes) and their sorting order. Import statements within a group are ordered alphabetically
