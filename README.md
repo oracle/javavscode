@@ -33,21 +33,14 @@ Java Platform extension from Oracle brings full-featured development support (ed
 
 
 ## Getting Started
-1. VS Code Tips
-    - To install and update extensions, refer to [Use extensions in Visual Studio Code](https://code.visualstudio.com/docs/getstarted/extensions).
-    - Search for a command by opening the [command palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) and typing the keywords.
-        - Keyboard Shortcut:
-            - Windows/Linux: `Ctrl+Shift+P`
-            - macOS: `Shift+Command+P`
-        - Type `>` in the search bar at the top.
-    - User input box opens at the top whenever input is required.
+1. See the [VS Code Tips](https://github.com/oracle/javavscode/wiki/VS-Code-Tips) wiki for a quick primer on getting started with VS Code.
 2. Setting up the JDK
     - If no JDK is present in your system then the extension can set things up for you. For more details refer to [JDK Downloader](#jdk-downloader) section.
-    - Set the JDK in the `Open Settings | Jdk: Jdkhome` setting to point to the JDK that the Language Server will run on and also by default use for running and compiling projects.
+    - Set the VS Code `Settings | Jdk: Jdkhome` setting to point to the JDK that the Language Server will run on and also by default use for running and compiling projects.
         - The extension requires JDK 17 or newer to run.
-    - Optionally, set a different JDK to compile and run projects in the `Open Settings | Jdk › Project: Jdkhome` setting.
+    - Optionally, set a different JDK to compile and run projects in the `Settings | Jdk › Project: Jdkhome` setting.
         - By default, the __jdk.jdkhome__ setting is used. 
-        - Projects can run on JDK 8 and above. 
+        - Projects can run on JDK 8 and above.
     - For more information, see the section [Selecting the JDK](#selecting-the-jdk).
 3. Use any one of the following ways to start coding, compiling and debugging in Java.
     - Simply create a new Java class with `main` method.
@@ -73,30 +66,31 @@ In the VS Code command palette:
 * __Java: Go To Test/Tested Class__ - Navigates to the corresponding test or source class file
 
 ## Project Explorer
-Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.
+Project Explorer provides an overview of logical project structure, groups sources together and greatly simplifies Java package structure exploration. Project Explorer is an addition to the classical workspace explorer. Use it to build, test, execute and operate your Maven and Gradle Java projects.<br/>
 ![Project Explorer](vscode/images/project-explorer.png)
 
 ## Interactive Java Notebooks
 ### Introduction
- * Experience interactive coding with Java notebooks. Use the __Java: Create New Notebook...__ command to create a new Java notebook (`.ijnb` file)
+* Experience interactive coding with Java notebooks. See the [Using Interactive Java Notebooks](https://github.com/oracle/javavscode/wiki/Interactive-Java-Notebooks) wiki for guidance and tutorials on using notebooks.
+* Use the __Java: Create New Notebook...__ command to create a new Java notebook (`.ijnb` file)<br/>
     ![Java Notebook](vscode/images/java_notebook.gif)
- * Add code snippets with `+ Code` button and document with markdown cells using the `+ Markdown` button. 
- * Double-click on a cell to edit and press `Esc` when done.
- * Jupyter-style notebooks let you combine Java code snippets with markdown-formatted text cells.
- * Run individual code cells or execute the entire notebook.
- * Save outputs alongside code cells.
- * **Sharing notebooks:**
+* Add code snippets with `+ Code` button and document with markdown cells using the `+ Markdown` button.
+* Double-click on a cell to edit and press `Esc` when done.
+* Jupyter-style notebooks let you combine Java code snippets with markdown-formatted text cells.
+* Run individual code cells or execute the entire notebook.
+* Save outputs alongside code cells.
+* **Sharing notebooks:**
     * Share as `.ijnb` files for use with the Oracle Java extension.
     * Rename with a `.ipynb` extension for viewing in other IDEs, such as Jupyter.
 * Download the [sample notebooks](https://github.com/oracle/javavscode/blob/main/samples/notebooks) and open them in VS Code to get started.
 
 ### Java Notebooks for Java Projects
- * Document Java projects with interactive Java notebooks.
-    * Open or create a Java notebook in your workspace folder loaded with classes from your project.
+* Document Java projects with interactive Java notebooks.
+    * Open or create a Java notebook in your workspace folder loaded with classes from your project.<br/>
     ![Java Notebook For Project](vscode/images/project_notebook.gif)
-    * Use the `Project Context` options to switch to a different project context.
-     ![Switch Project Context](vscode/images/project_context.png)
- * Provide code snippets, markdown explanations, and expected outputs.
+    * Use the `Project Context` options to switch to a different project context.<br/>
+    ![Switch Project Context](vscode/images/project_context.png)
+* Provide code snippets, markdown explanations, and expected outputs.
 
 ### Notebook Configurations
 The following configuration settings are available:
@@ -106,36 +100,36 @@ The following configuration settings are available:
 * `jdk.notebook.enablepreview`
 * `jdk.notebook.implicitimports`
 
-These settings *override* settings inferred from project context 
+These settings *override* settings inferred from project context.
 
 ## JShell
- * Use the __Java: Open JShell...__ command to open JShell.
- * Project classes from currently open project are automatically loaded.
- ![JShell](vscode/images/jshell.gif)
+* Use the __Java: Open JShell...__ command to open JShell.
+* Project classes from currently open project are automatically loaded.<br/>
+![JShell](vscode/images/jshell.gif)
 
 ## Debugger and Launch Configurations
 Language Server __Java+ ...__ launch configuration supports debugging and running Java applications using JDK11 or newer. 
 1. The launch configuration (debugger) is invoked when `Run main | Debug main` codelens is selected in the code.
-2. Or __Java+...__ is selected in __Run and Debug__ activity panel.
+2. Or __Java+...__ is selected in __Run and Debug__ activity panel.</br>
 ![Debug configurations](vscode/images/debuggers.png)
 ### Launch Configurations
 * __Launch Java App__ - Debug or Run current Java project
 * __Attach to Port__ & __Attach to Process__ - Attach debugger actions. Available when __Java+ ...__ at the bottom of drop down list is selected.
-    * Select this configuration, then click the ![Run](vscode/images/run.png) 
+    * Select this configuration, then click the ![Run](vscode/images/run.png) button.
     * Select either from available process or enter the port to connect to JVM running with JDWP.
     * __Attach to Shared Memory__ is available on Windows in addition to above mentioned _Attach..._
 
 Default launch configurations provided by Language Server can modified in `launch.json` file.
 
 ### Run Configurations panel
-Program arguments, VM options, environment variables, etc., can be set in the Run Configuration panel as part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).
+Program arguments, VM options, environment variables, etc., can be set in the Run Configuration panel as part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).<br/>
 ![Run Configuration](vscode/images/run_config.png) 
 
 ## JDK Downloader
 If the system does not detect any JDK, the extension will offer a downloader and setup prompt to help you set up a JDK. This setup provides options for Oracle JDK, OpenJDK, and allows you to choose from any installed JDK on your system.
 Alternatively, you can manually specify the path to JDK binaries by utilizing the JDK downloader.
-You can also access the JDK downloader through the "Download, install, and Use JDK" option in the command palette.
-![JDK Downloader](jdk_downloader.png) 
+You can also access the JDK downloader through the "Download, install, and Use JDK" option in the command palette.<br/>
+![JDK Downloader](vscode/images/jdk_downloader.png)
 
 ## Enabling Java Preview Features 
 When using preview features use the quick fix action option to easily enable them.
@@ -143,7 +137,7 @@ When using preview features use the quick fix action option to easily enable the
 ![Enable Preview](vscode/images/enable_preview.gif)
 ## Supported Refactorings
 
-Class level refactorings as well as variable refactorings are supported in VS Code via Oracle Java Platform extension. See following screenshots:
+Class level refactorings as well as variable refactorings are supported in VS Code via the Oracle Java Platform extension. See the following screenshots:
 
 ### Source Action ... context menu
 ![Class Source Actions](vscode/images/Source_actions.png) 
@@ -157,19 +151,18 @@ Class level refactorings as well as variable refactorings are supported in VS Co
 ### Surround with refactorings
 ![Surrond with Refactorings](vscode/images/Surrond_With_refactorings.png)  
 
-Some refactorings are two steps with like __Generate Override method__ ... where method to be overriden is selected in 2nd step: 
-
+Some refactorings are two steps with like __Generate Override method__ ... where method to be overriden is selected in 2nd step:<br/>
 ![Override refactoring](vscode/images/Override_refactoring.png)
 
 ### Change Method Parameters refactoring
-Change method parameters refactoring is provided using dedicated form allowing to change, add, move, remove method parameters.
+Change method parameters refactoring is provided using dedicated form allowing to change, add, move, remove method parameters.<br/>
 ![Change method parameters refactoring](vscode/images/change_method_params.png)
 
 ### Move Members Refactoring
-Move members refactoring provides dedicated form as well.
+Move members refactoring provides dedicated form as well.<br/>
 ![Move members refactoring](vscode/images/move_refactoring.png)
 
-### Some of supported refactorings:
+### Some other supported refactorings are:
 * Convert to static import 
 * Pull member up & down 
 * Move class 
@@ -180,46 +173,46 @@ Move members refactoring provides dedicated form as well.
 * Generate hashCode/equals
 * Generate toString()
 * Surround With refactoring
-* For cycle refactoring
-* try-catch refactoring
-* switch() statement
-* while() cycle
+* `for` cycle refactoring
+* `try-catch` refactoring
+* `switch()` statement
+* `while()` cycle
 * Inline redundant variable 
 * Constructor and method argument refactoring
 
 ## Formatter Preferences
-Easily update default formatter preferences by adjusting a simple configuration option to tailor settings according to specific needs. 
+Easily update default formatter preferences by adjusting a simple configuration option to tailor settings according to specific needs.
 
-Go to VS Code `Open Settings | Extensions | Java` and set `Jdk › Format: Settings Path:` option to the formatter preferences file.
+Open VS Code `Settings | Extensions | Java` and set `Jdk › Format: Settings Path:` option to the formatter preferences file.
 
 Please refer to [Java formatting preferences](https://github.com/oracle/javavscode/wiki/Java-formatting-preferences) wiki for more info.
 
 ## Hints Preferences
 Easily update default hint preferences by adjusting a simple configuration option to tailor hint preferences to specific needs.
 
-Go to VS Code `Open Settings | Extensions | Java` and set `Jdk › Hints: Preferences:` option to the xml hint preferences file.
+Open VS Code `Settings | Extensions | Java` and set `Jdk › Hints: Preferences:` option to the xml hint preferences file.
 
 ## Organize Imports
 Out of the box support for organizing imports in Java sources is available. It removes unused imports, groups imports by packages and updates your imports whenever a file is saved. In addition to the defaults, there is a rich set of configuration options. 
 
-Go to VS Code `Open Settings | Extensions | Java` and search for _Jdk_ to set `Jdk > Java > Imports:` options:
+Open VS Code `Settings | Extensions | Java` and search for _Jdk_ to set `Jdk › Java › Imports:` options:
 * `Count For Using Star Import` - Class count to use a star-import, 999 is the default value
 * `Count For Using Static Star Import` - Members count to use a static star-import, 999 is the default value
 * `Groups` - Groups of import statements (specified by their package prefixes) and their sorting order. Import statements within a group are ordered alphabetically
 
-And `Open Settings | Extensions > Java > On Save: Organize Imports` - Enable organize imports action on a document save
+The `Jdk › Java › On Save: Organize Imports` setting in VS Code `Settings | Extensions | Java` enables the **Organize Imports** action to run when saving a document.
 
 ## JavaDoc smart editing
-When adding JavaDoc to code Oracle Java Platform extension assists by suggesting to insert preformatted and prepopulated JavaDoc comment. Type `/**` above method signature and IDE offers to complete the JavaDoc. The action creates JavaDoc comment with all arguments prepared.
+When adding JavaDoc to code Oracle Java Platform extension assists by suggesting to insert preformatted and prepopulated JavaDoc comment. Type `/**` above the method signature and the IDE offers to complete the JavaDoc. The action creates a JavaDoc comment with all the parameters prepared.<br/>
 ![JavaDoc Completion](vscode/images/javadoc.png)
 
 ## Test Explorer
-Oracle Java Platform extension provides Test Explorer view which allows to run all tests in a project, examine the results, go to source code and run particular test.
+Oracle Java Platform extension provides Test Explorer view which allows to run all tests in a project, examine the results, go to source code and run particular test.<br/>
 ![Test Explorer](vscode/images/Test_explorer.png)
 
 ### Localization support
 Oracle Java Platform extension provides localization support for _Japanese_ and _Simplified Chinese_.
-To switch language `Go to command Palette->Configure display language` select `ja` for _Japanese_ or `zh-cn` for _Simplified Chinese_
+Use the `View | Command Palette | Configure Display Language` command to select `ja` for _Japanese_ or `zh-cn` for _Simplified Chinese_
 
 
 ![Localization.gif](vscode/images/Localization.gif)
@@ -236,12 +229,11 @@ As soon as one of the settings is changed, the Language Server is restarted.
 
 ## How to use JDK early access builds
 This setup makes it easier to experiment with early access JDK builds. Follow these steps to enable the use of an early access JDK:
-Step-1: Navigate to `Open Settings | Jdk > Advanced > Disable: Nbjavac` and enable the checkbox. 
-
-Step-2: Set the JDK in `Open Settings | Jdk: Jdkhome` to point to the early access JDK path.
+1. Open VS Code `Settings | Jdk › Advanced › Disable: Nbjavac` and enable the checkbox.
+2. Set `Settings | Jdk: Jdkhome` to point to the home-folder path of the early access JDK.
 
 ## Troubleshooting
-If your extension is not starting and throwing some error like no JDK found even if you have a working JDK installed in your machine, then you can try deleting cache for the workspace using `View | Command Palette | Delete oracle java extension cache for this workspace`. 
+If your extension is not starting and throwing some error like no JDK found even if you have a working JDK installed in your machine, then you can try deleting cache for the workspace using `View | Command Palette | Delete Oracle Java extension cache for this workspace`. 
 
 ## Workspace
 The extension will analyze the content of the opened workspace, and relevant other files. If the workspace contains a lot of data, this may take a long time. It is therefore recommended to avoid adding unnecessarily big folders in a workspace. Specifically, it is not recommended to open user's home directory as a part of the workspace.
