@@ -85,6 +85,7 @@
             patches/l10n-licence.diff
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
+            patches/gradle-files-scan-root.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
             patches/upgrade-lsp4j.diff
             patches/updated-show-input-params.diff

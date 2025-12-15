@@ -1,0 +1,985 @@
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/NbGradleProjectFactory.java b/extide/gradle/src/org/netbeans/modules/gradle/NbGradleProjectFactory.java
+index 6663416b5b..84b98b1a2b 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/NbGradleProjectFactory.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/NbGradleProjectFactory.java
+@@ -43,9 +43,6 @@ public final class NbGradleProjectFactory implements ProjectFactory2 {
+ 
+     @Override
+     public ProjectManager.Result isProject2(FileObject dir) {
+-        if (!isProject(dir)) {
+-            return null;
+-        }
+         // project display name can be only safely determined if the project is loaded
+         return isProject(dir) ? new ProjectManager.Result(
+                 null, NbGradleProject.GRADLE_PROJECT_TYPE, NbGradleProject.getIcon()) : null;
+@@ -57,23 +54,23 @@ public final class NbGradleProjectFactory implements ProjectFactory2 {
+     }
+ 
+     static boolean isProjectCheck(FileObject dir, final boolean preferMaven) {
+-        if (dir == null || FileUtil.toFile(dir) == null) {
++        File suspect = dir == null ? null : FileUtil.toFile(dir);
++        if (suspect == null) {
+             return false;
+         }
+-        FileObject pom = dir.getFileObject("pom.xml"); //NOI18N
+-        if (pom != null && pom.isData()) {
++        File pom = GradleFiles.Searcher.searchPath(suspect, "pom.xml");    //NOI18N
++        if (pom != null && pom.isFile()) {
+             if (preferMaven) {
+                 return false;
+             }
+-            final FileObject parent = dir.getParent();
+-            if (parent != null && parent.getFileObject("pom.xml") != null) { // NOI18N
+-                return isProjectCheck(parent, preferMaven);
++            FileObject parent = dir.getParent();
++            if (parent != null && GradleFiles.Searcher.searchPath(FileUtil.toFile(parent), "pom.xml") != null) { // NOI18N
++                return isProjectCheck(parent, false);
+             }
+         }
+-        File suspect = FileUtil.toFile(dir);
+         GradleFiles files = new GradleFiles(suspect);
+         if (files.isRootProject() || files.isBuildSrcProject()) return true;
+-        
++
+         if ((files.getSettingsScript() != null) && !files.isBuildSrcProject()) {
+             SubProjectDiskCache spCache = SubProjectDiskCache.get(files.getRootDir());
+             SubProjectDiskCache.SubProjectInfo data = spCache.loadData();
+diff --git a/extide/gradle/src/org/netbeans/modules/gradle/spi/GradleFiles.java b/extide/gradle/src/org/netbeans/modules/gradle/spi/GradleFiles.java
+index eca56b7bdb..2626208c8e 100644
+--- a/extide/gradle/src/org/netbeans/modules/gradle/spi/GradleFiles.java
++++ b/extide/gradle/src/org/netbeans/modules/gradle/spi/GradleFiles.java
+@@ -30,11 +30,13 @@ import java.util.EnumSet;
+ import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.ArrayList;
++import java.util.LinkedHashSet;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Objects;
+ import java.util.Set;
+ import java.util.WeakHashMap;
++import java.util.logging.Level;
+ import java.util.logging.Logger;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
+@@ -92,7 +94,7 @@ public final class GradleFiles implements Serializable {
+     }
+     
+     public GradleFiles(File dir, boolean knownProject) {
+-        LOG.fine("Gradle Files for: " + dir.getAbsolutePath());
++        LOG.log(Level.FINE, "Gradle Files for: {0}", dir.getAbsolutePath());
+         this.knownProject = knownProject;
+         try {
+             dir = dir.getCanonicalFile();
+@@ -117,26 +119,14 @@ public final class GradleFiles implements Serializable {
+     }
+ 
+     private void searchBuildScripts() {
+-        File f1 = new File(projectDir, BUILD_FILE_NAME_KTS);
+-        if (!f1.canRead()) {
+-            f1 = new File(projectDir, BUILD_FILE_NAME);
+-        }
+-        File f2 = new File(projectDir, projectDir.getName() + ".gradle.kts"); //NOI18N
+-        if (!f2.canRead()) {
+-            f2 = new File(projectDir, projectDir.getName() + ".gradle"); //NOI18N
+-        }
+-
+-        settingsScript = searchPathUp(projectDir, SETTINGS_FILE_NAME_KTS);
+-        if (settingsScript == null) {
+-            settingsScript = searchPathUp(projectDir, SETTINGS_FILE_NAME);
+-        }
++        buildScript = Searcher.searchPath(projectDir, BUILD_FILE_NAME_KTS, BUILD_FILE_NAME, projectDir.getName() + ".gradle.kts", projectDir.getName() + ".gradle");   //NOI18N
++        settingsScript = Searcher.searchPathUp(projectDir, SETTINGS_FILE_NAME_KTS, SETTINGS_FILE_NAME);
+         File settingsDir = settingsScript != null ? settingsScript.getParentFile() : null;
+-        buildScript = f1.canRead() ? f1 : f2.canRead() ? f2 : null;
+         if (settingsDir != null) {
+             //Guessing subprojects
+             rootDir = settingsDir;
+-            File rootScript = new File(settingsDir, BUILD_FILE_NAME);
+-            if (rootScript.canRead() && !rootScript.equals(buildScript)) {
++            File rootScript = Searcher.searchPath(settingsDir, BUILD_FILE_NAME_KTS, BUILD_FILE_NAME);
++            if (rootScript != null && !rootScript.equals(buildScript)) {
+                 parentScript = rootScript;
+             }
+         } else {
+@@ -156,17 +146,6 @@ public final class GradleFiles implements Serializable {
+         }
+     }
+ 
+-    private File searchPathUp(@NonNull File baseDir, @NonNull String name) {
+-        File ret = null;
+-        File dir = baseDir;
+-        do {
+-            File f = new File(dir, name);
+-            ret = f.canRead() ? f : null;
+-            dir = f.canRead() ? dir : dir.getParentFile();
+-        } while ((ret == null) && (dir != null));
+-        return ret;
+-    }
+-
+     public File getBuildScript() {
+         return buildScript;
+     }
+@@ -359,16 +338,16 @@ public final class GradleFiles implements Serializable {
+                 = Pattern.compile(".*['\\\"](.+)['\\\"].*\\.projectDir.*=.*['\\\"](.+)['\\\"].*"); //NOI18N
+         private static final Map<File, SettingsFile> CACHE = new WeakHashMap<>();
+ 
+-        final Set<File> subProjects = new HashSet<>();
++        final Set<File> subProjects;
+ 
+         final long time;
+ 
+         public SettingsFile(File f) {
+             time = f.lastModified();
+-            parse(f);
++            subProjects = Collections.unmodifiableSet(parse(f));
+         }
+ 
+-        private void parse(File f) {
++        private static Set<File> parse(File f) {
+             Map<String, String> projectPaths = new HashMap<>();
+             String rootDir = f.getParentFile().getAbsolutePath();
+             try {
+@@ -398,13 +377,15 @@ public final class GradleFiles implements Serializable {
+                 // Can't read the settings file for some reason.
+                 // It is ok for now simply return an emty list.
+             }
++            Set<File> subProjects = new HashSet<>();
+             File root = f.getParentFile();
+             for (Map.Entry<String, String> entry : projectPaths.entrySet()) {
+                 subProjects.add(guessDir(entry.getKey(), root, new File(entry.getValue())));
+             }
++            return subProjects;
+         }
+ 
+-        File guessDir(String projectName, File rootDir, File firstGuess) {
++        private static File guessDir(String projectName, File rootDir, File firstGuess) {
+             if (firstGuess.isDirectory()) {
+                 return firstGuess;
+             }
+@@ -433,4 +414,123 @@ public final class GradleFiles implements Serializable {
+         }
+     }
+ 
++    /**
++     * Gradle sub-project directories may not be easily identifiable and require
++     * scanning up the directory hierarchy up to the filesystem root for the
++     * settings file.
++     *
++     * Although some conventions for the {@code buildSrc} directory for shared
++     * modules exists, it is not generally applicable to sub-projects.
++     * See <a href="https://docs.gradle.org/current/userguide/organizing_gradle_projects.html">
++     * Gradle Docs: Organizing Gradle Projects</a>
++     *
++     * This Searcher allows for safely scanning up the directory hierarchy up to
++     * the globally configured scan root limits ({@code -Dproject.limitScanRoot}),
++     * if any;
++     * and mindful of forbidden folders ({@code -Dproject.forbiddenFolders}
++     * or {@code -Dversioning.forbiddenFolders}), if any.
++     */
++    public static class Searcher {
++        private static final Set<String> forbiddenFolders;
++        private static final Set<String> projectScanRoots;
++
++        static {
++            Set<String> folders = null;
++            Set<String> roots = null;
++            try {
++                roots = separatePaths(System.getProperty("project.limitScanRoot"), File.pathSeparator); //NOI18N
++                folders = separatePaths(System.getProperty("project.forbiddenFolders", System.getProperty("versioning.forbiddenFolders")), ";"); //NOI18N
++            } catch (Exception e) {
++                LOG.log(Level.INFO, e.getMessage(), e);
++            }
++            forbiddenFolders = folders == null ? Collections.emptySet() : folders;
++            projectScanRoots = roots;
++        }
++
++        public static File searchPath(@NonNull File baseDir, String... names) {
++            return resolvePathWithAlternatives(false, baseDir, names);
++        }
++
++        public static File searchPathUp(@NonNull File baseDir, String... names) {
++            return resolvePathWithAlternatives(true, baseDir, names);
++        }
++
++        private static File resolvePathWithAlternatives(boolean recursive, @NonNull File baseDir, String... names) {
++            File dir = baseDir;
++            if (names.length == 0) {
++                return null;
++            }
++            for (String name : names) {
++                Objects.requireNonNull(name);
++            }
++            while (dir != null) {
++                String path = dir.getAbsolutePath();
++                if (notWithinProjectScanRoots(path))
++                    break;
++                if (!forbiddenFolders.contains(path)) {
++                    for (String name : names) {
++                        File f = new File(dir, name);
++                        if (f.canRead()) {
++                            return f;
++                        }
++                    }
++                }
++                dir = recursive ? dir.getParentFile() : null;
++            }
++            return null;
++        }
++
++        private static boolean notWithinProjectScanRoots(String path) {
++            if (projectScanRoots == null)
++                return false;
++            for (String scanRoot : projectScanRoots) {
++                if (path.startsWith(scanRoot)
++                        && (path.length() == scanRoot.length()
++                        || path.charAt(scanRoot.length()) == File.separatorChar))
++                    return false;
++            }
++            return true;
++        }
++
++        private static Set<String> separatePaths(String joinedPaths, String pathSeparator) {
++            if (joinedPaths == null || joinedPaths.isEmpty())
++                return null;
++
++            Set<String> paths = null;
++            for (String split : joinedPaths.split(pathSeparator)) {
++                if ((split = split.trim()).isEmpty()) continue;
++
++                // Ensure that variations in terms of ".." or "." or windows drive-letter case differences are removed.
++                // File.getCanonicalFile() will additionally resolve symlinks, which is not required.
++                File file = FileUtil.normalizeFile(new File(split));
++
++                // Store both File.getAbsolutePath() and File.getCanonicalPath(),
++                // since File paths will be compared in this class.
++                String path = file.getAbsolutePath();
++                if (path == null || path.isEmpty()) continue;
++
++                String canonicalPath;
++                try {
++                    canonicalPath = file.getCanonicalPath();
++                } catch (IOException ioe) {
++                    canonicalPath = null;
++                }
++                // This conversion may get rid of invalid paths.
++                if (canonicalPath == null || canonicalPath.isEmpty()) continue;
++
++                if (paths == null && canonicalPath.equals(path)) {
++                    paths = Collections.singleton(path);    // more performant in usage when only a single element is present.
++                } else {
++                    if (paths == null) {
++                        paths = new LinkedHashSet<>(2);
++                    } else if (paths.size() == 1) {
++                        paths = new LinkedHashSet<>(paths); // more performant in iteration
++                    }
++                    paths.add(path);
++                    paths.add(canonicalPath);
++                }
++            }
++            return paths;
++        }
++    }
+ }
+diff --git a/extide/gradle/test/unit/src/org/netbeans/modules/gradle/NbGradleProjectFactoryScanRootTest.java b/extide/gradle/test/unit/src/org/netbeans/modules/gradle/NbGradleProjectFactoryScanRootTest.java
+new file mode 100644
+index 0000000000..2f5a74c1e4
+--- /dev/null
++++ b/extide/gradle/test/unit/src/org/netbeans/modules/gradle/NbGradleProjectFactoryScanRootTest.java
+@@ -0,0 +1,255 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.gradle;
++
++import java.io.File;
++import java.io.IOException;
++import java.io.OutputStream;
++import java.nio.charset.StandardCharsets;
++import java.util.Enumeration;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
++import org.openide.filesystems.LocalFileSystem;
++
++public class NbGradleProjectFactoryScanRootTest extends NbGradleProjectFactoryTest {
++
++    private FileObject root;
++    private FileObject forbiddenTestsRoot;
++
++    public NbGradleProjectFactoryScanRootTest(String name) {
++        super(name);
++    }
++
++    @Override
++    protected void setUp() throws Exception {
++        super.setUp();
++        LocalFileSystem fs = new LocalFileSystem();
++        fs.setRootDirectory(getWorkDir());
++        root = fs.getRoot();
++        File parentDir = getWorkDir().getParentFile();
++        File forbiddenTestsDir = new File(parentDir, "forbiddenTests");
++        File fd1 = new File(forbiddenTestsDir, "forbidden1");
++        File fd2 = new File(new File(forbiddenTestsDir, "f2"), "forbidden2");
++        System.setProperty("project.limitScanRoot", parentDir.getAbsolutePath());
++        System.setProperty("project.forbiddenFolders", fd1.getAbsolutePath() + ";" + fd2.getAbsolutePath());
++        fd1.mkdirs();
++        fd2.mkdirs();
++        fs = new LocalFileSystem();
++        fs.setRootDirectory(forbiddenTestsDir);
++        forbiddenTestsRoot = fs.getRoot();
++    }
++
++    @Override
++    protected void tearDown() throws Exception {
++        super.tearDown();
++        Enumeration<? extends FileObject> files = forbiddenTestsRoot.getData(false);
++        while (files.hasMoreElements()) {
++            try {
++                files.nextElement().delete();
++            } catch (IOException ignore) {
++            }
++        }
++        Enumeration<? extends FileObject> folders = forbiddenTestsRoot.getFolders(false);
++        while (folders.hasMoreElements()) {
++            try {
++                folders.nextElement().delete();
++            } catch (IOException ignore) {
++            }
++        }
++    }
++
++    public void testPomAndGradleBothNotNested() throws Exception {
++        FileObject parentPrj = root;
++        FileObject prj = FileUtil.createFolder(parentPrj, "child");
++        FileObject pom = FileUtil.createData(prj, "pom.xml");
++        FileObject gradle = FileUtil.createData(prj, "build.gradle");
++
++        assertFalse("Pom wins", NbGradleProjectFactory.isProjectCheck(prj, true));
++        assertTrue("Gradle wins", NbGradleProjectFactory.isProjectCheck(prj, false));
++    }
++
++    public void testPomNestedAboveRootAndGradleNotNested() throws Exception {
++        File rootDir = FileUtil.toFile(root);
++        FileObject rootParentPrj = FileUtil.toFileObject(rootDir.getParentFile().getParentFile());
++        FileObject parentPom = FileUtil.createData(rootParentPrj, "pom.xml");
++        FileObject prj = FileUtil.toFileObject(rootDir.getParentFile());
++        FileObject pom = FileUtil.createData(prj, "pom.xml");
++        FileObject gradle = FileUtil.createData(prj, "build.gradle");
++        try {
++            assertFalse("Pom wins", NbGradleProjectFactory.isProjectCheck(prj, true));
++            assertTrue("Gradle wins", NbGradleProjectFactory.isProjectCheck(prj, false));
++            prj = FileUtil.toFileObject(rootDir);
++            gradle.delete();
++            gradle = null;
++            FileUtil.createData(prj, "pom.xml");
++            FileUtil.createData(prj, "build.gradle");
++            assertFalse("Pom wins sub", NbGradleProjectFactory.isProjectCheck(prj, true));
++            assertFalse("Pom wins sub nested", NbGradleProjectFactory.isProjectCheck(prj, false));
++        } finally {
++            try {
++                parentPom.delete();
++            } finally {
++                try {
++                    pom.delete();
++                } finally {
++                    if (gradle != null) gradle.delete();
++                }
++            }
++        }
++    }
++
++    public void testGetSiblingScanRoot() throws IOException {
++        File rootDir = FileUtil.toFile(root);
++        File scanRootDir = rootDir.getParentFile();
++        FileObject aboveScanRoot = FileUtil.toFileObject(scanRootDir.getParentFile());
++        FileObject project = aboveScanRoot.createFolder(scanRootDir.getName() + "2");
++        try {
++            project.createData("build.gradle.kts");
++            assertFalse("No gradle project scanned", NbGradleProjectFactory.isProjectCheck(project, false));
++            assertFalse("No gradle project scanned with no pom", NbGradleProjectFactory.isProjectCheck(project, true));
++            project.createData("pom.xml");
++            assertFalse("No gradle project scanned with pom", NbGradleProjectFactory.isProjectCheck(project, false));
++            assertFalse("No pom scanned", NbGradleProjectFactory.isProjectCheck(project, true));
++        } finally {
++            project.delete();
++        }
++    }
++
++    /**
++     * Checks that project scanning does not go above root
++     */
++    public void testAboveRootProject() throws Exception {
++        FileObject parentPrj = root;
++        parentPrj.createData("build.gradle");
++        File rootDir = FileUtil.toFile(root);
++        String dirName = rootDir.getParentFile().getName() + '/' + rootDir.getName();
++        File rootParentDir = rootDir.getParentFile().getParentFile();
++        FileObject rootParentPrj = FileUtil.toFileObject(rootParentDir);
++        FileObject settings = FileUtil.createData(rootParentPrj, "settings.gradle");
++        File likeRootDir = new File(rootParentDir, rootDir.getParentFile().getName() + "2");
++        likeRootDir.mkdirs();
++        File likeRootDirBuild = new File(likeRootDir, "build.gradle");
++        likeRootDirBuild.createNewFile();
++        try {
++            try (OutputStream os = settings.getOutputStream()) {
++                os.write(("\n"
++                        + "rootProject.name = 'example'\n"
++                        + "include('" + dirName + "/app')\n").getBytes(StandardCharsets.UTF_8));
++            }
++            FileObject app = FileUtil.createFolder(parentPrj, "app");
++            assertFalse("app not project", NbGradleProjectFactory.isProjectCheck(app, false));
++            assertFalse("above root is not project", NbGradleProjectFactory.isProjectCheck(rootParentPrj, false));
++            assertFalse("likeRoot is also not project", NbGradleProjectFactory.isProjectCheck(FileUtil.toFileObject(likeRootDir), false));
++            assertTrue("root is project", NbGradleProjectFactory.isProjectCheck(parentPrj, false));
++        } finally {
++            try {
++                settings.delete();
++            } finally {
++                likeRootDirBuild.delete();
++                likeRootDir.delete();
++            }
++        }
++    }
++
++    public void testForbiddenPomAndGradle() throws Exception {
++        FileObject parentPrj = forbiddenTestsRoot;
++        FileObject settings = FileUtil.createData(parentPrj, "settings.gradle");
++        try (OutputStream os = settings.getOutputStream()) {
++            os.write(("\n"
++                    + "rootProject.name = 'example'\n"
++                    + "include('forbidden1')\n"
++                    + "include('forbidden2')\n").getBytes(StandardCharsets.UTF_8));
++        }
++        FileObject fo1 = FileUtil.createFolder(parentPrj, "forbidden1");
++        FileObject fo2 = FileUtil.createFolder(parentPrj, "forbidden2");
++        FileObject fo3 = FileUtil.createFolder(parentPrj, "forbidden3");
++        FileUtil.createData(fo1, "pom.xml");
++        FileUtil.createData(fo2, "pom.xml");
++        FileUtil.createData(fo3, "pom.xml");
++        assertTrue("root is project without pom", NbGradleProjectFactory.isProjectCheck(parentPrj, true));
++        assertTrue("root is project", NbGradleProjectFactory.isProjectCheck(parentPrj, false));
++
++        assertTrue("forbidden1 is project with pom", NbGradleProjectFactory.isProjectCheck(fo1, true));
++        assertFalse("forbidden2 is not project with pom", NbGradleProjectFactory.isProjectCheck(fo2, true));
++        assertFalse("forbidden3 is not project with pom", NbGradleProjectFactory.isProjectCheck(fo3, true));
++        assertTrue("forbidden1 is project", NbGradleProjectFactory.isProjectCheck(fo1, false));
++        assertTrue("forbidden2 is project", NbGradleProjectFactory.isProjectCheck(fo2, false));
++        assertFalse("forbidden3 is not project", NbGradleProjectFactory.isProjectCheck(fo3, false));
++    }
++
++    public void testForbiddenNestedPomAndGradle() throws Exception {
++        FileObject parentPrj = forbiddenTestsRoot.getFileObject("f2");
++        FileObject settings = FileUtil.createData(parentPrj, "settings.gradle");
++        try (OutputStream os = settings.getOutputStream()) {
++            os.write(("\n"
++                    + "rootProject.name = 'example'\n"
++                    + "include('forbidden1')\n"
++                    + "include('forbidden2')\n").getBytes(StandardCharsets.UTF_8));
++        }
++        FileObject fo1 = FileUtil.createFolder(parentPrj, "forbidden1");
++        FileObject fo2 = FileUtil.createFolder(parentPrj, "forbidden2");
++        FileUtil.createData(fo1, "pom.xml");
++        FileUtil.createData(fo2, "pom.xml");
++        FileUtil.createData(parentPrj, "pom.xml");
++        FileUtil.createData(forbiddenTestsRoot, "pom.xml");
++        assertFalse("root is not project with pom", NbGradleProjectFactory.isProjectCheck(parentPrj, true));
++        assertFalse("root is not project with parent pom", NbGradleProjectFactory.isProjectCheck(parentPrj, false));
++
++        assertFalse("forbidden1 is not project with pom", NbGradleProjectFactory.isProjectCheck(fo1, true));
++        assertTrue("forbidden2 is project even with parent pom and prefer maven", NbGradleProjectFactory.isProjectCheck(fo2, true));
++        assertFalse("forbidden1 is not project with parent pom", NbGradleProjectFactory.isProjectCheck(fo1, false));
++        assertTrue("forbidden2 is project even with parent pom without prefer maven", NbGradleProjectFactory.isProjectCheck(fo2, false));
++    }
++
++    public void testForbiddenSubProject() throws Exception {
++        FileObject parentPrj = forbiddenTestsRoot;
++        FileObject settings = FileUtil.createData(parentPrj, "settings.gradle");
++        try (OutputStream os = settings.getOutputStream()) {
++            os.write(("\n"
++                    + "rootProject.name = 'example'\n"
++                    + "include('forbidden1')\n"
++                    + "include('forbidden2')\n").getBytes(StandardCharsets.UTF_8));
++        }
++        FileObject fo1 = FileUtil.createFolder(parentPrj, "forbidden1");
++        FileObject fo2 = FileUtil.createFolder(parentPrj, "forbidden2");
++        FileObject fo3 = FileUtil.createFolder(parentPrj, "forbidden3");
++        FileObject f2fo2 = FileUtil.createFolder(parentPrj, "f2/forbidden2");
++        FileObject f2fo2app = FileUtil.createFolder(parentPrj, "f2/forbidden2/app");
++        FileObject f2f2A = FileUtil.createFolder(parentPrj, "f2/forbidden2App");
++        FileUtil.createData(f2fo2, "build.gradle");
++        FileObject f2fo2Settings = FileUtil.createData(f2fo2, "settings.gradle");
++        try (OutputStream os = f2fo2Settings.getOutputStream()) {
++            os.write(("\n"
++                    + "rootProject.name = 'eg'\n"
++                    + "include('app')\n").getBytes(StandardCharsets.UTF_8));
++        }
++
++        assertTrue("root is project", NbGradleProjectFactory.isProjectCheck(parentPrj, false));
++        assertTrue("forbidden1 is project", NbGradleProjectFactory.isProjectCheck(fo1, false));
++        assertTrue("forbidden2 is project", NbGradleProjectFactory.isProjectCheck(fo2, false));
++        assertFalse("forbidden3 is not project", NbGradleProjectFactory.isProjectCheck(fo3, false));
++        assertFalse("f2/forbidden2App is not project", NbGradleProjectFactory.isProjectCheck(f2f2A, false));
++        FileUtil.createData(f2f2A, "build.gradle");
++        assertTrue("f2/forbidden2App is project with build", NbGradleProjectFactory.isProjectCheck(f2f2A, false));
++        assertFalse("f2/forbidden2 is not project", NbGradleProjectFactory.isProjectCheck(f2fo2, false));
++        assertFalse("f2/forbidden2/app is not project", NbGradleProjectFactory.isProjectCheck(f2fo2app, false));
++        FileUtil.createData(f2fo2app, "build.gradle");
++        assertTrue("f2/forbidden2/app is project with build", NbGradleProjectFactory.isProjectCheck(f2fo2app, false));
++    }
++}
+diff --git a/extide/gradle/test/unit/src/org/netbeans/modules/gradle/spi/GradleFilesScanRootTest.java b/extide/gradle/test/unit/src/org/netbeans/modules/gradle/spi/GradleFilesScanRootTest.java
+new file mode 100644
+index 0000000000..59bafc6135
+--- /dev/null
++++ b/extide/gradle/test/unit/src/org/netbeans/modules/gradle/spi/GradleFilesScanRootTest.java
+@@ -0,0 +1,238 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.gradle.spi;
++
++import java.io.File;
++import java.io.IOException;
++import java.nio.file.FileVisitResult;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.nio.file.SimpleFileVisitor;
++import java.nio.file.attribute.BasicFileAttributes;
++import java.util.List;
++import org.junit.Test;
++import org.junit.After;
++import org.junit.Before;
++import org.openide.util.Utilities;
++
++import static org.junit.Assert.*;
++
++public class GradleFilesScanRootTest extends GradleFilesTest {
++
++    private File scanRoot;
++    private File forbiddenTestsDir;
++
++    @Before
++    public void setup() {
++        scanRoot = root.getRoot().getParentFile();
++        forbiddenTestsDir = new File(scanRoot, "forbiddenTests");
++        File fd1 = new File(forbiddenTestsDir, "forbidden1");
++        File fd2 = new File(new File(forbiddenTestsDir, "f2"), "forbidden2");
++        System.setProperty("project.limitScanRoot", scanRoot.getAbsolutePath());
++        System.setProperty("project.forbiddenFolders", fd1.getAbsolutePath() + ";" + fd2.getAbsolutePath());
++        fd1.mkdirs();
++        fd2.mkdirs();
++    }
++
++    @After
++    public void cleanup() {
++        try {
++            Files.walkFileTree(forbiddenTestsDir.toPath(), new SimpleFileVisitor<Path>() {
++                @Override
++                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
++                    return file.toFile().delete() ? FileVisitResult.CONTINUE : FileVisitResult.TERMINATE;
++                }
++
++                @Override
++                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
++                    return dir.toFile().delete() ? FileVisitResult.CONTINUE : FileVisitResult.TERMINATE;
++                }
++            });
++        } catch (IOException e) {
++            e.printStackTrace(System.err);
++        }
++    }
++
++    private static File normalizeTempDir(File root) {
++        if (root != null && Utilities.isMac()) {
++            String absolutePath = root.getAbsolutePath();
++            if (absolutePath.startsWith("/private/")) {
++                return new File(absolutePath.substring(8));
++            }
++        }
++        return root;
++    }
++
++    @Test
++    public void testGetProjectAboveRoot() throws IOException {
++        File dirAboveScanRoot = scanRoot.getParentFile();
++        File settings = new File(dirAboveScanRoot, "settings.gradle");
++        File build = new File(dirAboveScanRoot, "build.gradle.kts");
++        try {
++            String subPath = root.getRoot().getAbsolutePath().substring(dirAboveScanRoot.getAbsolutePath().length() + 1);
++            build.createNewFile();            
++            settings.createNewFile();
++            Files.write(settings.toPath(), List.of(
++                    "rootProject.name = 'example'",
++                    "include('" + subPath + "/app')"
++            ));
++            File app = root.newFolder("app");
++            // Check that the project is not resolved
++            GradleFiles gf = new GradleFiles(app);
++            assertNull(gf.getBuildScript());
++            assertNull(gf.getSettingsScript());
++            assertNull(gf.getParentScript());
++            assertFalse(gf.isProject());
++            assertFalse(gf.isRootProject());
++
++            // Also check the root project
++            File rootBuild = root.newFile(root.getRoot().getName() + ".gradle.kts");
++            GradleFiles rootGf = new GradleFiles(root.getRoot());
++            assertEquals(normalizeTempDir(rootBuild), normalizeTempDir(rootGf.getBuildScript()));
++            assertNull(rootGf.getSettingsScript());
++            assertNull(rootGf.getParentScript());
++            assertTrue(rootGf.isProject());
++            assertTrue(rootGf.isRootProject());
++
++            // Now ensure that the above project structure does work when below the scanRoot.
++            File newRoot = root.newFolder(subPath);
++            File newSettings = Files.move(settings.toPath(), root.getRoot().toPath().resolve(settings.getName())).toFile();
++            File newBuild = Files.move(build.toPath(), root.getRoot().toPath().resolve(build.getName())).toFile();
++            File newApp = Files.move(app.toPath(), newRoot.toPath().resolve(app.getName())).toFile();
++            GradleFiles newGf = new GradleFiles(newApp);
++            assertNull(newGf.getBuildScript());
++            assertEquals(normalizeTempDir(newSettings), normalizeTempDir(newGf.getSettingsScript()));
++            assertEquals(normalizeTempDir(newBuild), normalizeTempDir(newGf.getParentScript()));
++            assertTrue(newGf.isProject());
++            assertFalse(gf.isRootProject());
++        } finally {
++            settings.delete();
++            build.delete();
++        }
++    }
++
++    @Test
++    public void testGetSiblingScanRoot() throws IOException {
++        File dirAboveScanRoot = scanRoot.getParentFile();
++        File project = new File(dirAboveScanRoot, scanRoot.getName() + "2");
++        File settings = new File(project, "settings.gradle");
++        File build = new File(project, "build.gradle.kts");
++        try {
++            project.mkdirs();
++            build.createNewFile();
++            settings.createNewFile();
++            GradleFiles gf = new GradleFiles(project);
++            assertNull(gf.getBuildScript());
++            assertNull(gf.getSettingsScript());
++            assertNull(gf.getParentScript());
++            assertFalse(gf.isProject());
++            assertFalse(gf.isRootProject());
++        } finally {
++            settings.delete();
++            build.delete();
++            project.delete();
++        }
++    }
++
++    @Test
++    public void testGetForbiddenSubProject() throws IOException {
++        File parentPrj = forbiddenTestsDir;
++        File settings = new File(parentPrj, "settings.gradle");
++        settings.createNewFile();
++        Files.write(settings.toPath(), List.of(
++                "rootProject.name = 'example'",
++                "include('forbidden1')",
++                "include('forbidden2')"
++        ));
++        File fo1 = new File(parentPrj, "forbidden1");
++        fo1.mkdirs();
++        File fo2 = new File(parentPrj, "forbidden2");
++        fo2.mkdirs();
++        File f2f2A = new File(new File(parentPrj, "f2"), "forbidden2App");
++        f2f2A.mkdirs();
++        File f2f2ABuild = new File(f2f2A, "build.gradle");
++        f2f2ABuild.createNewFile();
++        File f2fo2a = new File(new File(new File(parentPrj, "f2"), "forbidden2"), "app");
++        f2fo2a.mkdirs();
++        File f2fo2a2 = new File(new File(new File(parentPrj, "f2"), "forbidden2"), "app2");
++        f2fo2a2.mkdirs();
++        File f2fo2a2Build = new File(f2fo2a2, "build.gradle");
++        f2fo2a2Build.createNewFile();
++
++        File f2fo2Settings = new File(f2fo2a.getParentFile(), "settings.gradle");
++        f2fo2Settings.createNewFile();
++        Files.write(f2fo2Settings.toPath(), List.of(
++                "rootProject.name = 'eg'",
++                "include('app')",
++                "include('app2')"
++        ));
++        File f2fo2Build = new File(f2fo2a.getParentFile(), "build.gradle.kts");
++        f2fo2Build.createNewFile();
++
++
++        GradleFiles gf;
++        gf = new GradleFiles(parentPrj);
++        assertEquals(normalizeTempDir(settings), normalizeTempDir(gf.getSettingsScript()));
++        assertTrue("root is project", gf.isProject());
++        assertTrue("root is rootProject", gf.isRootProject());
++
++        gf = new GradleFiles(fo1);
++        assertNull("buildScript null for forbidden1", gf.getBuildScript());
++        assertEquals(normalizeTempDir(settings), normalizeTempDir(gf.getSettingsScript()));
++        assertTrue("forbidden1 is project", gf.isProject());
++        assertFalse("forbidden1 is not rootProject", gf.isRootProject());
++        assertTrue("forbidden1 is scriptless subproject", gf.isScriptlessSubProject());
++
++        gf = new GradleFiles(fo2);
++        assertNull("buildScript null for forbidden2", gf.getBuildScript());
++        assertEquals(normalizeTempDir(settings), normalizeTempDir(gf.getSettingsScript()));
++        assertTrue("forbidden2 is project", gf.isProject());
++        assertFalse("forbidden2 is not rootProject", gf.isRootProject());
++        assertTrue("forbidden2 is scriptless subproject", gf.isScriptlessSubProject());
++
++        gf = new GradleFiles(f2f2A);
++        assertEquals(normalizeTempDir(f2f2ABuild), normalizeTempDir(gf.getBuildScript()));
++        assertEquals(normalizeTempDir(settings), normalizeTempDir(gf.getSettingsScript()));
++        assertTrue("f2/forbidden2App is project", gf.isProject());
++        assertFalse("f2/forbidden2App is not rootProject", gf.isRootProject());
++
++        gf = new GradleFiles(f2fo2a);
++        assertNull("buildScript null for f2/forbidden2/app", gf.getBuildScript());
++        assertEquals("super-parent settingsScript for f2/forbidden2/app", normalizeTempDir(settings), normalizeTempDir(gf.getSettingsScript()));
++        assertNull("parentScript null for f2/forbidden2/app", gf.getParentScript());
++        assertFalse("f2/forbidden2/app is not project", gf.isProject());
++        assertFalse("f2/forbidden2/app is not scriptless subproject", gf.isScriptlessSubProject());
++
++        gf = new GradleFiles(f2fo2a2);
++        assertEquals(normalizeTempDir(f2fo2a2Build), normalizeTempDir(gf.getBuildScript()));
++        assertEquals("super-parent settingsScript for f2/forbidden2/app2", normalizeTempDir(settings), normalizeTempDir(gf.getSettingsScript()));
++        assertNull("parentScript null for f2/forbidden2/app2", gf.getParentScript());
++        assertTrue("f2/forbidden2/app2 is project", gf.isProject());
++        assertFalse("f2/forbidden2/app2 is project", gf.isRootProject());
++        assertFalse("f2/forbidden2/app2 is not scriptless subproject", gf.isScriptlessSubProject());
++
++        new File(fo1, "build.gradle").createNewFile();
++        gf = new GradleFiles(fo1);
++        assertNull("buildScript null for forbidden1 with build also", gf.getBuildScript());
++        assertEquals(normalizeTempDir(settings), normalizeTempDir(gf.getSettingsScript()));
++        assertTrue("forbidden1 is project", gf.isProject());
++        assertFalse("forbidden1 is not rootProject", gf.isRootProject());
++        assertTrue("forbidden1 is scriptless subproject", gf.isScriptlessSubProject());
++    }
++}
+diff --git a/extide/gradle/test/unit/src/org/netbeans/modules/gradle/spi/GradleFilesTest.java b/extide/gradle/test/unit/src/org/netbeans/modules/gradle/spi/GradleFilesTest.java
+index 5e1ff5e0ce..40f1c0a039 100644
+--- a/extide/gradle/test/unit/src/org/netbeans/modules/gradle/spi/GradleFilesTest.java
++++ b/extide/gradle/test/unit/src/org/netbeans/modules/gradle/spi/GradleFilesTest.java
+@@ -23,6 +23,8 @@ import java.io.File;
+ import java.io.IOException;
+ import java.nio.file.Files;
+ import java.util.Arrays;
++import java.util.Set;
++import java.util.stream.Collectors;
+ import org.junit.Test;
+ import static org.junit.Assert.*;
+ import org.junit.Rule;
+@@ -38,6 +40,15 @@ public class GradleFilesTest {
+     @Rule
+     public TemporaryFolder root = new TemporaryFolder();
+ 
++    private static File normalizeTempDir(File root) {
++        if (root != null && Utilities.isMac()) {
++            String absolutePath = root.getAbsolutePath();
++            if (absolutePath.startsWith("/private/")) {
++                return new File(absolutePath.substring(8));
++            }
++        }
++        return root;
++    }
+ 
+     /**
+      * Test of getBuildScript method, of class GradleFiles.
+@@ -46,7 +57,7 @@ public class GradleFilesTest {
+     public void testGetBuildScript() throws IOException {
+         File build = root.newFile("build.gradle");
+         GradleFiles gf = new GradleFiles(root.getRoot());
+-        assertEquals(build, gf.getBuildScript());
++        assertEquals(normalizeTempDir(build), normalizeTempDir(gf.getBuildScript()));
+     }
+ 
+     @Test
+@@ -87,7 +98,7 @@ public class GradleFilesTest {
+         File settings = root.newFile("settings.gradle");
+         GradleFiles gf = new GradleFiles(settings.getParentFile());
+         assertEquals("It is project", true, gf.isProject());
+-        assertEquals("It has settings", settings, gf.getSettingsScript());
++        assertEquals("It has settings", normalizeTempDir(settings), normalizeTempDir(gf.getSettingsScript()));
+         assertNull("No build script", gf.getBuildScript());
+     }
+ 
+@@ -95,7 +106,7 @@ public class GradleFilesTest {
+     public void testGetBuildScriptKotlin() throws IOException {
+         File build = root.newFile("build.gradle.kts");
+         GradleFiles gf = new GradleFiles(root.getRoot());
+-        assertEquals(build, gf.getBuildScript());
++        assertEquals(normalizeTempDir(build), normalizeTempDir(gf.getBuildScript()));
+     }
+ 
+     @Test
+@@ -158,7 +169,17 @@ public class GradleFilesTest {
+         File module = root.newFolder("module");
+         Files.write(settings.toPath(), Arrays.asList("include ':module'"));
+         GradleFiles gf = new GradleFiles(module);
+-        assertEquals(build, gf.getParentScript());
++        assertEquals(normalizeTempDir(build), normalizeTempDir(gf.getParentScript()));
++    }
++
++    @Test
++    public void testGetParentScriptKotlin2() throws IOException{
++        File build = root.newFile("build.gradle.kts");
++        File settings = root.newFile("settings.gradle");
++        File module = root.newFolder("module");
++        Files.write(settings.toPath(), Arrays.asList("include ':module'"));
++        GradleFiles gf = new GradleFiles(module);
++        assertEquals(normalizeTempDir(build), normalizeTempDir(gf.getParentScript()));
+     }
+ 
+     @Test
+@@ -168,7 +189,7 @@ public class GradleFilesTest {
+         File module = root.newFolder("module");
+         Files.write(settings.toPath(), Arrays.asList("include ':module'"));
+         GradleFiles gf = new GradleFiles(module);
+-        assertEquals(settings, gf.getSettingsScript());
++        assertEquals(normalizeTempDir(settings), normalizeTempDir(gf.getSettingsScript()));
+     }
+ 
+     /**
+@@ -181,7 +202,7 @@ public class GradleFilesTest {
+         File module = root.newFolder("module");
+         Files.write(settings.toPath(), Arrays.asList("include ':module'"));
+         GradleFiles gf = new GradleFiles(module);
+-        assertEquals(module, gf.getProjectDir());
++        assertEquals(normalizeTempDir(module), normalizeTempDir(gf.getProjectDir()));
+     }
+ 
+     @Test
+@@ -202,7 +223,7 @@ public class GradleFilesTest {
+         root.newFile("build.gradle");
+         root.newFile("settings.gradle");
+         GradleFiles gf = new GradleFiles(new File(root.getRoot(), "module"));
+-        assertEquals(root.getRoot(), gf.getRootDir());
++        assertEquals(normalizeTempDir(root.getRoot()), normalizeTempDir(gf.getRootDir()));
+     }
+ 
+     @Test
+@@ -210,7 +231,7 @@ public class GradleFilesTest {
+         root.newFile("build.gradle");
+         root.newFile("settings.gradle");
+         GradleFiles gf = new GradleFiles(new File(root.getRoot(), "module"));
+-        assertEquals(root.getRoot().getAbsolutePath(), gf.getRootDir().getAbsolutePath());
++        assertEquals(normalizeTempDir(root.getRoot()).getAbsolutePath(), normalizeTempDir(gf.getRootDir()).getAbsolutePath());
+     }
+     /**
+      * Test of getGradlew method, of class GradleFiles.
+@@ -224,7 +245,7 @@ public class GradleFilesTest {
+         File wrapperProps = new File(root.newFolder("gradle", "wrapper"), "gradle-wrapper.properties");
+         wrapperProps.createNewFile();
+         GradleFiles gf = new GradleFiles(root.getRoot());
+-        assertEquals(Utilities.isWindows() ? gradlewBat : gradlew, gf.getGradlew());
++        assertEquals(normalizeTempDir(Utilities.isWindows() ? gradlewBat : gradlew), normalizeTempDir(gf.getGradlew()));
+     }
+ 
+     /**
+@@ -239,7 +260,7 @@ public class GradleFilesTest {
+         File wrapperProps = new File(root.newFolder("gradle", "wrapper"), "gradle-wrapper.properties");
+         wrapperProps.createNewFile();
+         GradleFiles gf = new GradleFiles(root.getRoot());
+-        assertEquals(wrapperProps, gf.getWrapperProperties());
++        assertEquals(normalizeTempDir(wrapperProps), normalizeTempDir(gf.getWrapperProperties()));
+     }
+ 
+     @Test
+@@ -457,11 +478,11 @@ public class GradleFilesTest {
+         File subBuild = new File(module, "build.gradle");
+         subBuild.createNewFile();
+         GradleFiles gf = new GradleFiles(module);
+-        assertEquals(subBuild, gf.getFile(GradleFiles.Kind.BUILD_SCRIPT));
+-        assertEquals(build, gf.getFile(GradleFiles.Kind.ROOT_SCRIPT));
+-        assertEquals(settings, gf.getFile(GradleFiles.Kind.SETTINGS_SCRIPT));
+-        assertEquals(buildProps, gf.getFile(GradleFiles.Kind.ROOT_PROPERTIES));
+-        assertEquals(new File(module, "gradle.properties"), gf.getFile(GradleFiles.Kind.PROJECT_PROPERTIES));
++        assertEquals(normalizeTempDir(subBuild), normalizeTempDir(gf.getFile(GradleFiles.Kind.BUILD_SCRIPT)));
++        assertEquals(normalizeTempDir(build), normalizeTempDir(gf.getFile(GradleFiles.Kind.ROOT_SCRIPT)));
++        assertEquals(normalizeTempDir(settings), normalizeTempDir(gf.getFile(GradleFiles.Kind.SETTINGS_SCRIPT)));
++        assertEquals(normalizeTempDir(buildProps), normalizeTempDir(gf.getFile(GradleFiles.Kind.ROOT_PROPERTIES)));
++        assertEquals(normalizeTempDir(new File(module, "gradle.properties")), normalizeTempDir(gf.getFile(GradleFiles.Kind.PROJECT_PROPERTIES)));
+     }
+ 
+     /**
+@@ -472,9 +493,11 @@ public class GradleFilesTest {
+         File build = root.newFile("build.gradle");
+         File settings = root.newFile("settings.gradle");
+         GradleFiles gf = new GradleFiles(root.getRoot());
+-        assertEquals(2, gf.getProjectFiles().size());
+-        assertTrue(gf.getProjectFiles().contains(build));
+-        assertTrue(gf.getProjectFiles().contains(settings));
++        Set<File> projectFiles = gf.getProjectFiles();
++        assertEquals(2, projectFiles.size());
++        projectFiles = projectFiles.stream().map(GradleFilesTest::normalizeTempDir).collect(Collectors.toSet());
++        assertTrue(projectFiles.contains(normalizeTempDir(build)));
++        assertTrue(projectFiles.contains(normalizeTempDir(settings)));
+     }
+ 
+     /**
+diff --git a/ide/projectapi/src/org/netbeans/modules/projectapi/SimpleFileOwnerQueryImplementation.java b/ide/projectapi/src/org/netbeans/modules/projectapi/SimpleFileOwnerQueryImplementation.java
+index 1068f7f877..eac5b26525 100644
+--- a/ide/projectapi/src/org/netbeans/modules/projectapi/SimpleFileOwnerQueryImplementation.java
++++ b/ide/projectapi/src/org/netbeans/modules/projectapi/SimpleFileOwnerQueryImplementation.java
+@@ -108,10 +108,10 @@ public class SimpleFileOwnerQueryImplementation implements FileOwnerQueryImpleme
+     
+     public Project getOwner(FileObject f) {
+         List<FileObject> folders = new ArrayList<>();
+-        
++
+         deserialize();
+         while (f != null) {
+-            if (projectScanRoots != null && projectScanRoots.stream().noneMatch(f.getPath()::startsWith)) {
++            if (notWithinProjectScanRoots(f)) {
+                 break;
+             }
+             boolean folder = f.isFolder();
+@@ -210,6 +210,18 @@ public class SimpleFileOwnerQueryImplementation implements FileOwnerQueryImpleme
+         return null;
+     }
+ 
++    private static boolean notWithinProjectScanRoots(FileObject f) {
++        if (projectScanRoots == null)
++            return false;
++        String path = f.getPath();
++        for (String scanRoot : projectScanRoots) {
++            if (path.startsWith(scanRoot)
++                    && (path.length() == scanRoot.length()
++                    || path.charAt(scanRoot.length()) == '/'))
++                return false;
++        }
++        return true;
++    }
+ 
+     private static boolean hasRoot(
+             @NonNull final Set<URI> extRoots,
