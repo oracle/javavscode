@@ -1,7 +1,4 @@
-# Change Log
-
 <!--
-
     Copyright (c) 2023-2025, Oracle and/or its affiliates.
 
     Licensed to the Apache Software Foundation (ASF) under one
@@ -22,6 +19,40 @@
     under the License.
 
 -->
+# Change Log
+
+## Version 25.0.1
+### What's Changed
+
+#### Bug Fixes
+* Clarified usage of the two vscode File URI APIs [#494](https://github.com/oracle/javavscode/pull/494), resolving:
+    - Notebook creation failure on Windows with no workspace
+    - Go To Test/Tested navigation failure
+* Fixed project context mapping for notebooks on Windows [#498](https://github.com/oracle/javavscode/pull/498)
+* Fixed refactor method parameters UI to display button icons (move up/down, delete, add) [#495](https://github.com/oracle/javavscode/pull/495)
+* Surfaced NetBeans Language Server warnings during refactoring to prevent unexpected results [#511](https://github.com/oracle/javavscode/pull/511)
+* Corrected class-name validation in "Create New File from Template":
+    - Allow `module-info`, `package-info`; disallow `.` [#496](https://github.com/oracle/javavscode/pull/496)
+    - Warn for `$` in names [#509](https://github.com/oracle/javavscode/pull/509)
+* [JAVAVSCODE-353] Fixed Run/Debug of main classes in Gradle test sources [#487](https://github.com/oracle/javavscode/pull/487)
+* [JAVAVSCODE-499] Fixed code completions for module imports [#502](https://github.com/oracle/javavscode/pull/502)
+* Fixed applying code suggestions when implemented methods require imports [#520](https://github.com/oracle/javavscode/pull/520)
+* Notebook code cell execution fixes:
+    - Input box dismissal no longer blocks future input [#501](https://github.com/oracle/javavscode/pull/501)
+    - Notebook kernel can be restarted after execution crash [#506](https://github.com/oracle/javavscode/pull/506)
+    - Show unresolved dependency warnings [#507](https://github.com/oracle/javavscode/pull/507)
+    - Set current working directory (CWD) to the notebook's directory [#508](https://github.com/oracle/javavscode/pull/508)
+* [JAVAVSCODE-486] Handled cache deletion failures to allow manual cleanup before NetBeans Language Server restart [#515](https://github.com/oracle/javavscode/pull/515)
+
+
+#### Other Changes
+* Removed microsoft/vscode-l10n dependency [#504](https://github.com/oracle/javavscode/pull/504)
+* Fixed NetBeans Language Server launch on Windows ARM64 with an x64 JDK [#513](https://github.com/oracle/javavscode/pull/513)
+* Netbeans Language Server now honors project directory traversal settings when scanning for Gradle projects
+* Updated dependencies and removed unused modules
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v25.0.0...v25.0.1
+
 ## Version 25.0.0
 ### What's Changed
 
