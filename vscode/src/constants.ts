@@ -35,7 +35,7 @@ export namespace jdkDownloaderConstants {
   export const ORACLE_JDK_FALLBACK_VESIONS = ['25', '21'];
 
   export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-    "25": "https://download.java.net/java/GA/jdk25.0.1/2fbf10d8c78e40bd87641c434705079d/8/GPL/openjdk-25.0.1"
+    "25": "https://download.java.net/java/GA/jdk25.0.2/b1e0dfa218384cb9959bdcb897162d4e/10/GPL/openjdk-25.0.2"
   };  
 }
 export const NODE_WINDOWS_LABEL = "Windows_NT";

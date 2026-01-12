@@ -48,6 +48,7 @@
 #### Other Changes
 * Removed microsoft/vscode-l10n dependency [#504](https://github.com/oracle/javavscode/pull/504)
 * Fixed NetBeans Language Server launch on Windows ARM64 with an x64 JDK [#513](https://github.com/oracle/javavscode/pull/513)
+* Updated openjdk25 URL to 25.0.2
 * Netbeans Language Server now honors project directory traversal settings when scanning for Gradle projects
 * Updated dependencies and removed unused modules
 
