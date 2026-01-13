@@ -1,0 +1,182 @@
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+index aaad0135f..365e47b27 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+@@ -78,12 +78,15 @@ ERR_InvalidPath={0}\u306F\u6709\u52B9\u306A\u30D5\u30A9\u30EB\u30C0\u3067\u306F\
+ LBL_LaunchJavaConfig=Java\u306E\u8D77\u52D5: {0}
+ INFO_LongCodeCompletion={0}\u3088\u308A\u3082\u9577\u3044\u6642\u9593\u3092\u8981\u3057\u3066\u3044\u308B\u5B8C\u4E86\u3092\u5206\u6790\u3057\u307E\u3059\u3002\u30B5\u30F3\u30D7\u30E9\u30FB\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u306F\u6B21\u306B\u4FDD\u5B58\u3055\u308C\u3066\u3044\u307E\u3059: {1}
+ LBL_LaunchJavaConfig_desc={0}\u3092\u4F7F\u7528\u3057\u3066Java\u30A2\u30D7\u30EA\u30B1\u30FC\u30B7\u30E7\u30F3\u3092\u8D77\u52D5\u3057\u307E\u3059\u3002
+-LBL_Run={0} \u3092\u5B9F\u884C
+-LBL_Debug={0} \u3092\u30C7\u30D0\u30C3\u30B0
+-LBL_RunWith={1} \u3092\u6307\u5B9A\u3057\u3066 {0} \u3092\u5B9F\u884C
+-LBL_DebugWith={1} \u3092\u6307\u5B9A\u3057\u3066 {0} \u3092\u30C7\u30D0\u30C3\u30B0
++LBL_Run={0}\u3092\u5B9F\u884C
++LBL_Debug={0}\u3092\u30C7\u30D0\u30C3\u30B0
++LBL_RunWith={1}\u3092\u6307\u5B9A\u3057\u3066{0}\u3092\u5B9F\u884C
++LBL_DebugWith={1}\u3092\u6307\u5B9A\u3057\u3066{0}\u3092\u30C7\u30D0\u30C3\u30B0
+ MSG_ProjectFolderInitializationComplete=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
+ MSG_ProjectFolderInitializationComplete2={0}\u304A\u3088\u3073{1}\u306E\u4ED6\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
++PROMPT_AskObjectNameWarningConfirmation=\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u540D\u306B'$'\u304C\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059\u3002\u3053\u308C\u306F\u3001\u30E6\u30FC\u30B6\u30FC\u5B9A\u7FA9\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306B\u306F\u63A8\u5968\u3055\u308C\u307E\u305B\u3093\u3002\u73FE\u5728\u306E\u540D\u524D\u3067\u7D9A\u884C\u3057\u307E\u3059\u304B\u3002\u305D\u308C\u3068\u3082\u3001\u3084\u308A\u76F4\u3057\u307E\u3059\u304B\u3002
++PROMPT_AskObjectNameWarningConfirmation_Continue=\u7D9A\u884C
++PROMPT_AskObjectNameWarningConfirmation_TryAgain=\u518D\u8A66\u884C
+ PROMPT_AskOpenProject=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u3059\u3079\u3066\u306E\u6A5F\u80FD\u3092\u6709\u52B9\u306B\u3059\u308B\u306B\u306F\u3001\u8A00\u8A9E\u30B5\u30FC\u30D0\u30FC\u306B\u3088\u3063\u3066\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u304C\u958B\u304B\u308C\u3001\u521D\u671F\u5316\u3055\u308C\u3066\u3044\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002\u7D9A\u884C\u3057\u307E\u3059\u304B\u3002
+ PROMPT_AskOpenProjectForFile=\u30D5\u30A1\u30A4\u30EB{0}\u306F\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{1}\u306B\u5C5E\u3057\u3066\u3044\u307E\u3059\u3002\u3059\u3079\u3066\u306E\u6A5F\u80FD\u3092\u6709\u52B9\u306B\u3059\u308B\u306B\u306F\u3001\u8A00\u8A9E\u30B5\u30FC\u30D0\u30FC\u306B\u3088\u3063\u3066\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u304C\u958B\u304B\u308C\u3001\u521D\u671F\u5316\u3055\u308C\u3066\u3044\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002\u7D9A\u884C\u3057\u307E\u3059\u304B\u3002
+ PROMPT_AskOpenProjectForFile_No=\u3044\u3044\u3048
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties
+index f4eca0c80..c26d0847e 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties
+@@ -29,3 +29,6 @@ DN_SelectMembersToExtract=\u62BD\u51FA\u3059\u308B\u30E1\u30F3\u30D0\u30FC\u306E
+ DN_SelectMembersToPullUp=\u30D7\u30EB\u30FB\u30A2\u30C3\u30D7\u3059\u308B\u30E1\u30F3\u30D0\u30FC\u306E\u9078\u629E
+ DN_SelectMembersToPushDown=\u30D7\u30C3\u30B7\u30E5\u30FB\u30C0\u30A6\u30F3\u3059\u308B\u30E1\u30F3\u30D0\u30FC\u306E\u9078\u629E
+ DN_SelectTargetSupertype=\u30BF\u30FC\u30B2\u30C3\u30C8\u30FB\u30B9\u30FC\u30D1\u30FC\u30BF\u30A4\u30D7\u306E\u9078\u629E
++PROMPT_AskProceedWithRefactoringProblems=\u30EA\u30D5\u30A1\u30AF\u30BF\u3059\u308B\u3068\u3001\u6B21\u306E\u554F\u984C\u304C\u767A\u751F\u3059\u308B\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059: {0}\u3002\n\u30EA\u30D5\u30A1\u30AF\u30BF\u3092\u7D9A\u884C\u3057\u307E\u3059\u304B\u3002
++PROMPT_AskProceedWithRefactoringProblems_No=\u3044\u3044\u3048
++PROMPT_AskProceedWithRefactoringProblems_Yes=\u306F\u3044
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html
+index 0876db7a8..db4dca458 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html
+@@ -1,12 +1,11 @@
+ <!DOCTYPE html>
+-<html lang="en">
++<html lang="ja">
+ 
+ <head>
+     <meta charset="UTF-8">
+     <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="stylesheet" href="refactoring.css">
+-    <link rel="stylesheet" href="codicon.css">
+     <title>リファクタ: メソッド・パラメータの変更...</title>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
+ 
+@@ -37,13 +36,16 @@
+         <div class="flex row">
+             <input type="text" data-bind="textInput: type" class="flex-grow">
+             <input type="text" data-bind="textInput: name" class="flex-grow">
+-            <button class="action-button codicon codicon-arrow-up" data-bind="click: $root.moveUpParameter"></button>
+-            <button class="action-button codicon codicon-arrow-down" data-bind="click: $root.moveDownParameter"></button>
+-            <button class="action-button codicon codicon-trash" data-bind="click: $root.removeParameter"></button>
++            <button class="action-button" data-bind="click: $root.moveUpParameter" title="上に移動">▲</button>
++            <button class="action-button" data-bind="click: $root.moveDownParameter" title="下に移動">▼</button>
++            <button class="action-button" data-bind="click: $root.removeParameter" title="パラメータを削除">✖</button>
+         </div>
+     </div>
++
+     <div class="add-param flex">
+-        <button id="addParam" class="silent-button codicon codicon-add full-width flex-grow" data-bind="click: addParameter"><span class="button-text vscode-font">パラメータの追加</span></button>
++        <button id="addParam" class="silent-button flex-grow" data-bind="click: addParameter">
++            ✚ <span class="button-text vscode-font">パラメータの追加</span>
++        </button>
+     </div>
+     <div class="section">
+         <label>署名プレビュー:</label>
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html
+index 5e8d20142..3149371ae 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html
+@@ -1,5 +1,5 @@
+ <!DOCTYPE html>
+-<html lang="en">
++<html lang="ja">
+ 
+ <head>
+     <meta charset="UTF-8">
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html
+index 282e5e52a..175bd7967 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html
+@@ -1,5 +1,5 @@
+ <!DOCTYPE html>
+-<html lang="en">
++<html lang="ja">
+ 
+ <head>
+     <meta charset="UTF-8">
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+index e723768eb..a2aeb3f6d 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+@@ -84,6 +84,9 @@ LBL_RunWith=\u4F7F\u7528 {1} \u8FD0\u884C {0}
+ LBL_DebugWith=\u4F7F\u7528 {1} \u8C03\u8BD5 {0}
+ MSG_ProjectFolderInitializationComplete=\u5DF2\u5B8C\u6210\u9879\u76EE {0} \u7684\u521D\u59CB\u5316
+ MSG_ProjectFolderInitializationComplete2=\u5DF2\u5B8C\u6210 {0} \u548C {1} \u4E2A\u5176\u4ED6\u9879\u76EE\u7684\u521D\u59CB\u5316
++PROMPT_AskObjectNameWarningConfirmation=\u5BF9\u8C61\u540D\u79F0\u5305\u542B '$'\u3002\u5BF9\u4E8E\u7528\u6237\u5B9A\u4E49\u7684\u5BF9\u8C61\uFF0C\u4E0D\u5EFA\u8BAE\u4F7F\u7528\u6B64\u540D\u79F0\u3002\u662F\u8981\u7EE7\u7EED\u4F7F\u7528\u5F53\u524D\u540D\u79F0\u8FD8\u662F\u91CD\u8BD5\uFF1F
++PROMPT_AskObjectNameWarningConfirmation_Continue=\u7EE7\u7EED
++PROMPT_AskObjectNameWarningConfirmation_TryAgain=\u91CD\u8BD5
+ PROMPT_AskOpenProject=\u8981\u542F\u7528\u9879\u76EE {0} \u7684\u6240\u6709\u529F\u80FD\uFF0C\u5E94\u4F7F\u7528 Language Server \u6253\u5F00\u5E76\u521D\u59CB\u5316\u6B64\u9879\u76EE\u3002\u662F\u5426\u8981\u7EE7\u7EED\uFF1F
+ PROMPT_AskOpenProjectForFile=\u6587\u4EF6 {0} \u5C5E\u4E8E\u9879\u76EE {1}\u3002\u8981\u542F\u7528\u6240\u6709\u529F\u80FD\uFF0C\u5E94\u4F7F\u7528 Language Server \u6253\u5F00\u5E76\u521D\u59CB\u5316\u6B64\u9879\u76EE\u3002\u662F\u5426\u8981\u7EE7\u7EED\uFF1F
+ PROMPT_AskOpenProjectForFile_No=\u5426
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties
+index e608784a4..24a6a0c95 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties
+@@ -29,3 +29,6 @@ DN_SelectMembersToExtract=\u9009\u62E9\u8981\u63D0\u53D6\u7684\u6210\u5458
+ DN_SelectMembersToPullUp=\u9009\u62E9\u8981\u4E0A\u79FB\u7684\u6210\u5458
+ DN_SelectMembersToPushDown=\u9009\u62E9\u8981\u4E0B\u79FB\u7684\u6210\u5458
+ DN_SelectTargetSupertype=\u9009\u62E9\u76EE\u6807\u8D85\u7C7B\u578B
++PROMPT_AskProceedWithRefactoringProblems=\u91CD\u6784\u53EF\u80FD\u4F1A\u5BFC\u81F4\u4EE5\u4E0B\u95EE\u9898\uFF1A{0}\u3002\n\u662F\u5426\u4ECD\u8981\u7EE7\u7EED\u91CD\u6784\uFF1F
++PROMPT_AskProceedWithRefactoringProblems_No=\u5426
++PROMPT_AskProceedWithRefactoringProblems_Yes=\u662F
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html
+index e27e1ae5a..88fc120bd 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html
+@@ -1,12 +1,11 @@
+ <!DOCTYPE html>
+-<html lang="en">
++<html lang="zh-Hans">
+ 
+ <head>
+     <meta charset="UTF-8">
+     <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="stylesheet" href="refactoring.css">
+-    <link rel="stylesheet" href="codicon.css">
+     <title>重构：更改方法参数...</title>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
+ 
+@@ -37,13 +36,16 @@
+         <div class="flex row">
+             <input type="text" data-bind="textInput: type" class="flex-grow">
+             <input type="text" data-bind="textInput: name" class="flex-grow">
+-            <button class="action-button codicon codicon-arrow-up" data-bind="click: $root.moveUpParameter"></button>
+-            <button class="action-button codicon codicon-arrow-down" data-bind="click: $root.moveDownParameter"></button>
+-            <button class="action-button codicon codicon-trash" data-bind="click: $root.removeParameter"></button>
++            <button class="action-button" data-bind="click: $root.moveUpParameter" title="上移">▲</button>
++            <button class="action-button" data-bind="click: $root.moveDownParameter" title="下移">▼</button>
++            <button class="action-button" data-bind="click: $root.removeParameter" title="删除参数">✖</button>
+         </div>
+     </div>
++
+     <div class="add-param flex">
+-        <button id="addParam" class="silent-button codicon codicon-add full-width flex-grow" data-bind="click: addParameter"><span class="button-text vscode-font">添加参数</span></button>
++        <button id="addParam" class="silent-button flex-grow" data-bind="click: addParameter">
++            ✚ <span class="button-text vscode-font">添加参数</span>
++        </button>
+     </div>
+     <div class="section">
+         <label>签名预览：</label>
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html
+index 4fa4b361c..b56d73346 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html
+@@ -1,5 +1,5 @@
+ <!DOCTYPE html>
+-<html lang="en">
++<html lang="zh-Hans">
+ 
+ <head>
+     <meta charset="UTF-8">
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html
+index 7be2a601f..f56746cf0 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html
+@@ -1,5 +1,5 @@
+ <!DOCTYPE html>
+-<html lang="en">
++<html lang="zh-Hans">
+ 
+ <head>
+     <meta charset="UTF-8">
