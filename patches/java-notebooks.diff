@@ -1,3 +1,6 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellExecutionResult.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellExecutionResult.java
+new file mode 100644
+index 0000000000..37190bcbb4
 --- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellExecutionResult.java
 @@ -0,0 +1,63 @@
@@ -64,6 +67,56 @@
 +        }
 +    }
 +}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellStateResponse.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellStateResponse.java
+new file mode 100644
+index 0000000000..25e095b4da
+--- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellStateResponse.java
+@@ -0,0 +1,41 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.lsp.server.notebook;
++
++/**
++ *
++ * @author atalati
++ */
++public class CellStateResponse {
++    private final String text;
++    private final int version;
++
++    public CellStateResponse(String text, int version) {
++        this.text = text;
++        this.version = version;
++    }
++
++    public String getText() {
++        return text;
++    }
++
++    public int getVersion() {
++        return version;
++    }
++}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellExecutionProgressResultParams.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellExecutionProgressResultParams.java
+new file mode 100644
+index 0000000000..3d8cb19fb7
 --- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellExecutionProgressResultParams.java
 @@ -0,0 +1,301 @@
@@ -368,50 +421,9 @@
 +                && Objects.equals(this.metadata, other.metadata);
 +    }
 +}
---- /dev/null
-+++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/CellStateResponse.java
-@@ -0,0 +1,41 @@
-+/*
-+ * Licensed to the Apache Software Foundation (ASF) under one
-+ * or more contributor license agreements.  See the NOTICE file
-+ * distributed with this work for additional information
-+ * regarding copyright ownership.  The ASF licenses this file
-+ * to you under the Apache License, Version 2.0 (the
-+ * "License"); you may not use this file except in compliance
-+ * with the License.  You may obtain a copy of the License at
-+ *
-+ *   http://www.apache.org/licenses/LICENSE-2.0
-+ *
-+ * Unless required by applicable law or agreed to in writing,
-+ * software distributed under the License is distributed on an
-+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-+ * KIND, either express or implied.  See the License for the
-+ * specific language governing permissions and limitations
-+ * under the License.
-+ */
-+package org.netbeans.modules.java.lsp.server.notebook;
-+
-+/**
-+ *
-+ * @author atalati
-+ */
-+public class CellStateResponse {
-+    private final String text;
-+    private final int version;
-+
-+    public CellStateResponse(String text, int version) {
-+        this.text = text;
-+        this.version = version;
-+    }
-+
-+    public String getText() {
-+        return text;
-+    }
-+
-+    public int getVersion() {
-+        return version;
-+    }
-+}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellStateParams.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellStateParams.java
+new file mode 100644
+index 0000000000..eb56151249
 --- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookCellStateParams.java
 @@ -0,0 +1,99 @@
@@ -514,9 +526,12 @@
 +                && Objects.equals(this.cellUri, other.cellUri);
 +    }
 +}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookDocumentServiceHandler.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookDocumentServiceHandler.java
+new file mode 100644
+index 0000000000..4084a38498
 --- /dev/null
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/notebook/NotebookDocumentServiceHandler.java
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,55 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -537,96 +552,46 @@
 + */
 +package org.netbeans.modules.java.lsp.server.notebook;
 +
-+import org.eclipse.lsp4j.DidChangeTextDocumentParams;
-+import org.eclipse.lsp4j.DidCloseTextDocumentParams;
-+import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-+import org.eclipse.lsp4j.DidSaveTextDocumentParams;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import org.eclipse.lsp4j.CompletionItem;
++import org.eclipse.lsp4j.CompletionList;
++import org.eclipse.lsp4j.CompletionParams;
++import org.eclipse.lsp4j.ServerCapabilities;
++import org.eclipse.lsp4j.jsonrpc.messages.Either;
++import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
++import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 +import org.eclipse.lsp4j.services.LanguageClientAware;
 +import org.eclipse.lsp4j.services.NotebookDocumentService;
-+import org.eclipse.lsp4j.services.TextDocumentService;
 +
 +/**
 + *
 + * @author atalati
 + */
-+public interface NotebookDocumentServiceHandler extends NotebookDocumentService, TextDocumentService, LanguageClientAware {
-+
-+    @Override
-+    public default void didOpen(DidOpenTextDocumentParams params) {
-+        // placholder method, not required to implement in the notebook service handler
-+    }
-+
-+    @Override
-+    public default void didChange(DidChangeTextDocumentParams params) {
-+        // placholder method, not required to implement in the notebook service handler
-+    }
-+
-+    @Override
-+    public default void didClose(DidCloseTextDocumentParams params) {
-+        // placholder method, not required to implement in the notebook service handler
-+    }
-+
-+    @Override
-+    public default void didSave(DidSaveTextDocumentParams params) {
-+        // placholder method, not required to implement in the notebook service handler
-+    }
-+
-+    public default String getSchemeSupportedInTextDocUri() {
-+        return "vscode-notebook-cell";
-+    }
-+
++@JsonSegment("notebookDocument")
++public interface NotebookDocumentServiceHandler extends NotebookDocumentService, LanguageClientAware {
++        static final String NOTEBOOK_TEXT_DOC_URI_IDENTIFIER = "vscode-notebook-cell";// NOI18N
++    	/**
++	 * The Completion request is sent from the client to the server to compute
++	 * completion items at a given cursor position. Completion items are
++	 * presented in the IntelliSense user interface. If computing complete
++	 * completion items is expensive servers can additional provide a handler
++	 * for the resolve completion item request. This request is sent when a
++	 * completion item is selected in the user interface.
++	 * <p>
++	 * Registration Options: {@link org.eclipse.lsp4j.CompletionRegistrationOptions}
++	 */
++	@JsonRequest
++	default CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
++		throw new UnsupportedOperationException();
++	}
++        public void init(ServerCapabilities serverCapabilities);
 +}
---- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java
-+++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java
-@@ -32,6 +32,9 @@
- import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
- import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
- import org.netbeans.modules.java.lsp.server.explorer.api.NodeChangedParams;
-+import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
- 
- /**
-  * An extension to the standard LanguageClient that adds several messages missing
-@@ -166,4 +169,9 @@
-     @JsonRequest("output/reset")
-     public CompletableFuture<Void> resetOutput(String outputName);
-     
-+    @JsonNotification("notebook/execution/progress")
-+    public void notifyNotebookCellExecutionProgress(@NonNull NotebookCellExecutionProgressResultParams params);
-+    
-+    @JsonRequest("notebook/cell/state")
-+    public CompletableFuture<CellStateResponse> getNotebookCellState(@NonNull NotebookCellStateParams params);
- }
---- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java
-+++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java
-@@ -44,6 +44,9 @@
- import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
- import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
- import org.netbeans.modules.java.lsp.server.explorer.api.NodeChangedParams;
-+import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
- 
- /**
-  * Convenience wrapper that binds language client's remote proxy together with
-@@ -244,4 +247,13 @@
-         return remote.resetOutput(outputName);
-     }
-     
-+    @Override
-+    public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
-+        remote.notifyNotebookCellExecutionProgress(params);
- }
-+
-+    @Override
-+    public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
-+        return remote.getNotebookCellState(params);
-+    }
-+}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientCapabilities.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientCapabilities.java
+index af08cc8ac4..4b730cc7d1 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientCapabilities.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientCapabilities.java
-@@ -95,6 +95,11 @@
+@@ -96,6 +96,11 @@ public final class NbCodeClientCapabilities {
       */
      private Boolean wantsTelemetryEnabled = Boolean.FALSE;
  
@@ -638,7 +603,7 @@
      public ClientCapabilities getClientCapabilities() {
          return clientCaps;
      }
-@@ -188,6 +193,10 @@
+@@ -188,6 +193,10 @@ public final class NbCodeClientCapabilities {
          return wantsTelemetryEnabled == Boolean.TRUE;
      }
  
@@ -649,79 +614,163 @@
      private NbCodeClientCapabilities withCapabilities(ClientCapabilities caps) {
          if (caps == null) {
              caps = new ClientCapabilities();
---- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java
-+++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java
-@@ -43,6 +43,9 @@
- import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java
+index a0c4f672ca..3ca7c9e8eb 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeClientWrapper.java
+@@ -44,6 +44,9 @@ import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
- import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
+ import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
+ import org.netbeans.modules.java.lsp.server.explorer.api.NodeChangedParams;
 +import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
- import org.netbeans.modules.java.lsp.server.protocol.OutputMessage;
- import org.netbeans.modules.java.lsp.server.protocol.SaveDocumentRequestParams;
- import org.netbeans.modules.java.lsp.server.protocol.ShowStatusMessageParams;
-@@ -182,4 +185,14 @@
-     public CompletableFuture<Void> resetOutput(String outputName) {
-         return CompletableFuture.completedFuture(null);
+ 
+ /**
+  * Convenience wrapper that binds language client's remote proxy together with
+@@ -244,4 +247,13 @@ class NbCodeClientWrapper implements NbCodeLanguageClient {
+         return remote.resetOutput(outputName);
      }
-+
+     
 +    @Override
-+    public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params){
-+        throw new UnsupportedOperationException();
- }
++    public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
++        remote.notifyNotebookCellExecutionProgress(params);
++}
 +
 +    @Override
 +    public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
-+        return CompletableFuture.completedFuture(null);
++        return remote.getNotebookCellState(params);
 +    }
-+}
---- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java
-+++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java
-@@ -77,6 +77,9 @@
- import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
+ }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java
+index 767edb696c..55313b6116 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/NbCodeLanguageClient.java
+@@ -32,6 +32,9 @@ import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
- import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
+ import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
+ import org.netbeans.modules.java.lsp.server.explorer.api.NodeChangedParams;
 +import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
- import org.netbeans.modules.java.lsp.server.protocol.OutputMessage;
- import org.netbeans.modules.java.lsp.server.protocol.SaveDocumentRequestParams;
- import org.netbeans.modules.java.lsp.server.protocol.SetTextEditorDecorationParams;
-@@ -306,8 +309,18 @@
-         public CompletableFuture<Void> resetOutput(String outputName) {
-             return CompletableFuture.completedFuture(null);
-         }
-+
-+        @Override
-+        public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
-     }
  
-+        @Override
-+        public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
-+            return CompletableFuture.completedFuture(null);
-+        }
-+
-+    }
-+
-     private static Launcher<NbLanguageServer> createLauncher(NbCodeLanguageClient client, InputStream in, OutputStream out,
-             Function<MessageConsumer, MessageConsumer> processor) {
-         return new LSPLauncher.Builder<NbLanguageServer>()
+ /**
+  * An extension to the standard LanguageClient that adds several messages missing
+@@ -166,4 +169,9 @@ public interface NbCodeLanguageClient extends LanguageClient {
+     @JsonRequest("output/reset")
+     public CompletableFuture<Void> resetOutput(String outputName);
+     
++    @JsonNotification("notebook/execution/progress")
++    public void notifyNotebookCellExecutionProgress(@NonNull NotebookCellExecutionProgressResultParams params);
++    
++    @JsonRequest("notebook/cell/state")
++    public CompletableFuture<CellStateResponse> getNotebookCellState(@NonNull NotebookCellStateParams params);
+ }
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
-index 747d151600..bbf1f263d1 100644
+index aa4d7ee6d6..58d89532e2 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
-@@ -134,6 +134,9 @@ import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
+@@ -46,6 +46,7 @@ import java.util.logging.Logger;
+ import com.google.gson.InstanceCreator;
+ import com.google.gson.JsonObject;
+ import com.google.gson.JsonPrimitive;
++import java.lang.reflect.InvocationTargetException;
+ import java.util.prefs.Preferences;
+ import java.util.LinkedHashSet;
+ import java.util.Objects;
+@@ -65,7 +66,6 @@ import org.eclipse.lsp4j.ExecuteCommandOptions;
+ import org.eclipse.lsp4j.FoldingRangeProviderOptions;
+ import org.eclipse.lsp4j.InitializeParams;
+ import org.eclipse.lsp4j.InitializeResult;
+-import org.eclipse.lsp4j.InlayHintRegistrationOptions;
+ import org.eclipse.lsp4j.MessageActionItem;
+ import org.eclipse.lsp4j.MessageParams;
+ import org.eclipse.lsp4j.MessageType;
+@@ -135,6 +135,10 @@ import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
  import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
  import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
  import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
 +import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
 +import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookDocumentServiceHandler;
  import org.netbeans.modules.java.lsp.server.progress.OperationContext;
  import org.netbeans.modules.parsing.spi.indexing.Context;
  import org.netbeans.modules.parsing.spi.indexing.CustomIndexer;
-@@ -1383,6 +1386,16 @@ public final class Server {
+@@ -253,7 +257,6 @@ public final class Server {
+         private NbCodeLanguageClient client;
+         private OperationContext initialContext;
+         private List<Object> additionalServices = new ArrayList<>();
+-
+         public ConsumeWithLookup(Lookup sessionLookup) {
+             this.sessionLookup = sessionLookup;
+         }
+@@ -311,6 +314,21 @@ public final class Server {
+                         if (p instanceof WorkDoneProgressParams) {
+                             ctx.setProgressToken(((WorkDoneProgressParams)p).getWorkDoneToken());
+                         }
++                        // LSP Client sends requests for notebook cells with textDocument prefix
++                        // Our notebookDocumentService implementation requires different implementation for these requests
++                        try {
++                            Class<?> paramClass = p.getClass();
++                            Method getTextDoc = paramClass.getMethod("getTextDocument");
++                            TextDocumentIdentifier textDocId = (TextDocumentIdentifier)getTextDoc.invoke(p);
++                            String uri = textDocId.getUri();
++                            if(uri.startsWith(NotebookDocumentServiceHandler.NOTEBOOK_TEXT_DOC_URI_IDENTIFIER)){
++                                String newMethod = rq.getMethod().replaceFirst("^textDocument(?=/)", "notebookDocument");
++                                rq.setMethod(newMethod);
++                            }
++                        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException ex) {
++                           
++                        }        
++                        
+                     } else if (msg instanceof NotificationMessage) {
+                         NotificationMessage not = (NotificationMessage)msg;
+                         Object p = not.getParams();
+@@ -412,6 +430,7 @@ public final class Server {
+         private static final Logger LOG = Logger.getLogger(LanguageServerImpl.class.getName());
+         private NbCodeClientWrapper client;
+         private final TextDocumentServiceImpl textDocumentService = new TextDocumentServiceImpl(this);
++        private final NotebookDocumentServiceHandler notebookDocService = Lookup.getDefault().lookup(NotebookDocumentServiceHandler.class);
+         private final WorkspaceServiceImpl workspaceService = new WorkspaceServiceImpl(this);
+         private final InstanceContent   sessionServices = new InstanceContent();
+         private final AbstractLookup sessionOnly = new AbstractLookup(sessionServices);
+@@ -938,7 +957,9 @@ public final class Server {
+                 capabilities.setFoldingRangeProvider(foldingOptions);
+                 capabilities.setInlayHintProvider(true);
+                 textDocumentService.init(init.getCapabilities(), capabilities);
+-
++                if(notebookDocService!=null){
++                    notebookDocService.init(capabilities);
++                }
+                 // register for workspace changess
+                 WorkspaceServerCapabilities wcaps = new WorkspaceServerCapabilities();
+                 WorkspaceFoldersOptions wfopts = new WorkspaceFoldersOptions();
+@@ -1127,7 +1148,10 @@ public final class Server {
+         public TextDocumentService getTextDocumentService() {
+             return textDocumentService;
+         }
+-
++        @Override
++        public NotebookDocumentServiceHandler getNotebookDocumentService() {
++            return notebookDocService;
++        }
+         @Override
+         public WorkspaceService getWorkspaceService() {
+             return workspaceService;
+@@ -1154,6 +1178,11 @@ public final class Server {
+             sessionServices.add(inputService.getRegistry());
+             sessionServices.add(workspaceService.getWorkspace());
+             ((LanguageClientAware) getTextDocumentService()).connect(client);
++            if(getNotebookDocumentService()==null) {
++                LOG.log(Level.WARNING,"No implementation for notebook document service found");
++            } else {
++                ((LanguageClientAware) getNotebookDocumentService()).connect(client);
++            }
+             ((LanguageClientAware) getWorkspaceService()).connect(client);
+             ((LanguageClientAware) treeService).connect(client);
+         }
+@@ -1386,6 +1415,16 @@ public final class Server {
              logWarning("Reset output: " + outputName); //NOI18N
              return CompletableFuture.completedFuture(null);
          }
@@ -738,24 +787,34 @@ index 747d151600..bbf1f263d1 100644
      };
  
  
-
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
+index 3aebeddbe4..167d03921a 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/TextDocumentServiceImpl.java
-@@ -117,9 +117,13 @@ import org.eclipse.lsp4j.ConfigurationParams;
- import org.eclipse.lsp4j.DefinitionParams;
- import org.eclipse.lsp4j.Diagnostic;
- import org.eclipse.lsp4j.DiagnosticSeverity;
-+import org.eclipse.lsp4j.DidChangeNotebookDocumentParams;
- import org.eclipse.lsp4j.DidChangeTextDocumentParams;
-+import org.eclipse.lsp4j.DidCloseNotebookDocumentParams;
- import org.eclipse.lsp4j.DidCloseTextDocumentParams;
-+import org.eclipse.lsp4j.DidOpenNotebookDocumentParams;
- import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-+import org.eclipse.lsp4j.DidSaveNotebookDocumentParams;
- import org.eclipse.lsp4j.DidSaveTextDocumentParams;
- import org.eclipse.lsp4j.DocumentFormattingParams;
- import org.eclipse.lsp4j.DocumentHighlight;
-@@ -141,6 +145,9 @@ import org.eclipse.lsp4j.LocationLink;
+@@ -24,7 +24,6 @@ import com.google.gson.JsonElement;
+ import com.google.gson.JsonObject;
+ import com.google.gson.JsonPrimitive;
+ import com.sun.source.tree.ClassTree;
+-import com.sun.source.tree.IdentifierTree;
+ import com.sun.source.tree.LineMap;
+ import com.sun.source.tree.MethodTree;
+ import com.sun.source.tree.Tree;
+@@ -35,7 +34,6 @@ import com.sun.source.util.TreePathScanner;
+ import com.sun.source.util.Trees;
+ import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
+ import java.io.DataOutputStream;
+-import java.io.File;
+ import java.io.FileNotFoundException;
+ import java.net.URI;
+ import java.net.URL;
+@@ -143,13 +141,15 @@ import org.eclipse.lsp4j.InlayHintParams;
+ import org.eclipse.lsp4j.InlineValue;
+ import org.eclipse.lsp4j.InlineValueEvaluatableExpression;
+ import org.eclipse.lsp4j.InlineValueParams;
+-import org.eclipse.lsp4j.InlineValueVariableLookup;
+ import org.eclipse.lsp4j.InsertTextFormat;
+ import org.eclipse.lsp4j.Location;
+ import org.eclipse.lsp4j.LocationLink;
  import org.eclipse.lsp4j.MarkupContent;
  import org.eclipse.lsp4j.MessageParams;
  import org.eclipse.lsp4j.MessageType;
@@ -765,441 +824,358 @@ index 747d151600..bbf1f263d1 100644
  import org.eclipse.lsp4j.ParameterInformation;
  import org.eclipse.lsp4j.Position;
  import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
-@@ -176,6 +183,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either3;
- import org.eclipse.lsp4j.jsonrpc.messages.ResponseErrorCode;
- import org.eclipse.lsp4j.services.LanguageClient;
- import org.eclipse.lsp4j.services.LanguageClientAware;
-+import org.eclipse.lsp4j.services.NotebookDocumentService;
- import org.eclipse.lsp4j.services.TextDocumentService;
- import org.netbeans.api.annotations.common.CheckForNull;
- import org.netbeans.api.editor.mimelookup.MimeLookup;
-@@ -247,6 +255,7 @@ import org.netbeans.modules.refactoring.spi.Transaction;
- import org.netbeans.api.lsp.StructureElement;
- import org.netbeans.modules.editor.indent.api.Reformat;
- import org.netbeans.modules.java.lsp.server.URITranslator;
-+import org.netbeans.modules.java.lsp.server.notebook.NotebookDocumentServiceHandler;
- import org.netbeans.modules.java.lsp.server.ui.AbstractJavaPlatformProviderOverride;
- import org.netbeans.modules.parsing.impl.SourceAccessor;
- import org.netbeans.modules.sampler.Sampler;
-@@ -287,7 +296,7 @@ import org.openide.util.lookup.ServiceProvider;
-  *
-  * @author lahvac
-  */
--public class TextDocumentServiceImpl implements TextDocumentService, LanguageClientAware {
-+public class TextDocumentServiceImpl implements TextDocumentService, LanguageClientAware, NotebookDocumentService {
-     private static final Logger LOG = Logger.getLogger(TextDocumentServiceImpl.class.getName());
-     
-     private static final String COMMAND_RUN_SINGLE = "nbls.run.single";         // NOI18N
-@@ -309,12 +309,15 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
-     private static final String NETBEANS_COMPLETION_WARNING_TIME = "completion.warning.time";// NOI18N
-     private static final String NETBEANS_JAVA_ON_SAVE_ORGANIZE_IMPORTS = "java.onSave.organizeImports";// NOI18N
-     private static final String NETBEANS_CODE_COMPLETION_COMMIT_CHARS = "java.completion.commit.chars";// NOI18N
-+    private static final String NOTEBOOK_TEXT_DOC_URI_IDENTIFIER = "vscode-notebook-cell";// NOI18N
-     private static final String URL = "url";// NOI18N
-     private static final String INDEX = "index";// NOI18N
-     
+@@ -202,8 +202,6 @@ import org.netbeans.api.java.source.Task;
+ import org.netbeans.api.java.source.TreePathHandle;
+ import org.netbeans.api.java.source.TreeUtilities;
+ import org.netbeans.api.java.source.WorkingCopy;
+-import org.netbeans.api.java.source.support.CancellableTreePathScanner;
+-import org.netbeans.api.java.source.support.ErrorAwareTreePathScanner;
+ import org.netbeans.api.java.source.ui.ElementOpen;
+ import org.netbeans.api.lexer.Token;
+ import org.netbeans.api.lexer.TokenSequence;
+@@ -271,7 +269,6 @@ import org.netbeans.spi.lsp.StructureProvider;
+ import org.netbeans.spi.project.ActionProvider;
+ import org.netbeans.spi.project.ProjectConfiguration;
+ import org.netbeans.spi.project.ProjectConfigurationProvider;
+-import org.openide.DialogDescriptor;
+ import org.openide.DialogDisplayer;
+ import org.openide.NotifyDescriptor;
+ import org.openide.NotifyDescriptor.Message;
+@@ -315,6 +312,7 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
      private static final RequestProcessor BACKGROUND_TASKS = new RequestProcessor(TextDocumentServiceImpl.class.getName(), 1, false, false);
      private static final RequestProcessor WORKER = new RequestProcessor(TextDocumentServiceImpl.class.getName(), 1, false, false);
  
-+    private volatile NotebookDocumentServiceHandler notebookDocumentServiceDelegator = null;
 +
      /**
       * File URIs touched / queried by the client.
       */
-@@ -337,7 +340,49 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+@@ -337,7 +335,6 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
              runDiagnosticTasks(doc, true);
          }
      }
-+    
-+    public boolean isNotebookSupportEnabled(){
-+        return notebookDocumentServiceDelegator != null;
-+    }
-+    
-+    public boolean isRequiredToDelegateToNotebooks(String textDocumentUri){
-+        return textDocumentUri.startsWith(NOTEBOOK_TEXT_DOC_URI_IDENTIFIER);
-+    }
-+    
-+    @Override
-+    public void didOpen(DidOpenNotebookDocumentParams params) {
-+        if (notebookDocumentServiceDelegator == null) {
-+            notebookDocumentServiceDelegator = Lookup.getDefault().lookup(NotebookDocumentServiceHandler.class);
-+            if (notebookDocumentServiceDelegator != null) {
-+                notebookDocumentServiceDelegator.connect(client);
-+            } else {
-+                return;
-+            }
-+        }
-+        notebookDocumentServiceDelegator.didOpen(params);
-+    }
- 
-+    @Override
-+    public void didChange(DidChangeNotebookDocumentParams params) {
-+        if(isNotebookSupportEnabled()){
-+            notebookDocumentServiceDelegator.didChange(params);
-+        }
-+    }
-+
-+    @Override
-+    public void didSave(DidSaveNotebookDocumentParams params) {
-+        if(isNotebookSupportEnabled()){
-+            notebookDocumentServiceDelegator.didSave(params);
-+        }
-+    }
-+
-+    @Override
-+    public void didClose(DidCloseNotebookDocumentParams params) {
-+        if(isNotebookSupportEnabled()){
-+            notebookDocumentServiceDelegator.didClose(params);
-+        }
-+    }
-+ 
+-
      @ServiceProvider(service=IndexingAware.class, position=0)
      public static final class RefreshDocument implements IndexingAware {
  
-@@ -381,6 +426,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
-         "INFO_LongCodeCompletion=Analyze completions taking longer than {0}. A sampler snapshot has been saved to: {1}"
-     })
-     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.completion(params);
-+            }
-+            return CompletableFuture.completedFuture(Either.forRight(new CompletionList()));
-+        }
-         AtomicBoolean done = new AtomicBoolean();
-         AtomicReference<Sampler> samplerRef = new AtomicReference<>();
-         AtomicLong samplingStart = new AtomicLong();
-@@ -628,6 +679,18 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
-             SemanticTokensLegend legend = new SemanticTokensLegend(new ArrayList<>(tokenLegend.keySet()), new ArrayList<>(modifiersLegend.keySet()));
-             cap.setLegend(legend);
-             severCapabilities.setSemanticTokensProvider(cap);
-+            checkNotebookSupport(severCapabilities);
+@@ -601,36 +598,53 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+     }
+ 
+     public void init(ClientCapabilities clientCapabilities, ServerCapabilities severCapabilities) {
++        setServerSemanticTokenProvider(clientCapabilities,severCapabilities); 
++    }
++
++    private SemanticTokensCapabilities getClientSemanticTokenCap(ClientCapabilities clientCapabilities) {
+         SemanticTokensCapabilities semanticTokens = clientCapabilities != null && clientCapabilities.getTextDocument() != null ? clientCapabilities.getTextDocument().getSemanticTokens() : null;
++        return semanticTokens;
++    }
++
++    private void setServerSemanticTokenProvider(ClientCapabilities clientCapabilities, ServerCapabilities severCapabilities) {
++        SemanticTokensCapabilities semanticTokens = getClientSemanticTokenCap(clientCapabilities);
+         if (semanticTokens != null) {
+             SemanticTokensWithRegistrationOptions cap = new SemanticTokensWithRegistrationOptions();
+             cap.setFull(new SemanticTokensServerFull(false));
+-            Set<String> knownTokenTypes = semanticTokens.getTokenTypes() != null ? new HashSet<>(semanticTokens.getTokenTypes()) : Collections.emptySet();
+-            Map<String, Integer> tokenLegend = new LinkedHashMap<>();
+-            for (Entry<ColoringAttributes, List<String>> e : COLORING_TO_TOKEN_TYPE_CANDIDATES.entrySet()) {
+-                for (String candidate : e.getValue()) {
+-                    if (knownTokenTypes.contains(candidate)) {
+-                        coloring2TokenType[e.getKey().ordinal()] = tokenLegend.computeIfAbsent(candidate, c -> tokenLegend.size());
+-                        break;
+-                    }
++            cap.setLegend(new SemanticTokensLegend(computeTokenTypes(semanticTokens),computeTokenModifiers(semanticTokens)));
++            severCapabilities.setSemanticTokensProvider(cap);
 +        }
 +    }
 +
-+    private void checkNotebookSupport(ServerCapabilities serverCapabilities) {
-+        if (client != null && client.getNbCodeCapabilities().wantsNotebookSupport()) {
-+            NotebookDocumentSyncRegistrationOptions opts = new NotebookDocumentSyncRegistrationOptions();
-+            NotebookSelector ns = new NotebookSelector();
-+            ns.setNotebook("*");
-+            ns.setCells(List.of(new NotebookSelectorCell("java"), new NotebookSelectorCell("markdown")));
-+            opts.setNotebookSelector(List.of(ns));
-+            serverCapabilities.setNotebookDocumentSync(opts);
++    private ArrayList<String> computeTokenModifiers(SemanticTokensCapabilities semanticTokens) {
++        Set<String> knownTokenModifiers = semanticTokens.getTokenModifiers() != null ? new HashSet<>(semanticTokens.getTokenModifiers()) : Collections.emptySet();
++        Map<String, Integer> modifiersLegend = new LinkedHashMap<>();
++        for (Entry<ColoringAttributes, List<String>> e : COLORING_TO_TOKEN_MODIFIERS_CANDIDATES.entrySet()) {
++            for (String candidate : e.getValue()) {
++                if (knownTokenModifiers.contains(candidate)) {
++                    coloring2TokenModifier[e.getKey().ordinal()] = modifiersLegend.computeIfAbsent(candidate, c -> 1 << modifiersLegend.size());
++                    break;
+                 }
+             }
+-            Set<String> knownTokenModifiers = semanticTokens.getTokenModifiers() != null ? new HashSet<>(semanticTokens.getTokenModifiers()) : Collections.emptySet();
+-            Map<String, Integer> modifiersLegend = new LinkedHashMap<>();
+-            for (Entry<ColoringAttributes, List<String>> e : COLORING_TO_TOKEN_MODIFIERS_CANDIDATES.entrySet()) {
+-                for (String candidate : e.getValue()) {
+-                    if (knownTokenModifiers.contains(candidate)) {
+-                        coloring2TokenModifier[e.getKey().ordinal()] = modifiersLegend.computeIfAbsent(candidate, c -> 1 << modifiersLegend.size());
+-                        break;
+-                    }
++        }
++        return new ArrayList<>(modifiersLegend.keySet());
++    }
++
++    private ArrayList<String> computeTokenTypes(SemanticTokensCapabilities semanticTokens) {
++        Map<String, Integer> tokenLegend = new LinkedHashMap<>();
++        Set<String> knownTokenTypes = semanticTokens.getTokenTypes() != null ? new HashSet<>(semanticTokens.getTokenTypes()) : Collections.emptySet();
++        for (Entry<ColoringAttributes, List<String>> e : COLORING_TO_TOKEN_TYPE_CANDIDATES.entrySet()) {
++            for (String candidate : e.getValue()) {
++                if (knownTokenTypes.contains(candidate)) {
++                    coloring2TokenType[e.getKey().ordinal()] = tokenLegend.computeIfAbsent(candidate, c -> tokenLegend.size());
++                    break;
+                 }
+             }
+-            SemanticTokensLegend legend = new SemanticTokensLegend(new ArrayList<>(tokenLegend.keySet()), new ArrayList<>(modifiersLegend.keySet()));
+-            cap.setLegend(legend);
+-            severCapabilities.setSemanticTokensProvider(cap);
          }
++        return new ArrayList<>(tokenLegend.keySet());
      }
  
-@@ -705,6 +768,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
++
      @Override
-     public CompletableFuture<Hover> hover(HoverParams params) {
-+        if(isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())){
-+            if(isNotebookSupportEnabled()){
-+                return notebookDocumentServiceDelegator.hover(params);
-+            }
-+            return CompletableFuture.completedFuture(null);
-+        }
-         // shortcut: if the projects are not yet initialized, return empty:
-         if (server.openedProjects().getNow(null) == null) {
-             return CompletableFuture.completedFuture(null);
-@@ -729,6 +798,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
-+        if(isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())){
-+            if(isNotebookSupportEnabled()){
-+                return notebookDocumentServiceDelegator.signatureHelp(params);
-+            }
-+            return CompletableFuture.completedFuture(null);
-+        }
-         // shortcut: if the projects are not yet initialized, return empty:
-         if (server.openedProjects().getNow(null) == null) {
-             return CompletableFuture.completedFuture(null);
-@@ -780,6 +855,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(DefinitionParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.definition(params);
-+            }
-+            return CompletableFuture.completedFuture(Either.forLeft(Collections.emptyList()));
-+        }
-         try {
-             String uri = params.getTextDocument().getUri();
-             Document rawDoc = server.getOpenedDocuments().getDocument(uri);
-@@ -804,6 +885,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> typeDefinition(TypeDefinitionParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.typeDefinition(params);
-+            }
-+            return CompletableFuture.completedFuture(Either.forLeft(Collections.emptyList()));
-+        }
-         try {
-             String uri = params.getTextDocument().getUri();
-             Document rawDoc = server.getOpenedDocuments().getDocument(uri);
-@@ -828,11 +915,23 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> implementation(ImplementationParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.implementation(params);
-+            }
-+            return CompletableFuture.completedFuture(Either.forLeft(Collections.emptyList()));
-+        }
-         return usages(params.getTextDocument().getUri(), params.getPosition(), true, false).thenApply(locations -> Either.forLeft(locations));
-     }
- 
-     @Override
-     public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.references(params);
-+            }
-+            return CompletableFuture.completedFuture(Collections.emptyList());
-+        }
-         return usages(params.getTextDocument().getUri(), params.getPosition(), false, params.getContext().isIncludeDeclaration());
-     }
- 
-@@ -988,6 +1087,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<List<? extends DocumentHighlight>> documentHighlight(DocumentHighlightParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.documentHighlight(params);
-+            }
-+            return CompletableFuture.completedFuture(Collections.emptyList());
-+        }
-         class MOHighligther extends MarkOccurrencesHighlighterBase {
-             @Override
-             protected void process(CompilationInfo arg0, Document arg1, SchedulerEvent arg2) {
-@@ -1031,6 +1136,13 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+     public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem ci) {
+         JsonObject rawData = (JsonObject) ci.getData();
+@@ -1031,6 +1045,8 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
  
      @Override
      public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.documentSymbol(params);
-+            }
-+            return CompletableFuture.completedFuture(Collections.emptyList());
-+        }
++
 +        
          final CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> resultFuture = new CompletableFuture<>();
          
          BACKGROUND_TASKS.post(() -> {
-@@ -1087,6 +1199,13 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+@@ -1087,6 +1103,7 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
      
      @Override
      public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.codeAction(params);
-+            }
-+            return CompletableFuture.completedFuture(Collections.emptyList());
-+        }
 +        
          lastCodeActions = new ArrayList<>();
          AtomicInteger index = new AtomicInteger(0);
  
-@@ -1271,6 +1390,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
-         if (!client.getNbCodeCapabilities().wantsJavaSupport()) {
-             return CompletableFuture.completedFuture(Collections.emptyList());
-         }
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.codeLens(params);
-+            }
-+            return CompletableFuture.completedFuture(Collections.emptyList());
-+        }
-         // shortcut: if the projects are not yet initialized, return empty:
-         if (server.openedProjects().getNow(null) == null) {
-             return CompletableFuture.completedFuture(Collections.emptyList());
-@@ -1431,6 +1556,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+@@ -1437,7 +1454,7 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+     }
  
      @Override
-     public CompletableFuture<List<? extends TextEdit>> formatting(DocumentFormattingParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.formatting(params);
-+            }
-+            return CompletableFuture.completedFuture(Collections.emptyList());
-+        }
-         String uri = params.getTextDocument().getUri();
-         Document doc = server.getOpenedDocuments().getDocument(uri);
-         return format(doc, 0, doc.getLength());
-@@ -1438,6 +1569,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<List<? extends TextEdit>> rangeFormatting(DocumentRangeFormattingParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.rangeFormatting(params);
-+            }
-+            return CompletableFuture.completedFuture(Collections.emptyList());
-+        }    
+-    public CompletableFuture<List<? extends TextEdit>> rangeFormatting(DocumentRangeFormattingParams params) {
++    public CompletableFuture<List<? extends TextEdit>> rangeFormatting(DocumentRangeFormattingParams params) {   
          String uri = params.getTextDocument().getUri();
          Document rawDoc = server.getOpenedDocuments().getDocument(uri);
          if (rawDoc instanceof StyledDocument) {
-@@ -1479,6 +1616,13 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<Either3<Range, PrepareRenameResult, PrepareRenameDefaultBehavior>> prepareRename(PrepareRenameParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.prepareRename(params);
-+            }
-+            return CompletableFuture.completedFuture(null);
-+        }
-+
-         // shortcut: if the projects are not yet initialized, return empty:
-         if (server.openedProjects().getNow(null) == null) {
-             return CompletableFuture.completedFuture(null);
-@@ -1538,6 +1682,13 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+@@ -1538,6 +1555,8 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
  
      @Override
      public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.rename(params);
-+            }
-+            return CompletableFuture.completedFuture(null);
-+        }
++
 +
          // shortcut: if the projects are not yet initialized, return empty:
          if (server.openedProjects().getNow(null) == null) {
              return CompletableFuture.completedFuture(new WorkspaceEdit());
-@@ -1667,6 +1818,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+@@ -1667,6 +1686,7 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
  
      @Override
      public CompletableFuture<List<FoldingRange>> foldingRange(FoldingRangeRequestParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.foldingRange(params);
-+            }
-+            return CompletableFuture.completedFuture(Collections.emptyList());
-+        }
++
          JavaSource source = getJavaSource(params.getTextDocument().getUri());
          if (source == null) {
              return CompletableFuture.completedFuture(Collections.emptyList());
-@@ -1810,6 +1967,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+@@ -1959,7 +1979,7 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+     }
  
      @Override
-     public void didOpen(DidOpenTextDocumentParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                notebookDocumentServiceDelegator.didOpen(params);
-+            }
-+            return;
-+        }
-         LOG.log(Level.FINER, "didOpen: {0}", params);
-         try {
-             FileObject file = fromURI(params.getTextDocument().getUri(), true);
-@@ -1882,6 +2045,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public void didChange(DidChangeTextDocumentParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                notebookDocumentServiceDelegator.didChange(params);
-+            }
-+            return;
-+        }
-         LOG.log(Level.FINER, "didChange: {0}", params);
-         String uri = params.getTextDocument().getUri();
-         Document rawDoc = server.getOpenedDocuments().getDocument(uri);
-@@ -1909,6 +2078,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public void didClose(DidCloseTextDocumentParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                notebookDocumentServiceDelegator.didClose(params);
-+            }
-+            return;
-+        }
-         LOG.log(Level.FINER, "didClose: {0}", params);
-         try {
-             String uri = params.getTextDocument().getUri();
-@@ -1933,6 +2108,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<List<TextEdit>> willSaveWaitUntil(WillSaveTextDocumentParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.willSaveWaitUntil(params);
-+            }
-+            return CompletableFuture.completedFuture(Collections.emptyList());
-+        }
-         LOG.log(Level.FINER, "willSaveWaitUntil: {0}", params);
-         String uri = params.getTextDocument().getUri();
-         JavaSource js = getJavaSource(uri);
-@@ -1960,6 +2141,13 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public void didSave(DidSaveTextDocumentParams savedParams) {
-+        if (isRequiredToDelegateToNotebooks(savedParams.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                notebookDocumentServiceDelegator.didSave(savedParams);
-+            }
-+            return;
-+        }
-+        
+-    public void didSave(DidSaveTextDocumentParams savedParams) {
++    public void didSave(DidSaveTextDocumentParams savedParams) {        
          LOG.log(Level.FINE, "didSave: {0}", savedParams.getTextDocument().getUri());
          FileObject file = fromURI(savedParams.getTextDocument().getUri());
          if (file == null) {
-@@ -2553,6 +2741,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.semanticTokensFull(params);
-+            }
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java
+index 31f9a128ec..30a079abdb 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/TestCodeLanguageClient.java
+@@ -43,6 +43,9 @@ import org.netbeans.modules.java.lsp.server.protocol.SetTextEditorDecorationPara
+ import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
+ import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
+ import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
+ import org.netbeans.modules.java.lsp.server.protocol.OutputMessage;
+ import org.netbeans.modules.java.lsp.server.protocol.SaveDocumentRequestParams;
+ import org.netbeans.modules.java.lsp.server.protocol.ShowStatusMessageParams;
+@@ -182,4 +185,14 @@ public abstract class TestCodeLanguageClient implements NbCodeLanguageClient {
+     public CompletableFuture<Void> resetOutput(String outputName) {
+         return CompletableFuture.completedFuture(null);
+     }
++
++    @Override
++    public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params){
++        throw new UnsupportedOperationException();
++}
++
++    @Override
++    public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
++        return CompletableFuture.completedFuture(null);
++    }
+ }
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java
+index a8edbcb45b..840a77fddb 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/explorer/ProjectViewTest.java
+@@ -77,6 +77,9 @@ import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
+ import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
+ import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
+ import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
++import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
+ import org.netbeans.modules.java.lsp.server.protocol.OutputMessage;
+ import org.netbeans.modules.java.lsp.server.protocol.SaveDocumentRequestParams;
+ import org.netbeans.modules.java.lsp.server.protocol.SetTextEditorDecorationParams;
+@@ -306,6 +309,16 @@ public class ProjectViewTest extends NbTestCase {
+         public CompletableFuture<Void> resetOutput(String outputName) {
+             return CompletableFuture.completedFuture(null);
+         }
++
++        @Override
++        public void notifyNotebookCellExecutionProgress(NotebookCellExecutionProgressResultParams params) {
++    }
++
++        @Override
++        public CompletableFuture<CellStateResponse> getNotebookCellState(NotebookCellStateParams params) {
 +            return CompletableFuture.completedFuture(null);
 +        }
-         JavaSource js = getJavaSource(params.getTextDocument().getUri());
-         List<Integer> result = new ArrayList<>();
-         if (js != null) {
-@@ -2629,6 +2823,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
++
+     }
  
-     @Override
-     public CompletableFuture<List<CallHierarchyItem>> prepareCallHierarchy(CallHierarchyPrepareParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.prepareCallHierarchy(params);
-+            }
-+            return CompletableFuture.completedFuture(null);
-+        }
-         FileObject file = fromURI(params.getTextDocument().getUri());
-         if (file == null) {
+     private static Launcher<NbLanguageServer> createLauncher(NbCodeLanguageClient client, InputStream in, OutputStream out,
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/NotebookDocumentServiceImplMock.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/NotebookDocumentServiceImplMock.java
+new file mode 100644
+index 0000000000..0e522b9dfb
+--- /dev/null
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/NotebookDocumentServiceImplMock.java
+@@ -0,0 +1,73 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.lsp.server.protocol;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import org.eclipse.lsp4j.CompletionItem;
++import org.eclipse.lsp4j.CompletionList;
++import org.eclipse.lsp4j.CompletionParams;
++import org.eclipse.lsp4j.DidChangeNotebookDocumentParams;
++import org.eclipse.lsp4j.DidCloseNotebookDocumentParams;
++import org.eclipse.lsp4j.DidOpenNotebookDocumentParams;
++import org.eclipse.lsp4j.DidSaveNotebookDocumentParams;
++import org.eclipse.lsp4j.ServerCapabilities;
++import org.eclipse.lsp4j.jsonrpc.messages.Either;
++import org.eclipse.lsp4j.services.LanguageClient;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookDocumentServiceHandler;
++import org.openide.util.lookup.ServiceProvider;
++
++/**
++ *
++ * @author shimadan
++ */
++@ServiceProvider(service = NotebookDocumentServiceHandler.class)
++public class NotebookDocumentServiceImplMock implements NotebookDocumentServiceHandler {
++
++    @Override
++    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
++        return CompletableFuture.completedFuture(Either.<List<CompletionItem>, CompletionList>forLeft(List.of(new CompletionItem("FromNotebookDocumentServiceImplMock"))));
++    }
++
++    @Override
++    public void didOpen(DidOpenNotebookDocumentParams params) {
++    }
++
++    @Override
++    public void didChange(DidChangeNotebookDocumentParams params) {
++    }
++
++    @Override
++    public void didSave(DidSaveNotebookDocumentParams params) {
++    }
++
++    @Override
++    public void didClose(DidCloseNotebookDocumentParams params) {
++    }
++
++    @Override
++    public void connect(LanguageClient client) {
++    }
++
++    @Override
++    public void init(ServerCapabilities serverCapabilities) {
++    }
++    
++}
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+index 7dfc74d8a3..84e944b7a6 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+@@ -90,6 +90,7 @@ import org.eclipse.lsp4j.DefinitionParams;
+ import org.eclipse.lsp4j.Diagnostic;
+ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
+ import org.eclipse.lsp4j.DidCloseTextDocumentParams;
++import org.eclipse.lsp4j.DidOpenNotebookDocumentParams;
+ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+ import org.eclipse.lsp4j.DocumentFormattingParams;
+ import org.eclipse.lsp4j.DocumentHighlight;
+@@ -114,6 +115,8 @@ import org.eclipse.lsp4j.Location;
+ import org.eclipse.lsp4j.MarkupContent;
+ import org.eclipse.lsp4j.MessageActionItem;
+ import org.eclipse.lsp4j.MessageParams;
++import org.eclipse.lsp4j.NotebookCell;
++import org.eclipse.lsp4j.NotebookDocument;
+ import org.eclipse.lsp4j.ParameterInformation;
+ import org.eclipse.lsp4j.Position;
+ import org.eclipse.lsp4j.ProgressParams;
+@@ -185,6 +188,7 @@ import org.netbeans.modules.java.lsp.server.input.QuickPickItem;
+ import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
+ import org.netbeans.modules.java.lsp.server.input.ShowInputBoxParams;
+ import org.netbeans.modules.java.lsp.server.input.ShowMutliStepInputParams;
++import org.netbeans.modules.java.lsp.server.notebook.NotebookDocumentServiceHandler;
+ import org.netbeans.modules.java.lsp.server.refactoring.ChangeMethodParameterUI;
+ import org.netbeans.modules.java.lsp.server.refactoring.MoveElementUI;
+ import org.netbeans.modules.java.lsp.server.refactoring.ParameterUI;
+@@ -391,7 +395,27 @@ public class ServerTest extends NbTestCase {
              return CompletableFuture.completedFuture(null);
-@@ -2829,6 +3029,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
- 
-     @Override
-     public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
-+        if (isRequiredToDelegateToNotebooks(params.getTextDocument().getUri())) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.inlayHint(params);
-+            }
-+            return CompletableFuture.completedFuture(new ArrayList<>());
-+        }
-         String uri = params.getTextDocument().getUri();
-         ConfigurationItem conf = new ConfigurationItem();
-         conf.setScopeUri(uri);
-@@ -2887,6 +3093,12 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
-     @Override
-     public CompletableFuture<List<InlineValue>> inlineValue(InlineValueParams params) {
-         String uri = params.getTextDocument().getUri();
-+        if (isRequiredToDelegateToNotebooks(uri)) {
-+            if (isNotebookSupportEnabled()) {
-+                return notebookDocumentServiceDelegator.inlineValue(params);
-+            }
-+            return CompletableFuture.completedFuture(new ArrayList<>());
-+        }
-         FileObject file = fromURI(uri);
-         if (file == null) {
-             return CompletableFuture.completedFuture(null);
+         }
+     }
+-
++    public void testDelegationForNotebookCells() throws Exception {
++        Launcher<LanguageServer> serverLauncher = createClientLauncherWithLogging(new LspClient(),client.getInputStream(),client.getOutputStream());
++        serverLauncher.startListening();
++        LanguageServer server = serverLauncher.getRemoteProxy();
++        
++        // Testing delegation for notebook cell code completion
++        final String NOTEBOOK_TEXT_DOC_URI_IDENTIFIER = "vscode-notebook-cell";
++        String notebookCellUri = NOTEBOOK_TEXT_DOC_URI_IDENTIFIER+":/path/to/file.ipynb#W0sZmlsZQ%3D%3D";
++        Either<List<CompletionItem>, CompletionList> completion = server.getTextDocumentService()
++                                                                        .completion(new CompletionParams(
++                                                                                        new TextDocumentIdentifier(notebookCellUri), 
++                                                                                        new Position(0,3)
++                                                                                       )
++                                                                                    ).get();
++//        DocumentFormattingParams params = new DocumentFormattingParams();
++//        params.setTextDocument(new TextDocumentIdentifier(notebookCellUri));
++//        server.getTextDocumentService().formatting(params).get();
++        CompletionItem item = completion.getLeft().get(0);
++        assertEquals("FromNotebookDocumentServiceImplMock", item.getLabel());
++        
++    }
+     public void testMain() throws Exception {
+         File src = new File(getWorkDir(), "Test.java");
+         src.getParentFile().mkdirs();

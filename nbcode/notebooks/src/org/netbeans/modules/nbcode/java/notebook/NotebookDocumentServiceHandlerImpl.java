@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025-2026, Oracle and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,10 @@ import org.eclipse.lsp4j.DidOpenNotebookDocumentParams;
 import org.eclipse.lsp4j.DidSaveNotebookDocumentParams;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
+import org.eclipse.lsp4j.NotebookDocumentSyncRegistrationOptions;
+import org.eclipse.lsp4j.NotebookSelector;
+import org.eclipse.lsp4j.NotebookSelectorCell;
+import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookDocumentServiceHandler;
@@ -56,7 +60,7 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
     private final Map<String, NotebookDocumentStateManager> notebookStateMap = new ConcurrentHashMap<>();
     // Below map is required because completion request doesn't send notebook uri in the params
     private final Map<String, String> notebookCellMap = new ConcurrentHashMap<>();
-
+    
     @Override
     public void didOpen(DidOpenNotebookDocumentParams params) {
         try {
@@ -128,4 +132,24 @@ public class NotebookDocumentServiceHandlerImpl implements NotebookDocumentServi
         NotebookConfigs.getInstance().initConfigs();
 
     }
+    @Override // connect must be called before init
+    public void init(ServerCapabilities serverCapabilities){
+        if (clientWantsNotebook()) {
+            NotebookDocumentSyncRegistrationOptions opts = createNotebookRegOpts();
+            serverCapabilities.setNotebookDocumentSync(opts);
+        }
+    }
+    private boolean clientWantsNotebook() {
+        NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
+        return  client != null && client.getNbCodeCapabilities().wantsNotebookSupport();
+    }
+    private NotebookDocumentSyncRegistrationOptions createNotebookRegOpts() {
+        NotebookDocumentSyncRegistrationOptions opts = new NotebookDocumentSyncRegistrationOptions();
+        NotebookSelector ns = new NotebookSelector();
+        ns.setNotebook("*");
+        ns.setCells(List.of(new NotebookSelectorCell("java"), new NotebookSelectorCell("markdown")));
+        opts.setNotebookSelector(List.of(ns));
+        return opts;
+    }
+
 }
