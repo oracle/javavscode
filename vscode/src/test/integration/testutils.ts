@@ -435,17 +435,30 @@ export function checkL10nUsageInFiles(dirPath: string, ignoredDirEntriesNames: S
     return result;
 }
 
+export function checkConfigurationsLocalisation(configurations: any, validKeys: Set<string>): boolean {
+	let localized: boolean = true;
+	for (const configuration of configurations) {
+		if (!checkConfigurationLocalisation(configuration, validKeys)) localized = false;
+	}
+	return localized;
+}
 
 export function checkConfigurationLocalisation(configuration: any, validKeys: Set<string>): boolean {
-    let localized: boolean = true;
-    const configPropertiesIds = Object.keys(configuration.properties);
-    const propertiesLocalisableFields = ["description", "enumDescriptions"];
-    let property: any;
-    for (const propertyId of configPropertiesIds) {
-        property = configuration.properties[propertyId];
-        if (!isLocalizedObj(property, propertiesLocalisableFields, propertyId, "Configuration Property", validKeys)) localized = false;
-    }
-    return localized;
+	let localized: boolean = true;
+	let id = configuration.id;
+	let title = configuration.title;
+	if (!isLocalizedVal(title)) {
+		console.log(`Configuration with id ${id} has unlocalized title , title: ${title}`)
+		localized = false;
+	}
+	const configPropertiesIds = Object.keys(configuration.properties);
+	const propertiesLocalisableFields = ["description", "enumDescriptions"];
+	let property: any;
+	for (const propertyId of configPropertiesIds) {
+		property = configuration.properties[propertyId];
+		if (!isLocalizedObj(property, propertiesLocalisableFields, propertyId, `Configuration Property of configuration with id ${id}`, validKeys)) localized = false;
+	}
+	return localized;
 }
 
 export function checkDebuggersLocalisation(debuggers: any, validKeys: Set<string>): boolean {
