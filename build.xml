@@ -38,6 +38,7 @@
             patches/l10n/24.1.0-release-content-changes.diff
             patches/l10n/24.1.0-previous-issues-fix.diff
             patches/l10n/25.0.0-notebooks-l10n.diff
+            patches/l10n/25.0.1-release-l10n.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
@@ -85,10 +86,13 @@
             patches/l10n-licence.diff
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
+            patches/gradle-files-scan-root.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
             patches/upgrade-lsp4j.diff
             patches/updated-show-input-params.diff
             patches/java-notebooks.diff
+            patches/update-commons-lang3-3.19.0.diff
+            patches/update-testng-7.11.0.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
