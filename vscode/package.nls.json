@@ -78,6 +78,7 @@
     "jdk.notebook.implicitImports.description": "List of elements to implicitly import in Java notebooks. Defaults to star-imports of java.util, java.io and java.math packages, when empty.",
     "jdk.notebook.implicitImports.markdownDescription": "List of elements to implicitly import in Java notebooks. Defaults to star-imports of `java.util`, `java.io` and `java.math` packages, when empty.",
     "jdk.notebook.projects.mapping.description": "Mapping of Java notebook paths to the path of the project that provides it context.",
+    "jdk.notebook.vmOptions.description": "The specific Java VM options for use in Java notebooks. These options are added in addition to the project configuration, including class-path, module-path, preview features, and added modules.",
     "jdk.configuration.java.completion.commit.chars": "Specifies the characters that trigger accepting a code completion suggestion. For example, to accept suggestions when typing a dot (.), set this to [\".\"]",
     "jdk.initialConfigurations.launchJavaApp.name": "Launch Java App",
     "jdk.configurationSnippets.name": "Launch Java App",

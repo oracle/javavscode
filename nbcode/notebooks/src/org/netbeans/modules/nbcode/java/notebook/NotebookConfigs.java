@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025-2026, Oracle and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.lsp4j.ConfigurationItem;
 import org.eclipse.lsp4j.ConfigurationParams;
+import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 
 /**
@@ -39,12 +41,14 @@ public class NotebookConfigs {
         "notebook.addmodules",
         "notebook.enablePreview",
         "notebook.implicitImports",
-        "notebook.projects.mapping"};
+        "notebook.projects.mapping",
+        "notebook.vmOptions"};
     private volatile String classPath = null;
     private volatile String modulePath = null;
     private volatile String addModules = null;
     private volatile boolean enablePreview = false;
     private volatile JsonObject notebookProjectMapping = new JsonObject();
+    private volatile List<String> notebookVmOptions = Collections.emptyList();
     private volatile List<String> implicitImports = null;
     private volatile CompletableFuture<Void> initialized;
 
@@ -74,6 +78,11 @@ public class NotebookConfigs {
 
     public JsonObject getNotebookProjectMapping() {
         return notebookProjectMapping;
+    }
+    
+    @NonNull
+    public List<String> getNotebookVmOptions() {
+        return notebookVmOptions;
     }
 
     private NotebookConfigs() {
@@ -119,31 +128,50 @@ public class NotebookConfigs {
                     JsonArray classPathConfig = NotebookUtils.getArgument(c, 0, JsonArray.class);
                     if (classPathConfig != null) {
                         classPath = String.join(File.pathSeparator,classPathConfig.asList().stream().map((elem) -> elem.getAsString()).toList());
+                    } else {
+                        classPath = null;
                     }
                     
                     JsonArray modulePathConfig = NotebookUtils.getArgument(c, 1, JsonArray.class);
                     if (modulePathConfig != null) {
                         modulePath = String.join(File.pathSeparator,modulePathConfig.asList().stream().map((elem) -> elem.getAsString()).toList());
+                    } else {
+                        modulePath = null;
                     }
                     
                     JsonArray addModulesConfig = NotebookUtils.getArgument(c, 2, JsonArray.class);
                     if (addModulesConfig != null) {
                         addModules = String.join(",",addModulesConfig.asList().stream().map((elem) -> elem.getAsString()).toList());
+                    } else {
+                        addModules = null;
                     }
                     
                     Boolean enablePreviewConfig = NotebookUtils.getArgument(c, 3, Boolean.class);
                     if (enablePreviewConfig != null) {
                         enablePreview = enablePreviewConfig;
+                    } else {
+                        enablePreview = false;
                     }
                     
                     JsonArray implicitImportsConfig = NotebookUtils.getArgument(c, 4, JsonArray.class);
                     if (implicitImportsConfig != null) {
                         implicitImports = implicitImportsConfig.asList().stream().map((elem) -> elem.getAsString()).toList();
+                    } else {
+                        implicitImports = null;
                     }
 
                     JsonObject notebookProjectMappingConfig = NotebookUtils.getArgument(c, 5, JsonObject.class);
                     if (notebookProjectMappingConfig != null) {
                         notebookProjectMapping = notebookProjectMappingConfig;
+                    } else {
+                        notebookProjectMapping = new JsonObject();
+                    }
+                    
+                    JsonArray notebookVmOptionsConfig = NotebookUtils.getArgument(c, 6, JsonArray.class);
+                    if (notebookVmOptionsConfig != null) {
+                        notebookVmOptions = notebookVmOptionsConfig.asList().stream().map(el -> el.getAsString()).toList();
+                    } else {
+                        notebookVmOptions = Collections.emptyList();
                     }
                 }
             });
@@ -154,7 +182,8 @@ public class NotebookConfigs {
     }
 
     public String getJdkVersion() {
-        return System.getProperty("java.version").split("\\.")[0];
+        // As per JEP-223
+        return System.getProperty("java.specification.version");
     }
 
     public void notebookConfigsChangeListener(JsonObject settings) {

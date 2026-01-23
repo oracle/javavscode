@@ -78,6 +78,7 @@
     "jdk.notebook.implicitImports.description": "要在 Java 记事本中隐式导入的元素列表。为空时，默认为 java.util、java.io 和 java.math 程序包的星型导入。",
     "jdk.notebook.implicitImports.markdownDescription": "要在 Java 记事本中隐式导入的元素列表。为空时，默认为 `java.util`、`java.io` 和 `java.math` 程序包的星型导入。",
     "jdk.notebook.projects.mapping.description": "将 Java 记事本路径映射到提供记事本上下文的项目的路径。",
+    "jdk.notebook.vmOptions.description": "The specific Java VM options for use in Java notebooks. These options are added in addition to the project configuration, including class-path, module-path, preview features, and added modules.",
     "jdk.configuration.java.completion.commit.chars": "指定用于触发接受代码补全建议的字符。例如，要在键入点 (.) 时接受建议，请将该字符设为 [\".\"]",
     "jdk.initialConfigurations.launchJavaApp.name": "启动 Java 应用程序",
     "jdk.configurationSnippets.name": "启动 Java 应用程序",
