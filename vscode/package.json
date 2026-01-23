@@ -300,6 +300,11 @@
 					"default": {},
 					"description": "%jdk.notebook.projects.mapping.description%"
 				},
+				"jdk.notebook.vmOptions": {
+					"type": "array",
+					"default": [],
+					"description": "%jdk.notebook.vmOptions.description%"
+				},
 				"jdk.telemetry.enabled": {
 					"type": "boolean",
 					"description": "%jdk.configuration.telemetry.enabled.description%",

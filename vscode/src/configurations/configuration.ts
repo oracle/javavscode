@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -36,8 +36,9 @@ export const configKeys = {
     notebookAddModules: "notebook.addmodules",
     notebookEnablePreview: "notebook.enablePreview",
     notebookImplicitImports: "notebook.implicitImports",
-    telemetryEnabled: 'telemetry.enabled',
-    notebookProjectMapping: "notebook.projects.mapping"
+    notebookProjectMapping: "notebook.projects.mapping",
+    notebookVmOptions: "notebook.vmOptions",
+    telemetryEnabled: 'telemetry.enabled'
 };
 
 export const builtInConfigKeys = {
@@ -56,6 +57,7 @@ export const userConfigsListened: string[] = [
     appendPrefixToCommand(configKeys.notebookEnablePreview),
     appendPrefixToCommand(configKeys.notebookImplicitImports),
     appendPrefixToCommand(configKeys.notebookProjectMapping),
+    appendPrefixToCommand(configKeys.notebookVmOptions),
     builtInConfigKeys.vscodeTheme,
 ];
 
