@@ -832,12 +832,12 @@
 				{
 					"command": "jdk.notebook.change.project",
 					"group": "navigation@1",
-					"when": "nbJdkReady && resourceExtname == .ijnb"
+					"when": "nbJdkReady"
 				},
 				{
 					"command": "jdk.notebook.restart.kernel",
 					"group": "navigation/execute@5",
-					"when": "nbJdkReady && resourceExtname == .ijnb"
+					"when": "nbJdkReady"
 				}
 			]
 		},
