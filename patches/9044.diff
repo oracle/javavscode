@@ -1,0 +1,676 @@
+diff --git a/.github/workflows/main.yml b/.github/workflows/main.yml
+index 7727a32e1a8c..5060ef0388a1 100644
+--- a/.github/workflows/main.yml
++++ b/.github/workflows/main.yml
+@@ -1456,10 +1456,10 @@ jobs:
+     timeout-minutes: 60
+     strategy:
+       matrix:
+-        java: [ '17', '25' ]
++        java: [ '17', '26-ea' ]
+         config: [ 'batch1', 'batch2' ]
+         exclude:
+-          - java: ${{ github.event_name == 'pull_request' && 'nothing' || '25' }}
++          - java: ${{ github.event_name == 'pull_request' && 'nothing' || '26-ea' }}
+       fail-fast: false
+     steps:
+ 
+diff --git a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
+index 7ac61fb4370f..c3001cffcd39 100644
+--- a/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
++++ b/java/java.completion/src/org/netbeans/modules/java/completion/JavaCompletionTask.java
+@@ -763,7 +763,7 @@ private void insideClass(Env env) throws IOException {
+         String headerText = controller.getText().substring(startPos, offset);
+         int idx = headerText.indexOf('{'); //NOI18N
+         //see JDK-8364015, unclear how reliable this will be:
+-        boolean isImplicitlyDeclaredClass = sourcePositions.getEndPosition(root, cls) == (-1);
++        boolean isImplicitlyDeclaredClass = env.getController().getTreeUtilities().isImplicitlyDeclaredClass(cls);
+         if (idx >= 0 || isImplicitlyDeclaredClass) {
+             addKeywordsForClassBody(env);
+             addClassTypes(env, null);
+diff --git a/java/java.hints/src/org/netbeans/modules/java/hints/errors/Utilities.java b/java/java.hints/src/org/netbeans/modules/java/hints/errors/Utilities.java
+index 36740a5ee2c0..0d206b2a0c4c 100644
+--- a/java/java.hints/src/org/netbeans/modules/java/hints/errors/Utilities.java
++++ b/java/java.hints/src/org/netbeans/modules/java/hints/errors/Utilities.java
+@@ -1919,7 +1919,7 @@ private static TypeMirror attributeTree(JavacTaskImpl jti, Tree tree, Scope scop
+         Log.DiagnosticHandler discardHandler = log.new DiscardDiagnosticHandler() {
+             private Diagnostic.Kind f = filter == null ? Diagnostic.Kind.ERROR : filter;
+             @Override
+-            public void report(JCDiagnostic diag) {
++            public void reportReady(JCDiagnostic diag) {
+                 if (diag.getKind().compareTo(f) >= 0) {
+                     errors.add(diag);
+                 }
+diff --git a/java/java.hints/test/unit/data/goldenfiles/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest/testOverrideAnnotation.pass b/java/java.hints/test/unit/data/goldenfiles/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest/testOverrideAnnotation.pass
+index e17c39a2ddbf..34ce3b11131c 100644
+--- a/java/java.hints/test/unit/data/goldenfiles/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest/testOverrideAnnotation.pass
++++ b/java/java.hints/test/unit/data/goldenfiles/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest/testOverrideAnnotation.pass
+@@ -1 +1 @@
+-3:4-3:13:error:method does not override or implement a method from a supertype
++3:4-3:13:error:t() in TestOverrideAnnotation does not override or implement a method from a supertype
+diff --git a/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest.java b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest.java
+index 405163b98cba..dee9ec85f33a 100644
+--- a/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest.java
++++ b/java/java.hints/test/unit/src/org/netbeans/modules/java/hints/infrastructure/ErrorHintsProviderTest.java
+@@ -249,9 +249,7 @@ void main() {
+                                }
+                                """,
+                                "21",
+-                               //TODO: can this comment be now removed?
+-                               //TODO: needs to be adjusted when the error in javac is fixed:
+-                               "0:0-0:13::Test.java:1:1: compiler.err.feature.not.supported.in.source.plural: (compiler.misc.feature.implicit.classes), 21, " + SourceVersion.latest().ordinal());
++                               "0:0-0:13::Test.java:1:1: compiler.err.feature.not.supported.in.source.plural: (compiler.misc.feature.implicit.classes), 21, 25");
+     }
+ 
+     private void performInlinedTest(String name, String code) throws Exception {
+diff --git a/java/java.source.base/nbproject/project.properties b/java/java.source.base/nbproject/project.properties
+index 2995d90f4932..0fcd69fb33eb 100644
+--- a/java/java.source.base/nbproject/project.properties
++++ b/java/java.source.base/nbproject/project.properties
+@@ -23,7 +23,7 @@ javadoc.name=Java Source Base
+ javadoc.title=Java Source Base
+ javadoc.arch=${basedir}/arch.xml
+ javadoc.apichanges=${basedir}/apichanges.xml
+-spec.version.base=2.80.0
++spec.version.base=2.82.0
+ test.qa-functional.cp.extra=${refactoring.java.dir}/modules/ext/nb-javac-api.jar
+ test.unit.run.cp.extra=${o.n.core.dir}/core/core.jar:\
+     ${o.n.core.dir}/lib/boot.jar:\
+diff --git a/java/java.source.base/src/org/netbeans/api/java/source/SourceUtils.java b/java/java.source.base/src/org/netbeans/api/java/source/SourceUtils.java
+index c725dbd1d699..66fa558a893d 100644
+--- a/java/java.source.base/src/org/netbeans/api/java/source/SourceUtils.java
++++ b/java/java.source.base/src/org/netbeans/api/java/source/SourceUtils.java
+@@ -62,6 +62,7 @@
+ import com.sun.tools.javac.model.JavacElements;
+ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+ import com.sun.tools.javac.util.Context;
++import com.sun.tools.javac.util.Log;
+ import java.io.BufferedReader;
+ import java.io.InputStreamReader;
+ import java.nio.charset.StandardCharsets;
+@@ -176,16 +177,23 @@ public static Set<TreePath> computeDuplicates(CompilationInfo info, TreePath sea
+ 
+     public static boolean checkTypesAssignable(CompilationInfo info, TypeMirror from, TypeMirror to) {
+         Context c = ((JavacTaskImpl) info.impl.getJavacTask()).getContext();
+-        if (from.getKind() == TypeKind.TYPEVAR) {
+-            Types types = Types.instance(c);
+-            TypeVar t = types.substBound((TypeVar)from, com.sun.tools.javac.util.List.of((Type)from), com.sun.tools.javac.util.List.of(types.boxedTypeOrType((Type)to)));
+-            return info.getTypes().isAssignable(t.getUpperBound(), to)
+-                    || info.getTypes().isAssignable(to, t.getUpperBound());
+-        }
+-        if (from.getKind() == TypeKind.WILDCARD) {
+-            from = Types.instance(c).wildUpperBound((Type)from);
++        Log log = Log.instance(c);
++        //TODO: need to throw away all warnings, as a) reporting the warnings is wrong anyway; b) the default handler may crash; are there more places that require similar handling?
++        Log.DiagnosticHandler discardHandler = log.new DiscardDiagnosticHandler();
++        try {
++            if (from.getKind() == TypeKind.TYPEVAR) {
++                Types types = Types.instance(c);
++                TypeVar t = types.substBound((TypeVar)from, com.sun.tools.javac.util.List.of((Type)from), com.sun.tools.javac.util.List.of(types.boxedTypeOrType((Type)to)));
++                return info.getTypes().isAssignable(t.getUpperBound(), to)
++                        || info.getTypes().isAssignable(to, t.getUpperBound());
++            }
++            if (from.getKind() == TypeKind.WILDCARD) {
++                from = Types.instance(c).wildUpperBound((Type)from);
++            }
++            return Check.instance(c).checkType(null, (Type)from, (Type)to).getKind() != TypeKind.ERROR;
++        } finally {
++            log.popDiagnosticHandler(discardHandler);
+         }
+-        return Check.instance(c).checkType(null, (Type)from, (Type)to).getKind() != TypeKind.ERROR;
+     }
+ 
+     public static TypeMirror getBound(WildcardType wildcardType) {
+diff --git a/java/java.source.base/src/org/netbeans/api/java/source/TreeUtilities.java b/java/java.source.base/src/org/netbeans/api/java/source/TreeUtilities.java
+index 1bce54979aa4..ed3fe7a274ed 100644
+--- a/java/java.source.base/src/org/netbeans/api/java/source/TreeUtilities.java
++++ b/java/java.source.base/src/org/netbeans/api/java/source/TreeUtilities.java
+@@ -446,11 +446,6 @@ public Void scan(Tree tree, Void p) {
+                                     endPos = sourcePositions.getEndPosition(cut, value);
+                                 }
+                                 break;
+-                            case CLASS:
+-                                if (tree instanceof JCClassDecl clazz && (clazz.mods.flags & Flags.IMPLICIT_CLASS) != 0) {
+-                                    endPos = sourcePositions.getEndPosition(cut, cut);
+-                                }
+-                                break;
+                         }
+                     }
+                     if (startPos < pos && endPos >= pos) {
+@@ -512,8 +507,16 @@ public Void visitEnhancedForLoop(EnhancedForLoopTree node, Void p) {
+             path = result.path;
+         }
+         
+-        if (path.getLeaf() == path.getCompilationUnit())
++        if (path.getLeaf() == path.getCompilationUnit()) {
++            long endPos = sourcePositions.getEndPosition(path.getCompilationUnit(), path.getCompilationUnit());
++            if (pos > endPos) {
++                List<? extends Tree> classes = path.getCompilationUnit().getTypeDecls();
++                if (classes.size() == 1 && classes.get(0) instanceof JCClassDecl clazz && (clazz.mods.flags & Flags.IMPLICIT_CLASS) != 0) {
++                    return new TreePath(path, clazz);
++                }
++            }
+             return path;
++        }
+         
+         TokenSequence<JavaTokenId> tokenList = tokensFor(path.getLeaf(), sourcePositions, pos);
+         tokenList.moveEnd();
+@@ -970,7 +973,7 @@ private static TypeMirror attributeTree(JavacTaskImpl jti, CompilationUnitTree c
+         JavaFileObject prev = log.useSource(new DummyJFO());
+         Log.DiagnosticHandler discardHandler = log.new DiscardDiagnosticHandler() {
+             @Override
+-            public void report(JCDiagnostic diag) {
++            public void reportReady(JCDiagnostic diag) {
+                 errors.add(diag);
+             }            
+         };
+@@ -1010,7 +1013,7 @@ private static Scope attributeTreeTo(JavacTaskImpl jti, CompilationUnitTree cut,
+         JavaFileObject prev = log.useSource(new DummyJFO());
+         Log.DiagnosticHandler discardHandler = log.new DiscardDiagnosticHandler() {
+             @Override
+-            public void report(JCDiagnostic diag) {
++            public void reportReady(JCDiagnostic diag) {
+                 errors.add(diag);
+             }            
+         };
+@@ -2125,6 +2128,15 @@ public boolean hasError(@NonNull Tree tree, String... errors) {
+         return false;
+     }
+ 
++    /**
++     * {@return {@code true} iff the given class is the implicit class in the compact source file.}
++     * @param tree class to check
++     * @since 2.82
++     */
++    public boolean isImplicitlyDeclaredClass(@NonNull ClassTree tree) {
++        return tree instanceof JCClassDecl clazz && (clazz.mods.flags & Flags.IMPLICIT_CLASS) != 0;
++    }
++
+     private static final class NBScope implements Scope {
+ 
+         private final JavacScope delegate;
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/NoJavacHelper.java b/java/java.source.base/src/org/netbeans/modules/java/source/NoJavacHelper.java
+index dd92fa5d76f0..d775035f06c9 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/NoJavacHelper.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/NoJavacHelper.java
+@@ -34,7 +34,7 @@
+  */
+ public class NoJavacHelper {
+ 
+-    public static final int REQUIRED_JAVAC_VERSION = 25; // <- TODO: increment on every release
++    public static final int REQUIRED_JAVAC_VERSION = 26; // <- TODO: increment on every release
+     private static final boolean HAS_WORKING_JAVAC;
+ 
+     static {
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/PostFlowAnalysis.java b/java/java.source.base/src/org/netbeans/modules/java/source/PostFlowAnalysis.java
+index bc85be78bab7..f348bd4b28c6 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/PostFlowAnalysis.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/PostFlowAnalysis.java
+@@ -48,6 +48,7 @@
+ 
+ import com.sun.tools.javac.code.Symtab;
+ import com.sun.tools.javac.util.JCDiagnostic.Error;
++import java.util.Set;
+ import org.netbeans.modules.java.source.builder.ElementsService;
+ 
+ /**
+@@ -151,7 +152,7 @@ public void visitMethodDef(JCMethodDecl tree) {
+                         && !type.isErroneous()
+                         && types.isSameType(types.erasure(sym.type), type);
+                 if (clash) {
+-                    log.error(tree.pos(), new Error("compiler", "name.clash.same.erasure", tree.sym, sym)); //NOI18N
++                    log.error(tree.pos(), new Error(Set.of(), "compiler", "name.clash.same.erasure", tree.sym, sym)); //NOI18N
+                     return;
+                 }
+             } catch (AssertionError e) {}
+@@ -201,7 +202,7 @@ private void checkThis(DiagnosticPosition pos, TypeSymbol c) {
+         if (checkThis && currentClass != c) {
+             List<Pair<TypeSymbol, Symbol>> ots = outerThisStack;
+             if (ots.isEmpty()) {
+-                log.error(pos, new Error("compiler", "no.encl.instance.of.type.in.scope", c)); //NOI18N
++                log.error(pos, new Error(Set.of(), "compiler", "no.encl.instance.of.type.in.scope", c)); //NOI18N
+                 return;
+             }
+             Pair<TypeSymbol, Symbol> ot = ots.head;
+@@ -210,13 +211,13 @@ private void checkThis(DiagnosticPosition pos, TypeSymbol c) {
+                 do {
+                     ots = ots.tail;
+                     if (ots.isEmpty()) {
+-                        log.error(pos, new Error("compiler", "no.encl.instance.of.type.in.scope", c)); //NOI18N
++                        log.error(pos, new Error(Set.of(), "compiler", "no.encl.instance.of.type.in.scope", c)); //NOI18N
+                         return;
+                     }
+                     ot = ots.head;
+                 } while (ot.snd != otc);
+                 if (otc.owner.kind != Kinds.Kind.PCK && !otc.hasOuterInstance()) {
+-                    log.error(pos, new Error("compiler", "cant.ref.before.ctor.called", c)); //NOI18N
++                    log.error(pos, new Error(Set.of(), "compiler", "cant.ref.before.ctor.called", c)); //NOI18N
+                     return;
+                 }
+                 otc = ot.fst;
+@@ -233,7 +234,7 @@ private void outerThisDef(Symbol owner) {
+     private static final int MAX_STRING_LENGTH = 65535;
+     private void checkStringConstant(DiagnosticPosition pos, Object constValue) {
+         if (constValue instanceof String && ((String)constValue).length() >= MAX_STRING_LENGTH)
+-            log.error(pos, new Error("compiler", "limit.string")); //NOI18N
++            log.error(pos, new Error(Set.of(), "compiler", "limit.string")); //NOI18N
+     }
+ 
+ }
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/parsing/VanillaPartialReparser.java b/java/java.source.base/src/org/netbeans/modules/java/source/parsing/VanillaPartialReparser.java
+index b6b4deeb4725..ce3e41b9c0ef 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/parsing/VanillaPartialReparser.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/parsing/VanillaPartialReparser.java
+@@ -348,23 +348,11 @@ private com.sun.tools.javac.parser.JavacParser newParser(Context context, CharSe
+         }
+         return new NBParserFactory.NBJavacParser(parserFactory, lexer, true, false, true, false, cancelService) {
+             @Override protected com.sun.tools.javac.parser.JavacParser.AbstractEndPosTable newEndPosTable(boolean keepEndPositions) {
+-                return new com.sun.tools.javac.parser.JavacParser.AbstractEndPosTable(this) {
++                return new com.sun.tools.javac.parser.JavacParser.AbstractEndPosTable() {
+ 
+                     @Override
+-                    public void storeEnd(JCTree tree, int endpos) {
+-                        ((NBParserFactory.NBJavacParser.EndPosTableImpl)endPos).storeEnd(tree, endpos);
+-                    }
+-
+-                    @Override
+-                    protected <T extends JCTree> T to(T t) {
+-                        storeEnd(t, token.endPos);
+-                        return t;
+-                    }
+-
+-                    @Override
+-                    protected <T extends JCTree> T toP(T t) {
+-                        storeEnd(t, S.prevToken().endPos);
+-                        return t;
++                    public <T extends JCTree> T storeEnd(T tree, int endpos) {
++                        return ((NBParserFactory.NBJavacParser.EndPosTableImpl)endPos).storeEnd(tree, endpos);
+                     }
+ 
+                     @Override
+@@ -410,7 +398,7 @@ public BlockTree reattrMethodBody(Context context, Scope scope, MethodTree metho
+                 // in enum constructors, except in the compiler
+                 // generated one.
+                 log.error(tree.body.stats.head.pos(),
+-                          new JCDiagnostic.Error("compiler",
++                          new JCDiagnostic.Error(Set.of(), "compiler",
+                                     "call.to.super.not.allowed.in.enum.ctor",
+                                     env.enclClass.sym));
+                     }
+diff --git a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java
+index 3b953cfbf386..abf9f78a4d64 100644
+--- a/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java
++++ b/java/java.source.base/src/org/netbeans/modules/java/source/pretty/VeryPretty.java
+@@ -2902,13 +2902,14 @@ else if (addSpace)
+         }
+     }
+     
+-    private static final String[] flagLowerCaseNames = new String[Flag.values().length];
++    private static final String[] flagLowerCaseNames = new String[FlagsEnum.values().length];
+     
+     static {
+-        for (Flag flag : Flag.values()) {
++        for (FlagsEnum flag : FlagsEnum.values()) {
+             flagLowerCaseNames[flag.ordinal()] = flag.name().toLowerCase(Locale.ENGLISH);
+         }
+-        flagLowerCaseNames[Flag.NON_SEALED.ordinal()] = "non-sealed";
++        flagLowerCaseNames[FlagsEnum.NON_SEALED.ordinal()] = "non-sealed";
++        flagLowerCaseNames[FlagsEnum.TRANSIENT_OR_ACC_VARARGS.ordinal()] = "transient"; //TODO: there should be a test in java.source.base for this
+     }
+     
+     /**
+@@ -2922,7 +2923,7 @@ public static String flagNames(long flags) {
+         flags = flags & Flags.ExtendedStandardFlags;
+         StringBuilder buf = new StringBuilder();
+         String sep = ""; // NOI18N
+-        for (Flag flag : Flags.asFlagSet(flags)) {
++        for (FlagsEnum flag : Flags.asFlagSet(flags)) {
+             buf.append(sep);
+             String fname = flagLowerCaseNames[flag.ordinal()];
+             buf.append(fname);
+diff --git a/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/indexing/VanillaCompileWorkerTest.java b/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/indexing/VanillaCompileWorkerTest.java
+index 14ab9d6a483d..cef82bfd313c 100644
+--- a/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/indexing/VanillaCompileWorkerTest.java
++++ b/java/java.source.base/test/unit/src/org/netbeans/modules/java/source/indexing/VanillaCompileWorkerTest.java
+@@ -2502,13 +2502,12 @@ record Data(ErrorKind kind, Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>
+             public Data get(ErrorKind kind, Range range, String message) {
+                 return new Data(kind, Pair.of(Pair.of(range.start().line(),
+                                                       range.start().column()),
+-                                              range.end() != null ? Pair.of(range.end().line(),
+-                                                                               range.end().column())
+-                                                                     : null));
++                                              Pair.of(range.end().line(),
++                                                      range.end().column())));
+             }
+         });
+         assertEquals(List.of(new Data(ErrorKind.WARNING, Pair.of(Pair.of(4, 9), Pair.of(4, 19))),
+-                             new Data(ErrorKind.WARNING, Pair.of(Pair.of(4, 17), null))),
++                             new Data(ErrorKind.WARNING, Pair.of(Pair.of(4, 17), Pair.of(4, 17)))),
+                      errors);
+     }
+ 
+diff --git a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBClassFinder.java b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBClassFinder.java
+index 7e91e79cbbf1..a9e95273da09 100644
+--- a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBClassFinder.java
++++ b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBClassFinder.java
+@@ -35,6 +35,7 @@
+ import com.sun.tools.javac.util.Names;
+ import java.lang.reflect.Constructor;
+ import java.lang.reflect.InvocationTargetException;
++import java.util.Set;
+ import java.util.function.Supplier;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
+@@ -107,7 +108,7 @@ public Completer getCompleter() {
+                             Constructor<CompletionFailure> constr = CompletionFailure.class.getDeclaredConstructor(Symbol.class, Supplier.class, dcfhClass);
+                             Object dcfh = dcfhClass.getDeclaredMethod("instance", Context.class).invoke(null, context);
+                             throw constr.newInstance(sym, (Supplier<JCDiagnostic>) () -> {
+-                                return diagFactory.create(log.currentSource(), new SimpleDiagnosticPosition(0), DiagnosticInfo.of(DiagnosticType.ERROR, "compiler", "cant.resolve", "package", "java.lang"));
++                                return diagFactory.create(log.currentSource(), new SimpleDiagnosticPosition(0), DiagnosticInfo.of(DiagnosticType.ERROR, Set.of(), "compiler", "cant.resolve", "package", "java.lang"));
+                             }, dcfh);
+                         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException ex) {
+                             Logger.getLogger(NBClassFinder.class.getName()).log(Level.FINE, null, ex);
+diff --git a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBParserFactory.java b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBParserFactory.java
+index 87fece4029b6..5454ffb26ea1 100644
+--- a/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBParserFactory.java
++++ b/java/lib.nbjavac/src/org/netbeans/lib/nbjavac/services/NBParserFactory.java
+@@ -100,7 +100,7 @@ public JCCompilationUnit parseCompilationUnit() {
+ 
+             if (!unit.getTypeDecls().isEmpty() && unit.getTypeDecls().get(0).getKind() == Kind.CLASS) {
+                 JCClassDecl firstClass = (JCClassDecl) unit.getTypeDecls().get(0);
+-                if ((firstClass.mods.flags & Flags.IMPLICIT_CLASS) != 0 && getEndPos(unit) == Position.NOPOS) {
++                if ((firstClass.mods.flags & Flags.IMPLICIT_CLASS) != 0) {
+                     if (pack[0] != null) {
+                         unit.defs = unit.defs.prepend(pack[0]);
+                     }
+@@ -115,7 +115,6 @@ public JCCompilationUnit parseCompilationUnit() {
+                     }
+ 
+                     firstClass.pos = newPos;
+-                    endPosTable.storeEnd(unit, token.endPos);
+                 }
+             }
+             return unit;
+@@ -188,12 +187,9 @@ public JCStatement parseSimpleStatement() {
+ 
+         public final class EndPosTableImpl extends AbstractEndPosTable {
+             
+-            private final Lexer lexer;
+             private final SimpleEndPosTable delegate;
+ 
+             private EndPosTableImpl(Lexer lexer, JavacParser parser, SimpleEndPosTable delegate) {
+-                super(parser);
+-                this.lexer = lexer;
+                 this.delegate = delegate;
+             }
+             
+@@ -202,9 +198,11 @@ public void resetErrorEndPos() {
+                 errorEndPos = delegate.errorEndPos;
+             }
+             
+-            @Override public void storeEnd(JCTree tree, int endpos) {
++            @Override
++            public <T extends JCTree> T storeEnd(T tree, int endpos) {
+                 if (endpos >= 0)
+-                    delegate.storeEnd(tree, endpos);
++                    return delegate.storeEnd(tree, endpos);
++                return null;
+             }
+ 
+             public void setEnd(JCTree tree, int endpos) {
+@@ -225,18 +223,6 @@ public void setErrorEndPos(int errPos) {
+                 errorEndPos = delegate.errorEndPos;
+             }
+ 
+-            @Override
+-            protected <T extends JCTree> T to(T t) {
+-                storeEnd(t, parser.token().endPos);
+-                return t;
+-            }
+-
+-            @Override
+-            protected <T extends JCTree> T toP(T t) {
+-                storeEnd(t, lexer.prevToken().endPos);
+-                return t;
+-            }
+-
+             @Override
+             public int getEndPos(JCTree jctree) {
+                 return delegate.getEndPos(jctree);
+diff --git a/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBParserFactoryTest.java b/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBParserFactoryTest.java
+index 6b4758683f3e..dd1d615d80c9 100644
+--- a/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBParserFactoryTest.java
++++ b/java/lib.nbjavac/test/unit/src/org/netbeans/lib/nbjavac/services/NBParserFactoryTest.java
+@@ -54,7 +54,7 @@ public void testUnnamedClassStartsAt0() throws Exception {
+         SourcePositions sp = Trees.instance(parsed.first()).getSourcePositions();
+ 
+         assertEquals(0, sp.getStartPosition(parsed.second(), ct));
+-        assertEquals(-1, sp.getEndPosition(parsed.second(), ct));
++        assertEquals(14, sp.getEndPosition(parsed.second(), ct));
+     }
+ 
+     public void testImplicitClassPositions() throws Exception {
+@@ -74,9 +74,9 @@ void main() {
+         SourcePositions sp = Trees.instance(parsed.first()).getSourcePositions();
+ 
+         assertEquals(19, sp.getStartPosition(parsed.second(), ct));
+-        assertEquals(-1, sp.getEndPosition(parsed.second(), ct));
++        assertEquals(46, sp.getEndPosition(parsed.second(), ct));
+         assertEquals(0, sp.getStartPosition(parsed.second(), parsed.second()));
+-        assertEquals(code.length(), sp.getEndPosition(parsed.second(), parsed.second()));
++        assertEquals(46, sp.getEndPosition(parsed.second(), parsed.second()));
+     }
+ 
+     public void testErrorRecoveryCompactSourceFilePackage() throws Exception {
+@@ -126,7 +126,7 @@ private Pair<JavacTask, CompilationUnitTree> compile(String code) throws Excepti
+         Context context = new Context();
+         NBParserFactory.preRegister(context);
+         NBTreeMaker.preRegister(context);
+-        final JavacTaskImpl ct = (JavacTaskImpl) ((JavacTool)tool).getTask(null, std, null, Arrays.asList("-source", "21"), null, Arrays.asList(new MyFileObject(code)), context);
++        final JavacTaskImpl ct = (JavacTaskImpl) ((JavacTool)tool).getTask(null, std, null, Arrays.asList("-source", "25"), null, Arrays.asList(new MyFileObject(code)), context);
+ 
+         CompilationUnitTree cut = ct.parse().iterator().next();
+ 
+diff --git a/java/libs.javacapi/external/binaries-list b/java/libs.javacapi/external/binaries-list
+index 04893aa33931..10da1b4fc791 100644
+--- a/java/libs.javacapi/external/binaries-list
++++ b/java/libs.javacapi/external/binaries-list
+@@ -14,5 +14,5 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-CD9EA8DDE23DF41A129D563A51C9A2E502BD85BF com.dukescript.nbjavac:nb-javac:jdk-25+31.1
+-183E5391BCCC0A27AE0F5014A3A9FA7F93214911 com.dukescript.nbjavac:nb-javac:jdk-25+31.1:api
++162196CDF0DAE37B7D3AD7991DE4310B78AFA30F com.dukescript.nbjavac:nb-javac:jdk-26+27
++F9B91950111918341594B7B5641B3731CA8CCF80 com.dukescript.nbjavac:nb-javac:jdk-26+27:api
+\ No newline at end of file
+diff --git a/java/libs.javacapi/external/nb-javac-jdk-25+31.1-license.txt b/java/libs.javacapi/external/nb-javac-jdk-26+27-license.txt
+similarity index 99%
+rename from java/libs.javacapi/external/nb-javac-jdk-25+31.1-license.txt
+rename to java/libs.javacapi/external/nb-javac-jdk-26+27-license.txt
+index 897752a6807a..42327cc242fb 100644
+--- a/java/libs.javacapi/external/nb-javac-jdk-25+31.1-license.txt
++++ b/java/libs.javacapi/external/nb-javac-jdk-26+27-license.txt
+@@ -1,7 +1,7 @@
+ Name: Javac Compiler Implementation
+ Description: Javac Compiler Implementation
+-Version: 25+31.1
+-Files: nb-javac-jdk-25+31.1-api.jar nb-javac-jdk-25+31.1.jar
++Version: 26+27
++Files: nb-javac-jdk-26+27-api.jar nb-javac-jdk-26+27.jar
+ License: GPL-2-CP
+ Origin: OpenJDK (https://github.com/openjdk/jdk)
+ Source: https://github.com/openjdk/jdk
+diff --git a/java/libs.javacapi/nbproject/project.xml b/java/libs.javacapi/nbproject/project.xml
+index 85ce67de99f3..9e3cab61ae0c 100644
+--- a/java/libs.javacapi/nbproject/project.xml
++++ b/java/libs.javacapi/nbproject/project.xml
+@@ -40,11 +40,11 @@
+             </public-packages>
+             <class-path-extension>
+                 <runtime-relative-path />
+-                <binary-origin>external/nb-javac-jdk-25+31.1-api.jar</binary-origin>
++                <binary-origin>external/nb-javac-jdk-26+27-api.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path />
+-                <binary-origin>external/nb-javac-jdk-25+31.1.jar</binary-origin>
++                <binary-origin>external/nb-javac-jdk-26+27.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+diff --git a/java/libs.nbjavacapi/external/binaries-list b/java/libs.nbjavacapi/external/binaries-list
+index 04893aa33931..ce8c570f6590 100644
+--- a/java/libs.nbjavacapi/external/binaries-list
++++ b/java/libs.nbjavacapi/external/binaries-list
+@@ -14,5 +14,5 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-CD9EA8DDE23DF41A129D563A51C9A2E502BD85BF com.dukescript.nbjavac:nb-javac:jdk-25+31.1
+-183E5391BCCC0A27AE0F5014A3A9FA7F93214911 com.dukescript.nbjavac:nb-javac:jdk-25+31.1:api
++162196CDF0DAE37B7D3AD7991DE4310B78AFA30F com.dukescript.nbjavac:nb-javac:jdk-26+27
++F9B91950111918341594B7B5641B3731CA8CCF80 com.dukescript.nbjavac:nb-javac:jdk-26+27:api
+diff --git a/java/libs.nbjavacapi/external/nb-javac-jdk-25+31.1-license.txt b/java/libs.nbjavacapi/external/nb-javac-jdk-26+27-license.txt
+similarity index 99%
+rename from java/libs.nbjavacapi/external/nb-javac-jdk-25+31.1-license.txt
+rename to java/libs.nbjavacapi/external/nb-javac-jdk-26+27-license.txt
+index 897752a6807a..42327cc242fb 100644
+--- a/java/libs.nbjavacapi/external/nb-javac-jdk-25+31.1-license.txt
++++ b/java/libs.nbjavacapi/external/nb-javac-jdk-26+27-license.txt
+@@ -1,7 +1,7 @@
+ Name: Javac Compiler Implementation
+ Description: Javac Compiler Implementation
+-Version: 25+31.1
+-Files: nb-javac-jdk-25+31.1-api.jar nb-javac-jdk-25+31.1.jar
++Version: 26+27
++Files: nb-javac-jdk-26+27-api.jar nb-javac-jdk-26+27.jar
+ License: GPL-2-CP
+ Origin: OpenJDK (https://github.com/openjdk/jdk)
+ Source: https://github.com/openjdk/jdk
+diff --git a/java/libs.nbjavacapi/nbproject/project.properties b/java/libs.nbjavacapi/nbproject/project.properties
+index efe0509fc907..324f20a552d1 100644
+--- a/java/libs.nbjavacapi/nbproject/project.properties
++++ b/java/libs.nbjavacapi/nbproject/project.properties
+@@ -18,8 +18,8 @@
+ javac.release=17
+ javac.compilerargs=-Xlint -Xlint:-serial
+ license.file.override=${nb_all}/nbbuild/licenses/GPL-2-CP
+-release.external/nb-javac-jdk-25+31.1-api.jar=modules/ext/nb-javac-jdk-25-31.1-api.jar
+-release.external/nb-javac-jdk-25+31.1.jar=modules/ext/nb-javac-jdk-25-31.1.jar
++release.external/nb-javac-jdk-26+27-api.jar=modules/ext/nb-javac-jdk-26-27-api.jar
++release.external/nb-javac-jdk-26+27.jar=modules/ext/nb-javac-jdk-26-27.jar
+ 
+ # for tests
+ requires.nb.javac=true
+diff --git a/java/libs.nbjavacapi/nbproject/project.xml b/java/libs.nbjavacapi/nbproject/project.xml
+index 19d916447aee..30ffb3bf7501 100644
+--- a/java/libs.nbjavacapi/nbproject/project.xml
++++ b/java/libs.nbjavacapi/nbproject/project.xml
+@@ -45,12 +45,12 @@
+             </test-dependencies>
+             <public-packages/>
+             <class-path-extension>
+-                <runtime-relative-path>ext/nb-javac-jdk-25-31.1-api.jar</runtime-relative-path>
+-                <binary-origin>external/nb-javac-jdk-25+31.1-api.jar</binary-origin>
++                <runtime-relative-path>ext/nb-javac-jdk-26-27-api.jar</runtime-relative-path>
++                <binary-origin>external/nb-javac-jdk-26+27-api.jar</binary-origin>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>ext/nb-javac-jdk-25-31.1.jar</runtime-relative-path>
+-                <binary-origin>external/nb-javac-jdk-25+31.1.jar</binary-origin>
++                <runtime-relative-path>ext/nb-javac-jdk-26-27.jar</runtime-relative-path>
++                <binary-origin>external/nb-javac-jdk-26+27.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+diff --git a/java/libs.nbjavacapi/src/org/netbeans/modules/nbjavac/api/Bundle.properties b/java/libs.nbjavacapi/src/org/netbeans/modules/nbjavac/api/Bundle.properties
+index 4f2d851c361e..1905befb638e 100644
+--- a/java/libs.nbjavacapi/src/org/netbeans/modules/nbjavac/api/Bundle.properties
++++ b/java/libs.nbjavacapi/src/org/netbeans/modules/nbjavac/api/Bundle.properties
+@@ -18,6 +18,6 @@
+ OpenIDE-Module-Display-Category=Java
+ OpenIDE-Module-Long-Description=\
+     This library provides a Java language parser for the IDE. \
+-    Supports JDK-25 features.
++    Supports JDK-26 features.
+ OpenIDE-Module-Name=The nb-javac Java editing support library
+ OpenIDE-Module-Short-Description=The nb-javac Java editing support library
+diff --git a/java/spi.java.hints/src/org/netbeans/modules/java/hints/spiimpl/Utilities.java b/java/spi.java.hints/src/org/netbeans/modules/java/hints/spiimpl/Utilities.java
+index 69ab20d95648..efae473d7a15 100644
+--- a/java/spi.java.hints/src/org/netbeans/modules/java/hints/spiimpl/Utilities.java
++++ b/java/spi.java.hints/src/org/netbeans/modules/java/hints/spiimpl/Utilities.java
+@@ -579,7 +579,7 @@ private static JCStatement parseStatement(Context context, CharSequence stmt, So
+         JavaFileObject prev = compiler.log.useSource(new DummyJFO());
+         Log.DiagnosticHandler discardHandler = compiler.log.new DiscardDiagnosticHandler() {
+             @Override
+-            public void report(JCDiagnostic diag) {
++            public void reportReady(JCDiagnostic diag) {
+                 errors.add(diag);
+             }            
+         };
+@@ -606,7 +606,7 @@ private static JCExpression parseExpression(Context context, CharSequence expr,
+         JavaFileObject prev = compiler.log.useSource(new DummyJFO());
+         Log.DiagnosticHandler discardHandler = compiler.log.new DiscardDiagnosticHandler() {
+             @Override
+-            public void report(JCDiagnostic diag) {
++            public void reportReady(JCDiagnostic diag) {
+                 errors.add(diag);
+             }            
+         };
+@@ -637,7 +637,7 @@ private static TypeMirror attributeTree(JavacTaskImpl jti, Tree tree, Scope scop
+         JavaFileObject prev = log.useSource(new DummyJFO());
+         Log.DiagnosticHandler discardHandler = log.new DiscardDiagnosticHandler() {
+             @Override
+-            public void report(JCDiagnostic diag) {
++            public void reportReady(JCDiagnostic diag) {
+                 errors.add(diag);
+             }            
+         };
+@@ -1569,12 +1569,17 @@ public long getStartPosition() {
+ 
+         @Override
+         public long getEndPosition() {
+-            if (delegate instanceof JCDiagnostic dImpl) {
+-                return dImpl.getDiagnosticPosition().getEndPosition(new EndPosTable() {
++            if (delegate instanceof JCDiagnostic jcDiag) {
++                return jcDiag.getDiagnosticPosition().getEndPosition(new EndPosTable() {
+                     @Override public int getEndPos(JCTree tree) {
+                         return (int) sp.getEndPosition(null, tree);
+                     }
+-                    @Override public void storeEnd(JCTree tree, int endpos) {
++                    @Override
++                    public <T extends JCTree> T storeEnd(T tree, int endpos) {
++                        throw new UnsupportedOperationException("Not supported yet.");
++                    }
++                    @Override
++                    public void setErrorEndPos(int errpos) {
+                         throw new UnsupportedOperationException("Not supported yet.");
+                     }
+                     @Override public int replaceTree(JCTree oldtree, JCTree newtree) {
+diff --git a/java/whitelist/nbproject/project.properties b/java/whitelist/nbproject/project.properties
+index 33b62c8f77a2..1b47e7cc2ac0 100644
+--- a/java/whitelist/nbproject/project.properties
++++ b/java/whitelist/nbproject/project.properties
+@@ -22,6 +22,3 @@ javadoc.apichanges=${basedir}/apichanges.xml
+ requires.nb.javac=true
+ 
+ test.config.stableBTD.includes=**/*Test.class
+-
+-# for JDK 11+
+-test.bootclasspath.prepend.args=-Dno.netbeans.bootclasspath.prepend.needed=true
+diff --git a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
+index f95d0bb6bc64..782b26b38218 100644
+--- a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
++++ b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
+@@ -92,8 +92,8 @@ nb/ide.launcher/external/launcher-external-binaries-3-282bbc032bcd.zip platform/
+ nb/ide.launcher/external/launcher-external-binaries-3-282bbc032bcd.zip harness/apisupport.harness/external/launcher-external-binaries-3-282bbc032bcd.zip
+
+ # only one is part of the product:
+-java/libs.javacapi/external/nb-javac-jdk-25+31.1-api.jar java/libs.nbjavacapi/external/nb-javac-jdk-25+31.1-api.jar
+-java/libs.javacapi/external/nb-javac-jdk-25+31.1.jar java/libs.nbjavacapi/external/nb-javac-jdk-25+31.1.jar
++java/libs.javacapi/external/nb-javac-jdk-26+27-api.jar java/libs.nbjavacapi/external/nb-javac-jdk-26+27-api.jar
++java/libs.javacapi/external/nb-javac-jdk-26+27.jar java/libs.nbjavacapi/external/nb-javac-jdk-26+27.jar
+ 
+ # Used only in unittests for mysql db specific tests
+ ide/db.metadata.model/external/mysql-connector-j-8.0.31.jar ide/db.mysql/external/mysql-connector-j-8.0.31.jar

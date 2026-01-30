@@ -1,13 +1,14 @@
 diff --git a/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementOpen.java b/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementOpen.java
-index f561cb51c8..81000c3ed9 100644
+index f561cb51c8cf..b69173fef503 100644
 --- a/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementOpen.java
 +++ b/java/java.sourceui/src/org/netbeans/api/java/source/ui/ElementOpen.java
-@@ -573,6 +573,10 @@ public final class ElementOpen {
+@@ -573,6 +573,11 @@ static void fillInTreePositions(CompilationInfo info, Tree forTree, Object[] tar
          int[] span = null;
          switch(forTree.getKind()) {
              case CLASS:
 +                if ((int) target[1] >= 0 && (int) target[2] == -1) {
-+                // Compact Source file (JEP 512)  issue implicit class end position not found in code 
++                    // Compact Source file (JEP 512)  issue implicit class end position not found in code 
++                    // see JDK-8364015
 +                    target[2] = (int) info.getTrees().getSourcePositions().getEndPosition(cu, cu);
 +                }
              case INTERFACE:

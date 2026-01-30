@@ -1,5 +1,5 @@
 diff --git a/java/java.j2seproject/nbproject/project.properties b/java/java.j2seproject/nbproject/project.properties
-index dc44efa75d..525c4ecfc8 100644
+index 9f68c5272c..bfbc1e60c3 100644
 --- a/java/java.j2seproject/nbproject/project.properties
 +++ b/java/java.j2seproject/nbproject/project.properties
 @@ -27,8 +27,8 @@ test.unit.run.cp.extra=${tools.jar}
@@ -216,7 +216,7 @@ index 0000000000..9d39755a86
 +===============================================
 +
 diff --git a/java/testng.ui/nbproject/project.xml b/java/testng.ui/nbproject/project.xml
-index 65c7364426..fe338b1acf 100644
+index fc2864d7df..d658c63b30 100644
 --- a/java/testng.ui/nbproject/project.xml
 +++ b/java/testng.ui/nbproject/project.xml
 @@ -109,7 +109,7 @@
@@ -224,7 +224,7 @@ index 65c7364426..fe338b1acf 100644
                      <run-dependency>
                          <release-version>1</release-version>
 -                        <specification-version>1.11</specification-version>
-+                        <specification-version>1.45</specification-version>
++                        <specification-version>1.46</specification-version>
                      </run-dependency>
                  </dependency>
                  <dependency>
@@ -325,7 +325,7 @@ index 11afdedbc4..49508b1507 100644
          URL url = null;
          try {
 diff --git a/java/testng/nbproject/project.xml b/java/testng/nbproject/project.xml
-index de6d32ff03..1bf62c3756 100644
+index 93b37bd39d..671653af8e 100644
 --- a/java/testng/nbproject/project.xml
 +++ b/java/testng/nbproject/project.xml
 @@ -92,7 +92,7 @@
@@ -333,7 +333,7 @@ index de6d32ff03..1bf62c3756 100644
                      <run-dependency>
                          <release-version>1</release-version>
 -                        <specification-version>1.0</specification-version>
-+                        <specification-version>1.45</specification-version>
++                        <specification-version>1.46</specification-version>
                      </run-dependency>
                  </dependency>
                  <dependency>
@@ -444,10 +444,10 @@ index 1c30d02d29..66cabfb9c1 100644
      }
  }
 diff --git a/nbbuild/templates/common.xml b/nbbuild/templates/common.xml
-index 240ed93945..86153557a9 100644
+index 6de8195957..7da63ba169 100644
 --- a/nbbuild/templates/common.xml
 +++ b/nbbuild/templates/common.xml
-@@ -787,7 +787,7 @@
+@@ -796,7 +796,7 @@
                          outputdir="${build.test.@{test.type}.results.dir}"
                          workingDir="${build.test.@{test.type}.results.dir}"
                          suitename="${code.name.base}"
@@ -456,7 +456,7 @@ index 240ed93945..86153557a9 100644
                          jvm="${test.nbjdk.java}"
                  >
                      <classfileset dir="${build.test.@{test.type}.classes.dir}" excludes="${test.excludes}" includes="${test.includes}"/>
-@@ -890,7 +890,7 @@
+@@ -899,7 +899,7 @@
                           outputdir="${build.test.@{test.type}.results.dir}"
                           workingDir="${build.test.@{test.type}.results.dir}"
                           suitename="${code.name.base}"
@@ -465,7 +465,7 @@ index 240ed93945..86153557a9 100644
                           jvm="${test.nbjdk.java}"
                  >
                      <propertyset refid="test.@{test.type}.properties"/>
-@@ -919,7 +919,7 @@
+@@ -928,7 +928,7 @@
                           outputdir="${build.test.@{test.type}.results.dir}"
                           workingDir="${build.test.@{test.type}.results.dir}"
                           suitename="${code.name.base}"
@@ -474,7 +474,7 @@ index 240ed93945..86153557a9 100644
                           jvm="${test.nbjdk.java}"
                  >
                      <propertyset refid="test.@{test.type}.properties"/>
-@@ -1012,7 +1012,7 @@
+@@ -1021,7 +1021,7 @@
                      <jvmarg value="-ea"/>
                      <arg line="-mixed"/>
                      <arg line="-d ${build.test.@{test.type}.results.dir}"/>
@@ -483,7 +483,7 @@ index 240ed93945..86153557a9 100644
                      <arg line="-suitename ${code.name.base}"/>
                      <arg line="-testname ${test.class}"/>
                      <arg line="${testng.args.line}"/>
-@@ -1034,7 +1034,7 @@
+@@ -1043,7 +1043,7 @@
                           outputdir="${build.test.@{test.type}.results.dir}"
                           workingDir="${build.test.@{test.type}.results.dir}"
                           suitename="${code.name.base}"
@@ -492,7 +492,7 @@ index 240ed93945..86153557a9 100644
                           jvm="${test.nbjdk.java}"
                  >
                      <propertyset refid="test.@{test.type}.properties"/>
-@@ -1126,7 +1126,7 @@
+@@ -1135,7 +1135,7 @@
                          outputdir="${build.test.@{test.type}.results.dir}"
                          workingDir="${build.test.@{test.type}.results.dir}"
                          suitename="${code.name.base}"
@@ -865,17 +865,17 @@ index 9d9366b8ed..494c4ae3d7 100644
  Manifest-Version: 1.0
  AutoUpdate-Show-In-Client: true
  OpenIDE-Module: org.netbeans.libs.testng/1
--OpenIDE-Module-Specification-Version: 1.43
-+OpenIDE-Module-Specification-Version: 1.45
+-OpenIDE-Module-Specification-Version: 1.44
++OpenIDE-Module-Specification-Version: 1.46
  OpenIDE-Module-Localizing-Bundle: org/netbeans/libs/testng/Bundle.properties
 diff --git a/platform/libs.testng/nbproject/org-netbeans-libs-testng.sig b/platform/libs.testng/nbproject/org-netbeans-libs-testng.sig
-index 3add7cf2b2..2b345b1c30 100644
+index 9bcfefd912..2b345b1c30 100644
 --- a/platform/libs.testng/nbproject/org-netbeans-libs-testng.sig
 +++ b/platform/libs.testng/nbproject/org-netbeans-libs-testng.sig
 @@ -1,5 +1,5 @@
  #Signature file v4.1
--#Version 1.41
-+#Version 1.45
+-#Version 1.43
++#Version 1.46
  
  CLSS public abstract interface java.io.Serializable
  
