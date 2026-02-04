@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025-2026, Oracle and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,9 @@ public class NotebookSessionManager {
                 .err(streamsHandler.getPrintErrStream())
                 .in(streamsHandler.getInputStream());
 
+        LOG.log(Level.FINE, "Initializing Notebook kernel for {0}", notebookUri);
+        LOG.log(Level.FINE, "Compiler options being passed: {0}", compilerOptions);
+        LOG.log(Level.FINE, "VM Options being passed to notebook kernel: {0}", remoteOptions);
         if (!compilerOptions.isEmpty()) {
             builder.compilerOptions(compilerOptions.toArray(new String[0]))
                     .remoteVMOptions(remoteOptions.toArray(new String[0]));
@@ -226,6 +229,10 @@ public class NotebookSessionManager {
         if (enablePreview) {
             remoteOptions.add(ENABLE_PREVIEW);
         }
+        
+        List<String> extraVmOptions = NotebookConfigs.getInstance().getNotebookVmOptions();
+        remoteOptions.addAll(extraVmOptions);
+        
         return remoteOptions;
     }
 
