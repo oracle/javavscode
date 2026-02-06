@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2023-2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023-2026, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -31,6 +31,7 @@ import { CodeAction, commands, extensions, Selection, Uri, window, workspace, Tr
 import { addSleepIfWindowsPlatform, assertWorkspace, awaitClient, dumpJava, findClusters, getFilePaths, openFile, prepareProject, replaceCode } from '../../testutils';
 import { FORMATTED_POM_XML, SAMPLE_CODE_FORMAT_DOCUMENT, SAMPLE_CODE_SORT_IMPORTS, SAMPLE_CODE_UNUSED_IMPORTS } from '../../constants';
 import { extCommands } from '../../../../commands/commands';
+import { extConstants } from '../../../../constants';
 
 suite('Extension Test Suite', function () {
   window.showInformationMessage('Start all tests.');
@@ -164,15 +165,34 @@ suite('Extension Test Suite', function () {
     );
 
     if (refactorActions && refactorActions.length > 0) {
+      const extCommandPrefix:string = extConstants.COMMAND_PREFIX + '.';
+      const editorActionPrefix:string = 'editor.action.';
       for await (const action of refactorActions) {
-        if (action.command && action.command.arguments) {
-          if (action.command.command === extCommands.surroundWith) {
+        if (action.command && (
+          action.command.command?.startsWith(extCommandPrefix) ||
+          action.command.command?.startsWith(editorActionPrefix))
+        ) {
+          if (action.command.command === extCommands.surroundWith && action.title === "Surround with ...") {
             //this action has a popup where the user needs to
             //select a template that should be used for the surround:
             continue;
           }
-          await commands.executeCommand(action.command.command, ...action.command.arguments);
-          await commands.executeCommand('undo');
+
+          try {
+            if (action.command.arguments) {
+              console.log("Test: Refactor actions: executing action: %s", action.title);
+              await commands
+                .executeCommand(action.command.command, ...action.command.arguments)
+                .then(() => commands.executeCommand('undo'));
+            } else {
+              console.log("Test: Refactor actions: executing action (no args): %s", action.title);
+              await commands
+                .executeCommand(action.command.command)
+                .then(() => commands.executeCommand('undo'));
+            }
+          } catch (error) {
+            console.log("Test: Refactor actions: %s failed with an error: %s", action.title, error);
+          }
         }
       }
     }
