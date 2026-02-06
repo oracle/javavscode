@@ -120,225 +120,282 @@
 			]
 		},
 		"viewsWelcome": [],
-		"configuration": {
-			"title": "Java",
-			"properties": {
-				"jdk.jdkhome": {
-					"type": [
-						"string",
-						"null"
-					],
-					"default": null,
-					"description": "%jdk.configuration.specifyJdk.description%",
-					"scope": "machine-overridable"
-				},
-				"jdk.project.jdkhome": {
-					"type": [
-						"string",
-						"null"
-					],
-					"default": null,
-					"description": "%jdk.configuration.specifyProjectJdk.description%",
-					"scope": "machine-overridable"
-				},
-				"jdk.verbose": {
-					"type": "boolean",
-					"default": false,
-					"description": "%jdk.configuration.verbose.description%"
-				},
-				"jdk.userdir": {
-					"description": "%jdk.configuration.userdir.description%",
-					"type": "string",
-					"enum": [
-						"global",
-						"local"
-					],
-					"enumDescriptions": [
-						"%jdk.configuration.userdir.description.shareData%",
-						"%jdk.configuration.userdir.description.isolated%"
-					],
-					"default": "local",
-					"deprecationMessage": "%jdk.configuration.userdir.deprecationMessage%"
-				},
-				"jdk.revealActiveInProjects": {
-					"type": "boolean",
-					"default": true,
-					"description": "%jdk.configuration.revealActiveInProjects.description%"
-				},
-				"jdk.test.editor.enableShortcuts": {
-					"type": "boolean",
-					"default": false,
-					"description": "%jdk.configuration.testEditor.description%"
-				},
-				"jdk.javadoc.load.timeout": {
-					"type": "integer",
-					"default": 100,
-					"description": "%jdk.configuration.javadoc.timeout.description%"
-				},
-				"jdk.format.settingsPath": {
-					"type": "string",
-					"description": "%jdk.configuration.formatterSettings.description%",
-					"default": null
-				},
-				"jdk.hints.preferences": {
-					"type": "string",
-					"description": "%jdk.configuration.hints.preferences.description%",
-					"default": null
-				},
-				"jdk.java.onSave.organizeImports": {
-					"type": "boolean",
-					"default": true,
-					"description": "%jdk.configuration.organiseImports.description%"
-				},
-				"jdk.java.imports.groups": {
-					"type": "array",
-					"description": "%jdk.configuration.organiseImports.sortingOrder.description%",
-					"default": [
-						"java",
-						"javax",
-						"org",
-						"com",
-						""
-					]
-				},
-				"jdk.java.imports.countForUsingStarImport": {
-					"type": "integer",
-					"description": "%jdk.configuration.countForUsingStarImport.description%",
-					"default": 999,
-					"minimum": 1
-				},
-				"jdk.java.imports.countForUsingStaticStarImport": {
-					"type": "integer",
-					"description": "%jdk.configuration.countForUsingStaticStarImport.description%",
-					"default": 999,
-					"minimum": 1
-				},
-				"jdk.runConfig.arguments": {
-					"type": "string",
-					"default": "",
-					"description": "%jdk.configuration.arguments.description%"
-				},
-				"jdk.runConfig.vmOptions": {
-					"type": "string",
-					"default": "",
-					"description": "%jdk.configuration.vmOptions.description%"
-				},
-				"jdk.serverVmOptions": {
-					"type": "array",
-					"default": [],
-					"description": "%jdk.configuration.serverVmOptions.description%",
-					"scope": "machine-overridable"
-				},
-				"jdk.runConfig.env": {
-					"type": "string",
-					"default": "",
-					"description": "%jdk.configuration.runConfig.env.description%"
-				},
-				"jdk.runConfig.cwd": {
-					"type": "string",
-					"default": "",
-					"description": "%jdk.configuration.runConfig.cwd.description%"
-				},
-				"jdk.advanced.disable.nbjavac": {
-					"type": "boolean",
-					"default": false,
-					"description": "%jdk.configuration.disableNbJavac.description%"
-				},
-				"jdk.advanced.disable.projectSearchLimit": {
-					"type": "boolean",
-					"default": false,
-					"description": "%jdk.configuration.disableProjectSearchLimit.description%"
-				},
-				"jdk.completion.warning.time": {
-					"type": "integer",
-					"default": 10000,
-					"description": "%jdk.debugger.configuration.completion.warning.time.description%"
-				},
-				"jdk.notebook.classpath": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"description": "%jdk.notebook.classpath.description%"
-				},
-				"jdk.notebook.modulepath": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"description": "%jdk.notebook.modulepath.description%"
-				},
-				"jdk.notebook.addmodules": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"description": "%jdk.notebook.addmodules.description%"
-				},
-				"jdk.notebook.enablePreview": {
-					"type": "boolean",
-					"default": false,
-					"description": "%jdk.notebook.enablePreview.description%"
-				},
-				"jdk.notebook.implicitImports": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [
-						"java.util.*",
-						"java.io.*",
-						"java.math.*"
-					],
-					"description": "%jdk.notebook.implicitImports.description%"
-				},
-				"jdk.notebook.projects.mapping": {
-					"type": "object",
-					"default": {},
-					"description": "%jdk.notebook.projects.mapping.description%"
-				},
-				"jdk.notebook.vmOptions": {
-					"type": "array",
-					"default": [],
-					"description": "%jdk.notebook.vmOptions.description%"
-				},
-				"jdk.telemetry.enabled": {
-					"type": "boolean",
-					"description": "%jdk.configuration.telemetry.enabled.description%",
-					"markdownDescription": "%jdk.configuration.telemetry.enabled.markdownDescription%",
-					"default": false,
-					"tags": [
-						"telemetry"
-					]
-				},
-				"jdk.java.completion.commit.chars": {
-					"type": "array",
-					"default": [],
-					"description": "%jdk.configuration.java.completion.commit.chars%"
-				},
-				"jdk.inlay.enabled": {
-					"description": "%jdk.configuration.inlay.enabled.description%",
-					"type": "array",
-					"default": [],
-					"items": {
-						"type": "string",
-						"enum": [
-							"chained",
-							"parameter",
-							"var"
+		"configuration": [
+			{
+				"id": "jdk",
+				"title": "%jdk.configuration.title.jdk%",
+				"properties": {
+					"jdk.jdkhome": {
+						"type": [
+							"string",
+							"null"
 						],
-						"markdownEnumDescriptions": [
-							"%jdk.configuration.inlay.enabled.enum.chained.markdownDescription%",
-							"%jdk.configuration.inlay.enabled.enum.parameter.markdownDescription%",
-							"%jdk.configuration.inlay.enabled.enum.var.markdownDescription%"
+						"default": null,
+						"description": "%jdk.configuration.specifyJdk.description%",
+						"scope": "machine-overridable"
+					},
+					"jdk.project.jdkhome": {
+						"type": [
+							"string",
+							"null"
+						],
+						"default": null,
+						"description": "%jdk.configuration.specifyProjectJdk.description%",
+						"scope": "machine-overridable"
+					}
+				}
+			},
+			{
+				"id": "runConfiguration",
+				"title": "%jdk.configuration.title.runConfiguration%",
+				"properties": {
+					"jdk.runConfig.arguments": {
+						"type": "string",
+						"default": "",
+						"description": "%jdk.configuration.arguments.description%"
+					},
+					"jdk.runConfig.vmOptions": {
+						"type": "string",
+						"default": "",
+						"description": "%jdk.configuration.vmOptions.description%"
+					},
+					"jdk.runConfig.env": {
+						"type": "string",
+						"default": "",
+						"description": "%jdk.configuration.runConfig.env.description%"
+					},
+					"jdk.runConfig.cwd": {
+						"type": "string",
+						"default": "",
+						"description": "%jdk.configuration.runConfig.cwd.description%"
+					}
+				}
+			},
+			{
+				"id": "notebooks",
+				"title": "%jdk.configuration.title.notebooks%",
+				"properties": {
+					"jdk.notebook.classpath": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": [],
+						"description": "%jdk.notebook.classpath.description%"
+					},
+					"jdk.notebook.modulepath": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": [],
+						"description": "%jdk.notebook.modulepath.description%"
+					},
+					"jdk.notebook.addmodules": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": [],
+						"description": "%jdk.notebook.addmodules.description%"
+					},
+					"jdk.notebook.enablePreview": {
+						"type": "boolean",
+						"default": false,
+						"description": "%jdk.notebook.enablePreview.description%"
+					},
+					"jdk.notebook.implicitImports": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": [
+							"java.util.*",
+							"java.io.*",
+							"java.math.*"
+						],
+						"description": "%jdk.notebook.implicitImports.description%"
+					},
+					"jdk.notebook.projects.mapping": {
+						"type": "object",
+						"default": {},
+						"description": "%jdk.notebook.projects.mapping.description%"
+					},
+					"jdk.notebook.vmOptions": {
+						"type": "array",
+						"default": [],
+						"description": "%jdk.notebook.vmOptions.description%"
+					}
+				}
+			},
+			{
+				"id": "imports",
+				"title": "%jdk.configuration.title.imports%",
+				"properties": {
+					"jdk.java.onSave.organizeImports": {
+						"type": "boolean",
+						"default": true,
+						"description": "%jdk.configuration.organiseImports.description%"
+					},
+					"jdk.java.imports.groups": {
+						"type": "array",
+						"description": "%jdk.configuration.organiseImports.sortingOrder.description%",
+						"default": [
+							"java",
+							"javax",
+							"org",
+							"com",
+							""
+						]
+					},
+					"jdk.java.imports.countForUsingStarImport": {
+						"type": "integer",
+						"description": "%jdk.configuration.countForUsingStarImport.description%",
+						"default": 999,
+						"minimum": 1
+					},
+					"jdk.java.imports.countForUsingStaticStarImport": {
+						"type": "integer",
+						"description": "%jdk.configuration.countForUsingStaticStarImport.description%",
+						"default": 999,
+						"minimum": 1
+					}
+				}
+			},
+			{
+				"id": "formatter",
+				"title": "%jdk.configuration.title.formatter%",
+				"properties": {
+					"jdk.format.settingsPath": {
+						"type": "string",
+						"description": "%jdk.configuration.formatterSettings.description%",
+						"default": null
+					}
+				}
+			},
+			{
+				"id": "hints",
+				"title": "%jdk.configuration.title.hints%",
+				"properties": {
+					"jdk.hints.preferences": {
+						"type": "string",
+						"description": "%jdk.configuration.hints.preferences.description%",
+						"default": null
+					},
+					"jdk.inlay.enabled": {
+						"description": "%jdk.configuration.inlay.enabled.description%",
+						"type": "array",
+						"default": [],
+						"items": {
+							"type": "string",
+							"enum": [
+								"chained",
+								"parameter",
+								"var"
+							],
+							"markdownEnumDescriptions": [
+								"%jdk.configuration.inlay.enabled.enum.chained.markdownDescription%",
+								"%jdk.configuration.inlay.enabled.enum.parameter.markdownDescription%",
+								"%jdk.configuration.inlay.enabled.enum.var.markdownDescription%"
+							]
+						}
+					}
+				}
+			},
+			{
+				"id": "telemetry",
+				"title": "%jdk.configuration.title.telemetry%",
+				"properties": {
+					"jdk.telemetry.enabled": {
+						"type": "boolean",
+						"description": "%jdk.configuration.telemetry.enabled.description%",
+						"markdownDescription": "%jdk.configuration.telemetry.enabled.markdownDescription%",
+						"default": false,
+						"tags": [
+							"telemetry"
 						]
 					}
 				}
+			},
+			{
+				"id": "codeCompletion",
+				"title": "%jdk.configuration.title.codeCompletion%",
+				"properties": {
+					"jdk.completion.warning.time": {
+						"type": "integer",
+						"default": 10000,
+						"description": "%jdk.debugger.configuration.completion.warning.time.description%"
+					},
+					"jdk.java.completion.commit.chars": {
+						"type": "array",
+						"default": [],
+						"description": "%jdk.configuration.java.completion.commit.chars%"
+					},
+					"jdk.javadoc.load.timeout": {
+						"type": "integer",
+						"default": 100,
+						"description": "%jdk.configuration.javadoc.timeout.description%"
+					}
+				}
+			},
+			{
+				"id": "advanced",
+				"title": "%jdk.configuration.title.advanced%",
+				"properties": {
+					"jdk.serverVmOptions": {
+						"type": "array",
+						"default": [],
+						"description": "%jdk.configuration.serverVmOptions.description%",
+						"scope": "machine-overridable"
+					},
+					"jdk.verbose": {
+						"type": "boolean",
+						"default": false,
+						"description": "%jdk.configuration.verbose.description%"
+					},
+					"jdk.userdir": {
+						"description": "%jdk.configuration.userdir.description%",
+						"type": "string",
+						"enum": [
+							"global",
+							"local"
+						],
+						"enumDescriptions": [
+							"%jdk.configuration.userdir.description.shareData%",
+							"%jdk.configuration.userdir.description.isolated%"
+						],
+						"default": "local",
+						"deprecationMessage": "%jdk.configuration.userdir.deprecationMessage%"
+					},
+					"jdk.advanced.disable.nbjavac": {
+						"type": "boolean",
+						"default": false,
+						"description": "%jdk.configuration.disableNbJavac.description%"
+					},
+					"jdk.advanced.disable.projectSearchLimit": {
+						"type": "boolean",
+						"default": false,
+						"description": "%jdk.configuration.disableProjectSearchLimit.description%"
+					}
+				}
+			},
+			{
+				"id": "others",
+				"title": "%jdk.configuration.title.others%",
+				"properties": {
+					"jdk.revealActiveInProjects": {
+						"type": "boolean",
+						"default": true,
+						"description": "%jdk.configuration.revealActiveInProjects.description%"
+					},
+					"jdk.test.editor.enableShortcuts": {
+						"type": "boolean",
+						"default": false,
+						"description": "%jdk.configuration.testEditor.description%"
+					}
+				}
 			}
-		},
+		],
 		"breakpoints": [
 			{
 				"language": "java"
