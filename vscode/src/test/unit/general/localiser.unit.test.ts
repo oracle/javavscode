@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2025, Oracle and/or its affiliates.
+  Copyright (c) 2025-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ describe('localiser tests', () => {
     let extMock: Extension<any>;
     let mockedEnv: typeof vscode.env;
     let mockedL10n: typeof vscode.l10n;
-    let currentDir = __dirname.replace("/out/", "/src/");
+    let currentDir = __dirname.replace(path.sep + "out" + path.sep, path.sep + "src" + path.sep);
 
     before(() => {
         let vscodeObj = (vscode as typeof vscode & { mockedExtns: typeof vscode.extensions, mockedEnv: typeof vscode.env, mockedL10n: typeof vscode.l10n });
