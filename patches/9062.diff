@@ -1,0 +1,592 @@
+diff --git a/java/java.editor/src/org/netbeans/modules/java/editor/imports/JavaFixAllImports.java b/java/java.editor/src/org/netbeans/modules/java/editor/imports/JavaFixAllImports.java
+index 80f9064fdd..e0b42f9a4a 100644
+--- a/java/java.editor/src/org/netbeans/modules/java/editor/imports/JavaFixAllImports.java
++++ b/java/java.editor/src/org/netbeans/modules/java/editor/imports/JavaFixAllImports.java
+@@ -202,7 +202,7 @@ public class JavaFixAllImports {
+         }
+     }
+ 
+-    private static void performFixImports(WorkingCopy wc, ImportData data, CandidateDescription[] selections, boolean removeUnusedImports) throws IOException {
++    public static void performFixImports(WorkingCopy wc, ImportData data, CandidateDescription[] selections, boolean removeUnusedImports) throws IOException {
+         //do imports:
+         Set<Element> toImport = new HashSet<Element>();
+         Map<Name, Element> useFQNsFor = new HashMap<Name, Element>();
+@@ -263,7 +263,7 @@ public class JavaFixAllImports {
+         }
+     }
+ 
+-    private static ImportData computeImports(CompilationInfo info) {
++    public static ImportData computeImports(CompilationInfo info) {
+         ComputeImports imps = new ComputeImports(info);
+         Pair<Map<String, List<Element>>, Map<String, List<Element>>> candidates = imps.computeCandidates();
+ 
+@@ -351,7 +351,7 @@ public class JavaFixAllImports {
+         return data;
+     }
+ 
+-    static final class ImportData {
++    public static final class ImportData {
+         public final String[] simpleNames;
+         public final CandidateDescription[][] variants;
+         public final CandidateDescription[] defaults;
+@@ -440,7 +440,7 @@ public class JavaFixAllImports {
+         d.dispose();
+     }
+ 
+-    static final class CandidateDescription {
++    public static final class CandidateDescription {
+         public final String displayName;
+         public final Icon icon;
+         public final ElementHandle<Element> toImport;
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/FixImportsCodeAction.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/FixImportsCodeAction.java
+new file mode 100644
+index 0000000000..029dc7b9d4
+--- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/FixImportsCodeAction.java
+@@ -0,0 +1,182 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.lsp.server.protocol;
++
++import com.google.gson.JsonPrimitive;
++import java.io.IOException;
++import java.util.Collections;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.atomic.AtomicReference;
++import java.util.stream.IntStream;
++import java.util.stream.Stream;
++import net.java.html.json.Function;
++import net.java.html.json.Model;
++import net.java.html.json.ModelOperation;
++import net.java.html.json.Property;
++import org.eclipse.lsp4j.CodeAction;
++import org.eclipse.lsp4j.CodeActionKind;
++import org.eclipse.lsp4j.CodeActionParams;
++import org.eclipse.lsp4j.TextEdit;
++import org.eclipse.lsp4j.WorkspaceEdit;
++import org.netbeans.api.htmlui.HTMLDialog;
++import org.netbeans.api.java.source.CompilationController;
++import org.netbeans.api.java.source.JavaSource;
++import org.netbeans.modules.java.editor.imports.JavaFixAllImports;
++import org.netbeans.modules.java.editor.imports.JavaFixAllImports.CandidateDescription;
++import org.netbeans.modules.java.editor.imports.JavaFixAllImports.ImportData;
++import org.netbeans.modules.java.lsp.server.Utils;
++import org.netbeans.modules.parsing.api.ResultIterator;
++import org.openide.filesystems.FileObject;
++import org.openide.util.Exceptions;
++import org.openide.util.NbBundle;
++import org.openide.util.lookup.ServiceProvider;
++
++/**
++ *
++ * @author shimadan
++ */
++@ServiceProvider(service = CodeActionsProvider.class, position = 91)
++public class FixImportsCodeAction extends CodeActionsProvider {
++    
++    private static final String FIX_IMPORTS_KIND = "source.fixImports";
++    @Override
++    @NbBundle.Messages({
++        "DN_FixImports=Fix Imports...",})
++    public List<CodeAction> getCodeActions(NbCodeLanguageClient client, ResultIterator resultIterator, CodeActionParams params) throws Exception {
++        List<String> only = params.getContext().getOnly();
++        if (only == null || !only.contains(CodeActionKind.Source)) {
++            return Collections.emptyList();
++        }
++        CompilationController info = resultIterator.getParserResult() != null ? CompilationController.get(resultIterator.getParserResult()) : null;
++        if (info == null) {
++            return Collections.emptyList();
++        }
++        String uri = Utils.toUri(info.getFileObject());
++        return Collections.singletonList(createCodeAction(client, Bundle.DN_FixImports(), FIX_IMPORTS_KIND, uri, null));
++    }
++
++    @Override
++    public CompletableFuture<CodeAction> resolve(NbCodeLanguageClient client, CodeAction codeAction, Object data) {
++        CompletableFuture<CodeAction> future = new CompletableFuture<>();
++        try {
++            String uri = ((JsonPrimitive) data).getAsString();
++            FileObject file = Utils.fromUri(uri);
++            JavaSource js = JavaSource.forFileObject(file);
++            if (js == null) {
++                throw new IOException("Cannot get JavaSource for: " + uri);
++            }
++            final AtomicReference<ImportData> missingImports = new AtomicReference<ImportData>();
++            js.runUserActionTask(cc -> {
++                cc.toPhase(JavaSource.Phase.RESOLVED);
++                missingImports.set(JavaFixAllImports.computeImports(cc));
++            }, true);
++            future = showFixImportsDialog(missingImports.get()).thenApply(selections -> {
++                List<TextEdit> edits;
++                try {
++                    edits = TextDocumentServiceImpl.modify2TextEdits(js, wc -> {
++                        wc.toPhase(JavaSource.Phase.RESOLVED);
++                        JavaFixAllImports.performFixImports(wc, missingImports.get(), selections, false);
++
++                    });
++                    if (!edits.isEmpty()) {
++                        codeAction.setEdit(new WorkspaceEdit(Collections.singletonMap(uri, edits)));
++                    }
++                } catch (IOException ex) {
++                    throw new IllegalStateException(ex);
++                }
++                return codeAction;
++            });
++        } catch (IOException | IllegalArgumentException ex) {
++            future.completeExceptionally(ex);
++        }
++        return future;
++    }
++
++    private CompletableFuture<CandidateDescription[]> showFixImportsDialog(ImportData Impdata) {
++        CompletableFuture<CandidateDescription[]> selections = new CompletableFuture<>();
++        Pages.showFixImportsDialog(Impdata, selections);
++        return selections;
++    }
++
++    @HTMLDialog(url = "ui/FixImports.html", resources = "FixImports.css")
++    static final HTMLDialog.OnSubmit showFixImportsDialog(ImportData missingImports, CompletableFuture<CandidateDescription[]> selectedCandidates) {
++        FixImportsUI model = new FixImportsUI();
++        ImportDataUI[] imports = IntStream.range(0, missingImports.simpleNames.length)
++            .mapToObj(i -> new ImportDataUI(
++                missingImports.simpleNames[i],
++                missingImports.defaults[i].displayName,
++                Stream.of(missingImports.variants[i]).map((candidate)->candidate.displayName).toArray(String[]::new)
++            ))
++            .toArray(ImportDataUI[]::new);
++        model.withImports(imports).assignData(missingImports, selectedCandidates);
++        model.applyBindings();
++        return (id) -> {
++            if ("accept".equals(id)) {
++                model.completeSelectedCandidates();
++            }
++            return true;
++        };
++    }
++
++    @Model(className = "FixImportsUI", targetId = "", instance = true, builder = "with",
++            properties = {
++                @Property(name = "imports", type = ImportDataUI.class, array = true)
++            })
++    static final class FixImportsControl {
++
++        private CompletableFuture<CandidateDescription[]> selectedCandidates;
++        private ImportData missingImports;
++
++        @ModelOperation
++        void assignData(FixImportsUI ui, ImportData missingImports, CompletableFuture<CandidateDescription[]> selectedCandidates) {
++            this.selectedCandidates = selectedCandidates;
++            this.missingImports = missingImports;
++        }
++
++        @ModelOperation
++        @Function
++        void completeSelectedCandidates(FixImportsUI ui) {
++            List<ImportDataUI> imports = ui.getImports();
++            CandidateDescription[] chosen = IntStream.range(0, imports.size())
++                .mapToObj(i -> Stream.of(missingImports.variants[i])
++                    .filter((variant) -> variant.displayName.equals(imports.get(i).getSelectedCandidateFQN()))
++                    .findFirst()
++                    .get()
++                )
++                .toArray(CandidateDescription[]::new);
++            selectedCandidates.complete(chosen);
++        }
++        @ModelOperation
++        @Function
++        void cancel(){
++            selectedCandidates.cancel(true);
++        }
++    }
++
++    @Model(className = "ImportDataUI", instance = true, properties = {
++        @Property(name = "simpleName", type = String.class),
++        @Property(name = "selectedCandidateFQN", type = String.class),
++        @Property(name = "candidatesFQN", type = String.class, array = true)
++    })
++    static final class ImportDataControl {
++        
++    }
++    
++}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports.css b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports.css
+new file mode 100644
+index 0000000000..23a46ebd3c
+--- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports.css
+@@ -0,0 +1,209 @@
++/*
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++*/
++
++html, body {
++    height: 100%;
++    padding: 0;
++    margin: 0;
++}
++body {
++    display: flex;
++    flex-direction: column;
++    overflow-x: scroll;
++}
++input[type="text"], select {
++    width: 100%;
++    font-family: var(--vscode-editor-font-family) !important;
++    border: var(--vscode-input-border);
++    margin-right: 6px !important;
++    background: var(--vscode-input-background);
++    color: var(--vscode-input-foreground);
++    box-sizing: border-box;
++}
++input:focus, select:focus {
++    outline-color: var(--vscode-focusBorder);
++}
++input[type="text"] {
++    padding: 5px 4px !important;
++}
++input[type="checkbox"] {
++    width: 1.2em;
++    min-width: 1.2em;
++    height: 1.2em;
++    min-height: 1.2em;
++    cursor: pointer;
++    filter: opacity(80%);
++}
++input[type="checkbox"]:disabled {
++    filter: brightness(90%);
++}
++input[type="checkbox"]:checked {
++    filter: opacity(100%);
++}
++select {
++    padding: 4px !important;
++}
++button {
++    cursor: pointer;
++}
++label {
++    display: block;
++    margin-bottom: 5px;
++    user-select: none;
++}
++.vscode-font {
++    font-family: var(--vscode-font-family);
++    font-size: var(--vscode-font-size);
++    text-decoration: none;
++}
++.vscode-editor-font {
++    font-family: var(--vscode-editor-font-family) !important;
++    /*font-size: var(--vscode-editor-font-size);*/
++}
++.button-text {
++    margin-left: 5px;
++    vertical-align: text-top;
++}
++.regular-button {
++    border: none;
++    padding: 4px 10px 4px 10px;
++    margin: 5px;
++    color: var(--vscode-button-foreground);
++    background-color: var(--vscode-button-background);
++}
++.regular-button:hover, .regular-button:focus {
++    background: var(--vscode-button-hoverBackground);
++}
++.regular-button:focus {
++    outline: 1px solid var(--vscode-button-hoverBackground);
++    outline-offset: 2px;
++}
++.silent-button {
++    border: none;
++    padding: 4px 10px 4px 10px;
++    margin: 5px;
++    color: var(--vscode-input-foreground);
++    background-color: var(--vscode-list-hoverBackground);
++}
++.silent-button:hover {
++    color: var(--vscode-button-foreground);
++    background-color: var(--vscode-button-hoverBackground);
++}
++.silent-button:focus {
++    color: var(--vscode-button-foreground);
++    background-color: var(--vscode-button-hoverBackground);
++    outline: 1px solid var(--vscode-button-hoverBackground);
++    outline-offset: 2px;
++}
++.action-button {
++    border: none;
++    padding: 4px 10px 4px 10px;
++    margin: 2px;
++    color: var(--vscode-input-foreground);
++    background-color: var(--vscode-list-hoverBackground);
++}
++
++.action-button:hover {
++    color: var(--vscode-button-foreground);
++    background-color: var(--vscode-button-hoverBackground);
++}
++
++.action-button:focus, .action-button:hover:focus {
++    color: var(--vscode-button-foreground);
++    background-color: var(--vscode-button-hoverBackground);
++    outline: 1px solid var(--vscode-button-hoverBackground);
++    outline-offset: 2px;
++}
++.checkbox-label {
++    align-self: center;
++    display: initial;
++    cursor: pointer;
++    margin: 0px;
++    margin-left: 3px;
++}
++.params-caption {
++    margin-bottom: 8px;
++}
++.filler {
++    width: 53px;
++}
++.preview-panel {
++    margin: 0px;
++    padding: 10px;
++    font-family: var(--vscode-editor-font-family) !important;
++    background-color: var(--vscode-sideBar-background);
++    cursor: default;
++}
++.section {
++    padding: 20px 20px 0px;
++}
++.section1 {
++    padding: 0px 10px;
++}
++.section2 {
++    padding: 0px 10px;
++	margin-top: -6px;
++}
++.section3 {
++    padding: 0px 20px 0px;
++}
++.section-newline {
++    padding: 0px 20px 0px;
++}
++.section-nested {
++    padding: 5px 40px;
++}
++.vdivider {
++    margin-bottom: 20px;
++}
++.vdivider2 {
++    margin-bottom: 6px;
++}
++.hdivider {
++    margin-left: 6px;
++}
++.row {
++    padding: 3px 10px;
++}
++.row:hover {
++    background-color: var(--vscode-list-hoverBackground);
++}
++.row:focus-within {
++    background-color: var(--vscode-tab-unfocusedInactiveModifiedBorder);
++}
++.flex {
++    display: flex;
++}
++.flex-grow {
++    flex-grow: 1;
++    display: block;
++}
++.flex-equal {
++    flex: 1 1 0;
++    display: block;
++}
++.flex-vscrollable {
++    overflow-x: hidden;
++    overflow-y: auto;
++}
++.align-right {
++    margin-left: auto;
++}
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports.html b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports.html
+new file mode 100644
+index 0000000000..5c0a3d71b1
+--- /dev/null
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports.html
+@@ -0,0 +1,56 @@
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++<!DOCTYPE html>
++<html lang="en">
++
++<head>
++    <meta charset="UTF-8">
++    <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="FixImports.css">
++    <title>Fix Imports...</title>
++</head>
++
++<body>
++    <div class="section">
++        <label>Missing Imports:</label>
++        <div class="flex">
++            <label class="flex-grow params-caption">Name:</label>
++            <label class="flex-grow params-caption">Candidates:</label>
++            <span class="filler"></span>
++        </div>
++    </div>
++    <div class="flex-vscrollable section2" data-bind="foreach: imports">
++        <div class="flex row">
++            <div class="flex-equal">
++            <label data-bind="text: simpleName" class="flex-grow"></label>
++            </div>
++           <div class="flex-equal hdivider">
++            <select data-bind="options: candidatesFQN, value: selectedCandidateFQN"></select>
++           </div>
++        </div>
++    </div>
++    <div>
++        <button id="accept" hidden class="regular-button vscode-font align-right">Add Imports</button>
++        <button id="reject" hidden class="regular-button vscode-font">Cancel</button>
++    </div>
++</body>
++</html>
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+index 017f34d81b..9205dd65fc 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ServerTest.java
+@@ -3782,6 +3782,82 @@ public class ServerTest extends NbTestCase {
+                      fileChanges.get(1).getRange());
+         assertEquals("List", fileChanges.get(1).getNewText());
+     }
++    
++    public void testSourceActionFixImports() throws Exception {
++        File src = new File(getWorkDir(), "a/Test.java");
++        src.getParentFile().mkdirs();
++        try (Writer w = new FileWriter(new File(src.getParentFile().getParentFile(), ".test-project"))) {
++        }
++        String code = """
++                      package a;
++                      public class Test {
++                        private final List<String> names = new ArrayList<>();
++                      }
++                      """;
++        try (Writer w = new FileWriter(src)) {
++            w.write(code);
++        }
++        CountDownLatch indexingComplete = new CountDownLatch(1);
++        Launcher<LanguageServer> serverLauncher = createClientLauncherWithLogging(new TestCodeLanguageClient() {
++            @Override
++            public void showMessage(MessageParams params) {
++                if (Server.INDEXING_COMPLETED.equals(params.getMessage())) {
++                    indexingComplete.countDown();
++                } else {
++                    throw new UnsupportedOperationException("Unexpected message.");
++                }
++            }
++            @Override
++            public CompletableFuture<String> showHtmlPage(HtmlPageParams params) {
++                FixImportsUI ui = MockHtmlViewer.assertDialogShown(params.getId(), FixImportsUI.class);
++                ui.completeSelectedCandidates();
++                return CompletableFuture.completedFuture(null);
++            }
++
++        }, client.getInputStream(), client.getOutputStream());
++        serverLauncher.startListening();
++        LanguageServer server = serverLauncher.getRemoteProxy();
++        InitializeParams initParams = new InitializeParams();
++        initParams.setWorkspaceFolders(List.of(new WorkspaceFolder(getWorkDir().toURI().toString(),getWorkDir().getName())));
++        server.initialize(initParams).get();
++        indexingComplete.await();
++        String uri = src.toURI().toString();
++        server.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(new TextDocumentItem(uri, "java", 0, code)));
++        VersionedTextDocumentIdentifier id = new VersionedTextDocumentIdentifier(src.toURI().toString(), 1);
++
++        CodeActionParams codeActionParams = new CodeActionParams(
++                id,
++                new Range(new Position(0, 0),
++                        new Position(0, 0)),
++                new CodeActionContext(Arrays.asList(), Arrays.asList(CodeActionKind.Source))
++        );
++
++        List<Either<Command, CodeAction>> codeActions = server.getTextDocumentService()
++                                                              .codeAction(codeActionParams)
++                                                              .get();
++        Optional<CodeAction> fixImports
++                = codeActions.stream()
++                        .filter(Either::isRight)
++                        .map(Either::getRight)
++                        .filter(a -> Bundle.DN_FixImports().equals(a.getTitle()))
++                        .findAny();
++        assertTrue(fixImports.isPresent());
++        CodeAction resolvedCodeAction = server.getTextDocumentService()
++                                              .resolveCodeAction(fixImports.get())
++                                              .get();
++
++        assertNotNull(resolvedCodeAction);
++        WorkspaceEdit edit = resolvedCodeAction.getEdit();
++        assertNotNull(edit);
++        assertEquals(1, edit.getChanges().size());
++        List<TextEdit> fileChanges = edit.getChanges().get(tripleSlashUri(uri));
++        assertNotNull(fileChanges);
++        assertEquals(1, fileChanges.size());
++        assertEquals(new Range(new Position(1, 0),
++                               new Position(1, 0)),
++                     fileChanges.get(0).getRange());
++        assertEquals("\nimport java.util.ArrayList;\nimport java.util.List;\n\n", fileChanges.get(0).getNewText());
++    }
+ 
+     public void testRenameDocumentChangesCapabilitiesRenameOp() throws Exception {
+         doTestRename(init -> {
