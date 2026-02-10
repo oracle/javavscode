@@ -29,7 +29,7 @@ import * as vscode from 'vscode';
 import { extensions, window } from 'vscode';
 import { l10n } from '../../../../localiser'
 import { DEFAULT_BUNDLE_FILE_NAME, DEFAULT_PACKAGE_FILE_NAME, EXTENSION_NAME, SUPPORTED_LANGUAGES } from '../../constants';
-import { checkCommandsLocalisation, checkConfigurationLocalisation, checkDebuggersLocalisation, checkL10nUsageInFiles, checkViewsLocalisation, getKeysFromJSON, matchKeys, matchValuesTemplate } from '../../testutils';
+import { checkCommandsLocalisation, checkConfigurationsLocalisation, checkDebuggersLocalisation, checkL10nUsageInFiles, checkViewsLocalisation, getKeysFromJSON, matchKeys, matchValuesTemplate } from '../../testutils';
 
 
 suite("Extension localisation tests", function () {
@@ -84,7 +84,7 @@ suite("Extension localisation tests", function () {
         assert.ok(checkCommandsLocalisation(contributes.commands, validKeys), "Error some commands not localized");
         assert.ok(checkViewsLocalisation(contributes.views, validKeys), "Error some views is not localized");
         assert.ok(checkDebuggersLocalisation(contributes.debuggers, validKeys), "Error some debugger labels not localized");
-        assert.ok(checkConfigurationLocalisation(contributes.configuration, validKeys), "Error some configuration labels not localized");
+        assert.ok(checkConfigurationsLocalisation(contributes.configuration, validKeys), "Error some configuration labels not localized");
     });
 
 
