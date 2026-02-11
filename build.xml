@@ -49,33 +49,17 @@
     <loadresource property="patch-files">
         <string>
             patches/6330.diff
-            patches/7610.diff
             patches/8038-draft.diff
             patches/7893-draft.diff
             patches/8460-draft.diff
-            patches/8662.diff
-            patches/8664.diff
-            patches/8690.diff
-            patches/8694.diff
-            patches/8745.diff
-            patches/8748.diff
-            patches/8760.diff
-            patches/8770.diff
-            patches/8762.diff
-            patches/8769.diff
-            patches/8797.diff
-            patches/8816.diff
-            patches/8821.diff
-            patches/8827.diff
-            patches/8828.diff
-            patches/8829.diff
+            patches/8856.diff
             patches/8897.diff
-            patches/8856-draft.diff
-            patches/8952-draft.diff
+            patches/8952.diff
+            patches/8968.diff
             patches/8974-draft.diff
             patches/8975.diff
-            patches/8968.diff
             patches/9005-draft.diff
+            patches/9044.diff
             patches/9062.diff
             patches/disable-error-notification.diff
             patches/mvn-sh.diff
@@ -84,7 +68,6 @@
             patches/rename-debugger.diff
             patches/remove-db.diff
             patches/nbjavac-not-required.diff
-            patches/l10n-licence.diff
             patches/dev-dependency-licenses.diff
             patches/nb-telemetry.diff
             patches/gradle-files-scan-root.diff
