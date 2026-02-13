@@ -1,0 +1,18 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+index eaff1013cd..107daefbfb 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+@@ -1423,6 +1423,13 @@ public final class WorkspaceServiceImpl implements WorkspaceService, LanguageCli
+                 Exceptions.printStackTrace(ex);
+             }
+         }
++        // When no path set or wanting to override specific option
++        Preferences prefs = CodeStylePreferences.get(fo, "text/x-java").getPreferences();
++        JsonObject formatOptions = configuration.getAsJsonObject("options");
++        Map<String,JsonElement> options = formatOptions.asMap();
++        for(String key:options.keySet()){
++            prefs.put(key, options.get(key).getAsString());
++        }
+     }
+ 
+     void updateJavaImportPreferences(FileObject fo, JsonObject configuration) {

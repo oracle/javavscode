@@ -50,6 +50,8 @@
     "jdk.configuration.testEditor.description": "Enable Run/Debug test in editor",
     "jdk.configuration.javadoc.timeout.description": "Timeout (in milliseconds) for loading Javadoc in code completion (-1 for unlimited)",
     "jdk.configuration.formatterSettings.description": "Path to the file containing exported formatter settings",
+    "jdk.configuration.formatterSettings.deprecationMessage": "This settings is about to deprecated  use the jdk.format.settings instead",
+    "jdk.configuration.formatOptions.description" : "Holder for the formatting options. For the list of valid keys and corresponding values see https://github.com/oracle/javavscode/wiki/Java-formatting-preferences",
     "jdk.configuration.hints.preferences.description": "Path to the file containing exported hints preferences",
     "jdk.configuration.organiseImports.description": "Enable organize imports action on a document save",
     "jdk.configuration.organiseImports.sortingOrder.description": "Groups of import statements (specified by their package prefixes) and their sorting order. Import statements within a group are ordered alphabetically",
