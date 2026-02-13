@@ -127,10 +127,12 @@ Program arguments, VM options, environment variables, etc., can be set in the Ru
 ![Run Configuration](vscode/images/run_config.png) 
 
 ## JDK Downloader
-If the system does not detect any JDK, the extension will offer a downloader and setup prompt to help you set up a JDK. This setup provides options for Oracle JDK, OpenJDK, and allows you to choose from any installed JDK on your system.
-Alternatively, you can manually specify the path to JDK binaries by utilizing the JDK downloader.
+If the system does not detect any JDK, the extension will offer a downloader and setup prompts to help you set up a JDK. This allows you to get the latest Oracle JDK build for your system. Additionally, it provides options for different Oracle JDK and Oracle OpenJDK builds with system OS and architecture variants.
+
+Alternatively, you can manually select an already installed JDK to use with the extension through the "Select an installed JDK" command in the VS Code command palette.
+
 You can also access the JDK downloader through the "Download, install, and Use JDK" option in the command palette.<br/>
-![JDK Downloader](vscode/images/jdk_downloader.png)
+![JDK Downloader](vscode/images/jdk_downloader.gif)
 
 ## Enabling Java Preview Features 
 When using preview features use the quick fix action option to easily enable them.

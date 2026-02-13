@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+import { JdkDownloaderAction } from "../webviews/jdkDownloader/action";
 import { JdkDownloaderView } from "../webviews/jdkDownloader/view";
 import { extCommands } from "./commands";
 import { ICommand } from "./types";
@@ -22,8 +23,19 @@ const invokeDownloadJdkWebview = async () => {
     jdkDownloaderView.createView();
 }
 
+const invokeSelectJdk = async () => {
+    const jdkDownloader = new JdkDownloaderAction();
+    jdkDownloader.invokeListener({
+        command: JdkDownloaderView.DOWNLOAD_CMD,
+        installType: JdkDownloaderAction.MANUAL_INSTALLATION_TYPE
+    });
+}
+
 
 export const registerWebviewCommands: ICommand[] = [{
     command: extCommands.downloadJdk,
     handler: invokeDownloadJdkWebview
+},{
+    command: extCommands.selectJdk,
+    handler: invokeSelectJdk
 }];
