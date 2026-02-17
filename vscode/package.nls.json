@@ -26,6 +26,7 @@
     "testing.runAll": "Run All Tests",
     "jdk.addEventListener": "Add event listener",
     "jdk.download.jdk": "Download, install and use JDK",
+    "jdk.select.jdk": "Select an installed JDK",
     "jdk.open.test": "Go To Test/Tested class...",
     "jdk.delete.cache": "Delete Oracle Java extension cache for this workspace",
     "jdk.open.userDir": "Open Oracle Java extension cache directory for this workspace",

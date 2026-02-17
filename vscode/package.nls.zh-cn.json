@@ -26,6 +26,7 @@
     "testing.runAll": "运行所有测试",
     "jdk.addEventListener": "添加事件监听程序",
     "jdk.download.jdk": "下载、安装和使用 JDK",
+    "jdk.select.jdk": "选择安装的 JDK",
     "jdk.open.test": "转至测试/被测试的类...",
     "jdk.delete.cache": "删除此工作区的 Oracle Java 扩展高速缓存",
     "jdk.open.userDir": "打开此工作区的 Oracle Java 扩展高速缓存目录",

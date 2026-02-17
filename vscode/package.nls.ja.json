@@ -26,6 +26,7 @@
     "testing.runAll": "すべてのテストの実行",
     "jdk.addEventListener": "イベント・リスナーの追加",
     "jdk.download.jdk": "JDKのダウンロード、インストールおよび使用",
+    "jdk.select.jdk": "インストール済JDKの選択",
     "jdk.open.test": "テスト/テスト済のクラスへ移動...",
     "jdk.delete.cache": "このワークスペースのOracle Java拡張キャッシュの削除",
     "jdk.open.userDir": "このワークスペースのOracle Java拡張キャッシュ・ディレクトリを開く",

@@ -659,6 +659,11 @@
 				"title": "%jdk.download.jdk%"
 			},
 			{
+				"command": "jdk.select.jdk",
+				"title": "%jdk.select.jdk%",
+				"category": "Java"
+			},
+			{
 				"command": "jdk.open.test",
 				"title": "%jdk.open.test%",
 				"category": "Java"
@@ -779,6 +784,9 @@
 				},
 				{
 					"command": "jdk.download.jdk"
+				},
+				{
+					"command": "jdk.select.jdk"
 				},
 				{
 					"command": "jdk.workspace.compile",
