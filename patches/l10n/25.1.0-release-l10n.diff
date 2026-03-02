@@ -1,0 +1,669 @@
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties
+index b1feab14a..a1579e95f 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties
+@@ -14,7 +14,13 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++#
++OpenIDE-Module-Name=Java LSP\u30B5\u30FC\u30D0\u30FC
++OpenIDE-Module-Display-Category=Java
+ DESC_StartJavaDebugAdapterServer=Java\u30C7\u30D0\u30C3\u30B0\u30FB\u30A2\u30C0\u30D7\u30BF\u30FB\u30B5\u30FC\u30D0\u30FC\u3092\u958B\u59CB\u3057\u307E\u3059
+ DESC_StartJavaLanguageServer=Java\u8A00\u8A9E\u30B5\u30FC\u30D0\u30FC\u3092\u958B\u59CB\u3057\u307E\u3059
++# {0} - specification to parse
+ MSG_ConnectionSpecError=''{0}''\u3092\u63A5\u7D9A\u3068\u3057\u3066\u89E3\u6790\u3067\u304D\u307E\u305B\u3093\u3002''stdio''\u3001''\u805E\u304F:<\u30DD\u30FC\u30C8>''\u307E\u305F\u306F''\u63A5\u7D9A\u3059\u308B:<\u30DD\u30FC\u30C8>''\u3092\u4F7F\u7528\u3057\u307E\u3059
++# {0} - specification to parse
++# {1} - port to parse
+ MSG_PortParseError=''{0}''\u306E\u30DD\u30FC\u30C8\u3068\u3057\u3066''{1}''\u3092\u89E3\u6790\u3067\u304D\u307E\u305B\u3093
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties
+index e1ab4370a..7fccce9e9 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties
+@@ -14,5 +14,6 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++# {0} - frame pop error message
+ MSG_FrameRestartFailed=\u30D5\u30EC\u30FC\u30E0: {0}\u3092\u518D\u8D77\u52D5\u3067\u304D\u307E\u305B\u3093
+ MSG_FrameRestartUnsupported=\u30D5\u30EC\u30FC\u30E0\u306E\u518D\u8D77\u52D5\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_ja.properties
+index 616122c99..295a90a3e 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_ja.properties
+@@ -18,6 +18,7 @@ DESC_HostName=\u63A5\u7D9A\u3059\u308B\u30DB\u30B9\u30C8\u30FB\u30DE\u30B7\u30F3
+ DESC_Port=\u63A5\u7D9A\u3059\u308B\u30DD\u30FC\u30C8\u756A\u53F7
+ DESC_Process=\u30C7\u30D0\u30C3\u30B0\u5BFE\u8C61\u306E\u30D7\u30ED\u30BB\u30B9ID
+ DESC_ShMem=\u30BF\u30FC\u30B2\u30C3\u30C8VM\u304C\u30EA\u30B9\u30CB\u30F3\u30B0\u3057\u3066\u3044\u308B\u5171\u6709\u30E1\u30E2\u30EA\u30FC\u30FB\u30C8\u30E9\u30F3\u30B9\u30DD\u30FC\u30C8\u30FB\u30A2\u30C9\u30EC\u30B9
++# {0} - connector name
+ LBL_AttachBy={0}\u306B\u3088\u3063\u3066\u30A2\u30BF\u30C3\u30C1
+ LBL_AttachToPort=\u30DD\u30FC\u30C8\u306B\u30A2\u30BF\u30C3\u30C1
+ LBL_AttachToProcess=\u30D7\u30ED\u30BB\u30B9\u306B\u30A2\u30BF\u30C3\u30C1
+@@ -26,8 +27,11 @@ LBL_ListenForAttach=\u30A2\u30BF\u30C3\u30C1\u3059\u308B\u30C7\u30D0\u30C3\u30B0
+ LBL_ListenOnPort=\u30DD\u30FC\u30C8\u3067\u30EA\u30B9\u30CB\u30F3\u30B0
+ LBL_PickNativeProcessAttach=\u30A2\u30BF\u30C3\u30C1\u3059\u308B\u30CD\u30A4\u30C6\u30A3\u30D6\u30FB\u30A4\u30E1\u30FC\u30B8\u30FB\u30D7\u30ED\u30BB\u30B9\u306E\u9078\u629E:
+ LBL_PickProcessAttach=\u30A2\u30BF\u30C3\u30C1\u3059\u308BJVM\u30D7\u30ED\u30BB\u30B9\u306E\u9078\u629E:
++# {0} - argument name
++# {1} - value
+ MSG_ConnectorInvalidValue={0}\u306E\u5024\u304C\u7121\u52B9\u3067\u3059: {1}
+ MSG_FailedToAttach=\u30A2\u30BF\u30C3\u30C1\u306B\u5931\u6557\u3057\u307E\u3057\u305F
++# {0} - connector name
+ MSG_InvalidConnector=\u30B3\u30CD\u30AF\u30BF\u540D\u304C\u7121\u52B9\u3067\u3059: {0}
+ MSG_NoDebuggableProcess=\u30C7\u30D0\u30C3\u30B0\u53EF\u80FD\u306AJVM\u30D7\u30ED\u30BB\u30B9\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002`-agentlib:jdwp=transport=dt_socket,server=y`\u30AA\u30D7\u30B7\u30E7\u30F3\u3092\u4F7F\u7528\u3059\u308B\u3088\u3046\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002
+ MSG_UnknownNIPath=\u4E0D\u660E\u306A\u30CD\u30A4\u30C6\u30A3\u30D6\u30FB\u30A4\u30E1\u30FC\u30B8\u30FB\u30D1\u30B9\u3002`nativeImagePath`\u3092\u8A2D\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_ja.properties
+index 7c9769a3e..bdf82326b 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_ja.properties
+@@ -14,9 +14,15 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++CTL_NativeImageDebugger=\u30CD\u30A4\u30C6\u30A3\u30D6\u30FB\u30A4\u30E1\u30FC\u30B8\u30FB\u30C7\u30D0\u30C3\u30AC
+ ERR_LaunchDefaultConfiguration=\u30C7\u30D5\u30A9\u30EB\u30C8\u306E\u3082\u306E\u3002
++# {0} - the recommended configuration
+ ERR_LaunchSupportiveConfigName="{0}"
+ ERR_UnsupportedLaunch=\u3053\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u3067\u306F\u5B9F\u884C\u4E2D\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002
++# {0} - the selected configuration
++# {1} - the suggested configuration
+ ERR_UnsupportedLaunchConfig=\u5B9F\u884C\u4E2D\u306F\u69CB\u6210"{0}"\u3067\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002{1}\u306B\u5207\u308A\u66FF\u3048\u3066\u304F\u3060\u3055\u3044\u3002
+ ERR_UnsupportedLaunchDebug=\u3053\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u3067\u306F\u30C7\u30D0\u30C3\u30B0\u4E2D\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002
++# {0} - the selected configuration
++# {1} - the suggested configuration
+ ERR_UnsupportedLaunchDebugConfig=\u30C7\u30D0\u30C3\u30B0\u4E2D\u306F\u69CB\u6210"{0}"\u3067\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002{1}\u306B\u5207\u308A\u66FF\u3048\u3066\u304F\u3060\u3055\u3044
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties
+index 008c8ad8f..6a1bf142b 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties
+@@ -14,13 +14,33 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++# {0} - project name
++# {1} - problem's display name
+ ProjectProblem_Title=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}: {1}
++# {0} - number of fixes
++# {1} - the main message
+ ProjectProblems_Additional={1}\u3002\u8FFD\u52A0\u4FEE\u6B63({0})\u304C\u4F7F\u7528\u53EF\u80FD\u3067\u3059\u3002
++ProjectProblems_DetailsOption=\u8A73\u7D30\u306E\u8868\u793A
++# {0} - project name
++# {1} - issue title
+ ProjectProblems_Fixable_Title=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}: {1}
++# {0} - project name
+ ProjectProblems_Resolved_Error=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u554F\u984C\u304C\u4FEE\u6B63\u3055\u308C\u3066\u3044\u307E\u305B\u3093
++# {0} - problem display
++# {1} - message
+ ProjectProblems_Resolved_ErrorMessage1="{0}"\u306E\u4FEE\u6B63\u306B\u5931\u6557\u3057\u307E\u3057\u305F: {1}
++# {0} - problem display
++# {1} - message
++# {2} - other errors note
+ ProjectProblems_Resolved_ErrorMessage2="{0}"\u306E\u4FEE\u6B63\u306B\u5931\u6557\u3057\u307E\u3057\u305F: {1}\u3002{2}
++# {0} - project name
+ ProjectProblems_Resolved_Info=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u554F\u984C\u306F\u89E3\u6C7A\u3055\u308C\u307E\u3057\u305F
++# {0} - project name
+ ProjectProblems_Resolved_Warning=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u554F\u984C\u306F\u89E3\u6C7A\u3055\u308C\u307E\u3057\u305F
++# {0} - problem display
++# {1} - message
+ ProjectProblems_Resolved_WarningMessage1=\u554F\u984C"{0}"\u306F\u89E3\u6C7A\u3055\u308C\u307E\u3057\u305F: {1}
++# {0} - problem display
++# {1} - message
+ ProjectProblems_Resolved_WarningMessage2=\u554F\u984C"{0}"\u306F\u89E3\u6C7A\u3055\u308C\u307E\u3057\u305F: {1}
++ProjectProblems_RestOption=\u3059\u3079\u3066\u4FEE\u6B63
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+index 365e47b27..d7b8b4509 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+@@ -32,14 +32,15 @@ CTL_TemplateUI_SelectProjectTarget=\u65B0\u898F\u30D7\u30ED\u30B8\u30A7\u30AF\u3
+ CTL_TemplateUI_SelectTarget=\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306E\u914D\u7F6E\u5148\u3002
+ CTL_TemplateUI_SelectTemplate=\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u306E\u9078\u629E
+ DN_ConstructorAlreadyExists=\u6307\u5B9A\u306E\u30B3\u30F3\u30B9\u30C8\u30E9\u30AF\u30BF\u306F\u3059\u3067\u306B\u5B58\u5728\u3057\u307E\u3059
++DN_FixImports=\u30A4\u30F3\u30DD\u30FC\u30C8\u3092\u4FEE\u6B63...
+ DN_From=({0}\u304B\u3089)
+ DN_GenerateConstructor=\u30B3\u30F3\u30B9\u30C8\u30E9\u30AF\u30BF\u306E\u751F\u6210...
+ DN_GenerateDelegateMethod=\u59D4\u8B72\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
+ DN_GenerateEquals=equals()...\u306E\u751F\u6210
+ DN_GenerateEqualsHashCode=equals()\u304A\u3088\u3073hashCode()\u306E\u751F\u6210...
+ DN_GenerateGetterFor="{0}"\u306E\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210
+-DN_GenerateGetterSetterFor="{0}"\u306E\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u3068\u8A2D\u5B9A\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210
+ DN_GenerateGetters=\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
++DN_GenerateGetterSetterFor="{0}"\u306E\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u3068\u8A2D\u5B9A\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210
+ DN_GenerateGettersSetters=\u53D6\u5F97\u30E1\u30BD\u30C3\u30C9\u304A\u3088\u3073\u8A2D\u5B9A\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
+ DN_GenerateHashCode=hashCode()\u306E\u751F\u6210...
+ DN_GenerateImplementMethod=\u5B9F\u88C5\u30E1\u30BD\u30C3\u30C9\u306E\u751F\u6210...
+@@ -70,19 +71,37 @@ DN_SelectToString=toString()\u306B\u542B\u3081\u308B\u30D5\u30A3\u30FC\u30EB\u30
+ DN_SelectType=\u958B\u304F\u30BF\u30A4\u30D7\u306E\u9078\u629E
+ DN_SurroundWith={0}\u3067\u56F2\u3080
+ DN_SurroundWithAll=\u56F2\u3080...
++# {0} - path
+ ERR_ExistingPath={0}\u306F\u3059\u3067\u306B\u5B58\u5728\u3057\u307E\u3059
++# {0} - path
+ ERR_InvalidNewPath={0}\u306F\u6709\u52B9\u306A\u30D1\u30B9\u3067\u306F\u306A\u3044\u304B\u3001\u8AAD\u53D6\u308A\u5C02\u7528\u3067\u3059
++# {0} - ObjectName
+ ERR_InvalidObjectName={0}\u306F\u6709\u52B9\u306A\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u540D\u3067\u306F\u3042\u308A\u307E\u305B\u3093
++# {0} - packageName
+ ERR_InvalidPackageName={0}\u306F\u6709\u52B9\u306A\u30D1\u30C3\u30B1\u30FC\u30B8\u540D\u3067\u306F\u3042\u308A\u307E\u305B\u3093
++# {0} - path
+ ERR_InvalidPath={0}\u306F\u6709\u52B9\u306A\u30D5\u30A9\u30EB\u30C0\u3067\u306F\u306A\u3044\u304B\u3001\u8AAD\u53D6\u308A\u5C02\u7528\u3067\u3059
+-LBL_LaunchJavaConfig=Java\u306E\u8D77\u52D5: {0}
++# {0} - the timeout elapsed
++# {1} - path to the saved sampler file
+ INFO_LongCodeCompletion={0}\u3088\u308A\u3082\u9577\u3044\u6642\u9593\u3092\u8981\u3057\u3066\u3044\u308B\u5B8C\u4E86\u3092\u5206\u6790\u3057\u307E\u3059\u3002\u30B5\u30F3\u30D7\u30E9\u30FB\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u306F\u6B21\u306B\u4FDD\u5B58\u3055\u308C\u3066\u3044\u307E\u3059: {1}
++# {0} - method name
++LBL_Debug={0}\u3092\u30C7\u30D0\u30C3\u30B0
++# {0} - method name
++# {1} - configuration name
++LBL_DebugWith={1}\u3092\u6307\u5B9A\u3057\u3066{0}\u3092\u30C7\u30D0\u30C3\u30B0
++# {0} - Configuration name
++LBL_LaunchJavaConfig=Java\u306E\u8D77\u52D5: {0}
++# {0} - Configuration name
+ LBL_LaunchJavaConfig_desc={0}\u3092\u4F7F\u7528\u3057\u3066Java\u30A2\u30D7\u30EA\u30B1\u30FC\u30B7\u30E7\u30F3\u3092\u8D77\u52D5\u3057\u307E\u3059\u3002
++# {0} - method name
+ LBL_Run={0}\u3092\u5B9F\u884C
+-LBL_Debug={0}\u3092\u30C7\u30D0\u30C3\u30B0
++# {0} - method name
++# {1} - configuration name
+ LBL_RunWith={1}\u3092\u6307\u5B9A\u3057\u3066{0}\u3092\u5B9F\u884C
+-LBL_DebugWith={1}\u3092\u6307\u5B9A\u3057\u3066{0}\u3092\u30C7\u30D0\u30C3\u30B0
++# {0} - project name
+ MSG_ProjectFolderInitializationComplete=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
++# {0} - some project name
++# {1} - number of other projects loaded
+ MSG_ProjectFolderInitializationComplete2={0}\u304A\u3088\u3073{1}\u306E\u4ED6\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u521D\u671F\u5316\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F
+ PROMPT_AskObjectNameWarningConfirmation=\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u540D\u306B'$'\u304C\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059\u3002\u3053\u308C\u306F\u3001\u30E6\u30FC\u30B6\u30FC\u5B9A\u7FA9\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306B\u306F\u63A8\u5968\u3055\u308C\u307E\u305B\u3093\u3002\u73FE\u5728\u306E\u540D\u524D\u3067\u7D9A\u884C\u3057\u307E\u3059\u304B\u3002\u305D\u308C\u3068\u3082\u3001\u3084\u308A\u76F4\u3057\u307E\u3059\u304B\u3002
+ PROMPT_AskObjectNameWarningConfirmation_Continue=\u7D9A\u884C
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties
+index c26d0847e..dcbd0dda8 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_ja.properties
+@@ -29,6 +29,7 @@ DN_SelectMembersToExtract=\u62BD\u51FA\u3059\u308B\u30E1\u30F3\u30D0\u30FC\u306E
+ DN_SelectMembersToPullUp=\u30D7\u30EB\u30FB\u30A2\u30C3\u30D7\u3059\u308B\u30E1\u30F3\u30D0\u30FC\u306E\u9078\u629E
+ DN_SelectMembersToPushDown=\u30D7\u30C3\u30B7\u30E5\u30FB\u30C0\u30A6\u30F3\u3059\u308B\u30E1\u30F3\u30D0\u30FC\u306E\u9078\u629E
+ DN_SelectTargetSupertype=\u30BF\u30FC\u30B2\u30C3\u30C8\u30FB\u30B9\u30FC\u30D1\u30FC\u30BF\u30A4\u30D7\u306E\u9078\u629E
++# {0} - problems message
+ PROMPT_AskProceedWithRefactoringProblems=\u30EA\u30D5\u30A1\u30AF\u30BF\u3059\u308B\u3068\u3001\u6B21\u306E\u554F\u984C\u304C\u767A\u751F\u3059\u308B\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059: {0}\u3002\n\u30EA\u30D5\u30A1\u30AF\u30BF\u3092\u7D9A\u884C\u3057\u307E\u3059\u304B\u3002
+ PROMPT_AskProceedWithRefactoringProblems_No=\u3044\u3044\u3048
+ PROMPT_AskProceedWithRefactoringProblems_Yes=\u306F\u3044
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html
+index db4dca458..df9f56d74 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_ja.html
+@@ -1,3 +1,23 @@
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
+ <!DOCTYPE html>
+ <html lang="ja">
+ 
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html
+index 3149371ae..602644bfe 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_ja.html
+@@ -1,3 +1,23 @@
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
+ <!DOCTYPE html>
+ <html lang="ja">
+ 
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html
+index 175bd7967..50ac86f89 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_ja.html
+@@ -1,3 +1,23 @@
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
+ <!DOCTYPE html>
+ <html lang="ja">
+ 
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_zh_CN.properties
+index e508a10a2..06ac8f145 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_zh_CN.properties
+@@ -14,7 +14,13 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++#
++OpenIDE-Module-Name=Java LSP \u670D\u52A1\u5668
++OpenIDE-Module-Display-Category=Java
+ DESC_StartJavaDebugAdapterServer=\u542F\u52A8 Java Debug Adapter Server
+ DESC_StartJavaLanguageServer=\u542F\u52A8 Java Language Server
+-MSG_ConnectionSpecError=\u8BED\u6CD5\u5206\u6790\u65E0\u6CD5\u5C06 ''{0}'' \u8F6C\u6362\u4E3A\u8FDE\u63A5\u3002\u8BF7\u4F7F\u7528 ''stdio''\u3001''\u542C:<\u0020\u7AEF\u53E3>'' \u6216 ''\u8FDE\u63A5:<\u0020\u7AEF\u53E3>''
++# {0} - specification to parse
++MSG_ConnectionSpecError=\u8BED\u6CD5\u5206\u6790\u65E0\u6CD5\u5C06 ''{0}'' \u8F6C\u6362\u4E3A\u8FDE\u63A5\u3002\u8BF7\u4F7F\u7528 ''stdio''\u3001''\u542C:< \u7AEF\u53E3>'' \u6216 ''\u8FDE\u63A5:< \u7AEF\u53E3>''
++# {0} - specification to parse
++# {1} - port to parse
+ MSG_PortParseError=\u65E0\u6CD5\u5BF9 ''{1}'' \u8FDB\u884C\u8BED\u6CD5\u5206\u6790\uFF0C\u56E0\u4E3A\u7AEF\u53E3\u91C7\u7528 ''{0}''
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_zh_CN.properties
+index 8fb38714e..9588ba786 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_zh_CN.properties
+@@ -14,5 +14,6 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++# {0} - frame pop error message
+ MSG_FrameRestartFailed=\u65E0\u6CD5\u91CD\u65B0\u542F\u52A8\u6846\u67B6\uFF1A{0}
+ MSG_FrameRestartUnsupported=\u4E0D\u652F\u6301\u91CD\u65B0\u542F\u52A8\u6846\u67B6\u3002
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_zh_CN.properties
+index 92de456d7..a6d772949 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/attach/Bundle_zh_CN.properties
+@@ -18,6 +18,7 @@ DESC_HostName=\u8981\u8FDE\u63A5\u5230\u7684\u4E3B\u673A\u7684\u540D\u79F0\u6216
+ DESC_Port=\u8981\u8FDE\u63A5\u5230\u7684\u7AEF\u53E3\u53F7
+ DESC_Process=\u88AB\u8C03\u8BD5\u7A0B\u5E8F\u7684\u8FDB\u7A0B ID
+ DESC_ShMem=\u76EE\u6807 VM \u76D1\u542C\u7684\u5171\u4EAB\u5185\u5B58\u4F20\u8F93\u5730\u5740
++# {0} - connector name
+ LBL_AttachBy=\u7531 {0} \u9644\u52A0
+ LBL_AttachToPort=\u9644\u52A0\u5230\u7AEF\u53E3
+ LBL_AttachToProcess=\u9644\u52A0\u5230\u8FDB\u7A0B
+@@ -26,8 +27,11 @@ LBL_ListenForAttach=\u76D1\u542C\u8981\u9644\u52A0\u7684\u88AB\u8C03\u8BD5\u7A0B
+ LBL_ListenOnPort=\u76D1\u542C\u7AEF\u53E3
+ LBL_PickNativeProcessAttach=\u9009\u53D6\u8981\u9644\u52A0\u5230\u7684\u672C\u673A\u6620\u50CF\u8FDB\u7A0B\uFF1A
+ LBL_PickProcessAttach=\u9009\u53D6\u8981\u9644\u52A0\u5230\u7684 JVM \u8FDB\u7A0B\uFF1A
++# {0} - argument name
++# {1} - value
+ MSG_ConnectorInvalidValue={0} \u7684\u503C\u65E0\u6548\uFF1A{1}
+ MSG_FailedToAttach=\u65E0\u6CD5\u9644\u52A0\u3002
++# {0} - connector name
+ MSG_InvalidConnector=\u8FDE\u63A5\u5668\u540D\u79F0\u65E0\u6548\uFF1A{0}
+ MSG_NoDebuggableProcess=\u672A\u627E\u5230\u53EF\u8C03\u8BD5\u7684 JVM \u8FDB\u7A0B\u3002\u8BF7\u52A1\u5FC5\u4F7F\u7528 `-agentlib:jdwp=transport=dt_socket,server=y` \u9009\u9879\u3002
+ MSG_UnknownNIPath=\u672C\u673A\u6620\u50CF\u8DEF\u5F84\u672A\u77E5\u3002\u8BF7\u8BBE\u7F6E `nativeImagePath`\u3002
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_zh_CN.properties
+index cdca82a59..f4d6f9aca 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/launch/Bundle_zh_CN.properties
+@@ -14,9 +14,15 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++CTL_NativeImageDebugger=\u672C\u673A\u6620\u50CF\u8C03\u8BD5\u5668
+ ERR_LaunchDefaultConfiguration=\u9ED8\u8BA4\u914D\u7F6E\u3002
++# {0} - the recommended configuration
+ ERR_LaunchSupportiveConfigName="{0}"
+ ERR_UnsupportedLaunch=\u6B64\u9879\u76EE\u4E0D\u652F\u6301\u8FD0\u884C\u3002
++# {0} - the selected configuration
++# {1} - the suggested configuration
+ ERR_UnsupportedLaunchConfig=\u914D\u7F6E "{0}" \u4E0D\u652F\u6301\u8FD0\u884C\uFF0C\u8BF7\u5207\u6362\u5230 {1}\u3002
+ ERR_UnsupportedLaunchDebug=\u6B64\u9879\u76EE\u4E0D\u652F\u6301\u8C03\u8BD5\u3002
++# {0} - the selected configuration
++# {1} - the suggested configuration
+ ERR_UnsupportedLaunchDebugConfig=\u914D\u7F6E "{0}" \u4E0D\u652F\u6301\u8C03\u8BD5\uFF0C\u8BF7\u5207\u6362\u5230 {1}
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties
+index a5f769359..ab68b9367 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties
+@@ -14,13 +14,33 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++# {0} - project name
++# {1} - problem's display name
+ ProjectProblem_Title=\u9879\u76EE {0}\uFF1A{1}
++# {0} - number of fixes
++# {1} - the main message
+ ProjectProblems_Additional={1}\u3002\u6709\u5176\u4ED6\u4FEE\u590D ({0}) \u53EF\u7528\u3002
++ProjectProblems_DetailsOption=\u663E\u793A\u8BE6\u7EC6\u4FE1\u606F
++# {0} - project name
++# {1} - issue title
+ ProjectProblems_Fixable_Title=\u9879\u76EE {0}\uFF1A{1}
++# {0} - project name
+ ProjectProblems_Resolved_Error=\u672A\u4FEE\u590D\u9879\u76EE {0} \u95EE\u9898
++# {0} - problem display
++# {1} - message
+ ProjectProblems_Resolved_ErrorMessage1="{0}" \u7684\u4FEE\u590D\u5931\u8D25\uFF1A{1}
++# {0} - problem display
++# {1} - message
++# {2} - other errors note
+ ProjectProblems_Resolved_ErrorMessage2="{0}" \u7684\u4FEE\u590D\u5931\u8D25\uFF1A{1}\u3002{2}
++# {0} - project name
+ ProjectProblems_Resolved_Info=\u5DF2\u89E3\u51B3\u9879\u76EE {0} \u95EE\u9898
++# {0} - project name
+ ProjectProblems_Resolved_Warning=\u5DF2\u89E3\u51B3\u9879\u76EE {0} \u95EE\u9898
++# {0} - problem display
++# {1} - message
+ ProjectProblems_Resolved_WarningMessage1=\u5DF2\u89E3\u51B3\u95EE\u9898 "{0}"\uFF1A{1}
++# {0} - problem display
++# {1} - message
+ ProjectProblems_Resolved_WarningMessage2=\u5DF2\u89E3\u51B3\u95EE\u9898 "{0}"\uFF1A{1}
++ProjectProblems_RestOption=\u5168\u90E8\u4FEE\u590D
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+index a2aeb3f6d..b0e9a7eac 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+@@ -32,15 +32,16 @@ CTL_TemplateUI_SelectProjectTarget=\u6307\u5B9A\u65B0\u7684\u9879\u76EE\u76EE\u5
+ CTL_TemplateUI_SelectTarget=\u5C06\u5BF9\u8C61\u653E\u7F6E\u5728\u4F55\u5904\uFF1F
+ CTL_TemplateUI_SelectTemplate=\u9009\u62E9\u6A21\u677F
+ DN_ConstructorAlreadyExists=\u7ED9\u5B9A\u7684\u6784\u9020\u51FD\u6570\u5DF2\u5B58\u5728
++DN_FixImports=\u4FEE\u590D\u5BFC\u5165...
+ DN_From=\uFF08\u6765\u81EA {0}\uFF09
+ DN_GenerateConstructor=\u751F\u6210\u6784\u9020\u51FD\u6570...
+ DN_GenerateDelegateMethod=\u751F\u6210\u59D4\u6258\u65B9\u6CD5...
+ DN_GenerateEquals=\u751F\u6210 equals()\u3002\u3002\u3002
+ DN_GenerateEqualsHashCode=\u751F\u6210 equals() \u548C hashCode()\u3002\u3002\u3002
+-DN_GenerateGetterFor=\u751F\u6210 "{0}" \u7684 \u5438\u6C14\u5242
+-DN_GenerateGetterSetterFor=\u751F\u6210 "{0}" \u7684 \u5438\u6C14\u5242 \u548C \u4E8C\u4F20\u624B
+-DN_GenerateGetters=\u751F\u6210 \u5438\u6C14\u5242...
+-DN_GenerateGettersSetters=\u751F\u6210 \u5438\u6C14\u5242 \u548C \u4E8C\u4F20\u624B...
++DN_GenerateGetterFor=\u751F\u6210 "{0}" \u7684\u5438\u6C14\u5242
++DN_GenerateGetters=\u751F\u6210\u5438\u6C14\u5242...
++DN_GenerateGetterSetterFor=\u751F\u6210 "{0}" \u7684\u5438\u6C14\u5242\u548C\u4E8C\u4F20\u624B
++DN_GenerateGettersSetters=\u751F\u6210\u5438\u6C14\u5242\u548C\u4E8C\u4F20\u624B...
+ DN_GenerateHashCode=\u751F\u6210 hashCode()...
+ DN_GenerateImplementMethod=\u751F\u6210\u5B9E\u65BD\u65B9\u6CD5...
+ DN_GenerateLogger=\u751F\u6210\u65E5\u5FD7\u8BB0\u5F55\u7A0B\u5E8F...
+@@ -70,19 +71,37 @@ DN_SelectToString=\u9009\u62E9\u8981\u5305\u542B\u5728 toString() \u4E2D\u7684\u
+ DN_SelectType=\u9009\u62E9\u8981\u6253\u5F00\u7684\u7C7B\u578B
+ DN_SurroundWith=\u7531 {0} \u5305\u542B
+ DN_SurroundWithAll=\u5305\u542B\u65B9\u5F0F...
++# {0} - path
+ ERR_ExistingPath={0} \u5DF2\u5B58\u5728
++# {0} - path
+ ERR_InvalidNewPath={0} \u4E0D\u662F\u6709\u6548\u8DEF\u5F84\u6216\u662F\u53EA\u8BFB\u8DEF\u5F84
++# {0} - ObjectName
+ ERR_InvalidObjectName={0} \u4E0D\u662F\u6709\u6548\u7684\u5BF9\u8C61\u540D\u79F0
++# {0} - packageName
+ ERR_InvalidPackageName={0} \u4E0D\u662F\u6709\u6548\u7684\u7A0B\u5E8F\u5305\u540D\u79F0
++# {0} - path
+ ERR_InvalidPath={0} \u4E0D\u662F\u6709\u6548\u6587\u4EF6\u5939\u6216\u662F\u53EA\u8BFB\u6587\u4EF6\u5939
+-LBL_LaunchJavaConfig=\u542F\u52A8 Java\uFF1A{0}
++# {0} - the timeout elapsed
++# {1} - path to the saved sampler file
+ INFO_LongCodeCompletion=\u5206\u6790\u5B8C\u6210\u6240\u7528\u65F6\u95F4\u8D85\u8FC7 {0}\u3002\u4E00\u4E2A\u91C7\u6837\u5668\u5FEB\u7167\u5DF2\u4FDD\u5B58\u5230\uFF1A{1}
++# {0} - method name
++LBL_Debug=\u8C03\u8BD5 {0}
++# {0} - method name
++# {1} - configuration name
++LBL_DebugWith=\u4F7F\u7528 {1} \u8C03\u8BD5 {0}
++# {0} - Configuration name
++LBL_LaunchJavaConfig=\u542F\u52A8 Java\uFF1A{0}
++# {0} - Configuration name
+ LBL_LaunchJavaConfig_desc=\u4F7F\u7528 {0} \u542F\u52A8 Java \u5E94\u7528\u7A0B\u5E8F\u3002
++# {0} - method name
+ LBL_Run=\u8FD0\u884C {0}
+-LBL_Debug=\u8C03\u8BD5 {0}
++# {0} - method name
++# {1} - configuration name
+ LBL_RunWith=\u4F7F\u7528 {1} \u8FD0\u884C {0}
+-LBL_DebugWith=\u4F7F\u7528 {1} \u8C03\u8BD5 {0}
++# {0} - project name
+ MSG_ProjectFolderInitializationComplete=\u5DF2\u5B8C\u6210\u9879\u76EE {0} \u7684\u521D\u59CB\u5316
++# {0} - some project name
++# {1} - number of other projects loaded
+ MSG_ProjectFolderInitializationComplete2=\u5DF2\u5B8C\u6210 {0} \u548C {1} \u4E2A\u5176\u4ED6\u9879\u76EE\u7684\u521D\u59CB\u5316
+ PROMPT_AskObjectNameWarningConfirmation=\u5BF9\u8C61\u540D\u79F0\u5305\u542B '$'\u3002\u5BF9\u4E8E\u7528\u6237\u5B9A\u4E49\u7684\u5BF9\u8C61\uFF0C\u4E0D\u5EFA\u8BAE\u4F7F\u7528\u6B64\u540D\u79F0\u3002\u662F\u8981\u7EE7\u7EED\u4F7F\u7528\u5F53\u524D\u540D\u79F0\u8FD8\u662F\u91CD\u8BD5\uFF1F
+ PROMPT_AskObjectNameWarningConfirmation_Continue=\u7EE7\u7EED
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties
+index 24a6a0c95..af916ec24 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/Bundle_zh_CN.properties
+@@ -29,6 +29,7 @@ DN_SelectMembersToExtract=\u9009\u62E9\u8981\u63D0\u53D6\u7684\u6210\u5458
+ DN_SelectMembersToPullUp=\u9009\u62E9\u8981\u4E0A\u79FB\u7684\u6210\u5458
+ DN_SelectMembersToPushDown=\u9009\u62E9\u8981\u4E0B\u79FB\u7684\u6210\u5458
+ DN_SelectTargetSupertype=\u9009\u62E9\u76EE\u6807\u8D85\u7C7B\u578B
++# {0} - problems message
+ PROMPT_AskProceedWithRefactoringProblems=\u91CD\u6784\u53EF\u80FD\u4F1A\u5BFC\u81F4\u4EE5\u4E0B\u95EE\u9898\uFF1A{0}\u3002\n\u662F\u5426\u4ECD\u8981\u7EE7\u7EED\u91CD\u6784\uFF1F
+ PROMPT_AskProceedWithRefactoringProblems_No=\u5426
+ PROMPT_AskProceedWithRefactoringProblems_Yes=\u662F
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html
+index 88fc120bd..acf9ee689 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/ChangeMethodParameters_zh_CN.html
+@@ -1,3 +1,23 @@
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
+ <!DOCTYPE html>
+ <html lang="zh-Hans">
+ 
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html
+index b56d73346..2d8afdc08 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveClass_zh_CN.html
+@@ -1,3 +1,23 @@
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
+ <!DOCTYPE html>
+ <html lang="zh-Hans">
+ 
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html
+index f56746cf0..31202bba4 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/refactoring/ui/MoveMembers_zh_CN.html
+@@ -1,3 +1,23 @@
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
+ <!DOCTYPE html>
+ <html lang="zh-Hans">
+ 
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports_ja.html b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports_ja.html
+new file mode 100755
+index 000000000..adf0230b4
+--- /dev/null
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports_ja.html
+@@ -0,0 +1,57 @@
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++<!DOCTYPE html>
++<html lang="ja">
++
++<head>
++    <meta charset="UTF-8">
++    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
++    <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="FixImports.css">
++    <title>インポートを修正...</title>
++</head>
++
++<body>
++    <div class="section">
++        <label>欠落しているインポート:</label>
++        <div class="flex">
++            <label class="flex-grow params-caption">名前:</label>
++            <label class="flex-grow params-caption">候補:</label>
++            <span class="filler"></span>
++        </div>
++    </div>
++    <div class="flex-vscrollable section2" data-bind="foreach: imports">
++        <div class="flex row">
++            <div class="flex-equal">
++            <label data-bind="text: simpleName" class="flex-grow"></label>
++            </div>
++           <div class="flex-equal hdivider">
++            <select data-bind="options: candidatesFQN, value: selectedCandidateFQN"></select>
++           </div>
++        </div>
++    </div>
++    <div>
++        <button id="accept" hidden class="regular-button vscode-font align-right">インポートの追加</button>
++        <button id="reject" hidden class="regular-button vscode-font">取消</button>
++    </div>
++</body>
++</html>
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports_zh_CN.html b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports_zh_CN.html
+new file mode 100755
+index 000000000..a096ab5e2
+--- /dev/null
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/ui/FixImports_zh_CN.html
+@@ -0,0 +1,57 @@
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++<!DOCTYPE html>
++<html lang="zh-Hans">
++
++<head>
++    <meta charset="UTF-8">
++    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
++    <meta http-equiv="Content-Security-Policy" content="default-src http: 'unsafe-inline' 'unsafe-eval'">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="FixImports.css">
++    <title>修复导入...</title>
++</head>
++
++<body>
++    <div class="section">
++        <label>缺少导入：</label>
++        <div class="flex">
++            <label class="flex-grow params-caption">名称：</label>
++            <label class="flex-grow params-caption">候选项：</label>
++            <span class="filler"></span>
++        </div>
++    </div>
++    <div class="flex-vscrollable section2" data-bind="foreach: imports">
++        <div class="flex row">
++            <div class="flex-equal">
++            <label data-bind="text: simpleName" class="flex-grow"></label>
++            </div>
++           <div class="flex-equal hdivider">
++            <select data-bind="options: candidatesFQN, value: selectedCandidateFQN"></select>
++           </div>
++        </div>
++    </div>
++    <div>
++        <button id="accept" hidden class="regular-button vscode-font align-right">添加导入</button>
++        <button id="reject" hidden class="regular-button vscode-font">取消</button>
++    </div>
++</body>
++</html>
