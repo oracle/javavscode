@@ -61,7 +61,7 @@
     "jdk.configuration.serverVmOptions.description": "Java言語サーバーの起動に使用されるその他のVM引数を指定します",
     "jdk.configuration.runConfig.env.description": "環境変数",
     "jdk.configuration.runConfig.cwd.description": "作業ディレクトリ",
-    "jdk.configuration.disableNbJavac.description": "拡張オプション: nb-javacライブラリを無効化すると、選択したJDKからのjavacが使用されます。選択したJDKは少なくともJDK 25である必要があります。",
+    "jdk.configuration.disableNbJavac.description": "拡張オプション: nb-javacライブラリを無効化すると、選択したJDKからのjavacが使用されます。選択したJDKは少なくともJDK 26である必要があります。",
     "jdk.configuration.disableProjectSearchLimit.description": "拡張オプション: プロジェクト情報が含まれているフォルダの検索に対する制限を無効化します。",
     "jdk.configuration.telemetry.enabled.description": "Javaプラットフォームの改善を支援するために、Oracle Java extension for Visual Studio Code (\"JVSCE\")での、匿名テクニカル・データ(一般的に\"テレメトリ・データ\"と呼ばれる)の収集およびOracleへの送信を許可します。個人情報およびソース・コードは収集されません。JVSCEのデータ収集およびプライバシ・ポリシーはhttps://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.mdを参照してください",
     "jdk.configuration.telemetry.enabled.markdownDescription": "Javaプラットフォームの改善を支援するために、Oracle Java extension for Visual Studio Code (\"*JVSCE*\")での、匿名テクニカル・データ(一般的に\"*テレメトリ・データ*\"と呼ばれる)の収集およびOracleへの送信を許可します。個人情報およびソース・コードは収集されません。JVSCEのデータ収集およびプライバシ・ポリシーは[TELEMETRY.md](https://github.com/oracle/javavscode/blob/main/vscode/TELEMETRY.md)を参照してください。",
