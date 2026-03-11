@@ -1,5 +1,5 @@
 <!--
-    Copyright (c) 2023-2025, Oracle and/or its affiliates.
+    Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -20,6 +20,22 @@
 
 -->
 # Change Log
+
+## Version 25.1.0
+### What's Changed
+#### Enhancements
+* JDK Downloader interface redesigned for improved usability [#554](https://github.com/oracle/javavscode/pull/554)
+    * [JAVAVSCODE-455] Makes it easier to download the latest Oracle JDK
+    * Added a separate command to *Select an installed JDK*
+* Grouped extension settings to make navigation easier in VS Code settings [#543](https://github.com/oracle/javavscode/pull/543)
+* Added Java Notebooks configuration to supply runtime JVM options for code cell execution [#547](https://github.com/oracle/javavscode/pull/547)
+* Upgrade to NetBeans 28 and backport of nb-javac from NetBeans 29 [#553](https://github.com/oracle/javavscode/pull/553)
+    * Allows running the extension on JDK26
+
+#### Other Changes
+* Translation of new messages to ja and zh-cn [#562](https://github.com/oracle/javavscode/pull/562)
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v25.0.1...v25.1.0
 
 ## Version 25.0.1
 ### What's Changed

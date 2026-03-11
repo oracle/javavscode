@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -45,9 +45,9 @@ export class JdkDownloaderAction {
     private downloadFilePath?: string;
     private downloadUrl?: string;
 
-    constructor(private readonly downloaderView: JdkDownloaderView) { }
+    constructor() { }
 
-    public attachListener = async (message: any) => {
+    public invokeListener = async (message: any) => {
         const { command, id, jdkVersion, jdkOS, jdkArch, installType } = message;
         if (command === JdkDownloaderView.DOWNLOAD_CMD) {
             LOGGER.log(`Request received for downloading ${id} version ${jdkVersion}`);

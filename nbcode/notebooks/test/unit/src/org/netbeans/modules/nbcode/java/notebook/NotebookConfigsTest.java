@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025-2026 Oracle and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.netbeans.modules.nbcode.java.notebook;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import java.io.File;
 import java.util.ArrayList;
@@ -37,11 +38,6 @@ import static org.junit.Assert.*;
         2.Missing keys 
 */
 
-/*
-Version 1 21/08/25
-Version 2 25/09/25  Inline with frontend sending arrays for CP,MP,Add modules
-*/
-
 /**
  *  Mock LSP Client sending sample configurations
  *  Verifies that the NotebookConfigs class 
@@ -59,6 +55,7 @@ public class NotebookConfigsTest {
     private static final String ADD_MODULES_KEY = "jdk.notebook.addmodules";
     private static final String ENABLE_PREVIEW_KEY = "jdk.notebook.enablePreview";
     private static final String MODULEPATH_KEY = "jdk.notebook.modulepath";
+    private static final String VM_OPTIONS_KEY = "jdk.notebook.vmOptions";
 
     public NotebookConfigsTest() {
     }
@@ -173,25 +170,104 @@ public class NotebookConfigsTest {
             fail("Configuration initialization failed");
         }
     }
+    
+    /**
+    * Test of getNotebookVmOptions method, of class NotebookConfigs.
+    */
+   @Test
+   public void testGetNotebookVmOptions() {
+       System.out.println("getNotebookVmOptions");
+       try {
+           initialized.get(5, TimeUnit.SECONDS);
 
+           List<String> expResult = configsObj.get(VM_OPTIONS_KEY)
+                   .getAsJsonArray()
+                   .asList()
+                   .stream()
+                   .map(elem -> elem.getAsString())
+                   .toList();
+
+           List<String> result = instance.getNotebookVmOptions();
+
+           assertEquals(expResult, result);
+       } catch (Exception ex) {
+           fail("Configuration initialization failed");
+       }
+   }
+   
+    /**
+     * Test of getNotebookVmOptions method when the configuration key is
+     * missing. Verifies that the system handles a null/missing key gracefully
+     * (likely returning an empty list).
+     */
+    @Test
+    public void testGetNotebookVmOptionsWhenMissing() {
+        try {
+            updateConfigValue(VM_OPTIONS_KEY, null);
+            List<String> result = instance.getNotebookVmOptions();
+            assertNotNull("Result should not be null even if key is missing", result);
+            assertTrue("Result should be empty when key is missing", result.isEmpty());
+
+        } catch (Exception ex) {
+            fail("Failed to handle missing VM_OPTIONS_KEY: " + ex.getMessage());
+        }
+    }
+    
+    /**
+     * Test of getNotebookVmOptions with quoted spaces.
+     * Verifies that options containing spaces (like directory paths) are preserved.
+     */
+    @Test
+    public void testGetNotebookVmOptionsWithQuotedSpaces() {
+        try {
+            String quotedOption = "\"-Djava.io.tmpdir=C:\\Temp Folder\\java\"";
+
+            JsonArray vmOptions = new JsonArray();
+            vmOptions.add(new JsonPrimitive(quotedOption));
+            updateConfigValue(VM_OPTIONS_KEY, vmOptions);
+            List<String> result = instance.getNotebookVmOptions();
+            
+            assertTrue("Result should contain the quoted option", result.contains(quotedOption));
+            assertEquals("Should have exactly 1 option", 1, result.size());
+            
+        } catch (Exception ex) {
+            fail("Configuration with quoted spaces failed");
+        }
+    }
+    
     private void setConfigObject() {
         JsonArray imports = new JsonArray();
         imports.add(new JsonPrimitive("java.math.*"));
         imports.add(new JsonPrimitive("javafx.scene.control.*"));
         configsObj.add(IMPLICIT_IMPORTS_KEY, imports);
+        
         JsonArray classpath = new JsonArray();
         classpath.add(new JsonPrimitive(
                 "path/to/javafx-sdk-24.0.1/lib/javafx.base.jar"));
         configsObj.add(CLASSPATH_KEY, classpath);
+        
         JsonArray modulepath = new JsonArray();
         modulepath.add(new JsonPrimitive("/path/to/javafx-sdk/lib"));
         configsObj.add(MODULEPATH_KEY, modulepath);
         configsObj.add(ENABLE_PREVIEW_KEY, new JsonPrimitive(false));
+        
         JsonArray addModules = new JsonArray();
         addModules.add(new JsonPrimitive("javafx.controls"));
         addModules.add(new JsonPrimitive("javafx.graphics"));
         configsObj.add(ADD_MODULES_KEY, addModules);
+        
+        JsonArray vmOptions = new JsonArray();
+        vmOptions.add(new JsonPrimitive("--add-opens=java.base/java.lang=ALL-UNNAMED"));
+        vmOptions.add(new JsonPrimitive("--add-opens=java.base/java.util=ALL-UNNAMED"));
+        vmOptions.add(new JsonPrimitive("-Xmx2G"));
+        configsObj.add(VM_OPTIONS_KEY, vmOptions);
 
+    }
+    
+    private void updateConfigValue(String key, JsonElement value){
+        configsObj.add(key, value);
+        instance.initConfigs(); 
+        instance.getInitialized();
     }
 
     private class MockNbClientConfigs extends MockNbClient {
