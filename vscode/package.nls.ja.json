@@ -51,6 +51,8 @@
     "jdk.configuration.testEditor.description": "エディタで実行/デバッグ・テストを有効にします",
     "jdk.configuration.javadoc.timeout.description": "コード補完でのJavadocのロードのタイムアウト(ミリ秒)(無制限は-1)",
     "jdk.configuration.formatterSettings.description": "エクスポート済のフォーマッタ設定を含むファイルへのパス",
+    "jdk.configuration.formatterSettings.deprecationMessage": "This settings is about to deprecated  use the jdk.format.settings instead",
+    "jdk.configuration.formatOptions.description" : "Holder for the formatting options. For the list of valid keys and corresponding values see https://github.com/oracle/javavscode/wiki/Java-formatting-preferences",
     "jdk.configuration.hints.preferences.description": "エクスポート済のヒント・プリファレンスを含むファイルへのパス",
     "jdk.configuration.organiseImports.description": "ドキュメントの保存でインポートの編成アクションを有効化します",
     "jdk.configuration.organiseImports.sortingOrder.description": "import文のグループ(パッケージ接頭辞により指定)およびソート順。グループ内のImport文はアルファベット順です",
