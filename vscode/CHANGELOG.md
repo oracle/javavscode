@@ -34,6 +34,7 @@
 
 #### Other Changes
 * Translation of new messages to ja and zh-cn [#562](https://github.com/oracle/javavscode/pull/562)
+* Updated openjdk download URL to 26 [#570](https://github.com/oracle/javavscode/pull/570)
 
 **Full Changelog**: https://github.com/oracle/javavscode/compare/v25.0.1...v25.1.0
 
