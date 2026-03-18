@@ -1,0 +1,1382 @@
+diff --git a/java/api.debugger.jpda/src/org/netbeans/api/debugger/jpda/LineBreakpoint.java b/java/api.debugger.jpda/src/org/netbeans/api/debugger/jpda/LineBreakpoint.java
+index 78726be196..d073ac9612 100644
+--- a/java/api.debugger.jpda/src/org/netbeans/api/debugger/jpda/LineBreakpoint.java
++++ b/java/api.debugger.jpda/src/org/netbeans/api/debugger/jpda/LineBreakpoint.java
+@@ -67,6 +67,8 @@ public class LineBreakpoint extends JPDABreakpoint {
+     /** Property name constant */
+     public static final String          PROP_LINE_NUMBER = "lineNumber"; // NOI18N
+     /** Property name constant */
++    public static final String          PROP_LAMBDA_INDEX = "lambdaIndex"; // NOI18N
++    /** Property name constant */
+     public static final String          PROP_URL = "url"; // NOI18N
+     /** Property name constant. */
+     public static final String          PROP_CONDITION = "condition"; // NOI18N
+@@ -94,6 +96,7 @@ public class LineBreakpoint extends JPDABreakpoint {
+     private String                      className = null;
+     private Map<JPDADebugger,ObjectVariable[]> instanceFilters;
+     private Map<JPDADebugger,JPDAThread[]> threadFilters;
++    private int                         lambdaIndex = -1; //line breakpoint by default
+ 
+     
+     private LineBreakpoint (String url) {
+@@ -182,6 +185,26 @@ public class LineBreakpoint extends JPDABreakpoint {
+             Integer.valueOf(ln)
+         );
+     }
++
++    public int getLambdaIndex() {
++        return lambdaIndex;
++    }
++
++    public void setLambdaIndex(int li) {
++        int old;
++        synchronized (this) {
++            if (li == lambdaIndex) {
++                return;
++            }
++            old = lambdaIndex;
++            lambdaIndex = li;
++        }
++        firePropertyChange (
++            PROP_LAMBDA_INDEX,
++            Integer.valueOf(old),
++            Integer.valueOf(li)
++        );
++    }
+     
+     /**
+      * Get the instance filter for a specific debugger session.
+@@ -423,7 +446,7 @@ public class LineBreakpoint extends JPDABreakpoint {
+         if (fileName == null) {
+             fileName = url;
+         }
+-        return "LineBreakpoint " + fileName + " : " + lineNumber;
++        return "LineBreakpoint " + fileName + " : " + lineNumber + (lambdaIndex >= 0 ? " lambda index: " + lambdaIndex : "");
+     }
+     
+     private static class LineBreakpointImpl extends LineBreakpoint 
+diff --git a/java/debugger.jpda.projectsui/nbproject/project.xml b/java/debugger.jpda.projectsui/nbproject/project.xml
+index 561252c267..6790eca564 100644
+--- a/java/debugger.jpda.projectsui/nbproject/project.xml
++++ b/java/debugger.jpda.projectsui/nbproject/project.xml
+@@ -146,6 +146,14 @@
+                         <specification-version>1.62</specification-version>
+                     </run-dependency>
+                 </dependency>
++                <dependency>
++                    <code-name-base>org.netbeans.modules.java.source</code-name-base>
++                    <build-prerequisite/>
++                    <compile-dependency/>
++                    <run-dependency>
++                        <specification-version>0.191</specification-version>
++                    </run-dependency>
++                </dependency>
+                 <dependency>
+                     <code-name-base>org.netbeans.modules.java.source.base</code-name-base>
+                     <build-prerequisite/>
+diff --git a/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/BreakpointAnnotationProvider.java b/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/BreakpointAnnotationProvider.java
+index 2ca1022f35..6f6eb0f76e 100644
+--- a/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/BreakpointAnnotationProvider.java
++++ b/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/BreakpointAnnotationProvider.java
+@@ -139,6 +139,7 @@ public class BreakpointAnnotationProvider implements AnnotationProvider {
+             }
+             annotatedFiles.add(fo);
+         }
++        LambdaBreakpointManager.FactoryImpl.doRefresh(fo); //ensure spans of lambda breakpoints are updated
+     }
+ 
+     void setBreakpointsActive(boolean active) {
+@@ -189,6 +190,7 @@ public class BreakpointAnnotationProvider implements AnnotationProvider {
+                 breakpointToAnnotations.put(b, Collections.newSetFromMap(new WeakHashMap<>()));
+                 for (FileObject fo : annotatedFiles) {
+                     addAnnotationTo(b, fo);
++                    LambdaBreakpointManager.FactoryImpl.doRefresh(fo);
+                 }
+             }
+         }
+@@ -207,12 +209,17 @@ public class BreakpointAnnotationProvider implements AnnotationProvider {
+                                             boolean active) {
+         boolean isInvalid = b.getValidity() == VALIDITY.INVALID;
+         String annotationType;
+-        if (b instanceof LineBreakpoint) {
+-            annotationType = b.isEnabled () ?
+-            (isConditional ? EditorContext.CONDITIONAL_BREAKPOINT_ANNOTATION_TYPE :
+-                             EditorContext.BREAKPOINT_ANNOTATION_TYPE) :
+-            (isConditional ? EditorContext.DISABLED_CONDITIONAL_BREAKPOINT_ANNOTATION_TYPE :
+-                             EditorContext.DISABLED_BREAKPOINT_ANNOTATION_TYPE);
++        if (b instanceof LineBreakpoint lb) {
++            if (lb.getLambdaIndex() >= 0) {
++                annotationType = b.isEnabled() ? DebuggerBreakpointAnnotation.LAMBDA_BREAKPOINT
++                                               : DebuggerBreakpointAnnotation.DISABLED_LAMBDA_BREAKPOINT;
++            } else {
++                annotationType = b.isEnabled () ?
++                (isConditional ? EditorContext.CONDITIONAL_BREAKPOINT_ANNOTATION_TYPE :
++                                 EditorContext.BREAKPOINT_ANNOTATION_TYPE) :
++                (isConditional ? EditorContext.DISABLED_CONDITIONAL_BREAKPOINT_ANNOTATION_TYPE :
++                                 EditorContext.DISABLED_BREAKPOINT_ANNOTATION_TYPE);
++            }
+         } else if (b instanceof FieldBreakpoint) {
+             annotationType = b.isEnabled () ?
+                 EditorContext.FIELD_BREAKPOINT_ANNOTATION_TYPE :
+@@ -475,6 +482,9 @@ public class BreakpointAnnotationProvider implements AnnotationProvider {
+         }
+     }
+     
++    Set<Annotation> getAnnotationsForBreakpoint(JPDABreakpoint b) {
++        return breakpointToAnnotations.getOrDefault(b, Set.of());
++    }
+     /*
+     // Not used
+     @Override
+diff --git a/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/Bundle.properties b/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/Bundle.properties
+index 102e8b85d3..f9220ce54e 100644
+--- a/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/Bundle.properties
++++ b/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/Bundle.properties
+@@ -41,6 +41,8 @@ TOOLTIP_DISABLED_METHOD_BREAKPOINT=Disabled Method Breakpoint
+ TOOLTIP_CLASS_BREAKPOINT=Class Breakpoint
+ TOOLTIP_DISABLED_CLASS_BREAKPOINT=Disabled Class Breakpoint
+ TOOLTIP_BREAKPOINT_STROKE=Deactivated breakpoint
++TOOLTIP_LAMBDA_BREAKPOINT=Lambda Breakpoint
++TOOLTIP_DISABLED_LAMBDA_BREAKPOINT=Lambda Breakpoint
+ # A condition expression follows this message on a next line
+ TOOLTIP_CONDITION=Hits when:
+ # {0} - a number
+diff --git a/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/DebuggerBreakpointAnnotation.java b/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/DebuggerBreakpointAnnotation.java
+index 5e0abec449..6159bb69ba 100644
+--- a/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/DebuggerBreakpointAnnotation.java
++++ b/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/DebuggerBreakpointAnnotation.java
+@@ -23,7 +23,6 @@ import java.util.LinkedList;
+ import java.util.List;
+ import org.netbeans.api.debugger.Breakpoint;
+ import org.netbeans.api.debugger.Breakpoint.HIT_COUNT_FILTERING_STYLE;
+-import org.netbeans.api.debugger.jpda.JPDABreakpoint;
+ import org.netbeans.spi.debugger.jpda.EditorContext;
+ import org.netbeans.spi.debugger.ui.BreakpointAnnotation;
+ 
+@@ -39,6 +38,9 @@ import org.openide.util.NbBundle;
+  */
+ public class DebuggerBreakpointAnnotation extends BreakpointAnnotation {
+ 
++    public static final String LAMBDA_BREAKPOINT = "LambdaBreakpoint";
++    public static final String DISABLED_LAMBDA_BREAKPOINT = "DisabledLambdaBreakpoint";
++
+     private final Line           line;
+     private final String         type;
+     private final Breakpoint breakpoint;
+@@ -163,6 +165,14 @@ public class DebuggerBreakpointAnnotation extends BreakpointAnnotation {
+         if (type == EditorContext.DISABLED_CLASS_BREAKPOINT_ANNOTATION_TYPE) {
+             return NbBundle.getMessage
+                 (DebuggerBreakpointAnnotation.class, "TOOLTIP_DISABLED_CLASS_BREAKPOINT"); // NOI18N
++        } else
++        if (type == LAMBDA_BREAKPOINT) {
++            return NbBundle.getMessage
++                (DebuggerBreakpointAnnotation.class, "TOOLTIP_LAMBDA_BREAKPOINT"); // NOI18N
++        } else
++        if (type == DISABLED_LAMBDA_BREAKPOINT) {
++            return NbBundle.getMessage
++                (DebuggerBreakpointAnnotation.class, "TOOLTIP_DISABLED_LAMBDA_BREAKPOINT"); // NOI18N
+         }
+         ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, new IllegalStateException("Unknown breakpoint type '"+type+"'."));
+         return null;
+diff --git a/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/LambdaBreakpointManager.java b/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/LambdaBreakpointManager.java
+new file mode 100644
+index 0000000000..d394253b8c
+--- /dev/null
++++ b/java/debugger.jpda.projectsui/src/org/netbeans/modules/debugger/jpda/projectsui/LambdaBreakpointManager.java
+@@ -0,0 +1,279 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++
++package org.netbeans.modules.debugger.jpda.projectsui;
++
++import com.sun.source.tree.LambdaExpressionTree;
++import com.sun.source.tree.LineMap;
++import com.sun.source.tree.Tree;
++import java.beans.PropertyChangeEvent;
++import java.net.MalformedURLException;
++import java.net.URL;
++import java.util.HashMap;
++import java.util.Map;
++import java.util.Set;
++import java.util.concurrent.atomic.AtomicBoolean;
++import org.netbeans.api.debugger.Breakpoint;
++import org.netbeans.api.debugger.DebuggerEngine;
++import org.netbeans.api.debugger.DebuggerManager;
++import org.netbeans.api.debugger.DebuggerManagerAdapter;
++import org.netbeans.api.debugger.LazyDebuggerManagerListener;
++import org.netbeans.api.debugger.jpda.JPDABreakpoint;
++import org.netbeans.api.debugger.jpda.JPDADebugger;
++import org.netbeans.api.debugger.jpda.LineBreakpoint;
++import org.netbeans.api.java.source.CancellableTask;
++import org.netbeans.api.java.source.CompilationInfo;
++import org.netbeans.api.java.source.JavaSource.Phase;
++import org.netbeans.api.java.source.JavaSource.Priority;
++import org.netbeans.api.java.source.JavaSourceTaskFactory;
++import org.netbeans.api.java.source.support.CancellableTreePathScanner;
++import org.netbeans.api.java.source.support.EditorAwareJavaSourceTaskFactory;
++import org.netbeans.spi.debugger.DebuggerServiceRegistration;
++import org.openide.cookies.LineCookie;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.URLMapper;
++import org.openide.text.Annotation;
++import org.openide.text.Line;
++import org.openide.text.Line.Part;
++import org.openide.util.Exceptions;
++import org.openide.util.Lookup;
++import org.openide.util.lookup.ServiceProvider;
++
++@DebuggerServiceRegistration(types=LazyDebuggerManagerListener.class)
++public class LambdaBreakpointManager extends DebuggerManagerAdapter {
++
++    private static volatile JPDADebugger currentDebugger = null; //XXX: static???
++
++    @Override
++    public String[] getProperties() {
++        return new String[] { DebuggerManager.PROP_BREAKPOINTS, DebuggerManager.PROP_DEBUGGER_ENGINES };
++    }
++
++    @Override
++    public void breakpointAdded(Breakpoint breakpoint) {
++        refreshAfterChange(breakpoint);
++    }
++
++    @Override
++    public void breakpointRemoved(Breakpoint breakpoint) {
++        refreshAfterChange(breakpoint);
++    }
++
++    private void refreshAfterChange(Breakpoint breakpoint) {
++        if (breakpoint instanceof LineBreakpoint lb) {
++            try {
++                URL currentURL = new URL(lb.getURL());
++                FileObject fo = URLMapper.findFileObject(currentURL);
++
++                if (fo != null) {
++                    FactoryImpl.doRefresh(fo);
++                }
++            } catch (MalformedURLException ex) {
++                Exceptions.printStackTrace(ex);
++            }
++        }
++    }
++
++    @Override
++    public void propertyChange(PropertyChangeEvent evt) {
++        String propertyName = evt.getPropertyName ();
++        if (propertyName == null) {
++            return;
++        }
++        if (DebuggerManager.PROP_CURRENT_ENGINE.equals(propertyName)) {
++            setCurrentDebugger(DebuggerManager.getDebuggerManager().getCurrentEngine());
++        }
++        if ( (!LineBreakpoint.PROP_URL.equals (propertyName)) &&
++             (!LineBreakpoint.PROP_LINE_NUMBER.equals (propertyName))
++        ) {
++            return;
++        }
++        JPDABreakpoint b = (JPDABreakpoint) evt.getSource ();
++        DebuggerManager manager = DebuggerManager.getDebuggerManager();
++        Breakpoint[] bkpts = manager.getBreakpoints();
++        boolean found = false;
++        for (int x = 0; x < bkpts.length; x++) {
++            if (b == bkpts[x]) {
++                found = true;
++                break;
++            }
++        }
++        if (!found) {
++            // breakpoint has been removed
++            return;
++        }
++    }
++
++    private void setCurrentDebugger(DebuggerEngine engine) {
++        JPDADebugger oldDebugger = currentDebugger;
++        if (oldDebugger != null) {
++            oldDebugger.removePropertyChangeListener(JPDADebugger.PROP_BREAKPOINTS_ACTIVE, this);
++        }
++        boolean active = true;
++        JPDADebugger debugger = null;
++        if (engine != null) {
++            debugger = engine.lookupFirst(null, JPDADebugger.class);
++            if (debugger != null) {
++                debugger.addPropertyChangeListener(JPDADebugger.PROP_BREAKPOINTS_ACTIVE, this);
++                active = debugger.getBreakpointsActive();
++            }
++        }
++        currentDebugger = debugger;
++    }
++
++    //TODO: requires dependency on java.source - maybe try to rewrite to Schedulers!
++    @ServiceProvider(service=JavaSourceTaskFactory.class)
++    public static final class FactoryImpl extends EditorAwareJavaSourceTaskFactory {
++
++        private BreakpointAnnotationProvider bap;
++
++        public FactoryImpl() {
++            super(Phase.PARSED, Priority.BELOW_NORMAL);
++        }
++
++        private BreakpointAnnotationProvider getAnnotationProvider() {
++            if (bap == null) {
++                bap = BreakpointAnnotationProvider.getInstance();
++            }
++            return bap;
++        }
++
++        @Override
++        protected CancellableTask<CompilationInfo> createTask(FileObject file) {
++            return new CancellableTask<CompilationInfo>() {
++                private final AtomicBoolean canceled = new AtomicBoolean();
++
++                @Override
++                public void cancel() {
++                    canceled.set(true);
++                }
++
++                @Override
++                public void run(CompilationInfo info) throws Exception {
++                    canceled.set(false);
++
++                    String currentFile = info.getFileObject().toURL().toString();
++                    Map<Integer, Map<Integer, LineBreakpoint>> lines2LambdaIndexes = new HashMap<>();
++
++                    for (Breakpoint b : DebuggerManager.getDebuggerManager().getBreakpoints()) {
++                        if (b instanceof LineBreakpoint lb && currentFile.equals(lb.getURL())) {
++                            lines2LambdaIndexes.computeIfAbsent(lb.getLineNumber(), x -> new HashMap<>())
++                                               .put(lb.getLambdaIndex(), lb);
++                        }
++                    }
++
++                    LineMap lineMap = info.getCompilationUnit().getLineMap();
++
++                    new CancellableTreePathScanner<Void, Void>(canceled) {
++                        int currentLine = -1;
++                        int currentLambdaIndex = -1;
++                        public Void scan(Tree tree, Void v) {
++                            if (tree != null && tree.getKind() != Tree.Kind.COMPILATION_UNIT) {
++                                long startPos = info.getTrees().getSourcePositions().getStartPosition(getCurrentPath().getCompilationUnit(), tree);
++                                if (startPos != (-1)) {
++                                    int line = (int) lineMap.getLineNumber(startPos);
++
++                                    if (line != currentLine) {
++                                        currentLine = line;
++                                        currentLambdaIndex = 0;
++                                    }
++                                }
++                            }
++                            return super.scan(tree, v);
++                        }
++                        public Void visitLambdaExpression(LambdaExpressionTree tree, Void v) {
++                            long startPos = info.getTrees().getSourcePositions().getStartPosition(getCurrentPath().getCompilationUnit(), tree);
++                            int startLine = (int) lineMap.getLineNumber(startPos);
++                            Map<Integer, LineBreakpoint> existingLineBreakpoints = lines2LambdaIndexes.get(startLine);
++                            LineBreakpoint existingLineBreakpoint = existingLineBreakpoints != null ? existingLineBreakpoints.remove(currentLambdaIndex) : null;
++
++                            if (existingLineBreakpoints != null && existingLineBreakpoints.containsKey(-1)) {
++                                //the line breakpoint exists, ensure the lambda breakpoint exists and is updated
++                                if (existingLineBreakpoint == null) {
++                                    LineBreakpoint lb = LineBreakpoint.create(currentFile, startLine);
++                                    lb.setLambdaIndex(currentLambdaIndex);
++                                    lb.disable();
++                                    DebuggerManager.getDebuggerManager().addBreakpoint(lb);
++                                } else {
++                                    long endPos = info.getTrees().getSourcePositions().getEndPosition(getCurrentPath().getCompilationUnit(), tree);
++                                    int endLine = (int) lineMap.getLineNumber(endPos);
++                                    int startColumn = (int) lineMap.getColumnNumber(startPos) - 1;
++                                    int endColumn;
++                                    if (startLine == endLine) {
++                                        endColumn = (int) lineMap.getColumnNumber(endPos) - 1;
++                                    } else {
++                                        endColumn = (int) lineMap.getStartPosition(startLine + 1) - 1;
++                                    }
++
++                                    int length = endColumn - startColumn;
++
++                                    Set<Annotation> annotations = getAnnotationProvider().getAnnotationsForBreakpoint(existingLineBreakpoint);
++
++                                    for (Annotation ann : annotations) {
++                                        if (!(ann.getAttachedAnnotatable() instanceof Part p) || p.getLine().getLineNumber() != startLine || p.getColumn() != startColumn || p.getLength() != length) {
++                                            LineCookie lc = info.getFileObject().getLookup().lookup(LineCookie.class);
++
++                                            if (lc == null) {
++                                                continue;
++                                            }
++
++                                            Line line = lc.getLineSet().getCurrent(startLine - 1);
++                                            Part part = line.createPart(startColumn, length);
++
++                                            if (canceled.get()) {
++                                                //don't set the part if cancelled - the positions may be wrong
++                                                return null;
++                                            }
++
++                                            ann.detach();
++                                            ann.attach(part);
++                                        }
++                                    }
++                                }
++                            }
++
++                            currentLambdaIndex++;
++
++                            return super.visitLambdaExpression(tree, v);
++                        }
++                    }.scan(info.getCompilationUnit(), null);
++
++                    //remove any stale lambda breakpoints:
++                    for (Breakpoint b : DebuggerManager.getDebuggerManager().getBreakpoints()) {
++                        if (b instanceof LineBreakpoint lb && currentFile.equals(lb.getURL()) && lb.getLambdaIndex() >=0) {
++                            Map<Integer, LineBreakpoint> staleLambdaBreakpoints = lines2LambdaIndexes.getOrDefault(lb.getLineNumber(), Map.of());
++                            if (staleLambdaBreakpoints.containsKey(lb.getLambdaIndex()) || !staleLambdaBreakpoints.containsKey(-1)) {
++                                DebuggerManager.getDebuggerManager().removeBreakpoint(lb);
++                            }
++                        }
++                    }
++                }
++            };
++        }
++
++        public static void doRefresh(FileObject file) {
++            for (JavaSourceTaskFactory f : Lookup.getDefault().lookupAll(JavaSourceTaskFactory.class)) {
++                if (f instanceof FactoryImpl impl) {
++                    impl.reschedule(file);
++                }
++            }
++        }
++    }
++
++}
+diff --git a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/DisabledLambdaBreakpoint.xml b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/DisabledLambdaBreakpoint.xml
+new file mode 100644
+index 0000000000..e841d70ba9
+--- /dev/null
++++ b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/DisabledLambdaBreakpoint.xml
+@@ -0,0 +1,33 @@
++<?xml version="1.0"?>
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++
++<!DOCTYPE type PUBLIC "-//NetBeans//DTD annotation type 1.1//EN" "http://www.netbeans.org/dtds/annotation-type-1_1.dtd">
++<type
++    name='DisabledLambdaBreakpoint'
++    description_key='HINT_DISABLED_BREAKPOINT'
++    localizing_bundle='org.netbeans.modules.debugger.resources.Bundle'
++    visible='true'
++    glyph='nbresloc:/org/netbeans/modules/debugger/resources/editor/DisabledBreakpoint.png'
++    highlight='0xDCDCD8'
++    type='linepart'
++    actions='BreakpointActions'
++/>
+diff --git a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/LambdaBreakpoint.xml b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/LambdaBreakpoint.xml
+new file mode 100644
+index 0000000000..6a83877f77
+--- /dev/null
++++ b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/LambdaBreakpoint.xml
+@@ -0,0 +1,36 @@
++<?xml version="1.0"?>
++<!--
++
++    Licensed to the Apache Software Foundation (ASF) under one
++    or more contributor license agreements.  See the NOTICE file
++    distributed with this work for additional information
++    regarding copyright ownership.  The ASF licenses this file
++    to you under the Apache License, Version 2.0 (the
++    "License"); you may not use this file except in compliance
++    with the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing,
++    software distributed under the License is distributed on an
++    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++    KIND, either express or implied.  See the License for the
++    specific language governing permissions and limitations
++    under the License.
++
++-->
++
++<!DOCTYPE type PUBLIC "-//NetBeans//DTD annotation type 1.1//EN" "http://www.netbeans.org/dtds/annotation-type-1_1.dtd">
++<type
++    name='LambdaBreakpoint'
++    description_key='HINT_BREAKPOINT'
++    localizing_bundle='org.netbeans.modules.debugger.resources.Bundle'
++    visible='true'
++    glyph='nbresloc:/org/netbeans/modules/debugger/resources/editor/Breakpoint.png'
++    highlight='0xFC9D9F'
++    type='linepart'
++    actions='BreakpointActionsWithToggleNew'
++    severity='ok'
++    priority='100'
++    custom_sidebar_color='0xFF8FD5'
++/>
+diff --git a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/mf-layer.xml b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/mf-layer.xml
+index df823ccc24..4f05e7f200 100644
+--- a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/mf-layer.xml
++++ b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/resources/mf-layer.xml
+@@ -91,9 +91,11 @@
+         </folder>
+         <folder name="AnnotationTypes">  <!-- Editor gutter popup menu -->
+             <file name="DisabledFieldBreakpoint.xml" url="DisabledFieldBreakpoint.xml"/>
++            <file name="DisabledLambdaBreakpoint.xml" url="DisabledLambdaBreakpoint.xml"/>
+             <file name="DisabledMethodBreakpoint.xml" url="DisabledMethodBreakpoint.xml"/>
+             <file name="DisabledClassBreakpoint.xml" url="DisabledClassBreakpoint.xml"/>
+             <file name="FieldBreakpoint.xml" url="FieldBreakpoint.xml"/>
++            <file name="LambdaBreakpoint.xml" url="LambdaBreakpoint.xml"/>
+             <file name="MethodBreakpoint.xml" url="MethodBreakpoint.xml"/>
+             <file name="ClassBreakpoint.xml" url="ClassBreakpoint.xml"/>
+             <file name="DisabledFieldBreakpoint_stroke.xml" url="DisabledFieldBreakpoint_stroke.xml"/>
+diff --git a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/Bundle.properties b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/Bundle.properties
+index fe41db22e2..d21a239259 100644
+--- a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/Bundle.properties
++++ b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/Bundle.properties
+@@ -229,6 +229,11 @@
+     ACSD_TF_Line_Breakpoint_Line_Number=Line number
+     TTT_TF_Line_Breakpoint_Line_Number=Line number to stop at
+ 
++    L_Line_Breakpoint_Lambda_Index=Lambda &Index\:
++    ACSD_L_Line_Breakpoint_Lambda_Index=Lambda Index
++    ACSD_TF_Line_Breakpoint_Lambda_Index=Lambda Index
++    TTT_TF_Line_Breakpoint_Lambda_Index=Lambda Index to stop at
++
+     L_Line_Breakpoint_Condition=Co&ndition:
+     ACSD_L_Line_Breakpoint_Condition=Condition
+     ACSD_TF_Line_Breakpoint_Condition=Condition
+diff --git a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/LineBreakpointPanel.form b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/LineBreakpointPanel.form
+index 5ea1b1c1ff..9eb4f7f3a2 100644
+--- a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/LineBreakpointPanel.form
++++ b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/LineBreakpointPanel.form
+@@ -1,4 +1,4 @@
+-<?xml version="1.1" encoding="UTF-8" ?>
++<?xml version="1.0" encoding="UTF-8" ?>
+ 
+ <!--
+ 
+@@ -135,6 +135,44 @@
+             </Constraint>
+           </Constraints>
+         </Component>
++        <Component class="javax.swing.JLabel" name="jLabel4">
++          <Properties>
++            <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
++              <ComponentRef name="tfLambdaIndex"/>
++            </Property>
++            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
++              <ResourceString bundle="org/netbeans/modules/debugger/jpda/ui/breakpoints/Bundle.properties" key="L_Line_Breakpoint_Lambda_Index" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
++            </Property>
++          </Properties>
++          <AccessibilityProperties>
++            <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
++              <ResourceString bundle="org/netbeans/modules/debugger/jpda/ui/breakpoints/Bundle.properties" key="ACSD_L_Line_Breakpoint_Lambda_Index" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
++            </Property>
++          </AccessibilityProperties>
++          <Constraints>
++            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
++              <GridBagConstraints gridX="0" gridY="4" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="3" insetsLeft="3" insetsBottom="3" insetsRight="3" anchor="17" weightX="0.0" weightY="0.0"/>
++            </Constraint>
++          </Constraints>
++        </Component>
++        <Component class="javax.swing.JTextField" name="tfLambdaIndex">
++          <Properties>
++            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
++              <ResourceString bundle="org/netbeans/modules/debugger/jpda/ui/breakpoints/Bundle.properties" key="TTT_TF_Line_Breakpoint_Lambda_Index" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
++            </Property>
++          </Properties>
++          <AccessibilityProperties>
++            <Property name="AccessibleContext.accessibleName" type="java.lang.String" value="Lambda index"/>
++            <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
++              <ResourceString bundle="org/netbeans/modules/debugger/jpda/ui/breakpoints/Bundle.properties" key="ACSD_TF_Line_Breakpoint_Lambda_Index" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
++            </Property>
++          </AccessibilityProperties>
++          <Constraints>
++            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
++              <GridBagConstraints gridX="1" gridY="4" gridWidth="2" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="3" insetsLeft="3" insetsBottom="3" insetsRight="3" anchor="10" weightX="1.0" weightY="0.0"/>
++            </Constraint>
++          </Constraints>
++        </Component>
+       </SubComponents>
+     </Container>
+     <Container class="javax.swing.JPanel" name="cPanel">
+diff --git a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/LineBreakpointPanel.java b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/LineBreakpointPanel.java
+index 0ff027e99e..b36d6c855b 100644
+--- a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/LineBreakpointPanel.java
++++ b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/breakpoints/LineBreakpointPanel.java
+@@ -130,6 +130,7 @@ public class LineBreakpointPanel extends JPanel implements ControllerProvider, o
+             tfFileName.getPreferredSize().height));
+ 
+         tfLineNumber.setText(Integer.toString(b.getLineNumber()));
++        tfLambdaIndex.setText(Integer.toString(b.getLambdaIndex()));
+         conditionsPanel = new ConditionsPanel(HELP_ID);
+         setupConditionPane();
+         conditionsPanel.showClassFilter(false);
+@@ -143,6 +144,7 @@ public class LineBreakpointPanel extends JPanel implements ControllerProvider, o
+ 
+         tfFileName.getDocument().addDocumentListener(validityDocumentListener);
+         tfLineNumber.getDocument().addDocumentListener(validityDocumentListener);
++        tfLambdaIndex.getDocument().addDocumentListener(validityDocumentListener);
+         SwingUtilities.invokeLater(new Runnable() {
+             public void run() {
+                 controller.checkValid();
+@@ -192,6 +194,8 @@ public class LineBreakpointPanel extends JPanel implements ControllerProvider, o
+         tfFileName = new javax.swing.JTextField();
+         jLabel1 = new javax.swing.JLabel();
+         tfLineNumber = new javax.swing.JTextField();
++        jLabel4 = new javax.swing.JLabel();
++        tfLambdaIndex = new javax.swing.JTextField();
+         cPanel = new javax.swing.JPanel();
+         pActions = new javax.swing.JPanel();
+         jPanel1 = new javax.swing.JPanel();
+@@ -248,6 +252,29 @@ public class LineBreakpointPanel extends JPanel implements ControllerProvider, o
+         tfLineNumber.getAccessibleContext().setAccessibleName("Line number");
+         tfLineNumber.getAccessibleContext().setAccessibleDescription(bundle.getString("ACSD_TF_Line_Breakpoint_Line_Number")); // NOI18N
+ 
++        jLabel4.setLabelFor(tfLambdaIndex);
++        org.openide.awt.Mnemonics.setLocalizedText(jLabel4, bundle.getString("L_Line_Breakpoint_Lambda_Index")); // NOI18N
++        gridBagConstraints = new java.awt.GridBagConstraints();
++        gridBagConstraints.gridx = 0;
++        gridBagConstraints.gridy = 4;
++        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
++        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
++        gridBagConstraints.insets = new java.awt.Insets(3, 3, 3, 3);
++        pSettings.add(jLabel4, gridBagConstraints);
++        jLabel4.getAccessibleContext().setAccessibleDescription(bundle.getString("ACSD_L_Line_Breakpoint_Lambda_Index")); // NOI18N
++
++        tfLambdaIndex.setToolTipText(bundle.getString("TTT_TF_Line_Breakpoint_Lambda_Index")); // NOI18N
++        gridBagConstraints = new java.awt.GridBagConstraints();
++        gridBagConstraints.gridx = 1;
++        gridBagConstraints.gridy = 4;
++        gridBagConstraints.gridwidth = 2;
++        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
++        gridBagConstraints.weightx = 1.0;
++        gridBagConstraints.insets = new java.awt.Insets(3, 3, 3, 3);
++        pSettings.add(tfLambdaIndex, gridBagConstraints);
++        tfLambdaIndex.getAccessibleContext().setAccessibleName("Lambda index");
++        tfLambdaIndex.getAccessibleContext().setAccessibleDescription(bundle.getString("ACSD_TF_Line_Breakpoint_Lambda_Index")); // NOI18N
++
+         gridBagConstraints = new java.awt.GridBagConstraints();
+         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+@@ -286,10 +313,12 @@ public class LineBreakpointPanel extends JPanel implements ControllerProvider, o
+     private javax.swing.JPanel cPanel;
+     private javax.swing.JLabel jLabel1;
+     private javax.swing.JLabel jLabel3;
++    private javax.swing.JLabel jLabel4;
+     private javax.swing.JPanel jPanel1;
+     private javax.swing.JPanel pActions;
+     private javax.swing.JPanel pSettings;
+     private javax.swing.JTextField tfFileName;
++    private javax.swing.JTextField tfLambdaIndex;
+     private javax.swing.JTextField tfLineNumber;
+     // End of variables declaration//GEN-END:variables
+ 
+@@ -319,6 +348,7 @@ public class LineBreakpointPanel extends JPanel implements ControllerProvider, o
+             logger.fine("      => URL = '"+url+"'");
+             breakpoint.setURL((url != null) ? url.toString() : path);
+             breakpoint.setLineNumber(Integer.parseInt(tfLineNumber.getText().trim()));
++            breakpoint.setLambdaIndex(Integer.parseInt(tfLambdaIndex.getText().trim()));
+             breakpoint.setCondition (conditionsPanel.getCondition());
+             breakpoint.setHitCountFilter(conditionsPanel.getHitCount(),
+                     conditionsPanel.getHitCountFilteringStyle());
+diff --git a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/models/BreakpointsNodeModel.java b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/models/BreakpointsNodeModel.java
+index 36ff105eb0..0131536307 100644
+--- a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/models/BreakpointsNodeModel.java
++++ b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/models/BreakpointsNodeModel.java
+@@ -107,12 +107,21 @@ public class BreakpointsNodeModel implements NodeModel {
+             }
+             return bold (
+                 b,
+-                NbBundle.getMessage (
+-                        BreakpointsNodeModel.class,
+-                        "CTL_Line_Breakpoint",
+-                        EditorContextBridge.getFileName (b),
+-                        line
+-                    )
++                b.getLambdaIndex() >= 0 ?
++                    NbBundle.getMessage (
++                            BreakpointsNodeModel.class,
++                            "CTL_Line_Lambda_Breakpoint",
++                            EditorContextBridge.getFileName (b),
++                            line,
++                            b.getLambdaIndex()
++                        )
++                :
++                    NbBundle.getMessage (
++                            BreakpointsNodeModel.class,
++                            "CTL_Line_Breakpoint",
++                            EditorContextBridge.getFileName (b),
++                            line
++                        )
+             );
+         } else
+         if (o instanceof ThreadBreakpoint) {
+diff --git a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/models/Bundle.properties b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/models/Bundle.properties
+index c2972d30cf..b48aa4aefc 100644
+--- a/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/models/Bundle.properties
++++ b/java/debugger.jpda.ui/src/org/netbeans/modules/debugger/jpda/ui/models/Bundle.properties
+@@ -23,6 +23,7 @@ ACSD_Breakpoint_Customizer_Dialog=Customize this breakpoint's properties
+ 
+ #BreakpointsNodeModel
+ CTL_Line_Breakpoint=Line {0}:{1}
++CTL_Line_Lambda_Breakpoint=Line {0}:{1}, lambda index: {2}
+ CTL_Thread_Started_Breakpoint=Thread started
+ CTL_Thread_Death_Breakpoint=Thread death
+ CTL_Thread_Breakpoint=Thread start / death
+diff --git a/java/debugger.jpda/nbproject/project.xml b/java/debugger.jpda/nbproject/project.xml
+index 0dcb696f3e..72d9cfe650 100644
+--- a/java/debugger.jpda/nbproject/project.xml
++++ b/java/debugger.jpda/nbproject/project.xml
+@@ -216,10 +216,11 @@
+                 </test-type>
+             </test-dependencies>
+             <friend-packages>
+-                <friend>org.netbeans.modules.javafx.debugger</friend>
+                 <friend>org.netbeans.modules.debugger.jpda.truffle</friend>
+                 <friend>org.netbeans.modules.debugger.jpda.ui</friend>
+                 <friend>org.netbeans.modules.debugger.jpda.visual</friend>
++                <friend>org.netbeans.modules.java.lsp.server</friend>
++                <friend>org.netbeans.modules.javafx.debugger</friend>
+                 <friend>org.netbeans.modules.jshell.support</friend>
+                 <package>org.netbeans.modules.debugger.jpda</package>
+                 <package>org.netbeans.modules.debugger.jpda.actions</package>
+diff --git a/java/debugger.jpda/src/org/netbeans/modules/debugger/jpda/breakpoints/BreakpointsReader.java b/java/debugger.jpda/src/org/netbeans/modules/debugger/jpda/breakpoints/BreakpointsReader.java
+index d95bd805b8..659b7b0ee6 100644
+--- a/java/debugger.jpda/src/org/netbeans/modules/debugger/jpda/breakpoints/BreakpointsReader.java
++++ b/java/debugger.jpda/src/org/netbeans/modules/debugger/jpda/breakpoints/BreakpointsReader.java
+@@ -108,6 +108,7 @@ public class BreakpointsReader implements Properties.Reader, PropertyChangeListe
+             LineBreakpoint lb = LineBreakpoint.create ("", 0);
+             lb.setURL(properties.getString (LineBreakpoint.PROP_URL, null));
+             lb.setLineNumber(properties.getInt (LineBreakpoint.PROP_LINE_NUMBER, 1));
++            lb.setLambdaIndex(properties.getInt (LineBreakpoint.PROP_LAMBDA_INDEX, -1));
+             lb.setCondition (
+                 properties.getString (LineBreakpoint.PROP_CONDITION, "")
+             );
+@@ -370,6 +371,10 @@ public class BreakpointsReader implements Properties.Reader, PropertyChangeListe
+                 LineBreakpoint.PROP_LINE_NUMBER, 
+                 lb.getLineNumber ()
+             );
++            properties.setInt (
++                LineBreakpoint.PROP_LAMBDA_INDEX,
++                lb.getLambdaIndex ()
++            );
+             properties.setString (
+                 LineBreakpoint.PROP_CONDITION, 
+                 lb.getCondition ()
+diff --git a/java/debugger.jpda/src/org/netbeans/modules/debugger/jpda/breakpoints/LineBreakpointImpl.java b/java/debugger.jpda/src/org/netbeans/modules/debugger/jpda/breakpoints/LineBreakpointImpl.java
+index 0a922901f0..b3e9e22dac 100644
+--- a/java/debugger.jpda/src/org/netbeans/modules/debugger/jpda/breakpoints/LineBreakpointImpl.java
++++ b/java/debugger.jpda/src/org/netbeans/modules/debugger/jpda/breakpoints/LineBreakpointImpl.java
+@@ -97,6 +97,7 @@ import org.openide.util.Exceptions;
+ import org.openide.util.NbBundle;
+ import java.util.LinkedHashMap;
+ import java.util.Optional;
++import java.util.stream.Collectors;
+ import static java.util.stream.Collectors.collectingAndThen;
+ import static java.util.stream.Collectors.groupingBy;
+ import static java.util.stream.Collectors.minBy;
+@@ -115,6 +116,7 @@ public class LineBreakpointImpl extends ClassBasedBreakpoint {
+     
+     private int                 lineNumber;
+     private int                 breakpointLineNumber;
++    private int                 lambdaIndex;
+     private int                 lineNumberForUpdate = -1;
+     private final Object        lineLock = new Object();
+     private BreakpointsReader   reader;
+@@ -143,9 +145,11 @@ public class LineBreakpointImpl extends ClassBasedBreakpoint {
+                 lb,
+                 getDebugger());
+         int lbln = lb.getLineNumber();
++        int li = lb.getLambdaIndex();
+         synchronized (lineLock) {
+             breakpointLineNumber = lbln;
+             lineNumber = theLineNumber;
++            lambdaIndex = li;
+         }
+    }
+ 
+@@ -323,11 +327,13 @@ public class LineBreakpointImpl extends ClassBasedBreakpoint {
+         String failReason = null;
+         ReferenceType noLocRefType = null;
+         int lineNumberToSet;
++        int lambdaIndexToSet;
+         final int origBreakpointLineNumber;
+         int newBreakpointLineNumber;
+         synchronized (lineLock) {
+             lineNumberToSet = lineNumber;
+             newBreakpointLineNumber = origBreakpointLineNumber = breakpointLineNumber;
++            lambdaIndexToSet = lambdaIndex;
+         }
+         String currFailReason = null;
+ 
+@@ -348,6 +354,10 @@ public class LineBreakpointImpl extends ClassBasedBreakpoint {
+                 if (logger.isLoggable(Level.FINE)) {
+                     logger.fine("Locations in "+referenceType+" are: "+locations+", reason = '"+reason[0]);//+"', HAVE PARENT = "+haveParent);
+                 }
++                locations = filterLocationsByLambdaIndex(locations, lambdaIndexToSet);
++                if (logger.isLoggable(Level.FINE)) {
++                    logger.fine("Filtered Locations in "+referenceType+" are: "+locations+", reason = '"+reason[0]);//+"', HAVE PARENT = "+haveParent);
++                }
+                 if (locations.isEmpty()) {
+                     failReason = reason[0];
+                     if (isNoLocReason[0]) {
+@@ -697,6 +707,28 @@ public class LineBreakpointImpl extends ClassBasedBreakpoint {
+       return path;
+     }
+ 
++    private List<Location> filterLocationsByLambdaIndex(List<Location> locations, int lambdaIndex) {
++        if (lambdaIndex == Integer.MIN_VALUE) {
++            return locations;
++        } else if (lambdaIndex == (-1)) {
++            return locations.stream()
++                            .filter(l -> !l.method().name().startsWith("lambda$"))
++                            .collect(Collectors.toList());
++        } else {
++            List<Location> filtered =
++                    locations.stream()
++                             .filter(l -> l.method().name().startsWith("lambda$"))
++                             .collect(Collectors.toList());
++
++            Collections.reverse(filtered);
++            if (lambdaIndex < filtered.size()) {
++                return Collections.singletonList(filtered.get(lambdaIndex));
++            } else {
++                return filtered;
++            }
++        }
++    }
++
+     private int findBreakableLine(String url, final int lineNumber) {
+         FileObject fileObj = null;
+         try {
+diff --git a/java/java.lsp.server/nbproject/project.xml b/java/java.lsp.server/nbproject/project.xml
+index fffc512714..ba4f1bf8a4 100644
+--- a/java/java.lsp.server/nbproject/project.xml
++++ b/java/java.lsp.server/nbproject/project.xml
+@@ -33,6 +33,12 @@
+                         <specification-version>2.7</specification-version>
+                     </run-dependency>
+                 </dependency>
++                <dependency>
++                    <code-name-base>com.google.guava</code-name-base>
++                    <run-dependency>
++                        <specification-version>27.19</specification-version>
++                    </run-dependency>
++                </dependency>
+                 <dependency>
+                     <code-name-base>net.java.html</code-name-base>
+                     <build-prerequisite/>
+@@ -207,6 +213,15 @@
+                         <specification-version>1.83</specification-version>
+                     </run-dependency>
+                 </dependency>
++                <dependency>
++                    <code-name-base>org.netbeans.modules.debugger.jpda</code-name-base>
++                    <build-prerequisite/>
++                    <compile-dependency/>
++                    <run-dependency>
++                        <release-version>2</release-version>
++                        <specification-version>1.135</specification-version>
++                    </run-dependency>
++                </dependency>
+                 <dependency>
+                     <code-name-base>org.netbeans.modules.debugger.jpda.truffle</code-name-base>
+                     <build-prerequisite/>
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/NbProtocolServer.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/NbProtocolServer.java
+index 82f5346568..36b3366e97 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/NbProtocolServer.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/NbProtocolServer.java
+@@ -18,6 +18,10 @@
+  */
+ package org.netbeans.modules.java.lsp.server.debugging;
+ 
++import com.sun.jdi.AbsentInformationException;
++import com.sun.source.tree.LambdaExpressionTree;
++import com.sun.source.tree.Tree;
++import com.sun.source.util.TreePathScanner;
+ import java.io.File;
+ import java.io.IOException;
+ import java.io.Writer;
+@@ -28,15 +32,21 @@ import java.nio.file.Path;
+ import java.nio.file.Paths;
+ import java.util.ArrayList;
+ import java.util.Collections;
++import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Objects;
++import java.util.Set;
+ import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.Future;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
+ 
+ import org.apache.commons.lang3.StringUtils;
++import org.eclipse.lsp4j.Position;
++import org.eclipse.lsp4j.debug.BreakpointLocation;
++import org.eclipse.lsp4j.debug.BreakpointLocationsArguments;
++import org.eclipse.lsp4j.debug.BreakpointLocationsResponse;
+ import org.eclipse.lsp4j.debug.Capabilities;
+ import org.eclipse.lsp4j.debug.ConfigurationDoneArguments;
+ import org.eclipse.lsp4j.debug.ContinueArguments;
+@@ -81,11 +91,14 @@ import org.netbeans.api.debugger.jpda.InvalidExpressionException;
+ import org.netbeans.api.debugger.jpda.JPDADebugger;
+ import org.netbeans.api.debugger.jpda.ObjectVariable;
+ import org.netbeans.api.debugger.jpda.Variable;
++import org.netbeans.api.java.source.JavaSource;
++import org.netbeans.modules.debugger.jpda.jdi.ReferenceTypeWrapper;
+ import org.netbeans.api.project.Project;
+ import org.netbeans.modules.debugger.jpda.truffle.vars.TruffleVariable;
+ import org.netbeans.modules.java.lsp.server.LspServerState;
+ import org.netbeans.modules.java.lsp.server.LspSession;
+ import org.netbeans.modules.java.lsp.server.URITranslator;
++import org.netbeans.modules.java.lsp.server.Utils;
+ import org.netbeans.modules.java.lsp.server.debugging.breakpoints.NbBreakpointsRequestHandler;
+ import org.netbeans.modules.java.lsp.server.debugging.attach.NbAttachRequestHandler;
+ import org.netbeans.modules.java.lsp.server.debugging.launch.NbDebugSession;
+@@ -96,9 +109,13 @@ import org.netbeans.modules.java.lsp.server.debugging.utils.ErrorUtilities;
+ import org.netbeans.modules.nativeimage.api.debug.EvaluateException;
+ import org.netbeans.modules.nativeimage.api.debug.NIDebugger;
+ import org.netbeans.modules.nativeimage.api.debug.NIVariable;
++import org.netbeans.spi.debugger.jpda.EditorContext;
+ import org.netbeans.spi.debugger.ui.DebuggingView;
+ import org.netbeans.spi.debugger.ui.DebuggingView.DVFrame;
+ import org.netbeans.spi.debugger.ui.DebuggingView.DVThread;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
++import org.openide.util.Exceptions;
+ import org.openide.util.Lookup;
+ import org.openide.util.NbBundle;
+ import org.openide.util.RequestProcessor;
+@@ -158,6 +175,7 @@ public final class NbProtocolServer implements IDebugProtocolServer, LspSession.
+         caps.setSupportsRestartFrame(true);
+         caps.setSupportsLogPoints(true);
+         caps.setSupportsEvaluateForHovers(true);
++        caps.setSupportsBreakpointLocationsRequest(true);
+ 
+         ExceptionBreakpointsFilter uncaught = new ExceptionBreakpointsFilter();
+         uncaught.setFilter(NbBreakpointsRequestHandler.UNCAUGHT_EXCEPTION_FILTER_NAME);
+@@ -632,6 +650,69 @@ public final class NbProtocolServer implements IDebugProtocolServer, LspSession.
+         return future;
+     }
+ 
++    @Override
++    public CompletableFuture<BreakpointLocationsResponse> breakpointLocations(BreakpointLocationsArguments args) {
++        FileObject file = FileUtil.toFileObject(new File(args.getSource().getPath()));
++        JavaSource js = JavaSource.forFileObject(file);
++        CompletableFuture<BreakpointLocationsResponse> result = new CompletableFuture<>();
++        List<BreakpointLocation> locations = new ArrayList<>();
++        try {
++            js.runUserActionTask(cc -> {
++                cc.toPhase(JavaSource.Phase.PARSED);
++                //TODO: span only!
++                new TreePathScanner<Void, Void>() {
++                    private final Set<Integer> seenCodeOnLine = new HashSet<>();
++                    private final Set<Integer> addedLine = new HashSet<>();
++                    private boolean inLambda;
++                    public Void scan(Tree tree, Void v) {
++                        if (tree != null && !inLambda && tree.getKind() != Tree.Kind.COMPILATION_UNIT) {
++                            int startPos = (int) cc.getTrees().getSourcePositions().getStartPosition(getCurrentPath().getCompilationUnit(), tree);
++                            if (startPos != (-1)) {
++                                Position pos = Utils.createPosition(cc.getCompilationUnit().getLineMap(), startPos);
++
++                                seenCodeOnLine.add(pos.getLine());
++                            }
++                        }
++                        return super.scan(tree, v);
++                    }
++                    public Void visitLambdaExpression(LambdaExpressionTree tree, Void v) {
++                        int startPos = (int) cc.getTrees().getSourcePositions().getStartPosition(getCurrentPath().getCompilationUnit(), tree);
++                        Position pos = Utils.createPosition(cc.getCompilationUnit().getLineMap(), startPos);
++                        int line = pos.getLine();
++
++                        if (seenCodeOnLine.contains(line) && !addedLine.contains(line)) {
++                            BreakpointLocation l = new BreakpointLocation();
++
++                            l.setLine(line + 1); //XXX: +1 may need to be configuration
++                            l.setColumn(null);
++                            locations.add(l);
++                            addedLine.add(line);
++                        }
++
++                        BreakpointLocation l = new BreakpointLocation();
++                        l.setLine(line + 1); //XXX: +1 may need to be configuration
++                        l.setColumn(pos.getCharacter() + 1); //dtto
++                        locations.add(l);
++
++                        boolean wasInLambda = inLambda;
++                        try {
++                            inLambda = true;
++                            return super.visitLambdaExpression(tree, v);
++                        } finally {
++                            inLambda = wasInLambda;
++                        }
++                    }
++                }.scan(cc.getCompilationUnit(), null);
++            }, true);
++            BreakpointLocationsResponse response = new BreakpointLocationsResponse();
++            response.setBreakpoints(locations.toArray(new BreakpointLocation[0]));
++            result.complete(response);
++        } catch (IOException ex) {
++            result.completeExceptionally(ex);
++        }
++        return result;
++    }
++
+     void setRunningFuture(Future<Void> runningServer) {
+         this.runningServer = runningServer;
+     }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/BreakpointsManager.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/BreakpointsManager.java
+index 4f867e7b86..9a83689a7a 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/BreakpointsManager.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/BreakpointsManager.java
+@@ -23,6 +23,8 @@ import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
++import java.util.Map.Entry;
++import java.util.Objects;
+ import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicReference;
+@@ -36,6 +38,7 @@ import org.netbeans.api.debugger.jpda.Variable;
+ import org.netbeans.api.debugger.jpda.event.JPDABreakpointEvent;
+ import org.netbeans.api.debugger.jpda.event.JPDABreakpointListener;
+ import org.netbeans.modules.java.lsp.server.debugging.NbThreads;
++import org.openide.util.Pair;
+ 
+ public final class BreakpointsManager {
+ 
+@@ -43,7 +46,7 @@ public final class BreakpointsManager {
+ 
+     private final NbThreads threadsProvider;
+     private final List<NbBreakpoint> breakpoints;
+-    private final HashMap<String, HashMap<Integer, NbBreakpoint>> sourceToBreakpoints;
++    private final HashMap<String, HashMap<BreakpointKey, NbBreakpoint>> sourceToBreakpoints;
+     private final AtomicInteger nextBreakpointId = new AtomicInteger(1);
+     private final AtomicReference<ExceptionBreakpoint> exceptionBreakpoint = new AtomicReference<>(null);
+     private final ExceptionBreakpointListener exceptionBreakpointListener = new ExceptionBreakpointListener();
+@@ -68,7 +71,7 @@ public final class BreakpointsManager {
+      */
+     public NbBreakpoint[] setBreakpoints(String source, NbBreakpoint[] breakpoints, boolean sourceModified) {
+         List<NbBreakpoint> result = new ArrayList<>();
+-        HashMap<Integer, NbBreakpoint> breakpointMap = this.sourceToBreakpoints.get(source);
++        HashMap<BreakpointKey, NbBreakpoint> breakpointMap = this.sourceToBreakpoints.get(source);
+         // When source file is modified, delete all previously added breakpoints.
+         if (sourceModified && breakpointMap != null) {
+             for (NbBreakpoint bp : breakpointMap.values()) {
+@@ -89,42 +92,43 @@ public final class BreakpointsManager {
+         }
+ 
+         // Compute the breakpoints that are newly added.
+-        List<NbBreakpoint> toAdd = new ArrayList<>();
+-        List<Integer> visitedLineNumbers = new ArrayList<>();
++        List<Pair<BreakpointKey, NbBreakpoint>> toAdd = new ArrayList<>();
++        List<BreakpointKey> visitedKeys = new ArrayList<>();
+         for (NbBreakpoint breakpoint : breakpoints) {
+-            NbBreakpoint existingBP = breakpointMap.get(breakpoint.getLineNumber());
++            BreakpointKey key = new BreakpointKey(breakpoint.getLineNumber(), breakpoint.getColumn());
++            NbBreakpoint existingBP = breakpointMap.get(key);
+             if (existingBP != null) {
+                 result.add(existingBP);
+-                visitedLineNumbers.add(existingBP.getLineNumber());
++                visitedKeys.add(key);
+                 continue;
+             } else {
+                 result.add(breakpoint);
+             }
+-            toAdd.add(breakpoint);
++            toAdd.add(Pair.of(key, breakpoint));
+         }
+ 
+         // Compute the breakpoints that are no longer listed.
+-        List<NbBreakpoint> toRemove = new ArrayList<>();
+-        for (NbBreakpoint breakpoint : breakpointMap.values()) {
+-            if (!visitedLineNumbers.contains(breakpoint.getLineNumber())) {
+-                toRemove.add(breakpoint);
++        List<Pair<BreakpointKey, NbBreakpoint>> toRemove = new ArrayList<>();
++        for (Entry<BreakpointKey, NbBreakpoint> breakpointEntry : breakpointMap.entrySet()) {
++            if (!visitedKeys.contains(breakpointEntry.getKey())) {
++                toRemove.add(Pair.of(breakpointEntry.getKey(), breakpointEntry.getValue()));
+             }
+         }
+ 
+-        removeBreakpointsInternally(source, toRemove.toArray(new NbBreakpoint[0]));
+-        addBreakpointsInternally(source, toAdd.toArray(new NbBreakpoint[0]));
++        removeBreakpointsInternally(source, toRemove);
++        addBreakpointsInternally(source, toAdd);
+ 
+         return result.toArray(new NbBreakpoint[0]);
+     }
+ 
+-    private void addBreakpointsInternally(String source, NbBreakpoint[] breakpoints) {
+-        Map<Integer, NbBreakpoint> breakpointMap = this.sourceToBreakpoints.computeIfAbsent(source, k -> new HashMap<>());
++    private void addBreakpointsInternally(String source, List<Pair<BreakpointKey, NbBreakpoint>> breakpoints) {
++        Map<BreakpointKey, NbBreakpoint> breakpointMap = this.sourceToBreakpoints.computeIfAbsent(source, k -> new HashMap<>());
+ 
+-        if (breakpoints != null && breakpoints.length > 0) {
+-            for (NbBreakpoint breakpoint : breakpoints) {
+-                breakpoint.putProperty("id", this.nextBreakpointId.getAndIncrement());
+-                this.breakpoints.add(breakpoint);
+-                breakpointMap.put(breakpoint.getLineNumber(), breakpoint);
++        if (!breakpoints.isEmpty()) {
++            for (Pair<BreakpointKey, NbBreakpoint> entry : breakpoints) {
++                entry.second().putProperty("id", this.nextBreakpointId.getAndIncrement());
++                this.breakpoints.add(entry.second());
++                breakpointMap.put(entry.first(), entry.second());
+             }
+         }
+     }
+@@ -132,19 +136,19 @@ public final class BreakpointsManager {
+     /**
+      * Removes the specified breakpoints from breakpoint manager.
+      */
+-    private void removeBreakpointsInternally(String source, NbBreakpoint[] breakpoints) {
+-        Map<Integer, NbBreakpoint> breakpointMap = this.sourceToBreakpoints.get(source);
+-        if (breakpointMap == null || breakpointMap.isEmpty() || breakpoints.length == 0) {
++    private void removeBreakpointsInternally(String source, List<Pair<BreakpointKey, NbBreakpoint>> breakpoints) {
++        Map<BreakpointKey, NbBreakpoint> breakpointMap = this.sourceToBreakpoints.get(source);
++        if (breakpointMap == null || breakpointMap.isEmpty() || breakpoints.isEmpty()) {
+             return;
+         }
+ 
+-        for (NbBreakpoint breakpoint : breakpoints) {
+-            if (this.breakpoints.contains(breakpoint)) {
++        for (Pair<BreakpointKey, NbBreakpoint> entry : breakpoints) {
++            if (this.breakpoints.contains(entry.second())) {
+                 try {
+                     // Destroy the breakpoint on the debugee VM.
+-                    breakpoint.close();
+-                    this.breakpoints.remove(breakpoint);
+-                    breakpointMap.remove(breakpoint.getLineNumber());
++                    entry.second().close();
++                    this.breakpoints.remove(entry.second());
++                    breakpointMap.remove(entry.first());
+                 } catch (Exception e) {
+                     LOGGER.log(Level.SEVERE, String.format("Remove breakpoint exception: %s", e.toString()), e);
+                 }
+@@ -160,7 +164,7 @@ public final class BreakpointsManager {
+      * Gets the registered breakpoints at the source file.
+      */
+     public NbBreakpoint[] getBreakpoints(String source) {
+-        HashMap<Integer, NbBreakpoint> breakpointMap = this.sourceToBreakpoints.get(source);
++        HashMap<BreakpointKey, NbBreakpoint> breakpointMap = this.sourceToBreakpoints.get(source);
+         if (breakpointMap == null) {
+             return new NbBreakpoint[0];
+         }
+@@ -223,4 +227,41 @@ public final class BreakpointsManager {
+         }
+         
+     }
++
++    private static final class BreakpointKey {
++        private final int line;
++        private final Integer column;
++
++        public BreakpointKey(int line, Integer column) {
++            this.line = line;
++            this.column = column;
++        }
++
++        @Override
++        public int hashCode() {
++            int hash = 7;
++            hash = 53 * hash + this.line;
++            hash = 53 * hash + Objects.hashCode(this.column);
++            return hash;
++        }
++
++        @Override
++        public boolean equals(Object obj) {
++            if (this == obj) {
++                return true;
++            }
++            if (obj == null) {
++                return false;
++            }
++            if (getClass() != obj.getClass()) {
++                return false;
++            }
++            final BreakpointKey other = (BreakpointKey) obj;
++            if (this.line != other.line) {
++                return false;
++            }
++            return Objects.equals(this.column, other.column);
++        }
++
++    }
+ }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/NbBreakpoint.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/NbBreakpoint.java
+index a388131623..93c753a586 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/NbBreakpoint.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/NbBreakpoint.java
+@@ -18,6 +18,8 @@
+  */
+ package org.netbeans.modules.java.lsp.server.debugging.breakpoints;
+ 
++import com.sun.source.tree.LambdaExpressionTree;
++import com.sun.source.util.TreePathScanner;
+ import java.io.IOException;
+ import java.net.MalformedURLException;
+ import java.net.URI;
+@@ -30,15 +32,20 @@ import java.util.logging.Level;
+ import java.util.logging.Logger;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
++import org.eclipse.lsp4j.Position;
+ 
+ import org.eclipse.lsp4j.debug.BreakpointEventArguments;
++import org.eclipse.lsp4j.debug.BreakpointLocation;
++import org.eclipse.lsp4j.debug.BreakpointLocationsResponse;
+ import org.eclipse.lsp4j.debug.Source;
+ 
+ import org.netbeans.api.debugger.Breakpoint;
+ import org.netbeans.api.debugger.DebuggerManager;
+ import org.netbeans.api.debugger.jpda.JPDABreakpoint;
+ import org.netbeans.api.debugger.jpda.LineBreakpoint;
++import org.netbeans.api.java.source.JavaSource;
+ import org.netbeans.modules.debugger.jpda.truffle.breakpoints.TruffleLineBreakpoint;
++import org.netbeans.modules.java.lsp.server.Utils;
+ import org.netbeans.modules.java.lsp.server.debugging.DebugAdapterContext;
+ import org.openide.filesystems.FileObject;
+ import org.openide.filesystems.URLMapper;
+@@ -56,13 +63,14 @@ public final class NbBreakpoint {
+     private final Source source;
+     private final String sourceURL;
+     private int line;
++    private Integer column;
+     private int hitCount;
+     private String condition;
+     private String logMessage;
+     private final Map<Object, Object> properties = new HashMap<>();
+     private Breakpoint breakpoint; // Either JPDA's LineBreakpoint, or TruffleLineBreakpoint
+ 
+-    public NbBreakpoint(Source source, String sourceURL, int line, int hitCount, String condition, String logMessage, DebugAdapterContext context) {
++    public NbBreakpoint(Source source, String sourceURL, int line, Integer column, int hitCount, String condition, String logMessage, DebugAdapterContext context) {
+         this.source = source;
+         Integer ref = source.getSourceReference();
+         if (ref != null && ref != 0) {
+@@ -75,6 +83,7 @@ public final class NbBreakpoint {
+         }
+         this.sourceURL = sourceURL;
+         this.line = line;
++        this.column = column;
+         this.hitCount = hitCount;
+         this.condition = condition;
+         this.logMessage = logMessage;
+@@ -89,6 +98,10 @@ public final class NbBreakpoint {
+         return line;
+     }
+ 
++    public Integer getColumn() {
++        return column;
++    }
++
+     public int getHitCount() {
+         return hitCount;
+     }
+@@ -143,6 +156,9 @@ public final class NbBreakpoint {
+                 b.setPrintText(message);
+                 b.setSuspend(JPDABreakpoint.SUSPEND_NONE);
+             }
++            if (column != null) {
++                b.setLambdaIndex(getLambdaIndex(line, column));
++            }
+             breakpoint = b;
+         } else {
+             URL url;
+@@ -176,6 +192,38 @@ public final class NbBreakpoint {
+         return CompletableFuture.completedFuture(this);
+     }
+ 
++    private int getLambdaIndex(int line, int column) {
++        //TODO: performance!!
++        try {
++            FileObject file = Utils.fromUri(sourceURL);
++            JavaSource js = JavaSource.forFileObject(file);
++            int[] index = new int[] { -1 };
++            js.runUserActionTask(cc -> {
++                cc.toPhase(JavaSource.Phase.PARSED);
++                //TODO: span only!
++                new TreePathScanner<Void, Void>() {
++                    int idx = 0;
++                    public Void visitLambdaExpression(LambdaExpressionTree tree, Void v) {
++                        int startPos = (int) cc.getTrees().getSourcePositions().getStartPosition(getCurrentPath().getCompilationUnit(), tree);
++                        Position pos = Utils.createPosition(cc.getCompilationUnit().getLineMap(), startPos);
++                        if (line == pos.getLine() + 1) {
++                            if (column == pos.getCharacter() + 1) {
++                                index[0] = idx;
++                            } else {
++                                idx++;
++                            }
++                        }
++                        return super.visitLambdaExpression(tree, v);
++                    }
++                }.scan(cc.getCompilationUnit(), null);
++            }, true);
++            return index[0];
++        } catch (IOException ex) {
++            ex.printStackTrace();
++        }
++
++        return Integer.MIN_VALUE;
++    }
+     private static final String lsp2NBLogMessage(String message) {
+         return message.replaceAll("\\{([^\\}]+)\\}", "{=$1}");      // NOI18N
+     }
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/NbBreakpointsRequestHandler.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/NbBreakpointsRequestHandler.java
+index 6d63a47f42..62cb3bbd88 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/NbBreakpointsRequestHandler.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/debugging/breakpoints/NbBreakpointsRequestHandler.java
+@@ -135,8 +135,10 @@ public final class NbBreakpointsRequestHandler {
+     private NbBreakpoint[] convertClientBreakpointsToDebugger(Source source, String sourceFile, SourceBreakpoint[] sourceBreakpoints, DebugAdapterContext context) {
+         int n = sourceBreakpoints.length;
+         int[] lines = new int[n];
++        Integer[] columns = new Integer[n];
+         for (int i = 0; i < n; i++) {
+             lines[i] = context.getDebuggerLine(sourceBreakpoints[i].getLine());
++            columns[i] = sourceBreakpoints[i].getColumn() != null ? context.getDebuggerLine(sourceBreakpoints[i].getColumn()) : null;
+         }
+         NbBreakpoint[] breakpoints = new NbBreakpoint[n];
+         for (int i = 0; i < n; i++) {
+@@ -146,7 +148,7 @@ public final class NbBreakpointsRequestHandler {
+             } catch (NumberFormatException e) {
+                 hitCount = 0; // If hitCount is not a number, ignore the hitCount.
+             }
+-            breakpoints[i] = new NbBreakpoint(source, sourceFile, lines[i], hitCount, sourceBreakpoints[i].getCondition(), sourceBreakpoints[i].getLogMessage(), context);
++            breakpoints[i] = new NbBreakpoint(source, sourceFile, lines[i], columns[i], hitCount, sourceBreakpoints[i].getCondition(), sourceBreakpoints[i].getLogMessage(), context);
+         }
+         return breakpoints;
+     }
