@@ -103,6 +103,8 @@ The following configuration settings are available:
 
 These settings *override* settings inferred from project context.
 
+Note: If you change these settings while a notebook is open, click __Restart__ kernel to apply the changes.
+
 ## JShell
 * Use the __Java: Open JShell...__ command to open JShell.
 * Project classes from currently open project are automatically loaded.<br/>
