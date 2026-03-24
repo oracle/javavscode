@@ -51,13 +51,6 @@ export const userConfigsListened: string[] = [
     appendPrefixToCommand(configKeys.lspVmOptions),
     appendPrefixToCommand(configKeys.disableNbJavac),
     appendPrefixToCommand(configKeys.disableProjSearchLimit),
-    appendPrefixToCommand(configKeys.notebookClasspath),
-    appendPrefixToCommand(configKeys.notebookModulepath),
-    appendPrefixToCommand(configKeys.notebookAddModules),
-    appendPrefixToCommand(configKeys.notebookEnablePreview),
-    appendPrefixToCommand(configKeys.notebookImplicitImports),
-    appendPrefixToCommand(configKeys.notebookProjectMapping),
-    appendPrefixToCommand(configKeys.notebookVmOptions),
     builtInConfigKeys.vscodeTheme,
 ];
 
@@ -66,6 +59,13 @@ export const userConfigsListenedByServer = [
     appendPrefixToCommand(configKeys.hintPrefs),
     appendPrefixToCommand(configKeys.formatPrefs),
     appendPrefixToCommand(configKeys.importPrefs),
+    appendPrefixToCommand(configKeys.notebookClasspath),
+    appendPrefixToCommand(configKeys.notebookModulepath),
+    appendPrefixToCommand(configKeys.notebookAddModules),
+    appendPrefixToCommand(configKeys.notebookEnablePreview),
+    appendPrefixToCommand(configKeys.notebookImplicitImports),
+    appendPrefixToCommand(configKeys.notebookProjectMapping),
+    appendPrefixToCommand(configKeys.notebookVmOptions),
     appendPrefixToCommand(configKeys.projectJdkHome),
     appendPrefixToCommand(configKeys.runConfigVmOptions),
     appendPrefixToCommand(configKeys.runConfigCwd)

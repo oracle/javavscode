@@ -1,5 +1,5 @@
 diff --git a/java/java.j2seproject/nbproject/project.properties b/java/java.j2seproject/nbproject/project.properties
-index 9f68c5272c..bfbc1e60c3 100644
+index 14008a960dc7..a67c63fed7cf 100644
 --- a/java/java.j2seproject/nbproject/project.properties
 +++ b/java/java.j2seproject/nbproject/project.properties
 @@ -27,8 +27,8 @@ test.unit.run.cp.extra=${tools.jar}
@@ -14,7 +14,7 @@ index 9f68c5272c..bfbc1e60c3 100644
  jnlp.indirect.jars=ant/extra/org-netbeans-modules-java-j2seproject-copylibstask.jar
  
 diff --git a/java/testng.ant/nbproject/project.xml b/java/testng.ant/nbproject/project.xml
-index 29f4ab28cc..64a65d6bfe 100644
+index 29f4ab28ccac..64a65d6bfef3 100644
 --- a/java/testng.ant/nbproject/project.xml
 +++ b/java/testng.ant/nbproject/project.xml
 @@ -184,6 +184,10 @@
@@ -29,10 +29,10 @@ index 29f4ab28cc..64a65d6bfe 100644
                          <code-name-base>org.netbeans.libs.junit4</code-name-base>
                          <compile-dependency/>
 diff --git a/java/testng.ant/src/org/netbeans/modules/testng/ant/RegexpUtils.java b/java/testng.ant/src/org/netbeans/modules/testng/ant/RegexpUtils.java
-index 589c5b7e28..6507a55298 100644
+index 589c5b7e286e..6507a55298dc 100644
 --- a/java/testng.ant/src/org/netbeans/modules/testng/ant/RegexpUtils.java
 +++ b/java/testng.ant/src/org/netbeans/modules/testng/ant/RegexpUtils.java
-@@ -22,7 +22,6 @@ package org.netbeans.modules.testng.ant;
+@@ -22,7 +22,6 @@
  import java.lang.ref.Reference;
  import java.lang.ref.WeakReference;
  import java.util.regex.Pattern;
@@ -59,10 +59,10 @@ index 589c5b7e28..6507a55298 100644
      static final String TESTS_COUNT_PREFIX = "tests to run: ";          //NOI18N
      /** */
 diff --git a/java/testng.ant/src/org/netbeans/modules/testng/ant/TestNGOutputReader.java b/java/testng.ant/src/org/netbeans/modules/testng/ant/TestNGOutputReader.java
-index 889be368a5..aeba647a49 100644
+index 889be368a5e0..aeba647a4907 100644
 --- a/java/testng.ant/src/org/netbeans/modules/testng/ant/TestNGOutputReader.java
 +++ b/java/testng.ant/src/org/netbeans/modules/testng/ant/TestNGOutputReader.java
-@@ -183,10 +183,12 @@ final class TestNGOutputReader {
+@@ -183,10 +183,12 @@ void verboseMessageLogged(final AntEvent event) {
      private long elapsedTime = 0;
      // TestNG version > 6.5.2 does not by default add the org.testng.reporters.VerboseReporter listener to the testng task,
      // see https://github.com/cbeust/testng/commit/6fc192911c8c58f38583a657c1edac20e6508004
@@ -77,7 +77,7 @@ index 889be368a5..aeba647a49 100644
      // for version <= 6.5.2 that need to be escaped. This will happen if old project uses "Dedicated Folder for Storing Libraries",
      // which means that the testng dependency for that project will not be automatically updated while the build-impl.xml file will.
      // These two new variables come to the rescue.
-@@ -297,7 +299,22 @@ final class TestNGOutputReader {
+@@ -297,7 +299,22 @@ synchronized void verboseMessageLogged(String msg) {
                      if (m.matches()) {
                          suiteStat.testRun = Integer.valueOf(m.group(1));
                          suiteStat.testFail = Integer.valueOf(m.group(2));
@@ -102,7 +102,7 @@ index 889be368a5..aeba647a49 100644
                          assert false : "Cannot match: '" + in + "'.";
                      }
 diff --git a/java/testng.ant/src/org/netbeans/modules/testng/ant/testng-build.xml b/java/testng.ant/src/org/netbeans/modules/testng/ant/testng-build.xml
-index 42d282a117..1e55c60623 100644
+index 42d282a11717..1e55c60623d3 100644
 --- a/java/testng.ant/src/org/netbeans/modules/testng/ant/testng-build.xml
 +++ b/java/testng.ant/src/org/netbeans/modules/testng/ant/testng-build.xml
 @@ -46,7 +46,7 @@
@@ -134,7 +134,7 @@ index 42d282a117..1e55c60623 100644
              </customize>
 diff --git a/java/testng.ant/test/unit/data/antOut/log.txt b/java/testng.ant/test/unit/data/antOut/log.txt
 new file mode 100644
-index 0000000000..9d39755a86
+index 000000000000..9d39755a86d6
 --- /dev/null
 +++ b/java/testng.ant/test/unit/data/antOut/log.txt
 @@ -0,0 +1,77 @@
@@ -216,10 +216,10 @@ index 0000000000..9d39755a86
 +===============================================
 +
 diff --git a/java/testng.ui/nbproject/project.xml b/java/testng.ui/nbproject/project.xml
-index fc2864d7df..d658c63b30 100644
+index 1e1581cedddb..32869f11ee22 100644
 --- a/java/testng.ui/nbproject/project.xml
 +++ b/java/testng.ui/nbproject/project.xml
-@@ -109,7 +109,7 @@
+@@ -101,7 +101,7 @@
                      <compile-dependency/>
                      <run-dependency>
                          <release-version>1</release-version>
@@ -228,7 +228,7 @@ index fc2864d7df..d658c63b30 100644
                      </run-dependency>
                  </dependency>
                  <dependency>
-@@ -432,6 +432,10 @@
+@@ -424,6 +424,10 @@
                          <code-name-base>org.netbeans.modules.java.lexer</code-name-base>
                          <compile-dependency/>
                      </test-dependency>
@@ -240,10 +240,10 @@ index fc2864d7df..d658c63b30 100644
                          <code-name-base>org.netbeans.modules.java.project</code-name-base>
                          <compile-dependency/>
 diff --git a/java/testng.ui/src/org/netbeans/modules/testng/ui/XmlSuiteHandler.java b/java/testng.ui/src/org/netbeans/modules/testng/ui/XmlSuiteHandler.java
-index ef2ce1db7d..6ee59e69a3 100644
+index ef2ce1db7de2..6ee59e69a35f 100644
 --- a/java/testng.ui/src/org/netbeans/modules/testng/ui/XmlSuiteHandler.java
 +++ b/java/testng.ui/src/org/netbeans/modules/testng/ui/XmlSuiteHandler.java
-@@ -52,9 +52,7 @@ public class XmlSuiteHandler extends TestNGContentHandler {
+@@ -52,9 +52,7 @@ public static int[] getSuiteLocation(FileObject suiteFile, String suiteName) {
              r.parse(new InputSource(suiteFile.getInputStream()));
              location[0] = sl.getLine();
              location[1] = sl.getColumn();
@@ -254,7 +254,7 @@ index ef2ce1db7d..6ee59e69a3 100644
              LOGGER.log(Level.WARNING, null, ex);
          }
          return location;
-@@ -66,7 +64,7 @@ public class XmlSuiteHandler extends TestNGContentHandler {
+@@ -66,7 +64,7 @@ public void setDocumentLocator(Locator locator) {
      }
  
      @Override
@@ -263,7 +263,7 @@ index ef2ce1db7d..6ee59e69a3 100644
          if ("test".equals(qName) && attributes != null && suite.equals(attributes.getValue("name"))) {
              line = loc.getLineNumber();
              column = loc.getColumnNumber() - suite.length() - 3;
-@@ -74,7 +72,7 @@ public class XmlSuiteHandler extends TestNGContentHandler {
+@@ -74,7 +72,7 @@ public void startElement(String uri, String localName, String qName, Attributes
      }
  
      @Override
@@ -273,10 +273,10 @@ index ef2ce1db7d..6ee59e69a3 100644
  
      public int getLine() {
 diff --git a/java/testng.ui/test/unit/src/org/netbeans/modules/testng/ui/actions/RetoucheTestBase.java b/java/testng.ui/test/unit/src/org/netbeans/modules/testng/ui/actions/RetoucheTestBase.java
-index 11afdedbc4..49508b1507 100644
+index 11afdedbc480..49508b1507d2 100644
 --- a/java/testng.ui/test/unit/src/org/netbeans/modules/testng/ui/actions/RetoucheTestBase.java
 +++ b/java/testng.ui/test/unit/src/org/netbeans/modules/testng/ui/actions/RetoucheTestBase.java
-@@ -21,16 +21,12 @@ package org.netbeans.modules.testng.ui.actions;
+@@ -21,16 +21,12 @@
  import java.io.File;
  import java.net.MalformedURLException;
  import java.net.URL;
@@ -294,7 +294,7 @@ index 11afdedbc4..49508b1507 100644
  import org.netbeans.spi.java.classpath.support.ClassPathSupport;
  import org.openide.filesystems.FileObject;
  import org.openide.filesystems.FileUtil;
-@@ -62,7 +58,7 @@ public class RetoucheTestBase extends NbTestCase {
+@@ -62,7 +58,7 @@ public ClassPath findClassPath(FileObject file, String type) {
                      return ClassPathSupport.createClassPath(new FileObject[0]);
                  }
                  if (type.equals(ClassPath.BOOT)) {
@@ -303,7 +303,7 @@ index 11afdedbc4..49508b1507 100644
                  }
                  return null;
              }
-@@ -80,20 +76,6 @@ public class RetoucheTestBase extends NbTestCase {
+@@ -80,20 +76,6 @@ protected FileObject getTestFO() {
          return testFO;
      }
  
@@ -325,10 +325,10 @@ index 11afdedbc4..49508b1507 100644
          URL url = null;
          try {
 diff --git a/java/testng/nbproject/project.xml b/java/testng/nbproject/project.xml
-index 93b37bd39d..671653af8e 100644
+index 1db27a53c48e..3fb3f43e1e07 100644
 --- a/java/testng/nbproject/project.xml
 +++ b/java/testng/nbproject/project.xml
-@@ -92,7 +92,7 @@
+@@ -84,7 +84,7 @@
                      <compile-dependency/>
                      <run-dependency>
                          <release-version>1</release-version>
@@ -338,7 +338,7 @@ index 93b37bd39d..671653af8e 100644
                  </dependency>
                  <dependency>
 diff --git a/java/testng/src/org/netbeans/modules/testng/resources/testng.xml b/java/testng/src/org/netbeans/modules/testng/resources/testng.xml
-index f0eea774e9..c6ab8761ef 100644
+index f0eea774e9ac..c6ab8761ef38 100644
 --- a/java/testng/src/org/netbeans/modules/testng/resources/testng.xml
 +++ b/java/testng/src/org/netbeans/modules/testng/resources/testng.xml
 @@ -26,18 +26,20 @@
@@ -367,7 +367,7 @@ index f0eea774e9..c6ab8761ef 100644
      </properties>    
  </library>
 diff --git a/java/testng/src/org/netbeans/modules/testng/spi/XMLSuiteSupport.java b/java/testng/src/org/netbeans/modules/testng/spi/XMLSuiteSupport.java
-index 1c30d02d29..66cabfb9c1 100644
+index 1c30d02d290a..66cabfb9c140 100644
 --- a/java/testng/src/org/netbeans/modules/testng/spi/XMLSuiteSupport.java
 +++ b/java/testng/src/org/netbeans/modules/testng/spi/XMLSuiteSupport.java
 @@ -19,20 +19,25 @@
@@ -403,7 +403,7 @@ index 1c30d02d29..66cabfb9c1 100644
  
      private XMLSuiteSupport() {
      }
-@@ -41,17 +46,29 @@ public final class XMLSuiteSupport {
+@@ -41,17 +46,29 @@ public static File createSuiteforMethod(File targetFolder, String projectName, S
          if (!targetFolder.isDirectory()) {
              throw new IllegalArgumentException(targetFolder.getAbsolutePath() + " is not a directory"); //NOI18N
          }
@@ -444,7 +444,7 @@ index 1c30d02d29..66cabfb9c1 100644
      }
  }
 diff --git a/nbbuild/templates/common.xml b/nbbuild/templates/common.xml
-index 6de8195957..7da63ba169 100644
+index 6de819595775..7da63ba1699e 100644
 --- a/nbbuild/templates/common.xml
 +++ b/nbbuild/templates/common.xml
 @@ -796,7 +796,7 @@
@@ -502,7 +502,7 @@ index 6de8195957..7da63ba169 100644
                  >
                      <propertyset refid="test.@{test.type}.properties"/>
 diff --git a/platform/libs.testng/external/binaries-list b/platform/libs.testng/external/binaries-list
-index 6f81672472..746964c4f2 100644
+index 6f8167247212..746964c4f2be 100644
 --- a/platform/libs.testng/external/binaries-list
 +++ b/platform/libs.testng/external/binaries-list
 @@ -14,6 +14,8 @@
@@ -518,13 +518,13 @@ index 6f81672472..746964c4f2 100644
 +D9E58AC9C7779BA3BF8142AFF6C830617A7FE60F org.slf4j:slf4j-api:2.0.17
 +C2E2AE93FB66A26DA2B4AE647DED8F8B5CC84CB7 org.testng:testng:7.11.0:javadoc
 diff --git a/platform/libs.testng/external/jcommander-1.78-license.txt b/platform/libs.testng/external/jcommander-1.85-license.txt
-similarity index 98%
+similarity index 99%
 rename from platform/libs.testng/external/jcommander-1.78-license.txt
 rename to platform/libs.testng/external/jcommander-1.85-license.txt
-index 0d7cadb179..e9a236811e 100644
+index 0d7cadb179d4..1607427499cf 100644
 --- a/platform/libs.testng/external/jcommander-1.78-license.txt
 +++ b/platform/libs.testng/external/jcommander-1.85-license.txt
-@@ -1,14 +1,14 @@
+@@ -1,10 +1,10 @@
  Name: JCommander
 -Version: 1.78
 +Version: 1.85
@@ -537,23 +537,9 @@ index 0d7cadb179..e9a236811e 100644
  
                                   Apache License
                             Version 2.0, January 2004
--                        http://www.apache.org/licenses/
-+                        https://www.apache.org/licenses/
- 
-    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
- 
-@@ -200,7 +200,7 @@ Files: jcommander-1.78.jar
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
- 
--       http://www.apache.org/licenses/LICENSE-2.0
-+       https://www.apache.org/licenses/LICENSE-2.0
- 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
 diff --git a/platform/libs.testng/external/slf4j-api-2.0.17-license.txt b/platform/libs.testng/external/slf4j-api-2.0.17-license.txt
 new file mode 100644
-index 0000000000..c050705692
+index 000000000000..c0507056921c
 --- /dev/null
 +++ b/platform/libs.testng/external/slf4j-api-2.0.17-license.txt
 @@ -0,0 +1,27 @@
@@ -585,10 +571,10 @@ index 0000000000..c050705692
 +OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
 +WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 diff --git a/platform/libs.testng/external/testng-6.14.3-license.txt b/platform/libs.testng/external/testng-7.11.0-license.txt
-similarity index 97%
+similarity index 99%
 rename from platform/libs.testng/external/testng-6.14.3-license.txt
 rename to platform/libs.testng/external/testng-7.11.0-license.txt
-index 46e886385e..cf44e1031e 100644
+index 46e886385eeb..1289a204fb9b 100644
 --- a/platform/libs.testng/external/testng-6.14.3-license.txt
 +++ b/platform/libs.testng/external/testng-7.11.0-license.txt
 @@ -1,10 +1,10 @@
@@ -605,47 +591,16 @@ index 46e886385e..cf44e1031e 100644
  
  Parts of this work are licensed:
  
-@@ -12,10 +12,10 @@ The MIT License (MIT)
- 
- Copyright 2011, John Resig
- Dual licensed under the MIT or GPL Version 2 licenses.
--http://jquery.org/license
-+https://jquery.org/license
- 
- Includes Sizzle.js
--http://sizzlejs.com/
-+https://sizzlejs.com/
- Copyright 2011, The Dojo Foundation
- Released under the MIT, BSD, and GPL Licenses.
- 
-@@ -41,7 +41,7 @@ Parts of this work are licensed:
- 
-                                 Apache License
-                            Version 2.0, January 2004
--                        http://www.apache.org/licenses/
-+                        https://www.apache.org/licenses/
- 
-    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
- 
-@@ -233,7 +233,7 @@ Parts of this work are licensed:
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
- 
--       http://www.apache.org/licenses/LICENSE-2.0
-+       https://www.apache.org/licenses/LICENSE-2.0
- 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
 diff --git a/platform/libs.testng/external/testng-6.14.3-notice.txt b/platform/libs.testng/external/testng-7.11.0-notice.txt
 similarity index 100%
 rename from platform/libs.testng/external/testng-6.14.3-notice.txt
 rename to platform/libs.testng/external/testng-7.11.0-notice.txt
 diff --git a/platform/libs.testng/external/testng-ant-1.0.0-license.txt b/platform/libs.testng/external/testng-ant-1.0.0-license.txt
 new file mode 100644
-index 0000000000..96e924ce7e
+index 000000000000..f374d9315545
 --- /dev/null
 +++ b/platform/libs.testng/external/testng-ant-1.0.0-license.txt
-@@ -0,0 +1,211 @@
+@@ -0,0 +1,209 @@
 +Name: TestNG Ant Integration
 +Version: 1.0.0
 +Description: Java testing framework.
@@ -654,9 +609,9 @@ index 0000000000..96e924ce7e
 +URL: https://github.com/testng-team/testng-ant
 +Files: testng-ant-1.0.0.jar
 +
-+                                Apache License
++                                 Apache License
 +                           Version 2.0, January 2004
-+                        https://www.apache.org/licenses/
++                        http://www.apache.org/licenses/
 +
 +   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 +
@@ -848,38 +803,71 @@ index 0000000000..96e924ce7e
 +   you may not use this file except in compliance with the License.
 +   You may obtain a copy of the License at
 +
-+       https://www.apache.org/licenses/LICENSE-2.0
++       http://www.apache.org/licenses/LICENSE-2.0
 +
 +   Unless required by applicable law or agreed to in writing, software
 +   distributed under the License is distributed on an "AS IS" BASIS,
 +   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 +   See the License for the specific language governing permissions and
 +   limitations under the License.
-+
-+
 diff --git a/platform/libs.testng/manifest.mf b/platform/libs.testng/manifest.mf
-index 9d9366b8ed..494c4ae3d7 100644
+index 494c4ae3d7..ea3bdabeed 100644
 --- a/platform/libs.testng/manifest.mf
 +++ b/platform/libs.testng/manifest.mf
 @@ -1,5 +1,5 @@
  Manifest-Version: 1.0
  AutoUpdate-Show-In-Client: true
  OpenIDE-Module: org.netbeans.libs.testng/1
--OpenIDE-Module-Specification-Version: 1.44
+-OpenIDE-Module-Specification-Version: 1.45
 +OpenIDE-Module-Specification-Version: 1.46
  OpenIDE-Module-Localizing-Bundle: org/netbeans/libs/testng/Bundle.properties
 diff --git a/platform/libs.testng/nbproject/org-netbeans-libs-testng.sig b/platform/libs.testng/nbproject/org-netbeans-libs-testng.sig
-index 9bcfefd912..2b345b1c30 100644
+index 9bcfefd912..064e71ce5e 100644
 --- a/platform/libs.testng/nbproject/org-netbeans-libs-testng.sig
 +++ b/platform/libs.testng/nbproject/org-netbeans-libs-testng.sig
 @@ -1,5 +1,5 @@
  #Signature file v4.1
--#Version 1.43
+-#Version 1.44
 +#Version 1.46
  
  CLSS public abstract interface java.io.Serializable
  
-@@ -104,6 +104,12 @@ CLSS public abstract interface !annotation java.lang.annotation.Documented
+@@ -11,13 +11,17 @@ meth public abstract int compareTo({java.lang.Comparable%0})
+ CLSS public abstract interface !annotation java.lang.Deprecated
+  anno 0 java.lang.annotation.Documented()
+  anno 0 java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy value=RUNTIME)
+- anno 0 java.lang.annotation.Target(java.lang.annotation.ElementType[] value=[CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE])
++ anno 0 java.lang.annotation.Target(java.lang.annotation.ElementType[] value=[CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, MODULE, PARAMETER, TYPE])
+ intf java.lang.annotation.Annotation
++meth public abstract !hasdefault boolean forRemoval()
++meth public abstract !hasdefault java.lang.String since()
+ 
+ CLSS public abstract java.lang.Enum<%0 extends java.lang.Enum<{java.lang.Enum%0}>>
+ cons protected init(java.lang.String,int)
++innr public final static EnumDesc
+ intf java.io.Serializable
+ intf java.lang.Comparable<{java.lang.Enum%0}>
++intf java.lang.constant.Constable
+ meth protected final java.lang.Object clone() throws java.lang.CloneNotSupportedException
+ meth protected final void finalize()
+ meth public final boolean equals(java.lang.Object)
+@@ -26,6 +30,7 @@ meth public final int hashCode()
+ meth public final int ordinal()
+ meth public final java.lang.Class<{java.lang.Enum%0}> getDeclaringClass()
+ meth public final java.lang.String name()
++meth public final java.util.Optional<java.lang.Enum$EnumDesc<{java.lang.Enum%0}>> describeConstable()
+ meth public java.lang.String toString()
+ meth public static <%0 extends java.lang.Enum<{%%0}>> {%%0} valueOf(java.lang.Class<{%%0}>,java.lang.String)
+ supr java.lang.Object
+@@ -48,6 +53,7 @@ CLSS public java.lang.Object
+ cons public init()
+ meth protected java.lang.Object clone() throws java.lang.CloneNotSupportedException
+ meth protected void finalize() throws java.lang.Throwable
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="9")
+ meth public boolean equals(java.lang.Object)
+ meth public final java.lang.Class<?> getClass()
+ meth public final void notify()
+@@ -104,6 +110,12 @@ CLSS public abstract interface !annotation java.lang.annotation.Documented
   anno 0 java.lang.annotation.Target(java.lang.annotation.ElementType[] value=[ANNOTATION_TYPE])
  intf java.lang.annotation.Annotation
  
@@ -892,10 +880,13 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public abstract interface !annotation java.lang.annotation.Retention
   anno 0 java.lang.annotation.Documented()
   anno 0 java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy value=RUNTIME)
-@@ -118,64 +124,153 @@ CLSS public abstract interface !annotation java.lang.annotation.Target
+@@ -118,64 +130,156 @@ CLSS public abstract interface !annotation java.lang.annotation.Target
  intf java.lang.annotation.Annotation
  meth public abstract java.lang.annotation.ElementType[] value()
  
++CLSS public abstract interface java.lang.constant.Constable
++meth public abstract java.util.Optional<? extends java.lang.constant.ConstantDesc> describeConstable()
++
 +CLSS public abstract interface java.util.Comparator<%0 extends java.lang.Object>
 + anno 0 java.lang.FunctionalInterface()
 +meth public <%0 extends java.lang.Comparable<? super {%%0}>> java.util.Comparator<{java.util.Comparator%0}> thenComparing(java.util.function.Function<? super {java.util.Comparator%0},? extends {%%0}>)
@@ -1046,7 +1037,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public static void assertFalse(boolean)
  meth public static void assertFalse(boolean,java.lang.String)
  meth public static void assertNotEquals(double,double,double)
-@@ -184,6 +279,11 @@ meth public static void assertNotEquals(float,float,float)
+@@ -184,6 +288,11 @@ meth public static void assertNotEquals(float,float,float)
  meth public static void assertNotEquals(float,float,float,java.lang.String)
  meth public static void assertNotEquals(java.lang.Object,java.lang.Object)
  meth public static void assertNotEquals(java.lang.Object,java.lang.Object,java.lang.String)
@@ -1058,7 +1049,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public static void assertNotEquals(java.util.Map<?,?>,java.util.Map<?,?>)
  meth public static void assertNotEquals(java.util.Map<?,?>,java.util.Map<?,?>,java.lang.String)
  meth public static void assertNotEquals(java.util.Set<?>,java.util.Set<?>)
-@@ -263,25 +363,34 @@ hfds afterClassMethods,beforeClassMethods,classMap
+@@ -263,25 +372,34 @@ hfds afterClassMethods,beforeClassMethods,classMap
  
  CLSS public org.testng.CommandLineArgs
  cons public init()
@@ -1097,7 +1088,7 @@ index 9bcfefd912..2b345b1c30 100644
  fld public final static java.lang.String SKIP_FAILED_INVOCATION_COUNTS = "-skipfailedinvocationcounts"
  fld public final static java.lang.String SUITE_NAME = "-suitename"
  fld public final static java.lang.String SUITE_THREAD_POOL_SIZE = "-suitethreadpoolsize"
-@@ -291,35 +400,46 @@ fld public final static java.lang.String TEST_NAME = "-testname"
+@@ -291,35 +409,46 @@ fld public final static java.lang.String TEST_NAME = "-testname"
  fld public final static java.lang.String TEST_NAMES = "-testnames"
  fld public final static java.lang.String TEST_RUNNER_FACTORY = "-testrunfactory"
  fld public final static java.lang.String THREAD_COUNT = "-threadcount"
@@ -1148,7 +1139,7 @@ index 9bcfefd912..2b345b1c30 100644
  fld public java.lang.String useDefaultListeners
  fld public java.lang.String xmlPathInJar
  fld public java.util.List<java.lang.String> commandLineMethods
-@@ -327,17 +447,34 @@ fld public java.util.List<java.lang.String> suiteFiles
+@@ -327,17 +456,34 @@ fld public java.util.List<java.lang.String> suiteFiles
  fld public org.testng.xml.XmlSuite$ParallelMode parallelMode
  supr java.lang.Object
  
@@ -1157,7 +1148,7 @@ index 9bcfefd912..2b345b1c30 100644
 +supr org.testng.TestNGException
 +
  CLSS public org.testng.ConversionUtils
-+ anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  cons public init()
 -meth public static java.lang.Object[] wrapDataProvider(java.lang.Class,java.util.Collection<java.lang.Object[]>)
 +meth public static java.lang.Object[] wrapDataProvider(java.lang.Class<?>,java.util.Collection<java.lang.Object[]>)
@@ -1185,7 +1176,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public org.testng.DependencyMap
  cons public init(org.testng.ITestNGMethod[])
  meth public java.util.List<org.testng.ITestNGMethod> getMethodsThatBelongTo(java.lang.String,org.testng.ITestNGMethod)
-@@ -369,24 +506,15 @@ supr java.lang.Object
+@@ -369,24 +515,15 @@ supr java.lang.Object
  
  CLSS public abstract interface org.testng.IAlterSuiteListener
  intf org.testng.ITestNGListener
@@ -1216,7 +1207,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public abstract interface org.testng.IAttributes
  meth public abstract java.lang.Object getAttribute(java.lang.String)
-@@ -395,21 +523,24 @@ meth public abstract java.util.Set<java.lang.String> getAttributeNames()
+@@ -395,21 +532,24 @@ meth public abstract java.util.Set<java.lang.String> getAttributeNames()
  meth public abstract void setAttribute(java.lang.String,java.lang.Object)
  
  CLSS public abstract interface org.testng.IClass
@@ -1224,17 +1215,17 @@ index 9bcfefd912..2b345b1c30 100644
 - anno 0 java.lang.Deprecated()
  meth public abstract java.lang.Class<?> getRealClass()
  meth public abstract java.lang.Object[] getInstances(boolean)
-+ anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  meth public abstract java.lang.String getName()
  meth public abstract java.lang.String getTestName()
  meth public abstract long[] getInstanceHashCodes()
-+ anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  meth public abstract org.testng.xml.XmlClass getXmlClass()
  meth public abstract org.testng.xml.XmlTest getXmlTest()
  meth public abstract void addInstance(java.lang.Object)
-+ anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
 +meth public java.lang.Object[] getInstances(boolean,java.lang.String)
-+ anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  
  CLSS public abstract interface org.testng.IClassListener
  intf org.testng.ITestNGListener
@@ -1245,7 +1236,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public abstract interface org.testng.IConfigurable
  intf org.testng.ITestNGListener
-@@ -417,22 +548,32 @@ meth public abstract void run(org.testng.IConfigureCallBack,org.testng.ITestResu
+@@ -417,22 +557,32 @@ meth public abstract void run(org.testng.IConfigureCallBack,org.testng.ITestResu
  
  CLSS public abstract interface org.testng.IConfigurationListener
  intf org.testng.ITestNGListener
@@ -1262,7 +1253,7 @@ index 9bcfefd912..2b345b1c30 100644
 +meth public void onConfigurationSuccess(org.testng.ITestResult,org.testng.ITestNGMethod)
  
  CLSS public abstract interface org.testng.IConfigurationListener2
-+ anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  intf org.testng.IConfigurationListener
 -meth public abstract void beforeConfiguration(org.testng.ITestResult)
  
@@ -1284,7 +1275,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public abstract interface org.testng.IDataProviderMethod
  meth public abstract boolean isParallel()
-@@ -440,20 +581,52 @@ meth public abstract java.lang.Object getInstance()
+@@ -440,20 +590,52 @@ meth public abstract java.lang.Object getInstance()
  meth public abstract java.lang.String getName()
  meth public abstract java.lang.reflect.Method getMethod()
  meth public abstract java.util.List<java.lang.Integer> getIndices()
@@ -1343,7 +1334,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public abstract interface org.testng.IHookCallBack
  meth public abstract java.lang.Object[] getParameters()
  meth public abstract void runTestMethod(org.testng.ITestResult)
-@@ -462,6 +635,9 @@ CLSS public abstract interface org.testng.IHookable
+@@ -462,6 +644,9 @@ CLSS public abstract interface org.testng.IHookable
  intf org.testng.ITestNGListener
  meth public abstract void run(org.testng.IHookCallBack,org.testng.ITestResult)
  
@@ -1353,7 +1344,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public abstract interface org.testng.IInstanceInfo<%0 extends java.lang.Object>
  meth public abstract java.lang.Class<{org.testng.IInstanceInfo%0}> getInstanceClass()
  meth public abstract {org.testng.IInstanceInfo%0} getInstance()
-@@ -475,18 +651,13 @@ meth public abstract org.testng.ITestResult getTestResult()
+@@ -475,18 +660,13 @@ meth public abstract org.testng.ITestResult getTestResult()
  
  CLSS public abstract interface org.testng.IInvokedMethodListener
  intf org.testng.ITestNGListener
@@ -1376,7 +1367,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract org.testng.ITestNGMethod getMethod()
  
  CLSS public abstract interface org.testng.IMethodInterceptor
-@@ -502,33 +673,40 @@ meth public abstract boolean isStopped()
+@@ -502,33 +682,40 @@ meth public abstract boolean isStopped()
  meth public abstract java.util.Map<java.lang.Object,java.lang.Object> getUserData()
  meth public abstract void setStopped(boolean)
  
@@ -1427,7 +1418,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public abstract interface org.testng.ISuite
  intf org.testng.IAttributes
  meth public abstract com.google.inject.Injector getParentInjector()
-@@ -540,14 +718,11 @@ meth public abstract java.lang.String getParallel()
+@@ -540,14 +727,11 @@ meth public abstract java.lang.String getParallel()
  meth public abstract java.lang.String getParameter(java.lang.String)
  meth public abstract java.lang.String getParentModule()
  meth public abstract java.util.Collection<org.testng.ITestNGMethod> getExcludedMethods()
@@ -1443,7 +1434,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract org.testng.SuiteRunState getSuiteState()
  meth public abstract org.testng.internal.annotations.IAnnotationFinder getAnnotationFinder()
  meth public abstract org.testng.xml.XmlSuite getXmlSuite()
-@@ -557,13 +732,17 @@ meth public abstract void setParentInjector(com.google.inject.Injector)
+@@ -557,13 +741,17 @@ meth public abstract void setParentInjector(com.google.inject.Injector)
  
  CLSS public abstract interface org.testng.ISuiteListener
  intf org.testng.ITestNGListener
@@ -1464,7 +1455,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public abstract interface org.testng.ITest
  meth public abstract java.lang.String getTestName()
  
-@@ -587,8 +766,6 @@ meth public abstract org.testng.IClass[] findTestClasses()
+@@ -587,8 +775,6 @@ meth public abstract org.testng.IClass[] findTestClasses()
  
  CLSS public abstract interface org.testng.ITestContext
  intf org.testng.IAttributes
@@ -1473,7 +1464,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract java.lang.String getHost()
  meth public abstract java.lang.String getName()
  meth public abstract java.lang.String getOutputDirectory()
-@@ -597,7 +774,6 @@ meth public abstract java.lang.String[] getIncludedGroups()
+@@ -597,7 +783,6 @@ meth public abstract java.lang.String[] getIncludedGroups()
  meth public abstract java.util.Collection<org.testng.ITestNGMethod> getExcludedMethods()
  meth public abstract java.util.Date getEndDate()
  meth public abstract java.util.Date getStartDate()
@@ -1481,7 +1472,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract org.testng.IResultMap getFailedButWithinSuccessPercentageTests()
  meth public abstract org.testng.IResultMap getFailedConfigurations()
  meth public abstract org.testng.IResultMap getFailedTests()
-@@ -608,17 +784,18 @@ meth public abstract org.testng.IResultMap getSkippedTests()
+@@ -608,17 +793,18 @@ meth public abstract org.testng.IResultMap getSkippedTests()
  meth public abstract org.testng.ISuite getSuite()
  meth public abstract org.testng.ITestNGMethod[] getAllTestMethods()
  meth public abstract org.testng.xml.XmlTest getCurrentXmlTest()
@@ -1508,7 +1499,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public abstract interface org.testng.ITestMethodFinder
  meth public abstract org.testng.ITestNGMethod[] getAfterClassMethods(java.lang.Class<?>)
-@@ -634,6 +811,7 @@ meth public abstract org.testng.ITestNGMethod[] getBeforeTestMethods(java.lang.C
+@@ -634,6 +820,7 @@ meth public abstract org.testng.ITestNGMethod[] getBeforeTestMethods(java.lang.C
  meth public abstract org.testng.ITestNGMethod[] getTestMethods(java.lang.Class<?>,org.testng.xml.XmlTest)
  
  CLSS public abstract interface org.testng.ITestNGListener
@@ -1516,7 +1507,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public abstract interface org.testng.ITestNGListenerFactory
  meth public abstract org.testng.ITestNGListener createListener(java.lang.Class<? extends org.testng.ITestNGListener>)
-@@ -658,17 +836,15 @@ meth public abstract boolean isBeforeTestConfiguration()
+@@ -658,17 +845,15 @@ meth public abstract boolean isBeforeTestConfiguration()
  meth public abstract boolean isTest()
  meth public abstract boolean skipFailedInvocations()
  meth public abstract int getCurrentInvocationCount()
@@ -1536,7 +1527,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract java.lang.String getDescription()
  meth public abstract java.lang.String getId()
  meth public abstract java.lang.String getMethodName()
-@@ -679,8 +855,6 @@ meth public abstract java.lang.String[] getBeforeGroups()
+@@ -679,8 +864,6 @@ meth public abstract java.lang.String[] getBeforeGroups()
  meth public abstract java.lang.String[] getGroups()
  meth public abstract java.lang.String[] getGroupsDependedUpon()
  meth public abstract java.lang.String[] getMethodsDependedUpon()
@@ -1545,7 +1536,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract java.util.List<java.lang.Integer> getFailedInvocationNumbers()
  meth public abstract java.util.List<java.lang.Integer> getInvocationNumbers()
  meth public abstract java.util.Map<java.lang.String,java.lang.String> findMethodParameters(org.testng.xml.XmlTest)
-@@ -688,7 +862,7 @@ meth public abstract long getDate()
+@@ -688,7 +871,7 @@ meth public abstract long getDate()
  meth public abstract long getInvocationTimeOut()
  meth public abstract long getTimeOut()
  meth public abstract long[] getInstanceHashCodes()
@@ -1554,7 +1545,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract org.testng.ITestClass getTestClass()
  meth public abstract org.testng.ITestNGMethod clone()
  meth public abstract org.testng.internal.ConstructorOrMethod getConstructorOrMethod()
-@@ -700,19 +874,33 @@ meth public abstract void setDate(long)
+@@ -700,19 +883,33 @@ meth public abstract void setDate(long)
  meth public abstract void setDescription(java.lang.String)
  meth public abstract void setId(java.lang.String)
  meth public abstract void setIgnoreMissingDependencies(boolean)
@@ -1589,7 +1580,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public abstract interface org.testng.ITestResult
  fld public final static int CREATED = -1
-@@ -724,13 +912,16 @@ fld public final static int SUCCESS_PERCENTAGE_FAILURE = 4
+@@ -724,13 +921,16 @@ fld public final static int SUCCESS_PERCENTAGE_FAILURE = 4
  intf java.lang.Comparable<org.testng.ITestResult>
  intf org.testng.IAttributes
  meth public abstract boolean isSuccess()
@@ -1606,7 +1597,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract java.lang.Throwable getThrowable()
  meth public abstract long getEndMillis()
  meth public abstract long getStartMillis()
-@@ -740,14 +931,24 @@ meth public abstract org.testng.ITestNGMethod getMethod()
+@@ -740,14 +940,24 @@ meth public abstract org.testng.ITestNGMethod getMethod()
  meth public abstract void setEndMillis(long)
  meth public abstract void setParameters(java.lang.Object[])
  meth public abstract void setStatus(int)
@@ -1634,7 +1625,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.Reporter
  cons public init()
-@@ -763,27 +964,7 @@ meth public static void log(java.lang.String,int,boolean)
+@@ -763,27 +973,7 @@ meth public static void log(java.lang.String,int,boolean)
  meth public static void setCurrentTestResult(org.testng.ITestResult)
  meth public static void setEscapeHtml(boolean)
  supr java.lang.Object
@@ -1663,7 +1654,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.SkipException
  cons public init(java.lang.String)
-@@ -792,7 +973,7 @@ meth protected void reduceStackTrace()
+@@ -792,7 +982,7 @@ meth protected void reduceStackTrace()
  meth protected void restoreStackTrace()
  meth public boolean isSkip()
  supr java.lang.RuntimeException
@@ -1672,7 +1663,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.SuiteRunState
  cons public init()
-@@ -802,24 +983,11 @@ supr java.lang.Object
+@@ -802,24 +992,11 @@ supr java.lang.Object
  hfds m_hasFailures
  
  CLSS public org.testng.SuiteRunner
@@ -1699,7 +1690,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth protected void addListener(org.testng.ISuiteListener)
  meth public com.google.inject.Injector getParentInjector()
  meth public java.lang.Object getAttribute(java.lang.String)
-@@ -831,20 +999,19 @@ meth public java.lang.String getOutputDirectory()
+@@ -831,20 +1008,19 @@ meth public java.lang.String getOutputDirectory()
  meth public java.lang.String getParallel()
  meth public java.lang.String getParameter(java.lang.String)
  meth public java.lang.String getParentModule()
@@ -1723,7 +1714,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void addListener(org.testng.ITestNGListener)
  meth public void afterInvocation(org.testng.IInvokedMethod,org.testng.ITestResult)
  meth public void beforeInvocation(org.testng.IInvokedMethod,org.testng.ITestResult)
-@@ -856,20 +1023,20 @@ meth public void setParentInjector(com.google.inject.Injector)
+@@ -856,20 +1032,20 @@ meth public void setParentInjector(com.google.inject.Injector)
  meth public void setReportResults(boolean)
  meth public void setSkipFailedInvocationCounts(java.lang.Boolean)
  supr java.lang.Object
@@ -1750,7 +1741,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.TestException
  cons public init(java.lang.String)
-@@ -883,6 +1050,7 @@ cons public init()
+@@ -883,6 +1059,7 @@ cons public init()
  intf org.testng.internal.IResultListener2
  meth protected org.testng.ITestNGMethod[] getAllTestMethods()
  meth public java.lang.String toString()
@@ -1758,7 +1749,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public java.util.List<org.testng.ITestContext> getTestContexts()
  meth public java.util.List<org.testng.ITestResult> getConfigurationFailures()
  meth public java.util.List<org.testng.ITestResult> getConfigurationSkips()
-@@ -890,16 +1058,14 @@ meth public java.util.List<org.testng.ITestResult> getFailedButWithinSuccessPerc
+@@ -890,16 +1067,14 @@ meth public java.util.List<org.testng.ITestResult> getFailedButWithinSuccessPerc
  meth public java.util.List<org.testng.ITestResult> getFailedTests()
  meth public java.util.List<org.testng.ITestResult> getPassedTests()
  meth public java.util.List<org.testng.ITestResult> getSkippedTests()
@@ -1776,7 +1767,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void onTestSuccess(org.testng.ITestResult)
  meth public void setAllTestMethods(java.util.List<org.testng.ITestNGMethod>)
  meth public void setFailedButWithinSuccessPercentageTests(java.util.List<org.testng.ITestResult>)
-@@ -907,7 +1073,7 @@ meth public void setFailedTests(java.util.List<org.testng.ITestResult>)
+@@ -907,7 +1082,7 @@ meth public void setFailedTests(java.util.List<org.testng.ITestResult>)
  meth public void setPassedTests(java.util.List<org.testng.ITestResult>)
  meth public void setSkippedTests(java.util.List<org.testng.ITestResult>)
  supr java.lang.Object
@@ -1785,7 +1776,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.TestNG
  cons public init()
-@@ -920,9 +1086,6 @@ fld public final static java.lang.Integer DEFAULT_VERBOSE
+@@ -920,9 +1095,6 @@ fld public final static java.lang.Integer DEFAULT_VERBOSE
  fld public final static java.lang.String DEFAULT_COMMAND_LINE_SUITE_NAME = "Command line suite"
  fld public final static java.lang.String DEFAULT_COMMAND_LINE_TEST_NAME = "Command line test"
  fld public final static java.lang.String DEFAULT_OUTPUTDIR = "test-output"
@@ -1795,7 +1786,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth protected java.util.List<org.testng.ISuite> runSuites()
  meth protected long getEnd()
  meth protected long getStart()
-@@ -930,9 +1093,14 @@ meth protected org.testng.internal.IConfiguration getConfiguration()
+@@ -930,9 +1102,14 @@ meth protected org.testng.internal.IConfiguration getConfiguration()
  meth protected static void validateCommandLineParameters(org.testng.CommandLineArgs)
  meth protected void configure(org.testng.CommandLineArgs)
  meth protected void setTestRunnerFactory(org.testng.ITestRunnerFactory)
@@ -1810,7 +1801,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public int getStatus()
  meth public java.lang.Integer getSuiteThreadPoolSize()
  meth public java.lang.String getDefaultSuiteName()
-@@ -944,59 +1112,41 @@ meth public java.util.List<org.testng.ITestListener> getTestListeners()
+@@ -944,69 +1121,53 @@ meth public java.util.List<org.testng.ITestListener> getTestListeners()
  meth public java.util.List<org.testng.ITestNGListener> getServiceLoaderListeners()
  meth public java.util.Set<org.testng.IReporter> getReporters()
  meth public org.testng.IAnnotationTransformer getAnnotationTransformer()
@@ -1819,7 +1810,8 @@ index 9bcfefd912..2b345b1c30 100644
 -meth public static boolean isJdk14()
 - anno 0 java.lang.Deprecated()
  meth public static org.testng.TestNG getDefault()
-  anno 0 java.lang.Deprecated()
+- anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  meth public static org.testng.TestNG privateMain(java.lang.String[],org.testng.ITestListener)
  meth public static void main(java.lang.String[])
 -meth public static void setTestNGVersion()
@@ -1832,7 +1824,7 @@ index 9bcfefd912..2b345b1c30 100644
 -meth public void addInvokedMethodListener(org.testng.IInvokedMethodListener)
 - anno 0 java.lang.Deprecated()
  meth public void addListener(java.lang.Object)
-  anno 0 java.lang.Deprecated()
+- anno 0 java.lang.Deprecated()
 -meth public void addListener(org.testng.IClassListener)
 - anno 0 java.lang.Deprecated()
 -meth public void addListener(org.testng.IInvokedMethodListener)
@@ -1843,12 +1835,14 @@ index 9bcfefd912..2b345b1c30 100644
 - anno 0 java.lang.Deprecated()
 -meth public void addListener(org.testng.ITestListener)
 - anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  meth public void addListener(org.testng.ITestNGListener)
  meth public void addMethodSelector(java.lang.String,int)
  meth public void addMethodSelector(org.testng.xml.XmlMethodSelector)
 +meth public void alwaysRunListeners(boolean)
  meth public void configure(java.util.Map)
-  anno 0 java.lang.Deprecated()
+- anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  meth public void initializeEverything()
  meth public void initializeSuitesAndJarFile()
 +meth public void propagateDataProviderFailureAsTestFailure()
@@ -1879,7 +1873,8 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void setObjectFactory(org.testng.ITestObjectFactory)
  meth public void setOutputDirectory(java.lang.String)
  meth public void setParallel(java.lang.String)
-@@ -1004,9 +1154,11 @@ meth public void setParallel(java.lang.String)
+- anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  meth public void setParallel(org.testng.xml.XmlSuite$ParallelMode)
  meth public void setPreserveOrder(boolean)
  meth public void setRandomizeSuites(boolean)
@@ -1887,11 +1882,11 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void setServiceLoaderClassLoader(java.net.URLClassLoader)
  meth public void setSkipFailedInvocationCounts(java.lang.Boolean)
  meth public void setSourcePath(java.lang.String)
-+ anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  meth public void setSuiteThreadPoolSize(java.lang.Integer)
  meth public void setTestClasses(java.lang.Class[])
  meth public void setTestJar(java.lang.String)
-@@ -1017,31 +1169,14 @@ meth public void setUseDefaultListeners(boolean)
+@@ -1017,31 +1178,14 @@ meth public void setUseDefaultListeners(boolean)
  meth public void setVerbose(int)
  meth public void setXmlPathInJar(java.lang.String)
  meth public void setXmlSuites(java.util.List<org.testng.xml.XmlSuite>)
@@ -1928,7 +1923,7 @@ index 9bcfefd912..2b345b1c30 100644
  hcls TestNGLogOS
  
  CLSS public final static !enum org.testng.TestNGAntTask$Mode
-@@ -1068,16 +1203,19 @@ cons public init()
+@@ -1068,16 +1212,19 @@ cons public init()
  meth public static org.testng.ITestNGMethod createITestNGMethod(org.testng.ITestNGMethod,java.lang.reflect.Method)
  supr java.lang.Object
  
@@ -1954,7 +1949,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public java.lang.Object getAttribute(java.lang.String)
  meth public java.lang.Object removeAttribute(java.lang.String)
  meth public java.lang.String getHost()
-@@ -1089,15 +1227,15 @@ meth public java.util.Collection<org.testng.ITestClass> getTestClasses()
+@@ -1089,15 +1236,15 @@ meth public java.util.Collection<org.testng.ITestClass> getTestClasses()
  meth public java.util.Collection<org.testng.ITestNGMethod> getExcludedMethods()
  meth public java.util.Date getEndDate()
  meth public java.util.Date getStartDate()
@@ -1973,7 +1968,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public org.testng.IResultMap getFailedButWithinSuccessPercentageTests()
  meth public org.testng.IResultMap getFailedConfigurations()
  meth public org.testng.IResultMap getFailedTests()
-@@ -1106,19 +1244,18 @@ meth public org.testng.IResultMap getPassedTests()
+@@ -1106,19 +1253,18 @@ meth public org.testng.IResultMap getPassedTests()
  meth public org.testng.IResultMap getSkippedConfigurations()
  meth public org.testng.IResultMap getSkippedTests()
  meth public org.testng.ISuite getSuite()
@@ -1995,7 +1990,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void addListener(org.testng.ITestNGListener)
  meth public void addPassedTest(org.testng.ITestNGMethod,org.testng.ITestResult)
  meth public void addSkippedTest(org.testng.ITestNGMethod,org.testng.ITestResult)
-@@ -1128,7 +1265,7 @@ meth public void setOutputDirectory(java.lang.String)
+@@ -1128,7 +1274,7 @@ meth public void setOutputDirectory(java.lang.String)
  meth public void setTestName(java.lang.String)
  meth public void setVerbose(int)
  supr java.lang.Object
@@ -2004,7 +1999,7 @@ index 9bcfefd912..2b345b1c30 100644
  hcls ConfigurationListener
  
  CLSS public final static !enum org.testng.TestRunner$PriorityWeight
-@@ -1202,6 +1339,7 @@ meth public abstract !hasdefault java.lang.String description()
+@@ -1202,6 +1348,7 @@ meth public abstract !hasdefault java.lang.String description()
  meth public abstract !hasdefault java.lang.String[] dependsOnGroups()
  meth public abstract !hasdefault java.lang.String[] dependsOnMethods()
  meth public abstract !hasdefault java.lang.String[] groups()
@@ -2012,7 +2007,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract !hasdefault long timeOut()
  
  CLSS public abstract interface !annotation org.testng.annotations.AfterSuite
-@@ -1239,6 +1377,7 @@ CLSS public abstract interface !annotation org.testng.annotations.BeforeClass
+@@ -1239,6 +1386,7 @@ CLSS public abstract interface !annotation org.testng.annotations.BeforeClass
  intf java.lang.annotation.Annotation
  meth public abstract !hasdefault boolean alwaysRun()
  meth public abstract !hasdefault boolean enabled()
@@ -2020,7 +2015,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract !hasdefault boolean inheritGroups()
  meth public abstract !hasdefault java.lang.String description()
  meth public abstract !hasdefault java.lang.String[] dependsOnGroups()
-@@ -1269,11 +1408,13 @@ intf java.lang.annotation.Annotation
+@@ -1269,11 +1417,13 @@ intf java.lang.annotation.Annotation
  meth public abstract !hasdefault boolean alwaysRun()
  meth public abstract !hasdefault boolean enabled()
  meth public abstract !hasdefault boolean firstTimeOnly()
@@ -2034,7 +2029,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract !hasdefault long timeOut()
  
  CLSS public abstract interface !annotation org.testng.annotations.BeforeSuite
-@@ -1297,6 +1438,7 @@ CLSS public abstract interface !annotation org.testng.annotations.BeforeTest
+@@ -1297,6 +1447,7 @@ CLSS public abstract interface !annotation org.testng.annotations.BeforeTest
  intf java.lang.annotation.Annotation
  meth public abstract !hasdefault boolean alwaysRun()
  meth public abstract !hasdefault boolean enabled()
@@ -2042,7 +2037,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract !hasdefault boolean inheritGroups()
  meth public abstract !hasdefault java.lang.String description()
  meth public abstract !hasdefault java.lang.String[] dependsOnGroups()
-@@ -1304,13 +1446,23 @@ meth public abstract !hasdefault java.lang.String[] dependsOnMethods()
+@@ -1304,13 +1455,23 @@ meth public abstract !hasdefault java.lang.String[] dependsOnMethods()
  meth public abstract !hasdefault java.lang.String[] groups()
  meth public abstract !hasdefault long timeOut()
  
@@ -2066,7 +2061,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract !hasdefault java.lang.String name()
  
  CLSS public abstract interface !annotation org.testng.annotations.Factory
-@@ -1322,8 +1474,6 @@ meth public abstract !hasdefault boolean enabled()
+@@ -1322,8 +1483,6 @@ meth public abstract !hasdefault boolean enabled()
  meth public abstract !hasdefault int[] indices()
  meth public abstract !hasdefault java.lang.Class<?> dataProviderClass()
  meth public abstract !hasdefault java.lang.String dataProvider()
@@ -2075,7 +2070,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public abstract interface !annotation org.testng.annotations.Guice
   anno 0 java.lang.annotation.Documented()
-@@ -1348,17 +1498,26 @@ meth public abstract boolean getBeforeTestClass()
+@@ -1348,17 +1507,26 @@ meth public abstract boolean getBeforeTestClass()
  meth public abstract boolean getBeforeTestMethod()
  meth public abstract boolean getInheritGroups()
  meth public abstract boolean isFakeConfiguration()
@@ -2102,7 +2097,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public abstract interface org.testng.annotations.IFactoryAnnotation
  intf org.testng.annotations.IParameterizable
-@@ -1366,6 +1525,9 @@ intf org.testng.internal.annotations.IDataProvidable
+@@ -1366,6 +1534,9 @@ intf org.testng.internal.annotations.IDataProvidable
  meth public abstract java.util.List<java.lang.Integer> getIndices()
  meth public abstract void setIndices(java.util.List<java.lang.Integer>)
  
@@ -2112,7 +2107,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public abstract interface org.testng.annotations.IListenersAnnotation
  intf org.testng.annotations.IAnnotation
  meth public abstract java.lang.Class<? extends org.testng.ITestNGListener>[] getValue()
-@@ -1377,8 +1539,6 @@ intf org.testng.annotations.IAnnotation
+@@ -1377,8 +1548,6 @@ intf org.testng.annotations.IAnnotation
  CLSS public abstract interface org.testng.annotations.IParameterizable
  intf org.testng.annotations.IAnnotation
  meth public abstract boolean getEnabled()
@@ -2121,7 +2116,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract void setEnabled(boolean)
  
  CLSS public abstract interface org.testng.annotations.IParametersAnnotation
-@@ -1389,7 +1549,6 @@ CLSS public abstract interface org.testng.annotations.ITestAnnotation
+@@ -1389,7 +1558,6 @@ CLSS public abstract interface org.testng.annotations.ITestAnnotation
  intf org.testng.annotations.ITestOrConfiguration
  intf org.testng.internal.annotations.IDataProvidable
  meth public abstract boolean getAlwaysRun()
@@ -2129,7 +2124,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract boolean getSingleThreaded()
  meth public abstract boolean ignoreMissingDependencies()
  meth public abstract boolean skipFailedInvocations()
-@@ -1397,25 +1556,28 @@ meth public abstract int getInvocationCount()
+@@ -1397,25 +1565,28 @@ meth public abstract int getInvocationCount()
  meth public abstract int getPriority()
  meth public abstract int getSuccessPercentage()
  meth public abstract int getThreadPoolSize()
@@ -2161,7 +2156,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract void setSingleThreaded(boolean)
  meth public abstract void setSkipFailedInvocations(boolean)
  meth public abstract void setSuccessPercentage(int)
-@@ -1443,6 +1605,7 @@ intf java.lang.annotation.Annotation
+@@ -1443,6 +1614,7 @@ intf java.lang.annotation.Annotation
  meth public abstract !hasdefault java.lang.String value()
  
  CLSS public abstract interface !annotation org.testng.annotations.Listeners
@@ -2169,7 +2164,7 @@ index 9bcfefd912..2b345b1c30 100644
   anno 0 java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy value=RUNTIME)
   anno 0 java.lang.annotation.Target(java.lang.annotation.ElementType[] value=[TYPE])
  intf java.lang.annotation.Annotation
-@@ -1467,6 +1630,7 @@ meth public abstract !hasdefault java.lang.String value()
+@@ -1467,6 +1639,7 @@ meth public abstract !hasdefault java.lang.String value()
  CLSS public abstract interface !annotation org.testng.annotations.Parameters
   anno 0 java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy value=RUNTIME)
   anno 0 java.lang.annotation.Target(java.lang.annotation.ElementType[] value=[METHOD, CONSTRUCTOR, TYPE])
@@ -2177,7 +2172,7 @@ index 9bcfefd912..2b345b1c30 100644
  intf java.lang.annotation.Annotation
  meth public abstract !hasdefault java.lang.String[] value()
  
-@@ -1477,17 +1641,17 @@ intf java.lang.annotation.Annotation
+@@ -1477,17 +1650,17 @@ intf java.lang.annotation.Annotation
  meth public abstract !hasdefault boolean alwaysRun()
  meth public abstract !hasdefault boolean enabled()
  meth public abstract !hasdefault boolean ignoreMissingDependencies()
@@ -2197,7 +2192,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public abstract !hasdefault java.lang.String description()
  meth public abstract !hasdefault java.lang.String expectedExceptionsMessageRegExp()
  meth public abstract !hasdefault java.lang.String suiteName()
-@@ -1495,22 +1659,24 @@ meth public abstract !hasdefault java.lang.String testName()
+@@ -1495,22 +1668,24 @@ meth public abstract !hasdefault java.lang.String testName()
  meth public abstract !hasdefault java.lang.String[] dependsOnGroups()
  meth public abstract !hasdefault java.lang.String[] dependsOnMethods()
  meth public abstract !hasdefault java.lang.String[] groups()
@@ -2225,7 +2220,7 @@ index 9bcfefd912..2b345b1c30 100644
  intf org.testng.internal.IResultListener
  
  CLSS public abstract interface org.testng.internal.ITestResultNotifier
-@@ -1519,18 +1685,20 @@ meth public abstract java.util.List<org.testng.ITestListener> getTestListeners()
+@@ -1519,18 +1694,20 @@ meth public abstract java.util.List<org.testng.ITestListener> getTestListeners()
  meth public abstract java.util.Set<org.testng.ITestResult> getFailedTests(org.testng.ITestNGMethod)
  meth public abstract java.util.Set<org.testng.ITestResult> getPassedTests(org.testng.ITestNGMethod)
  meth public abstract java.util.Set<org.testng.ITestResult> getSkippedTests(org.testng.ITestNGMethod)
@@ -2247,7 +2242,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.internal.junit.ArrayAsserts
  cons public init()
-@@ -1554,15 +1722,42 @@ meth public static void assertArrayEquals(long[],long[])
+@@ -1554,15 +1731,42 @@ meth public static void assertArrayEquals(long[],long[])
  meth public static void assertArrayEquals(short[],short[])
  supr java.lang.Object
  
@@ -2298,7 +2293,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.reporters.Buffer
  cons public init()
-@@ -1571,28 +1766,12 @@ supr java.lang.Object
+@@ -1571,28 +1775,12 @@ supr java.lang.Object
  
  CLSS public org.testng.reporters.DotTestListener
  cons public init()
@@ -2329,7 +2324,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.reporters.EmailableReporter2
  cons public init()
-@@ -1604,6 +1783,7 @@ innr protected static SuiteResult
+@@ -1604,6 +1792,7 @@ innr protected static SuiteResult
  innr protected static TestResult
  intf org.testng.IReporter
  meth protected java.io.PrintWriter createWriter(java.lang.String) throws java.io.IOException
@@ -2337,7 +2332,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth protected void writeBody()
  meth protected void writeDocumentEnd()
  meth protected void writeDocumentStart()
-@@ -1622,7 +1802,7 @@ meth public java.lang.String getFileName()
+@@ -1622,7 +1811,7 @@ meth public java.lang.String getFileName()
  meth public void generateReport(java.util.List<org.testng.xml.XmlSuite>,java.util.List<org.testng.ISuite>,java.lang.String)
  meth public void setFileName(java.lang.String)
  supr java.lang.Object
@@ -2346,7 +2341,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS protected static org.testng.reporters.EmailableReporter2$ClassResult
   outer org.testng.reporters.EmailableReporter2
-@@ -1644,8 +1824,9 @@ CLSS protected static org.testng.reporters.EmailableReporter2$SuiteResult
+@@ -1644,8 +1833,9 @@ CLSS protected static org.testng.reporters.EmailableReporter2$SuiteResult
  cons public init(org.testng.ISuite)
  meth public java.lang.String getSuiteName()
  meth public java.util.List<org.testng.reporters.EmailableReporter2$TestResult> getTestResults()
@@ -2357,7 +2352,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS protected static org.testng.reporters.EmailableReporter2$TestResult
   outer org.testng.reporters.EmailableReporter2
-@@ -1655,6 +1836,7 @@ meth protected java.lang.String formatGroups(java.lang.String[])
+@@ -1655,6 +1845,7 @@ meth protected java.lang.String formatGroups(java.lang.String[])
  meth protected java.util.List<org.testng.reporters.EmailableReporter2$ClassResult> groupResults(java.util.Set<org.testng.ITestResult>)
  meth public int getFailedTestCount()
  meth public int getPassedTestCount()
@@ -2365,7 +2360,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public int getSkippedTestCount()
  meth public java.lang.String getExcludedGroups()
  meth public java.lang.String getIncludedGroups()
-@@ -1662,16 +1844,27 @@ meth public java.lang.String getTestName()
+@@ -1662,16 +1853,27 @@ meth public java.lang.String getTestName()
  meth public java.util.List<org.testng.reporters.EmailableReporter2$ClassResult> getFailedConfigurationResults()
  meth public java.util.List<org.testng.reporters.EmailableReporter2$ClassResult> getFailedTestResults()
  meth public java.util.List<org.testng.reporters.EmailableReporter2$ClassResult> getPassedTestResults()
@@ -2378,7 +2373,7 @@ index 9bcfefd912..2b345b1c30 100644
 +hfds duration,excludedGroups,failedConfigurationResults,failedTestCount,failedTestResults,includedGroups,passedTestCount,passedTestResults,retriedTestCount,retriedTestResults,skippedConfigurationResults,skippedTestCount,skippedTestResults,testName
  
  CLSS public org.testng.reporters.ExitCodeListener
-+ anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  cons public init()
 -cons public init(org.testng.TestNG)
 -supr org.testng.TestNG$ExitCodeListener
@@ -2396,7 +2391,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.reporters.FailedReporter
  cons public init()
-@@ -1680,8 +1873,8 @@ fld public final static java.lang.String TESTNG_FAILED_XML = "testng-failed.xml"
+@@ -1680,8 +1882,8 @@ fld public final static java.lang.String TESTNG_FAILED_XML = "testng-failed.xml"
  intf org.testng.IReporter
  meth protected void generateFailureSuite(org.testng.xml.XmlSuite,org.testng.ISuite,java.lang.String)
  meth public void generateReport(java.util.List<org.testng.xml.XmlSuite>,java.util.List<org.testng.ISuite>,java.lang.String)
@@ -2407,7 +2402,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.reporters.FileStringBuffer
  cons public init()
-@@ -1689,25 +1882,19 @@ cons public init(int)
+@@ -1689,25 +1891,19 @@ cons public init(int)
  intf org.testng.reporters.IBuffer
  meth public java.lang.String toString()
  meth public org.testng.reporters.FileStringBuffer append(java.lang.CharSequence)
@@ -2436,7 +2431,7 @@ index 9bcfefd912..2b345b1c30 100644
  supr java.lang.Object
  hfds CSS_FILE_NAME,MY_CSS_FILE_NAME
  
-@@ -1715,6 +1902,13 @@ CLSS public abstract interface org.testng.reporters.IBuffer
+@@ -1715,6 +1911,13 @@ CLSS public abstract interface org.testng.reporters.IBuffer
  meth public abstract org.testng.reporters.IBuffer append(java.lang.CharSequence)
  meth public abstract void toWriter(java.io.Writer)
  
@@ -2450,7 +2445,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public org.testng.reporters.JUnitReportReporter
  cons public init()
  intf org.testng.IReporter
-@@ -1728,7 +1922,6 @@ CLSS public org.testng.reporters.JUnitXMLReporter
+@@ -1728,7 +1931,6 @@ CLSS public org.testng.reporters.JUnitXMLReporter
  cons public init()
  intf org.testng.internal.IResultListener2
  meth protected void generateReport(org.testng.ITestContext)
@@ -2458,7 +2453,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void onConfigurationFailure(org.testng.ITestResult)
  meth public void onConfigurationSkip(org.testng.ITestResult)
  meth public void onConfigurationSuccess(org.testng.ITestResult)
-@@ -1737,21 +1930,35 @@ meth public void onStart(org.testng.ITestContext)
+@@ -1737,21 +1939,35 @@ meth public void onStart(org.testng.ITestContext)
  meth public void onTestFailedButWithinSuccessPercentage(org.testng.ITestResult)
  meth public void onTestFailure(org.testng.ITestResult)
  meth public void onTestSkipped(org.testng.ITestResult)
@@ -2497,11 +2492,11 @@ index 9bcfefd912..2b345b1c30 100644
 -hfds C,D,S,m_outputDirectory,m_testCount,m_testMap
  
  CLSS public org.testng.reporters.SuiteHTMLReporter
-+ anno 0 java.lang.Deprecated()
++ anno 0 java.lang.Deprecated(boolean forRemoval=false, java.lang.String since="")
  cons public init()
  fld public final static java.lang.String AFTER = "&lt;&lt;"
  fld public final static java.lang.String BEFORE = "&gt;&gt;"
-@@ -1770,25 +1977,27 @@ hfds CLOSE_TD,SP,SP2,TD_A_TARGET_MAIN_FRAME_HREF,m_classes,m_outputDirectory
+@@ -1770,25 +1986,27 @@ hfds CLOSE_TD,SP,SP2,TD_A_TARGET_MAIN_FRAME_HREF,m_classes,m_outputDirectory
  
  CLSS public org.testng.reporters.TestHTMLReporter
  cons public init()
@@ -2534,7 +2529,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth protected void log(java.lang.String)
  meth public java.lang.String toString()
  meth public void beforeConfiguration(org.testng.ITestResult)
-@@ -1802,7 +2011,7 @@ meth public void onTestFailure(org.testng.ITestResult)
+@@ -1802,7 +2020,7 @@ meth public void onTestFailure(org.testng.ITestResult)
  meth public void onTestSkipped(org.testng.ITestResult)
  meth public void onTestStart(org.testng.ITestResult)
  meth public void onTestSuccess(org.testng.ITestResult)
@@ -2543,7 +2538,7 @@ index 9bcfefd912..2b345b1c30 100644
  hfds prefix,suiteName
  hcls Status
  
-@@ -1833,49 +2042,8 @@ fld public final static java.lang.String TESTSUITES = "testsuites"
+@@ -1833,49 +2051,8 @@ fld public final static java.lang.String TESTSUITES = "testsuites"
  
  CLSS public org.testng.reporters.XMLReporter
  cons public init()
@@ -2594,7 +2589,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.reporters.XMLReporterConfig
  cons public init()
-@@ -1896,6 +2064,7 @@ fld public final static java.lang.String ATTR_IS_NULL = "is-null"
+@@ -1896,6 +2073,7 @@ fld public final static java.lang.String ATTR_IS_NULL = "is-null"
  fld public final static java.lang.String ATTR_METHOD_SIG = "signature"
  fld public final static java.lang.String ATTR_NAME = "name"
  fld public final static java.lang.String ATTR_PACKAGE = "package"
@@ -2602,7 +2597,7 @@ index 9bcfefd912..2b345b1c30 100644
  fld public final static java.lang.String ATTR_STARTED_AT = "started-at"
  fld public final static java.lang.String ATTR_STATUS = "status"
  fld public final static java.lang.String ATTR_TEST_INSTANCE_NAME = "test-instance-name"
-@@ -1903,6 +2072,10 @@ fld public final static java.lang.String ATTR_URL = "url"
+@@ -1903,6 +2081,10 @@ fld public final static java.lang.String ATTR_URL = "url"
  fld public final static java.lang.String TAG_ATTRIBUTE = "attribute"
  fld public final static java.lang.String TAG_ATTRIBUTES = "attributes"
  fld public final static java.lang.String TAG_CLASS = "class"
@@ -2613,7 +2608,7 @@ index 9bcfefd912..2b345b1c30 100644
  fld public final static java.lang.String TAG_EXCEPTION = "exception"
  fld public final static java.lang.String TAG_FULL_STACKTRACE = "full-stacktrace"
  fld public final static java.lang.String TAG_GROUP = "group"
-@@ -1923,14 +2096,13 @@ fld public final static java.lang.String TEST_FAILED = "FAIL"
+@@ -1923,14 +2105,13 @@ fld public final static java.lang.String TEST_FAILED = "FAIL"
  fld public final static java.lang.String TEST_PASSED = "PASS"
  fld public final static java.lang.String TEST_SKIPPED = "SKIP"
  innr public final static !enum StackTraceLevels
@@ -2629,7 +2624,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public java.lang.String getOutputDirectory()
  meth public java.lang.String getTimestampFormat()
  meth public org.testng.reporters.XMLReporterConfig$StackTraceLevels getStackTraceOutput()
-@@ -1944,8 +2116,6 @@ meth public void setGenerateTestResultAttributes(boolean)
+@@ -1944,8 +2125,6 @@ meth public void setGenerateTestResultAttributes(boolean)
  meth public void setOutputDirectory(java.lang.String)
  meth public void setSplitClassAndPackageNames(boolean)
  meth public void setStackTraceOutput(org.testng.reporters.XMLReporterConfig$StackTraceLevels)
@@ -2638,7 +2633,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void setTimestampFormat(java.lang.String)
  supr java.lang.Object
  hfds FMT_DEFAULT,STATUSES,fileFragmentationLevel,generateDependsOnGroups,generateDependsOnMethods,generateGroupsAttribute,generateTestResultAttributes,outputDirectory,splitClassAndPackageNames,stackTraceOutputLevel,stackTraceOutputMethod,timestampFormat
-@@ -2002,11 +2172,11 @@ supr java.lang.Object
+@@ -2002,11 +2181,11 @@ supr java.lang.Object
  hfds DEFAULT_INDENT_INCREMENT,INVALID_XML_CHARS,defaultComment,m_buffer,m_currentIndent,m_tagStack
  
  CLSS public org.testng.reporters.XMLSuiteResultWriter
@@ -2652,7 +2647,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public final org.testng.reporters.XMLUtils
  meth public static java.lang.String escape(java.lang.String)
-@@ -2022,12 +2192,25 @@ meth public static void xmlRequired(org.testng.reporters.IBuffer,java.lang.Strin
+@@ -2022,12 +2201,25 @@ meth public static void xmlRequired(org.testng.reporters.IBuffer,java.lang.Strin
  supr java.lang.Object
  hfds EOL
  
@@ -2681,7 +2676,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public abstract org.testng.util.RetryAnalyzerCount
  cons public init()
  intf org.testng.IRetryAnalyzer
-@@ -2039,19 +2222,26 @@ supr java.lang.Object
+@@ -2039,19 +2231,26 @@ supr java.lang.Object
  hfds count
  
  CLSS public final org.testng.util.Strings
@@ -2710,7 +2705,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public abstract interface org.testng.xml.IFileParser<%0 extends java.lang.Object>
  meth public abstract {org.testng.xml.IFileParser%0} parse(java.lang.String,java.io.InputStream,boolean)
  
-@@ -2066,63 +2256,6 @@ CLSS public abstract interface org.testng.xml.IWeaveXml
+@@ -2066,63 +2265,6 @@ CLSS public abstract interface org.testng.xml.IWeaveXml
  meth public abstract java.lang.String asXml(org.testng.xml.XmlSuite)
  meth public abstract java.lang.String asXml(org.testng.xml.XmlTest,java.lang.String)
  
@@ -2774,7 +2769,7 @@ index 9bcfefd912..2b345b1c30 100644
  CLSS public org.testng.xml.SuiteXmlParser
  cons public init()
  intf org.testng.xml.ISuiteParser
-@@ -2135,21 +2268,21 @@ cons public init(java.lang.String,boolean)
+@@ -2135,21 +2277,21 @@ cons public init(java.lang.String,boolean)
  meth public org.testng.xml.XmlSuite getSuite()
  meth public org.xml.sax.InputSource resolveEntity(java.lang.String,java.lang.String) throws java.io.IOException,org.xml.sax.SAXException
  meth public void characters(char[],int,int)
@@ -2807,7 +2802,7 @@ index 9bcfefd912..2b345b1c30 100644
  hcls Include,Location
  
  CLSS public abstract org.testng.xml.XMLParser<%0 extends java.lang.Object>
-@@ -2157,7 +2290,7 @@ cons public init()
+@@ -2157,7 +2299,7 @@ cons public init()
  intf org.testng.xml.IFileParser<{org.testng.xml.XMLParser%0}>
  meth public void parse(java.io.InputStream,org.xml.sax.helpers.DefaultHandler) throws java.io.IOException,org.xml.sax.SAXException
  supr java.lang.Object
@@ -2816,7 +2811,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.xml.XmlClass
  cons public init()
-@@ -2181,8 +2314,6 @@ meth public java.util.List<java.lang.String> getExcludedMethods()
+@@ -2181,8 +2323,6 @@ meth public java.util.List<java.lang.String> getExcludedMethods()
  meth public java.util.List<org.testng.xml.XmlInclude> getIncludedMethods()
  meth public java.util.Map<java.lang.String,java.lang.String> getAllParameters()
  meth public java.util.Map<java.lang.String,java.lang.String> getLocalParameters()
@@ -2825,7 +2820,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public static java.lang.String listToString(java.util.List<java.lang.Integer>)
  meth public void setClass(java.lang.Class)
  meth public void setExcludedMethods(java.util.List<java.lang.String>)
-@@ -2228,6 +2359,7 @@ supr java.lang.Object
+@@ -2228,6 +2368,7 @@ supr java.lang.Object
  hfds m_defines,m_dependencies,m_run
  
  CLSS public org.testng.xml.XmlInclude
@@ -2833,7 +2828,7 @@ index 9bcfefd912..2b345b1c30 100644
  cons public init(java.lang.String)
  cons public init(java.lang.String,int)
  cons public init(java.lang.String,java.util.List<java.lang.Integer>,int)
-@@ -2240,10 +2372,10 @@ meth public java.lang.String toXml(java.lang.String)
+@@ -2240,10 +2381,10 @@ meth public java.lang.String toXml(java.lang.String)
  meth public java.util.List<java.lang.Integer> getInvocationNumbers()
  meth public java.util.Map<java.lang.String,java.lang.String> getAllParameters()
  meth public java.util.Map<java.lang.String,java.lang.String> getLocalParameters()
@@ -2846,7 +2841,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void setParameters(java.util.Map<java.lang.String,java.lang.String>)
  meth public void setXmlClass(org.testng.xml.XmlClass)
  supr java.lang.Object
-@@ -2255,13 +2387,10 @@ meth public boolean equals(java.lang.Object)
+@@ -2255,13 +2396,10 @@ meth public boolean equals(java.lang.Object)
  meth public int getPriority()
  meth public int hashCode()
  meth public java.lang.String getClassName()
@@ -2861,7 +2856,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void setName(java.lang.String)
  meth public void setPriority(int)
  meth public void setScript(org.testng.xml.XmlScript)
-@@ -2304,18 +2433,18 @@ hfds m_excludes,m_includes
+@@ -2304,18 +2442,18 @@ hfds m_excludes,m_includes
  
  CLSS public org.testng.xml.XmlScript
  cons public init()
@@ -2884,7 +2879,7 @@ index 9bcfefd912..2b345b1c30 100644
  fld public final static java.lang.Boolean DEFAULT_MIXED
  fld public final static java.lang.Boolean DEFAULT_PRESERVE_ORDER
  fld public final static java.lang.Boolean DEFAULT_SKIP_FAILED_INVOCATION_COUNTS
-@@ -2329,14 +2458,16 @@ innr public final static !enum ParallelMode
+@@ -2329,14 +2467,16 @@ innr public final static !enum ParallelMode
  intf java.lang.Cloneable
  meth public boolean equals(java.lang.Object)
  meth public boolean isParsed()
@@ -2902,7 +2897,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public java.lang.Integer getVerbose()
  meth public java.lang.Object clone()
  meth public java.lang.String getFileName()
-@@ -2362,7 +2493,6 @@ meth public java.util.List<org.testng.xml.XmlTest> getTests()
+@@ -2362,7 +2502,6 @@ meth public java.util.List<org.testng.xml.XmlTest> getTests()
  meth public java.util.Map<java.lang.String,java.lang.String> getAllParameters()
  meth public java.util.Map<java.lang.String,java.lang.String> getParameters()
  meth public long getTimeOut(long)
@@ -2910,7 +2905,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public org.testng.xml.XmlGroups getGroups()
  meth public org.testng.xml.XmlMethodSelectors getXmlMethodSelectors()
  meth public org.testng.xml.XmlSuite getParentSuite()
-@@ -2387,24 +2517,19 @@ meth public void setGroupByInstances(boolean)
+@@ -2387,24 +2526,19 @@ meth public void setGroupByInstances(boolean)
  meth public void setGroups(org.testng.xml.XmlGroups)
  meth public void setGuiceStage(java.lang.String)
  meth public void setIncludedGroups(java.util.List<java.lang.String>)
@@ -2937,7 +2932,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void setSkipFailedInvocationCounts(boolean)
  meth public void setSuiteFiles(java.util.List<java.lang.String>)
  meth public void setTests(java.util.List<org.testng.xml.XmlTest>)
-@@ -2413,8 +2538,9 @@ meth public void setTimeOut(java.lang.String)
+@@ -2413,8 +2547,9 @@ meth public void setTimeOut(java.lang.String)
  meth public void setVerbose(java.lang.Integer)
  meth public void setXmlMethodSelectors(org.testng.xml.XmlMethodSelectors)
  meth public void setXmlPackages(java.util.List<org.testng.xml.XmlPackage>)
@@ -2948,7 +2943,7 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public final static !enum org.testng.xml.XmlSuite$FailurePolicy
   outer org.testng.xml.XmlSuite
-@@ -2430,18 +2556,13 @@ hfds name
+@@ -2430,18 +2565,13 @@ hfds name
  CLSS public final static !enum org.testng.xml.XmlSuite$ParallelMode
   outer org.testng.xml.XmlSuite
  fld public final static org.testng.xml.XmlSuite$ParallelMode CLASSES
@@ -2967,7 +2962,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public static org.testng.xml.XmlSuite$ParallelMode valueOf(java.lang.String)
  meth public static org.testng.xml.XmlSuite$ParallelMode[] values()
  supr java.lang.Enum<org.testng.xml.XmlSuite$ParallelMode>
-@@ -2456,9 +2577,10 @@ intf java.lang.Cloneable
+@@ -2456,9 +2586,10 @@ intf java.lang.Cloneable
  meth public !varargs void addMetaGroup(java.lang.String,java.lang.String[])
  meth public boolean equals(java.lang.Object)
  meth public boolean getGroupByInstances()
@@ -2979,7 +2974,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public int getIndex()
  meth public int getThreadCount()
  meth public int getVerbose()
-@@ -2466,7 +2588,6 @@ meth public int hashCode()
+@@ -2466,7 +2597,6 @@ meth public int hashCode()
  meth public java.lang.Boolean getAllowReturnValues()
  meth public java.lang.Boolean getPreserveOrder()
  meth public java.lang.Object clone()
@@ -2987,7 +2982,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public java.lang.String getName()
  meth public java.lang.String getParameter(java.lang.String)
  meth public java.lang.String getTimeOut()
-@@ -2481,15 +2602,11 @@ meth public java.util.List<org.testng.xml.XmlPackage> getPackages()
+@@ -2481,15 +2611,11 @@ meth public java.util.List<org.testng.xml.XmlPackage> getPackages()
  meth public java.util.List<org.testng.xml.XmlPackage> getXmlPackages()
  meth public java.util.Map<java.lang.String,java.lang.String> getAllParameters()
  meth public java.util.Map<java.lang.String,java.lang.String> getLocalParameters()
@@ -3004,7 +2999,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public org.testng.xml.XmlSuite$ParallelMode getParallel()
  meth public void addExcludedGroup(java.lang.String)
  meth public void addIncludedGroup(java.lang.String)
-@@ -2497,17 +2614,12 @@ meth public void addMetaGroup(java.lang.String,java.util.List<java.lang.String>)
+@@ -2497,17 +2623,12 @@ meth public void addMetaGroup(java.lang.String,java.util.List<java.lang.String>)
  meth public void addParameter(java.lang.String,java.lang.String)
  meth public void addXmlDependencyGroup(java.lang.String,java.lang.String)
  meth public void setAllowReturnValues(java.lang.Boolean)
@@ -3023,7 +3018,7 @@ index 9bcfefd912..2b345b1c30 100644
  meth public void setMetaGroups(java.util.Map<java.lang.String,java.util.List<java.lang.String>>)
  meth public void setMethodSelectors(java.util.List<org.testng.xml.XmlMethodSelector>)
  meth public void setName(java.lang.String)
-@@ -2515,18 +2627,18 @@ meth public void setPackages(java.util.List<org.testng.xml.XmlPackage>)
+@@ -2515,18 +2636,18 @@ meth public void setPackages(java.util.List<org.testng.xml.XmlPackage>)
  meth public void setParallel(org.testng.xml.XmlSuite$ParallelMode)
  meth public void setParameters(java.util.Map<java.lang.String,java.lang.String>)
  meth public void setPreserveOrder(java.lang.Boolean)
@@ -3045,13 +3040,21 @@ index 9bcfefd912..2b345b1c30 100644
  
  CLSS public org.testng.xml.XmlUtils
  cons public init()
+@@ -2546,6 +2667,7 @@ meth public abstract void skippedEntity(java.lang.String) throws org.xml.sax.SAX
+ meth public abstract void startDocument() throws org.xml.sax.SAXException
+ meth public abstract void startElement(java.lang.String,java.lang.String,java.lang.String,org.xml.sax.Attributes) throws org.xml.sax.SAXException
+ meth public abstract void startPrefixMapping(java.lang.String,java.lang.String) throws org.xml.sax.SAXException
++meth public void declaration(java.lang.String,java.lang.String,java.lang.String) throws org.xml.sax.SAXException
+ 
+ CLSS public abstract interface org.xml.sax.DTDHandler
+ meth public abstract void notationDecl(java.lang.String,java.lang.String,java.lang.String) throws org.xml.sax.SAXException
 diff --git a/platform/libs.testng/nbproject/project.properties b/platform/libs.testng/nbproject/project.properties
-index acf60e81ec..bd9a1ab6de 100644
+index b39802947a69..990b46b7ae40 100644
 --- a/platform/libs.testng/nbproject/project.properties
 +++ b/platform/libs.testng/nbproject/project.properties
 @@ -18,11 +18,13 @@
  javac.compilerargs=-Xlint -Xlint:-serial
- javac.source=1.8
+ javac.release=17
  is.autoload=true
 -release.external/testng-6.14.3.jar=modules/ext/testng-6.14.3.jar
 -release.external/jcommander-1.78.jar=modules/ext/jcommander-1.78.jar
@@ -3069,7 +3072,7 @@ index acf60e81ec..bd9a1ab6de 100644
 +    docs/testng-7.11.0-javadoc.jar,\
 +    modules/ext/testng-7.11.0.jar
 diff --git a/platform/libs.testng/nbproject/project.xml b/platform/libs.testng/nbproject/project.xml
-index 56922cde74..0ec81fb850 100644
+index 56922cde74eb..0ec81fb85048 100644
 --- a/platform/libs.testng/nbproject/project.xml
 +++ b/platform/libs.testng/nbproject/project.xml
 @@ -37,12 +37,20 @@
@@ -3094,6 +3097,93 @@ index 56922cde74..0ec81fb850 100644
 +            <class-path-extension>
 +                <runtime-relative-path>ext/slf4j-api-2.0.17.jar</runtime-relative-path>
 +                <binary-origin>external/slf4j-api-2.0.17.jar</binary-origin>
+             </class-path-extension>
+         </data>
+     </configuration>
+diff --git a/platform/o.apache.commons.lang3/build.xml b/platform/o.apache.commons.lang3/build.xml
+index 126afe6fbc8f..3ae696c40ee5 100644
+--- a/platform/o.apache.commons.lang3/build.xml
++++ b/platform/o.apache.commons.lang3/build.xml
+@@ -21,5 +21,19 @@
+ -->
+ <project name="platform/o.apache.commons.lang3" default="build" basedir=".">
+     <import file="../../nbbuild/templates/projectized.xml"/>
+-    <target name="jar"/>
++    <!--
++        The NetBeans module org.apache.commons.lang3 is just a repackaging
++        of the original bundle, with problematic elements relating to OSGI
++        and Netbinox replaced in the MANIFEST.
++    -->
++    <target name="jar" depends="-define-FileCRC32Calculator">
++        <FileCRC32Calculator file="external/commons-lang3-3.19.0.jar" property="o.apache.commons.lang3.crc32" />
++        <jar jarfile="${cluster}/${module.jar}" filesetmanifest="merge">
++            <zipfileset src="external/commons-lang3-3.19.0.jar"/>
++            <manifest>
++                <attribute name="Import-Package" value="org.osgi.framework"/>
++                <attribute name="NB-Original-CRC" value="${o.apache.commons.lang3.crc32}"/>
++            </manifest>
++        </jar>
++    </target>
+ </project>
+diff --git a/platform/o.apache.commons.lang3/external/binaries-list b/platform/o.apache.commons.lang3/external/binaries-list
+index 36dd1b04ee75..2598b53be9ce 100644
+--- a/platform/o.apache.commons.lang3/external/binaries-list
++++ b/platform/o.apache.commons.lang3/external/binaries-list
+@@ -14,4 +14,4 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-B17D2136F0460DCC0D2016CEEFCA8723BDF4EE70 org.apache.commons:commons-lang3:3.17.0
++D6524B169A6574CD253760C472D419B47BFD37E6 org.apache.commons:commons-lang3:3.19.0
+diff --git a/platform/o.apache.commons.lang3/external/commons-lang3-3.17.0-license.txt b/platform/o.apache.commons.lang3/external/commons-lang3-3.19.0-license.txt
+similarity index 99%
+rename from platform/o.apache.commons.lang3/external/commons-lang3-3.17.0-license.txt
+rename to platform/o.apache.commons.lang3/external/commons-lang3-3.19.0-license.txt
+index 21a8fb52f18e..45b611730830 100644
+--- a/platform/o.apache.commons.lang3/external/commons-lang3-3.17.0-license.txt
++++ b/platform/o.apache.commons.lang3/external/commons-lang3-3.19.0-license.txt
+@@ -1,5 +1,5 @@
+ Name: Commons Lang
+-Version: 3.17.0
++Version: 3.19.0
+ License: Apache-2.0
+ Origin: https://commons.apache.org/proper/commons-lang/
+ Description: Provides extra functionality for classes in java.lang.
+diff --git a/platform/o.apache.commons.lang3/external/commons-lang3-3.17.0-notice.txt b/platform/o.apache.commons.lang3/external/commons-lang3-3.19.0-notice.txt
+similarity index 70%
+rename from platform/o.apache.commons.lang3/external/commons-lang3-3.17.0-notice.txt
+rename to platform/o.apache.commons.lang3/external/commons-lang3-3.19.0-notice.txt
+index 3d4c6906ab02..9c0ea0be638b 100644
+--- a/platform/o.apache.commons.lang3/external/commons-lang3-3.17.0-notice.txt
++++ b/platform/o.apache.commons.lang3/external/commons-lang3-3.19.0-notice.txt
+@@ -1,5 +1,5 @@
+ Apache Commons Lang
+-Copyright 2001-2021 The Apache Software Foundation
++Copyright 2001-2025 The Apache Software Foundation
+ 
+ This product includes software developed at
+ The Apache Software Foundation (https://www.apache.org/).
+diff --git a/platform/o.apache.commons.lang3/nbproject/project.properties b/platform/o.apache.commons.lang3/nbproject/project.properties
+index de1ab6dcdf68..f00abe352f1e 100644
+--- a/platform/o.apache.commons.lang3/nbproject/project.properties
++++ b/platform/o.apache.commons.lang3/nbproject/project.properties
+@@ -14,5 +14,5 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-release.external/commons-lang3-3.17.0.jar=modules/org-apache-commons-lang3.jar
++release.external/commons-lang3-3.19.0.jar=modules/org-apache-commons-lang3.jar
+ is.autoload=true
+diff --git a/platform/o.apache.commons.lang3/nbproject/project.xml b/platform/o.apache.commons.lang3/nbproject/project.xml
+index c4b718f49770..81c7abdedb3e 100644
+--- a/platform/o.apache.commons.lang3/nbproject/project.xml
++++ b/platform/o.apache.commons.lang3/nbproject/project.xml
+@@ -28,7 +28,7 @@
+             <public-packages/>
+             <class-path-extension>
+                 <runtime-relative-path>commons-lang3.jar</runtime-relative-path>
+-                <binary-origin>external/commons-lang3-3.17.0.jar</binary-origin>
++                <binary-origin>external/commons-lang3-3.19.0.jar</binary-origin>
              </class-path-extension>
          </data>
      </configuration>

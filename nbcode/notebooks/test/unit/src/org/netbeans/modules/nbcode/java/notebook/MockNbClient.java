@@ -33,6 +33,7 @@ import org.netbeans.modules.java.lsp.server.input.ShowQuickPickParams;
 import org.netbeans.modules.java.lsp.server.notebook.CellStateResponse;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellExecutionProgressResultParams;
 import org.netbeans.modules.java.lsp.server.notebook.NotebookCellStateParams;
+import org.netbeans.modules.java.lsp.server.protocol.ClientConfigurationManager;
 import org.netbeans.modules.java.lsp.server.protocol.DecorationRenderOptions;
 import org.netbeans.modules.java.lsp.server.protocol.HtmlPageParams;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeClientCapabilities;
@@ -171,6 +172,11 @@ public class MockNbClient implements NbCodeLanguageClient {
 
     @Override
     public void logMessage(MessageParams message) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public ClientConfigurationManager getClientConfigurationManager() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
