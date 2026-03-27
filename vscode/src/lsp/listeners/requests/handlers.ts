@@ -99,9 +99,6 @@ const updateConfigRequestHandler = async (param: any) => {
             wsConfig.update(param.key, param.value, wsFile ? null : true)
                 .then(() => {
                     LOGGER.log("Updated configuration: " + param.section + "." + param.key + "=" + param.value + "; in: " + (wsFile ? wsFile.toString() : "Global"));
-                })
-                .then(() => {
-                    runConfigurationUpdateAll();
                 });
         } catch (err) {
             LOGGER.error("Failed to update configuration. Reason: " + (isString(err) ? err : isError(err) ? err.message : "error"));
