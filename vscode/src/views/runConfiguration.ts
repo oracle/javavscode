@@ -98,7 +98,7 @@ class RunConfigurationNode extends vscode.TreeItem {
 
 	updateNode(reload?: boolean) {
 		if (reload) {
-			this.value =  getConfigurationValue(this.settingsKey) as string;
+			this.value = getConfigurationValue(this.settingsKey);
 		}
 		this.description = this.value ? this.value : l10n.value("jdk.extension.runConfig.default.label");
 		this.tooltip = `${this.label} ${this.description}`;
@@ -158,3 +158,16 @@ export function runConfigurationUpdateAll() {
 	environmentVariablesNode.updateNode(true);
 	workingDirectoryNode.updateNode(true);
 }
+export interface RunConfigurationNodes {
+	readonly args?: string;
+	readonly vmArgs?: string;
+	readonly env?: string;
+	readonly cwd?: string;
+}
+
+export const getRunConfigurationValues = (): RunConfigurationNodes => ({
+	args: argumentsNode.getValue(),
+	vmArgs: vmOptionsNode.getValue(),
+	env: environmentVariablesNode.getValue(),
+	cwd: workingDirectoryNode.getValue(),
+});
