@@ -1,4 +1,6 @@
 /*
+ * Copyright (c) 2023-2026, Oracle and/or its affiliates.
+ *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -158,14 +160,14 @@ export function runConfigurationUpdateAll() {
 	environmentVariablesNode.updateNode(true);
 	workingDirectoryNode.updateNode(true);
 }
-export interface RunConfigurationNodes {
+export interface RunConfigurationNodeValues {
 	readonly args?: string;
 	readonly vmArgs?: string;
 	readonly env?: string;
 	readonly cwd?: string;
 }
 
-export const getRunConfigurationValues = (): RunConfigurationNodes => ({
+export const getRunConfigurationValues = (): RunConfigurationNodeValues => ({
 	args: argumentsNode.getValue(),
 	vmArgs: vmOptionsNode.getValue(),
 	env: environmentVariablesNode.getValue(),

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import { extConstants } from '../constants';
 import { l10n } from '../localiser';
 import { StreamDebugAdapter } from './streamDebugAdapter';
 import { extCommands, nbCommands } from '../commands/commands';
-import { getRunConfigurationValues } from '../views/runConfiguration';
 import { initializeRunConfiguration } from '../utils';
 import { globalState } from '../globalState';
 import { applyRunConfigurationOverrides } from '../views/runConfigurationUtils';
@@ -218,6 +217,6 @@ class NetBeansConfigurationResolver implements vscode.DebugConfigurationProvider
 class RunConfigurationProvider implements vscode.DebugConfigurationProvider {
 
     resolveDebugConfiguration(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
-        return applyRunConfigurationOverrides(config, getRunConfigurationValues());
+        return applyRunConfigurationOverrides(config);
     }
 }

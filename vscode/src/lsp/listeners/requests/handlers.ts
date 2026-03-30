@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ import { QuickPickItem, Uri, window, workspace, WorkspaceConfiguration } from "v
 import { notificationOrRequestListenerType } from "../../types";
 import { ExecInHtmlPageRequest, HtmlPageRequest, InputBoxRequest, InputBoxStep, MutliStepInputRequest, NotebookCellStateRequest, NotebookCellStateRequestParams, NotebookCellStateResponse, QuickPickRequest, QuickPickStep, SaveDocumentRequestParams, SaveDocumentsRequest, ShowInputBoxParams, ShowQuickPickParams, TextEditorDecorationCreateRequest, UpdateConfigurationRequest } from "../../protocol";
 import { InputStep, MultiStepInput } from "../../../utils";
-import { runConfigurationUpdateAll } from "../../../views/runConfiguration";
 import { isError } from "../../../utils";
 import { isString } from "../../../utils";
 import { LOGGER } from "../../../logger";
