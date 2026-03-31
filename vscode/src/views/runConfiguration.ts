@@ -1,4 +1,6 @@
 /*
+ * Copyright (c) 2023-2026, Oracle and/or its affiliates.
+ *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -98,7 +100,7 @@ class RunConfigurationNode extends vscode.TreeItem {
 
 	updateNode(reload?: boolean) {
 		if (reload) {
-			this.value =  getConfigurationValue(this.settingsKey) as string;
+			this.value = getConfigurationValue(this.settingsKey);
 		}
 		this.description = this.value ? this.value : l10n.value("jdk.extension.runConfig.default.label");
 		this.tooltip = `${this.label} ${this.description}`;
@@ -158,3 +160,16 @@ export function runConfigurationUpdateAll() {
 	environmentVariablesNode.updateNode(true);
 	workingDirectoryNode.updateNode(true);
 }
+export interface RunConfigurationNodeValues {
+	readonly args?: string;
+	readonly vmArgs?: string;
+	readonly env?: string;
+	readonly cwd?: string;
+}
+
+export const getRunConfigurationValues = (): RunConfigurationNodeValues => ({
+	args: argumentsNode.getValue(),
+	vmArgs: vmOptionsNode.getValue(),
+	env: environmentVariablesNode.getValue(),
+	cwd: workingDirectoryNode.getValue(),
+});
