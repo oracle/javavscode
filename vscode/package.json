@@ -269,7 +269,14 @@
 					"jdk.format.settingsPath": {
 						"type": "string",
 						"description": "%jdk.configuration.formatterSettings.description%",
-						"default": null
+						"default": null,
+						"deprecationMessage": "%jdk.configuration.formatterSettings.deprecationMessage%"
+					},
+					"jdk.format.options": {
+						"type": "object",
+						"description": "%jdk.configuration.formatOptions.description%",
+						"markdownDescription": "%jdk.configuration.formatOptions.markdownDescription%",
+						"default": {}
 					}
 				}
 			},
