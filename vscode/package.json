@@ -1032,12 +1032,13 @@
 		"vscode-languageclient": "^9.0.1"
 	},
 	"overrides": {
+		"brace-expansion@5.x": "^5.0.5",
 		"brace-expansion@2.x": {
-			".": "^2.0.2",
+			".": "^2.0.3",
 			"balanced-match": "^1.0.2"
 		},
 		"brace-expansion@1.x": {
-			".": "^1.1.12",
+			".": "^1.1.13",
 			"balanced-match": "^1.0.2"
 		},
 		"minimatch@10.x": "^10.2.4",
@@ -1048,7 +1049,7 @@
 			"diff": "^8.0.3",
 			"glob": "^10.5.0",
 			"js-yaml": "^4.1.1",
-			"serialize-javascript": "^7.0.4"
+			"serialize-javascript": "^7.0.5"
 		},
 		"sinon": {
 			"diff": "^8.0.3"
