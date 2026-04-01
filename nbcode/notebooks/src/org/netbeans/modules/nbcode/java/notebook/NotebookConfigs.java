@@ -15,18 +15,17 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.eclipse.lsp4j.ConfigurationItem;
-import org.eclipse.lsp4j.ConfigurationParams;
 import org.netbeans.api.annotations.common.NonNull;
+import org.netbeans.modules.java.lsp.server.protocol.ClientConfigurationManager;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
 
 /**
@@ -34,15 +33,26 @@ import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
  * @author atalati
  */
 public class NotebookConfigs {
+
     private static final Logger LOG = Logger.getLogger(NotebookConfigs.class.getName());
 
-    private static final String[] NOTEBOOK_CONFIG_LABELS = {"notebook.classpath",
-        "notebook.modulepath",
-        "notebook.addmodules",
-        "notebook.enablePreview",
-        "notebook.implicitImports",
-        "notebook.projects.mapping",
-        "notebook.vmOptions"};
+    private static final String NOTEBOOK_CONFIG_SECTION = "notebook";
+    private static final String CONFIG_CLASSPATH = "classpath";
+    private static final String CONFIG_MODULEPATH = "modulepath";
+    private static final String CONFIG_ADDMODULES = "addmodules";
+    private static final String CONFIG_ENABLE_PREVIEW = "enablePreview";
+    private static final String CONFIG_IMPLICIT_IMPORTS = "implicitImports";
+    private static final String CONFIG_PROJECTS_MAPPING = "projects.mapping";
+    private static final String CONFIG_VM_OPTIONS = "vmOptions";
+    private static final String[] NOTEBOOK_CONFIG_LABELS = {
+        CONFIG_CLASSPATH,
+        CONFIG_MODULEPATH,
+        CONFIG_ADDMODULES,
+        CONFIG_ENABLE_PREVIEW,
+        CONFIG_IMPLICIT_IMPORTS,
+        CONFIG_PROJECTS_MAPPING,
+        CONFIG_VM_OPTIONS
+    };
     private volatile String classPath = null;
     private volatile String modulePath = null;
     private volatile String addModules = null;
@@ -79,7 +89,7 @@ public class NotebookConfigs {
     public JsonObject getNotebookProjectMapping() {
         return notebookProjectMapping;
     }
-    
+
     @NonNull
     public List<String> getNotebookVmOptions() {
         return notebookVmOptions;
@@ -106,76 +116,19 @@ public class NotebookConfigs {
         }
     }
 
-    private List<ConfigurationItem> getConfigItems() {
-        List<ConfigurationItem> items = new ArrayList<>();
-        for (String label : NOTEBOOK_CONFIG_LABELS) {
-            ConfigurationItem item = new ConfigurationItem();
-            NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
-            if (client != null) {
-                item.setSection(client.getNbCodeCapabilities().getConfigurationPrefix() + label);
-                items.add(item);
-            }
-        }
-        return items;
-    }
-
     private CompletableFuture<Void> initializeConfigs() {
         NbCodeLanguageClient client = LanguageClientInstance.getInstance().getClient();
         if (client != null) {
-            CompletableFuture<List<Object>> configValues = client.configuration(new ConfigurationParams(getConfigItems()));
-            return configValues.thenAccept((c) -> {
-                if (c != null) {
-                    JsonArray classPathConfig = NotebookUtils.getArgument(c, 0, JsonArray.class);
-                    if (classPathConfig != null) {
-                        classPath = String.join(File.pathSeparator,classPathConfig.asList().stream().map((elem) -> elem.getAsString()).toList());
-                    } else {
-                        classPath = null;
-                    }
-                    
-                    JsonArray modulePathConfig = NotebookUtils.getArgument(c, 1, JsonArray.class);
-                    if (modulePathConfig != null) {
-                        modulePath = String.join(File.pathSeparator,modulePathConfig.asList().stream().map((elem) -> elem.getAsString()).toList());
-                    } else {
-                        modulePath = null;
-                    }
-                    
-                    JsonArray addModulesConfig = NotebookUtils.getArgument(c, 2, JsonArray.class);
-                    if (addModulesConfig != null) {
-                        addModules = String.join(",",addModulesConfig.asList().stream().map((elem) -> elem.getAsString()).toList());
-                    } else {
-                        addModules = null;
-                    }
-                    
-                    Boolean enablePreviewConfig = NotebookUtils.getArgument(c, 3, Boolean.class);
-                    if (enablePreviewConfig != null) {
-                        enablePreview = enablePreviewConfig;
-                    } else {
-                        enablePreview = false;
-                    }
-                    
-                    JsonArray implicitImportsConfig = NotebookUtils.getArgument(c, 4, JsonArray.class);
-                    if (implicitImportsConfig != null) {
-                        implicitImports = implicitImportsConfig.asList().stream().map((elem) -> elem.getAsString()).toList();
-                    } else {
-                        implicitImports = null;
-                    }
-
-                    JsonObject notebookProjectMappingConfig = NotebookUtils.getArgument(c, 5, JsonObject.class);
-                    if (notebookProjectMappingConfig != null) {
-                        notebookProjectMapping = notebookProjectMappingConfig;
-                    } else {
-                        notebookProjectMapping = new JsonObject();
-                    }
-                    
-                    JsonArray notebookVmOptionsConfig = NotebookUtils.getArgument(c, 6, JsonArray.class);
-                    if (notebookVmOptionsConfig != null) {
-                        notebookVmOptions = notebookVmOptionsConfig.asList().stream().map(el -> el.getAsString()).toList();
-                    } else {
-                        notebookVmOptions = Collections.emptyList();
-                    }
-                }
-            });
-
+            ClientConfigurationManager configManager = client.getClientConfigurationManager();
+            configManager.registerConfigChangeListener(client.getNbCodeCapabilities().getConfigurationPrefix() + NOTEBOOK_CONFIG_SECTION,
+                    (config, newValue) -> notebookConfigsChangeListener(newValue.getAsJsonObject()));
+            return configManager.getConfiguration(NOTEBOOK_CONFIG_SECTION)
+                    .thenApply(c -> {
+                        if (c != null) {
+                            notebookConfigsChangeListener(c.getAsJsonObject());
+                        }
+                        return null;
+                    });
         }
         return CompletableFuture.completedFuture(null);
 
@@ -187,7 +140,58 @@ public class NotebookConfigs {
     }
 
     public void notebookConfigsChangeListener(JsonObject settings) {
-        // TODO: Cache configurations using changes done in #8514 PR open in Netbeans
+        if (settings == null) {
+            return;
+        }
+        
+        JsonElement classPathConfig = settings.get(CONFIG_CLASSPATH);
+        if (classPathConfig != null && classPathConfig.isJsonArray()) {
+            classPath = String.join(File.pathSeparator, classPathConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList());
+        } else {
+            classPath = null;
+        }
 
+        JsonElement modulePathConfig = settings.get(CONFIG_MODULEPATH);
+        if (modulePathConfig != null && modulePathConfig.isJsonArray()) {
+            modulePath = String.join(File.pathSeparator, modulePathConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList());
+        } else {
+            modulePath = null;
+        }
+
+        JsonElement addModulesConfig = settings.get(CONFIG_ADDMODULES);
+        if (addModulesConfig != null && addModulesConfig.isJsonArray()) {
+            addModules = String.join(",", addModulesConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList());
+        } else {
+            addModules = null;
+        }
+
+        JsonElement enablePreviewConfig = settings.get(CONFIG_ENABLE_PREVIEW);
+        if (enablePreviewConfig != null && enablePreviewConfig.isJsonPrimitive()) {
+            JsonPrimitive primitive = enablePreviewConfig.getAsJsonPrimitive();
+            enablePreview = primitive.isBoolean() && primitive.getAsBoolean();
+        } else {
+            enablePreview = false;
+        }
+
+        JsonElement implicitImportsConfig = settings.get(CONFIG_IMPLICIT_IMPORTS);
+        if (implicitImportsConfig != null && implicitImportsConfig.isJsonArray()) {
+            implicitImports = implicitImportsConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList();
+        } else {
+            implicitImports = null;
+        }
+
+        JsonElement notebookProjectMappingConfig = settings.get(CONFIG_PROJECTS_MAPPING);
+        if (notebookProjectMappingConfig != null && notebookProjectMappingConfig.isJsonObject()) {
+            notebookProjectMapping = notebookProjectMappingConfig.getAsJsonObject();
+        } else {
+            notebookProjectMapping = new JsonObject();
+        }
+
+        JsonElement notebookVmOptionsConfig = settings.get(CONFIG_VM_OPTIONS);
+        if (notebookVmOptionsConfig != null && notebookVmOptionsConfig.isJsonArray()) {
+            notebookVmOptions = notebookVmOptionsConfig.getAsJsonArray().asList().stream().map(el -> el.getAsString()).toList();
+        } else {
+            notebookVmOptions = Collections.emptyList();
+        }
     }
 }
