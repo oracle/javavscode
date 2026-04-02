@@ -128,6 +128,23 @@ Default launch configurations provided by Language Server can modified in `launc
 Program arguments, VM options, environment variables, etc., can be set in the Run Configuration panel as part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).<br/>
 ![Run Configuration](vscode/images/run_config.png) 
 
+### VS Code variable substitution in settings
+The extension supports VS Code variable substitution (for example `${workspaceFolder}`, `${userHome}`, `${env:NAME}`) for the following settings:
+
+- `jdk.jdkhome`
+- `jdk.project.jdkhome`
+- `jdk.serverVmOptions`
+- `jdk.notebook.classpath`
+- `jdk.notebook.modulepath`
+- `jdk.notebook.addmodules`
+- `jdk.notebook.enablePreview`
+- `jdk.notebook.implicitImports`
+- `jdk.notebook.vmOptions`
+- `jdk.runConfig.vmOptions`
+- `jdk.runConfig.cwd`
+- `jdk.runConfig.arguments`
+- `jdk.runConfig.env`
+
 ## JDK Downloader
 If the system does not detect any JDK, the extension will offer a downloader and setup prompts to help you set up a JDK. This allows you to get the latest Oracle JDK build for your system. Additionally, it provides options for different Oracle JDK and Oracle OpenJDK builds with system OS and architecture variants.
 
