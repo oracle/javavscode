@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import { configKeys } from "../configurations/configuration";
 import { enableDisableModules } from "./utils";
 import * as net from 'net';
 import { ChildProcess } from "child_process";
-import { isNbJavacDisabledHandler } from "../configurations/handlers";
+import { isNbJavacDisabledHandler, userdirHandler } from "../configurations/handlers";
 import { attachNbProcessListeners, launchNbcode } from "./nbcode";
 import { NbLanguageClient } from "./nbLanguageClient";
 import { registerListenersAfterClientInit } from "../views/listener";
@@ -28,7 +28,7 @@ import { registerNotificationListeners } from "./listeners/notifications/registe
 import { registerRequestListeners } from "./listeners/requests/register";
 import { createViews } from "../views/initializer";
 import { globalState } from "../globalState";
-import { Telemetry } from "../telemetry/telemetry";
+import { userDefinedLaunchOptionsType } from "./types";
 
 const establishConnection = () => new Promise<StreamInfo>((resolve, reject) => {
     const nbProcessManager = globalState.getNbProcessManager();
@@ -40,7 +40,7 @@ const establishConnection = () => new Promise<StreamInfo>((resolve, reject) => {
     }
 
     LOGGER.log(`LSP server launching: ${nbProcessManager.getProcessId()}`);
-    LOGGER.log(`LSP server user directory: ${getUserConfigLaunchOptionsDefaults()[configKeys.userdir].value}`);
+    LOGGER.log(`LSP server user directory: ${userdirHandler()}`);
 
     try {
         attachNbProcessListeners(nbProcessManager);
@@ -89,32 +89,36 @@ const connectToServer = (nbProcess: ChildProcess): Promise<net.Socket> => {
     });
 }
 
-const enableDisableNbjavacModule = () => {
-    const userdirPath = getUserConfigLaunchOptionsDefaults()[configKeys.userdir].value
+const enableDisableNbjavacModule = (intialConfigs: userDefinedLaunchOptionsType) => {
+    const userdirPath = intialConfigs[configKeys.userdir].value
     const nbjavacValue = isNbJavacDisabledHandler();
     const extensionPath = globalState.getExtensionContextInfo().getExtensionStorageUri().fsPath;
     enableDisableModules(extensionPath, userdirPath, ['org.netbeans.libs.nbjavacapi'], !nbjavacValue);
 }
 
-const serverBuilder = () => {
-    enableDisableNbjavacModule();
-    launchNbcode();
+
+const serverBuilder = (intialConfigs: userDefinedLaunchOptionsType) => {
+    enableDisableNbjavacModule(intialConfigs);
+    launchNbcode(intialConfigs);
+
     return establishConnection;
 }
 
 export const clientInit = () => {
     globalState.setDeactivated(false);
-    const connection: () => Promise<StreamInfo> = serverBuilder();
-    const client = NbLanguageClient.build(connection, LOGGER);
+    getUserConfigLaunchOptionsDefaults().then((intialConfigs: userDefinedLaunchOptionsType) => {
+        const connection: () => Promise<StreamInfo> = serverBuilder(intialConfigs);
+        const client = NbLanguageClient.build(connection, LOGGER);
+        LOGGER.log('Language Client: Starting');
+        client.start().then(() => {        
+            registerListenersAfterClientInit();
+            registerNotificationListeners(client);
+            registerRequestListeners(client);
+            createViews();
+            LOGGER.log('Language Client: Ready');
+            globalState.getClientPromise().initializedSuccessfully(client);
 
-    LOGGER.log('Language Client: Starting');
-    client.start().then(() => {        
-        registerListenersAfterClientInit();
-        registerNotificationListeners(client);
-        registerRequestListeners(client);
-        createViews();
-        LOGGER.log('Language Client: Ready');
-        globalState.getClientPromise().initializedSuccessfully(client);
-
-    }).catch(globalState.getClientPromise().setClient[1]);
+        }).catch(globalState.getClientPromise().setClient[1]);
+    });
+   
 }
