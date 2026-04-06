@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -50,12 +50,14 @@ describe('JDK Downloader view tests', () => {
       "items": [
           {
         "jdkDetails":{
-            "jdkVersion": 23
+            "jdkVersion": 23,
+            "isLts": false
         } 
           },
           {
         "jdkDetails":{
-            "jdkVersion": 21
+            "jdkVersion": 21,
+            "isLts": true
         } 
           }
           ]
@@ -103,6 +105,24 @@ describe('JDK Downloader view tests', () => {
         const expectedMachineArch = getMachineArch();
 
         expect(actualMachineArch).equals(expectedMachineArch);
+      });
+
+      it("should check if correct jdk version is marked as LTS", () => {
+        const jdkDownloaderHtml: string = (jdkDownloaderView as any).jdkDownloaderWebView.webview.html;
+        const ltsVersionRegex = new RegExp(`<option value="21"[^>]*>JDK 21 \\(jdk.downloader.label.versionLtsSuffix\\)</option>`);
+        expect(jdkDownloaderHtml).to.match(ltsVersionRegex);
+      });
+
+      it("should check if non-LTS jdk versions are not marked as LTS", () => {
+        const jdkDownloaderHtml: string = (jdkDownloaderView as any).jdkDownloaderWebView.webview.html;
+        const nonLtsVersionRegex = new RegExp(`<option value="23"[^>]*>JDK 23</option>`);
+        expect(jdkDownloaderHtml).to.match(nonLtsVersionRegex);
+      });
+
+      it("should check if latest jdk version is marked as selected", () => {
+        const jdkDownloaderHtml: string = (jdkDownloaderView as any).jdkDownloaderWebView.webview.html;
+        const latestVersionRegex = new RegExp(`<option value="23"[^>]*selected>JDK 23</option>`);
+        expect(jdkDownloaderHtml).to.match(latestVersionRegex);
       });
     });
 

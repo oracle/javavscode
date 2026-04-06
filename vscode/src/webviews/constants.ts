@@ -1,0 +1,32 @@
+/*
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+     https://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+import { JdkVersionInfo } from "./types";
+
+export namespace jdkDownloaderConstants {
+  export const ORACLE_JDK_RELEASES_BASE_URL = `https://java.oraclecloud.com/currentJavaReleases`;
+
+  export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
+
+  export const ORACLE_JDK_FALLBACK_VERSIONS: JdkVersionInfo[] = [
+    {version: '26', isLts: false},
+    {version: '25', isLts: true},
+    {version: '21', isLts: true}
+  ];
+
+  export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
+    "26": "https://download.java.net/java/GA/jdk26/c3cc523845074aa0af4f5e1e1ed4151d/35/GPL/openjdk-26"
+  };  
+}
