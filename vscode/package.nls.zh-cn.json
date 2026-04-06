@@ -42,6 +42,7 @@
     "jdk.configuration.title.others":"其他",
     "jdk.configuration.specifyJdk.description": "指定适用于 Oracle Visual Studio Code 扩展的 JDK",
     "jdk.configuration.specifyProjectJdk.description": "指定将在其上运行用户项目的 JDK。默认值为 jdk.jdkhome",
+    "jdk.configuration.maven.userSettings.description": "Specifies the path to the Maven user settings.xml file. Defaults to ${user.home}/.m2/settings.xml",
     "jdk.configuration.verbose.description": "启用来自 Oracle Visual Studio Code 扩展的详细消息",
     "jdk.configuration.userdir.description": "将设置和高速缓存保留为“global”(全局)还是按工作区保留为“local”(本地)？",
     "jdk.configuration.userdir.description.shareData": "在所有工作区之间共享数据（更有效）",

@@ -38,7 +38,8 @@ export const configKeys = {
     notebookImplicitImports: "notebook.implicitImports",
     notebookProjectMapping: "notebook.projects.mapping",
     notebookVmOptions: "notebook.vmOptions",
-    telemetryEnabled: 'telemetry.enabled'
+    telemetryEnabled: 'telemetry.enabled',
+    mavenUserSettings: 'maven.userSettings'
 };
 
 export const builtInConfigKeys = {
@@ -68,6 +69,7 @@ export const userConfigsListenedByServer = [
     appendPrefixToCommand(configKeys.notebookVmOptions),
     appendPrefixToCommand(configKeys.projectJdkHome),
     appendPrefixToCommand(configKeys.runConfigVmOptions),
-    appendPrefixToCommand(configKeys.runConfigCwd)
+    appendPrefixToCommand(configKeys.runConfigCwd),
+    appendPrefixToCommand(configKeys.mavenUserSettings)
 ];
 

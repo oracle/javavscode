@@ -42,6 +42,7 @@
     "jdk.configuration.title.others":"その他",
     "jdk.configuration.specifyJdk.description": "Oracle Visual Studio Code拡張機能のJDKを指定します",
     "jdk.configuration.specifyProjectJdk.description": "ユーザーのプロジェクトが実行されるJDKを指定します。値はデフォルトでjdk.jdkhomeに設定されます",
+    "jdk.configuration.maven.userSettings.description": "Specifies the path to the Maven user settings.xml file. Defaults to ${user.home}/.m2/settings.xml",
     "jdk.configuration.verbose.description": "Oracle Visual Studio Code拡張機能からの詳細メッセージを有効化します",
     "jdk.configuration.userdir.description": "設定およびキャッシュをワークスペースごとにグローバルまたはローカルとして保持しますか。",
     "jdk.configuration.userdir.description.shareData": "すべてのワークスペース間でデータを共有します(より効果的)",
