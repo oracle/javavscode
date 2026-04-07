@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2023-2025, Oracle and/or its affiliates.
+    Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -58,6 +58,7 @@
             patches/9062.diff
             patches/9254-draft.diff
             patches/9263-draft.diff
+            patches/9282-draft.diff
             patches/9290.diff
             patches/disable-error-notification.diff
             patches/mvn-sh.diff
