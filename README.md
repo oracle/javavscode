@@ -134,6 +134,23 @@ For Maven projects, extension can use a custom Maven user `settings.xml` file.
 Set `jdk.maven.userSettings` to the path of the Maven user `settings.xml` file that should be used instead of the default `${user.home}/.m2/settings.xml`.
 Currently, this setting supports absolute paths only.
 
+### VS Code variable substitution in settings
+The extension supports [VS Code variable substitution](https://code.visualstudio.com/docs/editor/variables-reference) (for example `${workspaceFolder}`, `${userHome}`, `${env:NAME}`) for the following settings:
+
+- `jdk.jdkhome`
+- `jdk.project.jdkhome`
+- `jdk.serverVmOptions`
+- `jdk.notebook.classpath`
+- `jdk.notebook.modulepath`
+- `jdk.notebook.addmodules`
+- `jdk.notebook.enablePreview`
+- `jdk.notebook.implicitImports`
+- `jdk.notebook.vmOptions`
+- `jdk.runConfig.vmOptions`
+- `jdk.runConfig.cwd`
+- `jdk.runConfig.arguments`
+- `jdk.runConfig.env`
+
 ## JDK Downloader
 If the system does not detect any JDK, the extension will offer a downloader and setup prompts to help you set up a JDK. This allows you to get the latest Oracle JDK build for your system. Additionally, it provides options for different Oracle JDK and Oracle OpenJDK builds with system OS and architecture variants.
 

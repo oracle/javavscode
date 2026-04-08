@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 import { window } from "vscode";
 import { configKeys } from "../configurations/configuration";
 import { extConstants, NODE_WINDOWS_LABEL } from "../constants";
-import { prepareNbcodeLaunchOptions, getUserConfigLaunchOptionsDefaults } from "./launchOptions";
+import { prepareNbcodeLaunchOptions } from "./launchOptions";
 import { NbProcessManager } from "./nbProcessManager";
 import { findNbcode } from "./utils";
 import { l10n } from "../localiser";
@@ -25,11 +25,12 @@ import { jdkDownloaderPrompt } from "../webviews/jdkDownloader/prompt";
 import { LOGGER } from "../logger";
 import * as os from 'os';
 import { globalState } from "../globalState";
+import { userDefinedLaunchOptionsType } from "./types";
 
-export const launchNbcode = (): void => {
-    const ideLaunchOptions = prepareNbcodeLaunchOptions();
-    const userdir = getUserConfigLaunchOptionsDefaults()[configKeys.userdir].value;
-    const specifiedJDK = getUserConfigLaunchOptionsDefaults()[configKeys.jdkHome].value;
+export const launchNbcode = (intialConfigs: userDefinedLaunchOptionsType): void => {
+    const ideLaunchOptions = prepareNbcodeLaunchOptions(intialConfigs);
+    const userdir = intialConfigs[configKeys.userdir].value;
+    const specifiedJDK = intialConfigs[configKeys.jdkHome].value;
     const extensionPath = globalState.getExtensionContextInfo().getExtensionStorageUri().fsPath;
     const nbcodePath = findNbcode(extensionPath);
 

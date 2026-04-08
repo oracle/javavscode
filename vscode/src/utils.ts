@@ -290,6 +290,17 @@ export function isError(obj: unknown): obj is Error {
 
 export const isObject = (value: any) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
+export const hasSameKeys = (a: object, b: object): boolean => {
+	if (a == null || b == null) return false;
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+
+    if (aKeys.length !== bKeys.length) return false;
+
+    const bSet = new Set(bKeys);
+    return aKeys.every((k) => bSet.has(k));
+};
+
 export async function initializeRunConfiguration(): Promise<boolean> {
 	if (vscode.workspace.name || vscode.workspace.workspaceFile) {
 		const java = await vscode.workspace.findFiles('**/*.java', '**/node_modules/**', 1);
