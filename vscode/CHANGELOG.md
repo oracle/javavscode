@@ -21,6 +21,30 @@
 -->
 # Change Log
 
+## Version 26.0.0
+### What's Changed
+#### Enhancements
+* Added support for [VS Code variables](https://code.visualstudio.com/docs/reference/variables-reference) in selected extension settings
+    * Run Configuration settings [#575](https://github.com/oracle/javavscode/pull/575)
+    * Other settings, including JDK Home and Notebook options [#579](https://github.com/oracle/javavscode/pull/579)
+* Allowed users to configure formatter settings directly in the VS Code extension [#569](https://github.com/oracle/javavscode/pull/569)
+    * See [Java formatting preferences](https://github.com/oracle/javavscode/wiki/Java-formatting-preferences) for available NetBeans formatter options
+* Added a configurable *settings.xml* path for Maven projects [#581](https://github.com/oracle/javavscode/pull/581)
+* Upgraded NetBeans to version 29 [#573](https://github.com/oracle/javavscode/pull/573)
+    * Key updates:
+        * Upgraded Gradle tooling to version 9
+        * Improved LSP settings management
+        * Improved stability and performance of Java support
+
+#### Bug Fixes
+* Fixed synchronization of Run Configurations between *settings.json* and the UI panel [#575](https://github.com/oracle/javavscode/pull/575)
+
+#### Other Changes
+* Updated JDK Downloader interface labels [#580](https://github.com/oracle/javavscode/pull/580)
+* Upgraded outdated Node modules [#572](https://github.com/oracle/javavscode/pull/572), [#577](https://github.com/oracle/javavscode/pull/577)
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v25.1.0...v26.0.0
+
 ## Version 25.1.0
 ### What's Changed
 #### Enhancements
