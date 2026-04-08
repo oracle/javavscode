@@ -103,6 +103,8 @@ The following configuration settings are available:
 
 These settings *override* settings inferred from project context.
 
+Note: If you change these settings while a notebook is open, click __Restart__ kernel to apply the changes.
+
 ## JShell
 * Use the __Java: Open JShell...__ command to open JShell.
 * Project classes from currently open project are automatically loaded.<br/>
@@ -125,6 +127,12 @@ Default launch configurations provided by Language Server can modified in `launc
 ### Run Configurations panel
 Program arguments, VM options, environment variables, etc., can be set in the Run Configuration panel as part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).<br/>
 ![Run Configuration](vscode/images/run_config.png) 
+
+## Maven User Settings
+For Maven projects, extension can use a custom Maven user `settings.xml` file.
+
+Set `jdk.maven.userSettings` to the path of the Maven user `settings.xml` file that should be used instead of the default `${user.home}/.m2/settings.xml`.
+Currently, this setting supports absolute paths only.
 
 ## JDK Downloader
 If the system does not detect any JDK, the extension will offer a downloader and setup prompts to help you set up a JDK. This allows you to get the latest Oracle JDK build for your system. Additionally, it provides options for different Oracle JDK and Oracle OpenJDK builds with system OS and architecture variants.

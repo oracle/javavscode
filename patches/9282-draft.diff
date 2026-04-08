@@ -1,0 +1,974 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
+index de7e69c9376b..966226eec9e9 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
+@@ -404,6 +404,7 @@ public static class LanguageServerImpl implements LanguageServer, LanguageClient
+ 
+         private static final String NETBEANS_FORMAT = "format";
+         private static final String NETBEANS_JAVA_IMPORTS = "java.imports";
++        private static final String NETBEANS_MAVEN_USER_SETTINGS = "maven.userSettings";
+         private static final String NETBEANS_PROJECT_JDKHOME = "project.jdkhome";
+         private static final String NETBEANS_JAVA_HINTS = "hints";
+ 
+@@ -1050,6 +1051,14 @@ private void collectProjectCandidates(FileObject fo, List<FileObject> candidates
+         }
+ 
+         private void initializeOptions() {
++            // Request maven user settings from the client as early as possible.
++            // Project opening may already be in progress, so the first embedder
++            // can still be created with the default settings.xml path.
++            client.getClientConfigurationManager().getConfiguration(NETBEANS_MAVEN_USER_SETTINGS).thenAccept(c -> {
++                JsonPrimitive newMavenUserSettingsPath = c instanceof JsonPrimitive jp? jp : null;
++                workspaceService.updateMavenUserSettingsPreferences(newMavenUserSettingsPath);
++            });
++
+             getWorkspaceProjects().thenAccept(projects -> {
+                 List<String> defaultConfigs = List.of(NETBEANS_JAVA_HINTS, NETBEANS_PROJECT_JDKHOME);
+                 List<String> projectConfigs = List.of(NETBEANS_FORMAT, NETBEANS_JAVA_IMPORTS);
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+index fc273780e7b2..a0a277206feb 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+@@ -150,6 +150,7 @@
+ import org.openide.util.Exceptions;
+ import org.openide.util.Lookup;
+ import org.openide.util.NbBundle;
++import org.openide.util.NbPreferences;
+ import org.openide.util.Pair;
+ import org.openide.util.RequestProcessor;
+ import org.openide.util.WeakListeners;
+@@ -166,6 +167,8 @@ public final class WorkspaceServiceImpl implements WorkspaceService, LanguageCli
+     private static final RequestProcessor WORKER = new RequestProcessor(WorkspaceServiceImpl.class.getName(), 1, false, false);
+     private static final RequestProcessor PROJECT_WORKER = new RequestProcessor(WorkspaceServiceImpl.class.getName(), 5, false, false);
+     private static final String NETBEANS_JAVA_HINTS = "hints";
++    private static final String MAVEN_PREFERENCES_NODE = "org/netbeans/modules/maven"; // NOI18N
++    private static final String MAVEN_USER_SETTINGS_XML = "userSettingsXml"; // NOI18N
+ 
+     private final Gson gson = new Gson();
+     private final LspServerState server;
+@@ -1424,14 +1427,33 @@ void registerConfigChangeListeners() {
+                 -> ((TextDocumentServiceImpl) server.getTextDocumentService()).updateProjectJDKHome(newValue.getAsJsonPrimitive());
+         
+         
+-        
++        BiConsumer<String, JsonElement> mavenUserSettingsListener = (config, newValue)
++                -> updateMavenUserSettingsPreferences(newValue != null && newValue.isJsonPrimitive() ? newValue.getAsJsonPrimitive() : null);
++
+         confManager.registerConfigChangeListener(fullConfigPrefix + "hints", hintPrefsListener);
+         confManager.registerConfigChangeListener(fullConfigPrefix + "project.jdkhome", projectJdkHomeListener);
+         confManager.registerConfigChangeListener(fullConfigPrefix + "format", formatPrefsListener);
+         confManager.registerConfigChangeListener(fullConfigPrefix + "java.imports", importPrefsListener);
++        confManager.registerConfigChangeListener(fullConfigPrefix + "maven.userSettings", mavenUserSettingsListener);
+         confManager.registerConfigChangeListener(fullAltConfigPrefix + "runConfig", getRunConfigChangeListener());
+     }
+ 
++    void updateMavenUserSettingsPreferences(JsonPrimitive configuration) {
++        String userSettingsPath = configuration != null ? configuration.getAsString().trim() : "";
++        Preferences mavenPrefs = NbPreferences.root().node(MAVEN_PREFERENCES_NODE);
++        String current = mavenPrefs.get(MAVEN_USER_SETTINGS_XML, null);
++        if (userSettingsPath.isEmpty()) {
++            if (current != null) {
++                mavenPrefs.remove(MAVEN_USER_SETTINGS_XML);
++            }
++        } else {
++            String normalized = FileUtil.normalizeFile(new File(userSettingsPath)).getAbsolutePath();
++            if (!normalized.equals(current)) {
++                mavenPrefs.put(MAVEN_USER_SETTINGS_XML, normalized);
++            }
++        }
++    }
++
+     void updateJavaFormatPreferences(FileObject fo, JsonObject configuration) {
+         if (configuration != null && client.getNbCodeCapabilities().wantsJavaSupport()) {
+             JsonElement pathElement = configuration.get("settingsPath");
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImplTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImplTest.java
+new file mode 100644
+index 000000000000..5e66f041c475
+--- /dev/null
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImplTest.java
+@@ -0,0 +1,110 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.netbeans.modules.java.lsp.server.protocol;
++
++import com.google.gson.JsonPrimitive;
++import java.io.File;
++import java.util.Collections;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import org.eclipse.lsp4j.services.TextDocumentService;
++import org.netbeans.api.project.Project;
++import org.netbeans.junit.NbTestCase;
++import org.netbeans.modules.java.lsp.server.LspServerState;
++import org.netbeans.modules.java.lsp.server.files.OpenedDocuments;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
++import org.openide.util.NbPreferences;
++
++public class WorkspaceServiceImplTest extends NbTestCase {
++    private static final String MAVEN_PREFERENCES_NODE = "org/netbeans/modules/maven";
++    private static final String MAVEN_USER_SETTINGS_XML = "userSettingsXml";
++    private WorkspaceServiceImpl service;
++
++    public WorkspaceServiceImplTest(String name) {
++        super(name);
++    }
++
++    @Override
++    protected void setUp() throws Exception {
++        clearWorkDir();
++        NbPreferences.root().node(MAVEN_PREFERENCES_NODE).remove(MAVEN_USER_SETTINGS_XML);
++        service = new WorkspaceServiceImpl(new TestLspServerState());
++    }
++
++    @Override
++    protected void tearDown() throws Exception {
++        NbPreferences.root().node(MAVEN_PREFERENCES_NODE).remove(MAVEN_USER_SETTINGS_XML);
++        super.tearDown();
++    }
++
++    public void testUpdateMavenUserSettingsPreferencesStoresNormalizedPath() throws Exception {
++        File customSettings = new File(getWorkDir(), "folder/../custom/settings.xml");
++
++        service.updateMavenUserSettingsPreferences(new JsonPrimitive(customSettings.getAbsolutePath()));
++
++        String stored = NbPreferences.root().node(MAVEN_PREFERENCES_NODE).get(MAVEN_USER_SETTINGS_XML, null);
++        assertEquals(FileUtil.normalizeFile(customSettings).getAbsolutePath(), stored);
++    }
++
++    public void testUpdateMavenUserSettingsPreferencesClearsPreference() {
++        NbPreferences.root().node(MAVEN_PREFERENCES_NODE).put(MAVEN_USER_SETTINGS_XML, "/tmp/custom-settings.xml");
++
++        service.updateMavenUserSettingsPreferences(null);
++
++        assertNull(NbPreferences.root().node(MAVEN_PREFERENCES_NODE).get(MAVEN_USER_SETTINGS_XML, null));
++    }
++
++    private static final class TestLspServerState implements LspServerState {
++        @Override
++        public CompletableFuture<Project[]> openedProjects() {
++            return CompletableFuture.completedFuture(new Project[0]);
++        }
++
++        @Override
++        public CompletableFuture<Project[]> asyncOpenSelectedProjects(List<FileObject> fileCandidates, boolean addWorkspace) {
++            return CompletableFuture.completedFuture(new Project[0]);
++        }
++
++        @Override
++        public CompletableFuture<Project> asyncOpenFileOwner(FileObject file) {
++            return CompletableFuture.completedFuture(null);
++        }
++
++        @Override
++        public TextDocumentService getTextDocumentService() {
++            return null;
++        }
++
++        @Override
++        public OpenedDocuments getOpenedDocuments() {
++            return null;
++        }
++
++        @Override
++        public List<FileObject> getAcceptedWorkspaceFolders() {
++            return Collections.emptyList();
++        }
++
++        @Override
++        public List<FileObject> getClientWorkspaceFolders() {
++            return Collections.emptyList();
++        }
++    }
++}
+diff --git a/java/maven.embedder/src/org/netbeans/modules/maven/embedder/EmbedderConfiguration.java b/java/maven.embedder/src/org/netbeans/modules/maven/embedder/EmbedderConfiguration.java
+index 19f2f2d4da18..eef10a6eeee7 100644
+--- a/java/maven.embedder/src/org/netbeans/modules/maven/embedder/EmbedderConfiguration.java
++++ b/java/maven.embedder/src/org/netbeans/modules/maven/embedder/EmbedderConfiguration.java
+@@ -27,7 +27,7 @@
+  *
+  * @author mkleint
+  */
+-record EmbedderConfiguration(PlexusContainer container, Properties systemProps, Properties userProps, boolean offline, File settingsXml) {
++record EmbedderConfiguration(PlexusContainer container, Properties systemProps, Properties userProps, boolean offline, File settingsXml, File userSettingsXml) {
+ 
+     Properties getSystemProperties() {
+         return systemProps();
+@@ -49,4 +49,8 @@ File getSettingsXml() {
+         return settingsXml();
+     }
+ 
++    File getUserSettingsXml() {
++        return userSettingsXml();
++    }
++
+ }
+diff --git a/java/maven.embedder/src/org/netbeans/modules/maven/embedder/EmbedderFactory.java b/java/maven.embedder/src/org/netbeans/modules/maven/embedder/EmbedderFactory.java
+index c64adf99301c..e7bec4632d07 100644
+--- a/java/maven.embedder/src/org/netbeans/modules/maven/embedder/EmbedderFactory.java
++++ b/java/maven.embedder/src/org/netbeans/modules/maven/embedder/EmbedderFactory.java
+@@ -25,6 +25,7 @@
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
+ import java.util.prefs.Preferences;
++import org.apache.maven.cli.configuration.SettingsXmlConfigurationProcessor;
+ import org.apache.maven.artifact.repository.ArtifactRepository;
+ import org.apache.maven.model.Model;
+ import org.apache.maven.model.building.*;
+@@ -57,9 +58,10 @@
+ public final class EmbedderFactory {
+ 
+     public static final String PROP_COMMANDLINE_PATH = "commandLineMavenPath";
++    public static final String PROP_USER_SETTINGS_XML = "userSettingsXml";
+     
+     //same prop constant in MavenSettings.java
+-    static final String PROP_DEFAULT_OPTIONS = "defaultOptions"; 
++    static final String PROP_DEFAULT_OPTIONS = "defaultOptions";
+     private static final Set<String> forbidden = Set.of(
+         "netbeans.logger.console", //NOI18N
+         "java.util.logging.config.class", //NOI18N
+@@ -113,6 +115,13 @@ public void projectGroupChanging(ProjectGroupChangeEvent event) {
+                 public void projectGroupChanged(ProjectGroupChangeEvent event) {}
+             });
+         });
++        // Listen for external preference changes (e.g. from LSP module) and reset
++        // cached embedders so they pick up the new user settings XML path.
++        getPreferences().addPreferenceChangeListener((evt) -> {
++            if (PROP_USER_SETTINGS_XML.equals(evt.getKey())) {
++                resetCachedEmbedders();
++            }
++        });
+         // start initialization; guice can take a while the first time it runs
+         // if something calls getProjectEmbedder() in the mean time, this is becomes a no-op
+         warmupTask.schedule(100);
+@@ -256,6 +265,33 @@ private static File getSettingsXml() {
+         return new File(getEffectiveMavenHome(), "conf/settings.xml");
+     }
+ 
++    public static @NonNull File getDefaultUserSettingsXmlFile() {
++        return SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE;
++    }
++
++    public static @NonNull File getUserSettingsXmlFile() {
++        String str = getPreferences().get(PROP_USER_SETTINGS_XML, null);
++        if (str != null) {
++            return FileUtil.normalizeFile(new File(str));
++        } else {
++            return getDefaultUserSettingsXmlFile();
++        }
++    }
++
++    public static void setUserSettingsXmlFile(File path) {
++        File oldValue = getUserSettingsXmlFile();
++        File defValue = getDefaultUserSettingsXmlFile();
++        if (oldValue.equals(path) || path == null && oldValue.equals(defValue)) {
++            return;
++        }
++        if (path == null || path.equals(defValue)) {
++            getPreferences().remove(PROP_USER_SETTINGS_XML);
++        } else {
++            getPreferences().put(PROP_USER_SETTINGS_XML, FileUtil.normalizeFile(path).getAbsolutePath());
++        }
++        resetCachedEmbedders();
++    }
++
+     /**
+      * #191267: suppresses logging from embedded Maven, since interesting results normally appear elsewhere.
+      */
+@@ -322,7 +358,7 @@ private Logger logger() {
+ 
+         Properties userprops = new Properties();
+         userprops.putAll(getCustomGlobalUserProperties());
+-        EmbedderConfiguration configuration = new EmbedderConfiguration(pc, cloneStaticProps(), userprops, true, getSettingsXml());
++        EmbedderConfiguration configuration = new EmbedderConfiguration(pc, cloneStaticProps(), userprops, true, getSettingsXml(), getUserSettingsXmlFile());
+         
+         try {
+             return new MavenEmbedder(configuration);
+@@ -425,7 +461,7 @@ public static boolean isProjectEmbedderLoaded() {
+ 
+         Properties userprops = new Properties();
+         userprops.putAll(getCustomGlobalUserProperties());
+-        EmbedderConfiguration req = new EmbedderConfiguration(pc, cloneStaticProps(), userprops, false, getSettingsXml());
++        EmbedderConfiguration req = new EmbedderConfiguration(pc, cloneStaticProps(), userprops, false, getSettingsXml(), getUserSettingsXmlFile());
+ 
+ //        //TODO remove explicit activation
+ //        req.addActiveProfile("netbeans-public").addActiveProfile("netbeans-private"); //NOI18N
+diff --git a/java/maven.embedder/src/org/netbeans/modules/maven/embedder/MavenEmbedder.java b/java/maven.embedder/src/org/netbeans/modules/maven/embedder/MavenEmbedder.java
+index e77d50225869..45691cccbf2d 100644
+--- a/java/maven.embedder/src/org/netbeans/modules/maven/embedder/MavenEmbedder.java
++++ b/java/maven.embedder/src/org/netbeans/modules/maven/embedder/MavenEmbedder.java
+@@ -200,7 +200,8 @@ public synchronized Settings getSettings() {
+             return testSettings; // could instead make public void setSettings(Settings settingsOverride)
+         }
+         File settingsXml = embedderConfiguration.getSettingsXml();
+-        long newSettingsTimestamp = settingsXml.hashCode() ^ settingsXml.lastModified() ^ SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE.lastModified();
++        File userSettingsXml = embedderConfiguration.getUserSettingsXml();
++        long newSettingsTimestamp = settingsXml.hashCode() ^ settingsXml.lastModified() ^ userSettingsXml.lastModified();
+         // could be included but currently constant: hashCode() of those files; getSystemProperties.hashCode()
+         if (settings != null && settingsTimestamp == newSettingsTimestamp) {
+             LOG.log(Level.FINER, "settings.xml cache hit for {0}", this);
+@@ -209,7 +210,7 @@ public synchronized Settings getSettings() {
+         LOG.log(Level.FINE, "settings.xml cache miss for {0}", this);
+         SettingsBuildingRequest req = new DefaultSettingsBuildingRequest();
+         req.setGlobalSettingsFile(settingsXml);
+-        req.setUserSettingsFile(SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE);
++        req.setUserSettingsFile(userSettingsXml);
+         req.setSystemProperties(getSystemProperties());
+         req.setUserProperties(embedderConfiguration.getUserProperties());
+         try {
+@@ -586,8 +587,9 @@ public MavenExecutionRequest createMavenExecutionRequest(){
+         if (settingsXml !=null && settingsXml.exists()) {
+             req.setGlobalSettingsFile(settingsXml);
+         }
+-        if (SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE != null && SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE.exists()) {
+-          req.setUserSettingsFile(SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE);
++        File userSettingsXml = embedderConfiguration.getUserSettingsXml();
++        if (userSettingsXml != null && userSettingsXml.exists()) {
++            req.setUserSettingsFile(userSettingsXml);
+         }
+         
+         req.setSystemProperties(getSystemProperties());
+diff --git a/java/maven/src/org/netbeans/modules/maven/NbMavenProjectImpl.java b/java/maven/src/org/netbeans/modules/maven/NbMavenProjectImpl.java
+index 73b78d2cdf61..51fcb0b5e832 100644
+--- a/java/maven/src/org/netbeans/modules/maven/NbMavenProjectImpl.java
++++ b/java/maven/src/org/netbeans/modules/maven/NbMavenProjectImpl.java
+@@ -54,7 +54,6 @@
+ import org.apache.maven.artifact.Artifact;
+ import org.apache.maven.artifact.DefaultArtifact;
+ import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
+-import org.apache.maven.cli.MavenCli;
+ import org.apache.maven.execution.MavenExecutionRequest;
+ import org.apache.maven.model.Model;
+ import org.apache.maven.model.Plugin;
+@@ -170,6 +169,7 @@ public void run() {
+     private final Lookup completeLookup;
+     private final Lookup lookup;
+     private final Updater openedProjectUpdater;
++    private volatile boolean updaterAttached;
+     
+     private Reference<MavenProject> project;
+     private boolean hardReferencingMavenProject = false; //only should be true when project is open.
+@@ -263,12 +263,11 @@ public Lookup getLookup() {
+ 
+             @Override
+             public File[] getFiles() {
+-                File homeFile = FileUtil.normalizeFile(MavenCli.USER_MAVEN_CONFIGURATION_HOME);
+                 return new File[] {
+                     new File(projectFile.getParentFile(), "nb-configuration.xml"), //NOI18N
+                     projectFile,
+                     new File(new File(projectFile.getParentFile(), ".mvn"), "maven.config"), //NOI18N
+-                    new File(homeFile, "settings.xml"), //NOI18N
++                    EmbedderFactory.getUserSettingsXmlFile(),
+                 };
+             }
+         });
+@@ -807,12 +806,22 @@ public static void refreshLocalRepository(NbMavenProjectImpl project) {
+ 
+     /** Begin listening to pom.xml changes. */
+     void attachUpdater() {
++        updaterAttached = true;
+         openedProjectUpdater.attachAll();
+     }
+    void detachUpdater() {
++        updaterAttached = false;
+         openedProjectUpdater.detachAll();
+     }
+ 
++    public void refreshUpdater() {
++        if (!updaterAttached) {
++            return;
++        }
++        openedProjectUpdater.detachAll();
++        openedProjectUpdater.attachAll();
++    }
++
+     /**
+      * The root directory of the project where the POM resides.
+      */
+@@ -1436,28 +1445,26 @@ synchronized void attachAll() {
+                     assert false : "project opened twice in a row, issue #236211 for " + projectFile.getAbsolutePath();
+                 }
+             }
+-            
+-            if(lastMods == null) {
+-                // attached for the first time, 
+-                // preserve lastModified of interestig files 
+-                lastMods = new HashMap<>(filesToWatch.size());
+-                for (File file : filesToWatch) {
+-                    lastMods.put(file, file.lastModified());
+-                }
+-            } else {
+-                for (Map.Entry<File, Long> e : lastMods.entrySet()) {
+-                    File file = e.getKey();
+-                    long ts = file.lastModified();
+-                    if( e.getValue() < ts ) {
+-                        // attached after being previously dettached and 
+-                        // lastModified of an interesting file changed in the meantime 
++
++            boolean reloadNeeded = false;
++            Map<File, Long> currentLastMods = new HashMap<>(filesToWatch.size());
++            for (File file : filesToWatch) {
++                long ts = file.lastModified();
++                if (lastMods != null) {
++                    Long oldTs = lastMods.get(file);
++                    if (oldTs != null && oldTs < ts) {
++                        // attached after being previously detached and
++                        // lastModified of an interesting file changed in the meantime
+                         // -> force pom refresh
+-                        lastMods.put(file, ts);
+-                        NbMavenProject.fireMavenProjectReload(NbMavenProjectImpl.this);
++                        reloadNeeded = true;
+                     }
+                 }
+-                
+-            }            
++                currentLastMods.put(file, ts);
++            }
++            lastMods = currentLastMods;
++            if (reloadNeeded) {
++                NbMavenProject.fireMavenProjectReload(NbMavenProjectImpl.this);
++            }
+         }
+ 
+         protected List<File> getParents() {
+diff --git a/java/maven/src/org/netbeans/modules/maven/api/FileUtilities.java b/java/maven/src/org/netbeans/modules/maven/api/FileUtilities.java
+index aa893d58aed0..0dd4c458b703 100644
+--- a/java/maven/src/org/netbeans/modules/maven/api/FileUtilities.java
++++ b/java/maven/src/org/netbeans/modules/maven/api/FileUtilities.java
+@@ -21,6 +21,8 @@
+ 
+ import java.io.File;
+ import java.io.IOException;
++import java.io.InputStream;
++import java.io.OutputStream;
+ import java.net.URI;
+ import java.util.Enumeration;
+ import java.util.SortedSet;
+@@ -28,7 +30,6 @@
+ import java.util.TreeSet;
+ import java.util.regex.Pattern;
+ import org.apache.maven.artifact.Artifact;
+-import org.apache.maven.cli.configuration.SettingsXmlConfigurationProcessor;
+ import org.netbeans.api.annotations.common.CheckForNull;
+ import org.netbeans.api.annotations.common.NonNull;
+ import org.netbeans.api.annotations.common.NullAllowed;
+@@ -40,9 +41,6 @@
+ import org.netbeans.modules.maven.embedder.EmbedderFactory;
+ import org.openide.filesystems.FileObject;
+ import org.openide.filesystems.FileUtil;
+-import org.openide.loaders.DataFolder;
+-import org.openide.loaders.DataObject;
+-import org.openide.loaders.DataObjectNotFoundException;
+ import org.openide.util.Utilities;
+ 
+ /**
+@@ -291,26 +289,29 @@ public static SortedSet<String> getBasePackageNames (Project prj) {
+      * @return either the settings.xml file or <code>null</code> if not available
+      */
+     public static File getUserSettingsFile(boolean forceCreate) {
+-        if(!SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE.exists()) {
++        File userSettingsFile = EmbedderFactory.getUserSettingsXmlFile();
++        if (!userSettingsFile.exists()) {
+             if(!forceCreate) {
+                 return null;
+             }
+             
+             try {
+-                File fil = SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE.getParentFile();
+-
+-                DataFolder folder = DataFolder.findFolder(FileUtil.createFolder(fil));
+-                // path to template...
++                File fil = userSettingsFile.getParentFile();
+                 FileObject temp = FileUtil.getConfigFile("Maven2Templates/settings.xml"); //NOI18N
+-                DataObject dobj = DataObject.find(temp);
+-                dobj.createFromTemplate(folder);
+-            } catch (DataObjectNotFoundException ex) {
+-                ex.printStackTrace();
++                if (temp == null) {
++                    return null;
++                }
++                FileObject folder = FileUtil.createFolder(fil);
++                FileObject settingsFile = FileUtil.createData(folder, userSettingsFile.getName());
++                try (InputStream in = temp.getInputStream();
++                     OutputStream out = settingsFile.getOutputStream()) {
++                    FileUtil.copy(in, out);
++                }
+             } catch (IOException ex) {
+                 ex.printStackTrace();
+             }
+         }
+-        return SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE;
++        return userSettingsFile;
+     }
+     
+     private static void getSourcePackageNames (Project prj, SortedSet<String> result, boolean onlyRoots) {
+diff --git a/java/maven/src/org/netbeans/modules/maven/api/NbMavenProject.java b/java/maven/src/org/netbeans/modules/maven/api/NbMavenProject.java
+index ff0472d6a52b..1f14e0b5bb49 100644
+--- a/java/maven/src/org/netbeans/modules/maven/api/NbMavenProject.java
++++ b/java/maven/src/org/netbeans/modules/maven/api/NbMavenProject.java
+@@ -180,6 +180,9 @@ public void fileAttributeChanged(FileAttributeEvent fe) {
+ 
+         @Override
+         public void propertyChange(PropertyChangeEvent evt) {
++            if (EmbedderFactory.PROP_USER_SETTINGS_XML.equals(evt.getPropertyName())) {
++                project.refreshUpdater();
++            }
+             doFireReload();
+         }
+     }
+diff --git a/java/maven/src/org/netbeans/modules/maven/execute/MavenCommandLineExecutor.java b/java/maven/src/org/netbeans/modules/maven/execute/MavenCommandLineExecutor.java
+index c1d60f9c4b71..c6f48fb4660a 100644
+--- a/java/maven/src/org/netbeans/modules/maven/execute/MavenCommandLineExecutor.java
++++ b/java/maven/src/org/netbeans/modules/maven/execute/MavenCommandLineExecutor.java
+@@ -531,6 +531,11 @@ private static List<String> createMavenExecutionCommand(RunConfig config, Constr
+         if (config.isUpdateSnapshots()) {
+             toRet.add("--update-snapshots");//NOI18N
+         }
++        String userSettingsXml = MavenSettings.getDefault().getUserSettingsXml();
++        if (!userSettingsXml.equals(EmbedderFactory.getDefaultUserSettingsXmlFile().getAbsolutePath())) {
++            toRet.add("--settings");
++            toRet.add(userSettingsXml);
++        }
+         if (config.getReactorStyle() != RunConfig.ReactorStyle.NONE) {
+             File basedir = config.getExecutionDirectory();
+             MavenProject mp = NbMavenProject.getPartialProject(config.getMavenProject());
+diff --git a/java/maven/src/org/netbeans/modules/maven/nodes/ProjectFilesNode.java b/java/maven/src/org/netbeans/modules/maven/nodes/ProjectFilesNode.java
+index 63227327bc76..5256ea1abf22 100644
+--- a/java/maven/src/org/netbeans/modules/maven/nodes/ProjectFilesNode.java
++++ b/java/maven/src/org/netbeans/modules/maven/nodes/ProjectFilesNode.java
+@@ -34,13 +34,13 @@
+ import java.util.logging.Logger;
+ import javax.swing.AbstractAction;
+ import javax.swing.Action;
+-import org.apache.maven.cli.configuration.SettingsXmlConfigurationProcessor;
+ import org.netbeans.api.annotations.common.StaticResource;
+ import org.netbeans.modules.maven.M2AuxilaryConfigImpl;
+ import org.netbeans.modules.maven.NbMavenProjectImpl;
+ import org.netbeans.modules.maven.api.FileUtilities;
+ import org.netbeans.modules.maven.api.NbMavenProject;
+ import org.netbeans.modules.maven.configurations.M2Configuration;
++import org.netbeans.modules.maven.embedder.EmbedderFactory;
+ import static org.netbeans.modules.maven.nodes.Bundle.*;
+ import org.netbeans.modules.maven.spi.nodes.NodeUtils;
+ import org.openide.cookies.EditCookie;
+@@ -78,7 +78,7 @@ public ProjectFilesNode(NbMavenProjectImpl project) {
+     @Override
+     public Action[] getActions(boolean context) {
+         Collection<Action> col = new ArrayList<Action>();
+-        if (!SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE.exists()) {
++        if (!EmbedderFactory.getUserSettingsXmlFile().exists()) {
+             col.add(new AddSettingsXmlAction());
+         }
+         return col.toArray(new Action[0]);
+@@ -163,7 +163,7 @@ private static class ProjectFilesChildren extends ChildFactory.Detachable<FileOb
+                 }
+             }
+             keys.add(d.getFileObject(M2AuxilaryConfigImpl.CONFIG_FILE_NAME));
+-            keys.add(FileUtil.toFileObject(SettingsXmlConfigurationProcessor.DEFAULT_USER_SETTINGS_FILE));
++            keys.add(FileUtil.toFileObject(EmbedderFactory.getUserSettingsXmlFile()));
+             keys.removeAll(Collections.singleton(null));
+             return true;
+         }
+diff --git a/java/maven/src/org/netbeans/modules/maven/options/Bundle.properties b/java/maven/src/org/netbeans/modules/maven/options/Bundle.properties
+index 7a98ffcc52c2..563ef7c2c68f 100644
+--- a/java/maven/src/org/netbeans/modules/maven/options/Bundle.properties
++++ b/java/maven/src/org/netbeans/modules/maven/options/Bundle.properties
+@@ -101,3 +101,4 @@ SettingsPanel.lblIndexFilter.text=Index Filter:
+ SettingsPanel.rb2Years.text=2 years
+ SettingsPanel.rb5Years.text=5 years
+ SettingsPanel.rbFullIndex.text=Full Index (no filter)
++SettingsPanel.lblMavenUserSettingsXml.text=&Maven User Settings XML:
+diff --git a/java/maven/src/org/netbeans/modules/maven/options/MavenSettings.java b/java/maven/src/org/netbeans/modules/maven/options/MavenSettings.java
+index cbec92c4049c..ca3873784e38 100644
+--- a/java/maven/src/org/netbeans/modules/maven/options/MavenSettings.java
++++ b/java/maven/src/org/netbeans/modules/maven/options/MavenSettings.java
+@@ -58,6 +58,7 @@
+  * @author mkleint
+  */
+ public final class MavenSettings  {
++    private static final String PREFERENCES_PATH = "org/netbeans/modules/maven"; // NOI18N
+     //same prop constant in Embedderfactory.java    
+     private static final String PROP_DEFAULT_OPTIONS = "defaultOptions"; // NOI18N
+     private static final String PROP_SOURCE_DOWNLOAD = "sourceDownload"; //NOI18N
+@@ -160,6 +161,10 @@ private boolean hasOption(String longName, String shortName) {
+     private Preferences getPreferences() {
+         return NbPreferences.forModule(MavenSettings.class);
+     }
++
++    private Preferences getSharedPreferences() {
++        return NbPreferences.root().node(PREFERENCES_PATH);
++    }
+     
+     private String putProperty(String key, String value) {
+         String retval = getProperty(key);
+@@ -176,6 +181,11 @@ private String getProperty(String key) {
+     }    
+     
+     private MavenSettings() {
++        getSharedPreferences().addPreferenceChangeListener(evt -> {
++            if (EmbedderFactory.PROP_USER_SETTINGS_XML.equals(evt.getKey())) {
++                firePropertyChange(evt.getKey(), null, evt.getNewValue());
++            }
++        });
+         //import from older versions
+         String defOpts = getPreferences().get(PROP_DEFAULT_OPTIONS, null);
+         if (defOpts == null) {
+@@ -255,6 +265,15 @@ public void setDefaultOptions(String options) {
+         }        
+     }
+     
++    public String getUserSettingsXml() {
++        return EmbedderFactory.getUserSettingsXmlFile().getAbsolutePath();
++    }
++
++    public void setUserSettingsXml(String path) {
++        File file = (path == null || path.trim().isEmpty()) ? null : new File(path.trim());
++        EmbedderFactory.setUserSettingsXmlFile(file);
++    }
++
+     public boolean isVMOptionsWrap() {
+         return getPreferences().getBoolean(PROP_VM_OPTIONS_WRAP, true);
+     }
+@@ -269,12 +288,16 @@ public String getDefaultJdk() {
+ 
+     public void setDefaultJdk(String jdk) {
+         getPreferences().put(PROP_DEFAULT_JDK, jdk);
++        firePropertyChange(PROP_DEFAULT_JDK, null, jdk);
++    }
++
++    private void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+         PropertyChangeListener[] arr;
+         synchronized (listeners) {
+             arr = listeners.toArray(new PropertyChangeListener[0]);
+         }
+         for (PropertyChangeListener l : arr) {
+-            l.propertyChange(new PropertyChangeEvent(this, PROP_DEFAULT_JDK, null, jdk));
++            l.propertyChange(new PropertyChangeEvent(this, propertyName, oldValue, newValue));
+         }
+     }
+ 
+diff --git a/java/maven/src/org/netbeans/modules/maven/options/SettingsPanel.form b/java/maven/src/org/netbeans/modules/maven/options/SettingsPanel.form
+index c31696ae9adf..95ae01b53e57 100644
+--- a/java/maven/src/org/netbeans/modules/maven/options/SettingsPanel.form
++++ b/java/maven/src/org/netbeans/modules/maven/options/SettingsPanel.form
+@@ -92,7 +92,7 @@
+                   <Group type="102" alignment="0" attributes="0">
+                       <EmptySpace max="-2" attributes="0"/>
+                       <Component id="appearancePanel" min="-2" max="-2" attributes="0"/>
+-                      <EmptySpace pref="354" max="32767" attributes="0"/>
++                      <EmptySpace pref="397" max="32767" attributes="0"/>
+                   </Group>
+               </Group>
+             </DimensionLayout>
+@@ -196,7 +196,7 @@
+                   <Group type="102" alignment="0" attributes="0">
+                       <EmptySpace max="-2" attributes="0"/>
+                       <Component id="dependenciesPanel" min="-2" max="-2" attributes="0"/>
+-                      <EmptySpace pref="277" max="32767" attributes="0"/>
++                      <EmptySpace pref="320" max="32767" attributes="0"/>
+                   </Group>
+               </Group>
+             </DimensionLayout>
+@@ -420,7 +420,7 @@
+                               <Component id="btnIndex" alignment="3" min="-2" max="-2" attributes="0"/>
+                           </Group>
+                           <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+-                          <Component id="permissionsTableScrollPane" pref="107" max="32767" attributes="0"/>
++                          <Component id="permissionsTableScrollPane" pref="150" max="32767" attributes="0"/>
+                           <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
+                           <Component id="descriptionLabel" min="-2" max="-2" attributes="0"/>
+                           <EmptySpace min="-2" max="-2" attributes="0"/>
+@@ -617,7 +617,7 @@
+                                       <Group type="103" groupAlignment="0" attributes="0">
+                                           <Group type="102" attributes="0">
+                                               <Component id="cbPreferWrapper" min="-2" max="-2" attributes="0"/>
+-                                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
++                                              <EmptySpace min="0" pref="137" max="32767" attributes="0"/>
+                                           </Group>
+                                           <Component id="comMavenHome" max="32767" attributes="0"/>
+                                           <Group type="102" attributes="0">
+@@ -645,6 +645,13 @@
+                           </Group>
+                       </Group>
+                   </Group>
++                  <Group type="102" alignment="0" attributes="0">
++                      <EmptySpace max="-2" attributes="0"/>
++                      <Component id="lblMavenUserSettingsXml" min="-2" max="-2" attributes="0"/>
++                      <EmptySpace min="-2" pref="4" max="-2" attributes="0"/>
++                      <Component id="comMavenUserSettingsXml" max="32767" attributes="0"/>
++                      <EmptySpace min="-2" pref="84" max="-2" attributes="0"/>
++              </Group>
+               </Group>
+             </DimensionLayout>
+             <DimensionLayout dim="1">
+@@ -679,6 +686,11 @@
+                               <EmptySpace min="3" pref="3" max="-2" attributes="0"/>
+                           </Group>
+                       </Group>
++                      <EmptySpace max="-2" attributes="0"/>
++                      <Group type="103" groupAlignment="3" attributes="0">
++                          <Component id="lblMavenUserSettingsXml" alignment="3" min="-2" max="-2" attributes="0"/>
++                          <Component id="comMavenUserSettingsXml" alignment="3" min="-2" max="-2" attributes="0"/>
++                      </Group>
+                       <EmptySpace type="separate" max="-2" attributes="0"/>
+                       <Component id="cbSkipTests" min="-2" max="-2" attributes="0"/>
+                       <EmptySpace type="separate" max="-2" attributes="0"/>
+@@ -883,6 +895,23 @@
+                 </Property>
+               </Properties>
+             </Component>
++            <Component class="javax.swing.JComboBox" name="comMavenUserSettingsXml">
++              <Properties>
++                <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
++                  <StringArray count="0"/>
++                </Property>
++              </Properties>
++            </Component>
++            <Component class="javax.swing.JLabel" name="lblMavenUserSettingsXml">
++              <Properties>
++                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
++                  <ResourceString bundle="org/netbeans/modules/maven/options/Bundle.properties" key="SettingsPanel.lblMavenUserSettingsXml.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
++                </Property>
++              </Properties>
++              <AuxValues>
++                <AuxValue name="JavaCodeGenerator_InitCodePre" type="java.lang.String" value="lblCommandLine.setLabelFor(comMavenHome);"/>
++              </AuxValues>
++            </Component>
+           </SubComponents>
+         </Container>
+       </SubComponents>
+diff --git a/java/maven/src/org/netbeans/modules/maven/options/SettingsPanel.java b/java/maven/src/org/netbeans/modules/maven/options/SettingsPanel.java
+index d86e9dbfc6c4..5ca4fee95def 100644
+--- a/java/maven/src/org/netbeans/modules/maven/options/SettingsPanel.java
++++ b/java/maven/src/org/netbeans/modules/maven/options/SettingsPanel.java
+@@ -91,6 +91,7 @@ public class SettingsPanel extends javax.swing.JPanel {
+     private final MavenOptionController controller;
+     private final TextValueCompleter completer;
+     private final ActionListener   listItemChangedListener;
++    private final ActionListener   settingsXmlChangedListener;
+     private final List<String>       userDefinedMavenRuntimes = new ArrayList<>();
+     private final List<String>       userDefinedMavenRuntimesStored = new ArrayList<>();
+     private final List<String>       predefinedRuntimes = new ArrayList<>();
+@@ -98,6 +99,7 @@ public class SettingsPanel extends javax.swing.JPanel {
+     private final DefaultComboBoxModel jdkHomeDataModel = new DefaultComboBoxModel();
+     private String             mavenRuntimeHome = null;
+     private int                lastSelected = -1;
++    private int                lastSelectedSettingsXml = 0;
+     private static final RequestProcessor RP = new RequestProcessor(SettingsPanel.class);
+ 
+     private static class ComboBoxRenderer extends DefaultListCellRenderer {
+@@ -175,6 +177,16 @@ public Component getListCellRendererComponent(JList list, Object value, int inde
+             lastSelected = selected;
+         };
+ 
++        settingsXmlChangedListener = (ActionEvent e) -> {
++            if (MAVEN_RUNTIME_Browse().equals(comMavenUserSettingsXml.getSelectedItem())) {
++                comMavenUserSettingsXml.setSelectedIndex(lastSelectedSettingsXml);
++                SwingUtilities.invokeLater(SettingsPanel.this::browseUserSettingsXml);
++                return;
++            }
++            lastSelectedSettingsXml = comMavenUserSettingsXml.getSelectedIndex();
++            fireChanged();
++        };
++
+         comIndex.setSelectedIndex(0);
+         listener = new ActionListenerImpl();
+         comIndex.addActionListener(listener);
+@@ -395,6 +407,8 @@ private void initComponents() {
+         cbPreferWrapper = new javax.swing.JCheckBox();
+         cbNetworkProxy = new javax.swing.JComboBox<>();
+         lbNetworkSettings = new javax.swing.JLabel();
++        comMavenUserSettingsXml = new javax.swing.JComboBox();
++        lblMavenUserSettingsXml = new javax.swing.JLabel();
+         jScrollPane1 = new javax.swing.JScrollPane();
+         lstCategory = new javax.swing.JList();
+         lblCategory = new javax.swing.JLabel();
+@@ -453,7 +467,7 @@ public void actionPerformed(java.awt.event.ActionEvent evt) {
+             .addGroup(pnlAppearanceLayout.createSequentialGroup()
+                 .addContainerGap()
+                 .addComponent(appearancePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+-                .addContainerGap(354, Short.MAX_VALUE))
++                .addContainerGap(397, Short.MAX_VALUE))
+         );
+ 
+         pnlCards.add(pnlAppearance, "appearance");
+@@ -530,7 +544,7 @@ public void actionPerformed(java.awt.event.ActionEvent evt) {
+             .addGroup(pnlDependenciesLayout.createSequentialGroup()
+                 .addContainerGap()
+                 .addComponent(dependenciesPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+-                .addContainerGap(277, Short.MAX_VALUE))
++                .addContainerGap(320, Short.MAX_VALUE))
+         );
+ 
+         pnlCards.add(pnlDependencies, "dependencies");
+@@ -642,7 +656,7 @@ public void actionPerformed(java.awt.event.ActionEvent evt) {
+                     .addComponent(comIndex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                     .addComponent(btnIndex))
+                 .addGap(18, 18, 18)
+-                .addComponent(permissionsTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE)
++                .addComponent(permissionsTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
+                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                 .addComponent(descriptionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                 .addContainerGap())
+@@ -721,6 +735,9 @@ public void actionPerformed(java.awt.event.ActionEvent evt) {
+         lbNetworkSettings.setLabelFor(cbNetworkProxy);
+         org.openide.awt.Mnemonics.setLocalizedText(lbNetworkSettings, org.openide.util.NbBundle.getMessage(SettingsPanel.class, "SettingsPanel.lbNetworkSettings.text")); // NOI18N
+ 
++        lblCommandLine.setLabelFor(comMavenHome);
++        org.openide.awt.Mnemonics.setLocalizedText(lblMavenUserSettingsXml, org.openide.util.NbBundle.getMessage(SettingsPanel.class, "SettingsPanel.lblMavenUserSettingsXml.text")); // NOI18N
++
+         javax.swing.GroupLayout pnlExecutionLayout = new javax.swing.GroupLayout(pnlExecution);
+         pnlExecution.setLayout(pnlExecutionLayout);
+         pnlExecutionLayout.setHorizontalGroup(
+@@ -762,7 +779,7 @@ public void actionPerformed(java.awt.event.ActionEvent evt) {
+                                 .addGroup(pnlExecutionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                     .addGroup(pnlExecutionLayout.createSequentialGroup()
+                                         .addComponent(cbPreferWrapper)
+-                                        .addGap(0, 0, Short.MAX_VALUE))
++                                        .addGap(0, 137, Short.MAX_VALUE))
+                                     .addComponent(comMavenHome, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                     .addGroup(pnlExecutionLayout.createSequentialGroup()
+                                         .addComponent(comJdkHome, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+@@ -779,6 +796,12 @@ public void actionPerformed(java.awt.event.ActionEvent evt) {
+                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                 .addComponent(btnOptions)))
+                         .addContainerGap())))
++            .addGroup(pnlExecutionLayout.createSequentialGroup()
++                .addContainerGap()
++                .addComponent(lblMavenUserSettingsXml)
++                .addGap(4, 4, 4)
++                .addComponent(comMavenUserSettingsXml, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
++                .addGap(84, 84, 84))
+         );
+         pnlExecutionLayout.setVerticalGroup(
+             pnlExecutionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+@@ -807,6 +830,10 @@ public void actionPerformed(java.awt.event.ActionEvent evt) {
+                     .addGroup(pnlExecutionLayout.createSequentialGroup()
+                         .addComponent(lbNetworkSettings, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                         .addGap(3, 3, 3)))
++                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
++                .addGroup(pnlExecutionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
++                    .addComponent(lblMavenUserSettingsXml)
++                    .addComponent(comMavenUserSettingsXml, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                 .addGap(18, 18, 18)
+                 .addComponent(cbSkipTests)
+                 .addGap(18, 18, 18)
+@@ -978,6 +1005,7 @@ private void updateIndexingControls() {
+     private javax.swing.JComboBox comJdkHome;
+     private javax.swing.JButton comManageJdks;
+     private javax.swing.JComboBox comMavenHome;
++    private javax.swing.JComboBox comMavenUserSettingsXml;
+     private javax.swing.JComboBox comSource;
+     private javax.swing.JLabel jLabel3;
+     private javax.swing.JLabel jLabel4;
+@@ -991,6 +1019,7 @@ private void updateIndexingControls() {
+     private javax.swing.JLabel lblIndexFilter;
+     private javax.swing.JLabel lblJavadoc;
+     private javax.swing.JLabel lblJdkHome;
++    private javax.swing.JLabel lblMavenUserSettingsXml;
+     private javax.swing.JLabel lblOptions;
+     private javax.swing.JLabel lblOutputTab;
+     private javax.swing.JLabel lblSource;
+@@ -1065,10 +1094,45 @@ private void browseAddNewRuntime() {
+         }
+     }
+     
++    private String getSelectedUserSettingsXml() {
++        Object selected = comMavenUserSettingsXml.getSelectedItem();
++        if (selected == null || MAVEN_RUNTIME_Browse().equals(selected)) {
++            return MavenSettings.getDefault().getUserSettingsXml();
++        }
++        return selected.toString();
++    }
++
++    @Messages("TIT_SelectSettingsXml=Select Maven User Settings XML File")
++    private void browseUserSettingsXml() {
++        JFileChooser chooser = new JFileChooser();
++        chooser.setDialogTitle(TIT_SelectSettingsXml());
++        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
++        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("XML Files", "xml")); //NOI18N
++        File defaultDir = EmbedderFactory.getDefaultUserSettingsXmlFile().getParentFile();
++        if (defaultDir.exists()) {
++            chooser.setCurrentDirectory(defaultDir);
++        }
++        if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
++            String newPath = FileUtil.normalizeFile(chooser.getSelectedFile()).getAbsolutePath();
++            DefaultComboBoxModel model = (DefaultComboBoxModel) comMavenUserSettingsXml.getModel();
++            boolean found = false;
++            for (int i = 0; i < model.getSize() - 1; i++) {
++                if (newPath.equals(model.getElementAt(i))) {
++                    found = true;
++                    break;
++                }
++            }
++            if (!found) {
++                model.insertElementAt(newPath, model.getSize() - 1);
++            }
++            comMavenUserSettingsXml.setSelectedItem(newPath);
++        }
++    }
++
+     @Messages({
+-        "MAVEN_RUNTIME_Bundled=Bundled", 
++        "MAVEN_RUNTIME_Bundled=Bundled",
+         "# {0} - external maven",
+-        "MAVEN_RUNTIME_External={0}", 
++        "MAVEN_RUNTIME_External={0}",
+         "MAVEN_RUNTIME_Browse=Browse..."})
+     public void setValues() {
+         txtOptions.setText(MavenSettings.getDefault().getDefaultOptions());
+@@ -1197,7 +1261,21 @@ public void run() {
+         }
+         
+          cbNetworkProxy.setSelectedItem(MavenSettings.getDefault().getNetworkProxy());
+-        
++
++        comMavenUserSettingsXml.removeActionListener(settingsXmlChangedListener);
++        String defaultSettingsPath = EmbedderFactory.getDefaultUserSettingsXmlFile().getAbsolutePath();
++        String storedSettingsXml = MavenSettings.getDefault().getUserSettingsXml();
++        DefaultComboBoxModel settingsXmlModel = new DefaultComboBoxModel();
++        settingsXmlModel.addElement(defaultSettingsPath);
++        if (!storedSettingsXml.equals(defaultSettingsPath)) {
++            settingsXmlModel.addElement(storedSettingsXml);
++        }
++        settingsXmlModel.addElement(MAVEN_RUNTIME_Browse());
++        comMavenUserSettingsXml.setModel(settingsXmlModel);
++        comMavenUserSettingsXml.setSelectedItem(storedSettingsXml);
++        lastSelectedSettingsXml = comMavenUserSettingsXml.getSelectedIndex();
++        comMavenUserSettingsXml.addActionListener(settingsXmlChangedListener);
++
+         changed = false;  //#163955 - do not fire change events on load
+     }
+     
+@@ -1242,6 +1320,7 @@ public void applyValues() {
+         MavenSettings.getDefault().setCollapseSuccessFolds(cbCollapseSuccessFolds.isSelected());
+         MavenSettings.getDefault().setOutputTabShowConfig(cbOutputTabShowConfig.isSelected());
+         MavenSettings.getDefault().setPreferMavenWrapper(cbPreferWrapper.isSelected());
++        MavenSettings.getDefault().setUserSettingsXml(getSelectedUserSettingsXml());
+         MavenSettings.OutputTabName name = rbOutputTabName.isSelected() ? MavenSettings.OutputTabName.PROJECT_NAME : MavenSettings.OutputTabName.PROJECT_ID;
+         MavenSettings.getDefault().setOutputTabName(name);
+         
+@@ -1327,6 +1406,7 @@ private void fireChanged() {
+             }
+         }
+         isChanged |= MavenSettings.getDefault().getNetworkProxy() != cbNetworkProxy.getSelectedItem();
++        isChanged |= !MavenSettings.getDefault().getUserSettingsXml().equals(getSelectedUserSettingsXml());
+         changed = isChanged;
+     }
+ 

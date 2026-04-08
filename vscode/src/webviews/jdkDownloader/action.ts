@@ -16,7 +16,7 @@
 
 import { commands, OpenDialogOptions, window } from "vscode";
 import { JdkDownloaderView } from "./view";
-import { jdkDownloaderConstants } from "../../constants";
+import { jdkDownloaderConstants } from "../constants";
 import * as path from 'path';
 import * as fs from 'fs';
 import { calculateChecksum, downloadFileWithProgressBar, httpsGet } from "../../utils";

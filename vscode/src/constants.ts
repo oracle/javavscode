@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -26,16 +26,4 @@ export namespace extConstants {
   export const NOTEBOOK_FILE_EXTENSION = 'ijnb';
 }
 
-export namespace jdkDownloaderConstants {
-
-  export const ORACLE_JDK_RELEASES_BASE_URL = `https://java.oraclecloud.com/currentJavaReleases`;
-
-  export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
-
-  export const ORACLE_JDK_FALLBACK_VESIONS = ['26', '25', '21'];
-
-  export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-    "26": "https://download.java.net/java/GA/jdk26/c3cc523845074aa0af4f5e1e1ed4151d/35/GPL/openjdk-26"
-  };  
-}
 export const NODE_WINDOWS_LABEL = "Windows_NT";

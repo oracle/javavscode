@@ -14,7 +14,8 @@
   limitations under the License.
 */
 
-import { jdkDownloaderConstants } from '../../constants';
+import { jdkDownloaderConstants } from '../constants';
+import { JdkVersionInfo } from '../types';
 import { ViewColumn, WebviewPanel, window } from 'vscode';
 import * as os from 'os';
 import { JdkDownloaderAction } from './action';
@@ -41,7 +42,8 @@ export class JdkDownloaderView {
     private jdkDownloaderWebView?: WebviewPanel;
     private osType?: string;
     private machineArch?: string;
-    private oracleJdkVersions: string[] = [];
+    private oracleJdkVersions: JdkVersionInfo[] = [];
+    private openJdkVersions: JdkVersionInfo[] = [];
 
     public createView = async () => {
         try {
@@ -55,6 +57,8 @@ export class JdkDownloaderView {
                     enableCommandUris: true
                 }
             );
+            this.openJdkVersions = Object.keys(jdkDownloaderConstants.OPEN_JDK_VERSION_DOWNLOAD_LINKS)
+                .map((version:string) => ({version, isLts: false}));
             this.oracleJdkVersions = await this.getOracleJdkVersions();
             this.setDropdownOptions();
             this.jdkDownloaderWebView.webview.html = this.fetchJdkDownloadViewHtml();
@@ -74,7 +78,7 @@ export class JdkDownloaderView {
         await this.jdkDownloaderWebView?.dispose();
     }
 
-    private setDropdownOptions = async () => {
+    private setDropdownOptions = () => {
         const osTypeNode = os.type();
         switch (osTypeNode) {
             case "Linux":
@@ -124,7 +128,7 @@ export class JdkDownloaderView {
                         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M5 20h14v-2H5v2zm7-18c-.6 0-1 .4-1 1v8.6l-2.3-2.3-1.4 1.4 4.7 4.7 4.7-4.7-1.4-1.4-2.3 2.3V3c0-.6-.4-1-1-1z"/>
                         </svg>
-                        ${l10n.value("jdk.downloader.button.label.latestOracleJdk")}
+                        ${l10n.value("jdk.downloader.button.label.latestOracleJdk", {jdkVersion: this.oracleJdkVersions.at(0)?.version})}
                     </button>
 
                     <!-- Other options: DETAILS accordion -->
@@ -186,7 +190,7 @@ export class JdkDownloaderView {
                                         <div class="jdk-version-container">
                                             <label for="oracleJdkVersionDropdown" class="jdk-version-label">${l10n.value("jdk.downloader.label.selectOracleJdkVersion")}</label>
                                             <div class="jdk-version-dropdown">
-                                            <select class="select" id="oracleJdkVersionDropdown" name="oracleJdkVersionDropdown">
+                                            <select class="select" id="oracleJdkVersionDropdown" name="oracleJdkVersionDropdown"${this.oracleJdkVersions.length < 2 ? " disabled" : ""}>
                                                 ${this.getJdkVersionsHtml(this.oracleJdkVersions)}
                                             </select>
                                             </div>
@@ -196,8 +200,8 @@ export class JdkDownloaderView {
                                         <div class="jdk-version-container">
                                             <label for="openJdkVersionDropdown" class="jdk-version-label">${l10n.value("jdk.downloader.label.selectOpenJdkVersion")}</label>
                                             <div class="jdk-version-dropdown">
-                                            <select class="select" id="openJdkVersionDropdown" name="openJdkVersionDropdown">
-                                                ${this.getJdkVersionsHtml(Object.keys(jdkDownloaderConstants.OPEN_JDK_VERSION_DOWNLOAD_LINKS))}
+                                            <select class="select" id="openJdkVersionDropdown" name="openJdkVersionDropdown"${this.openJdkVersions.length < 2 ? " disabled" : ""}>
+                                                ${this.getJdkVersionsHtml(this.openJdkVersions)}
                                             </select>
                                             </div>
                                         </div>
@@ -227,19 +231,17 @@ export class JdkDownloaderView {
     `
     }
 
-    private getOracleJdkVersions = async (): Promise<string[]> => {
+    private getOracleJdkVersions = async (): Promise<JdkVersionInfo[]> => {
         try {
             LOGGER.log("Fetching Oracle JDK versions...");
             const availableVersions = await httpsGet(`${jdkDownloaderConstants.ORACLE_JDK_RELEASES_BASE_URL}?licenseType=NFTC&sortBy=jdkVersion&sortOrder=DESC`);
             if (isString(availableVersions)) {
                 const availableVersionsObj = JSON.parse(availableVersions);
                 if (availableVersionsObj?.items) {
-                    const jdkVersions = availableVersionsObj?.items?.
-                        map((version: any) => String(version.jdkDetails.jdkVersion).
-                        replace(/[^a-zA-Z0-9_.+-]/g,"")).
-                        sort((a: string, b: string) => Number(parseInt(b, 10)) - Number(parseInt(a, 10)));
-                    LOGGER.log(`Fetched Oracle JDK versions: ${jdkVersions}`);
-
+                    const jdkVersions: JdkVersionInfo[] = availableVersionsObj?.items?.
+                        map((version: any) => version.jdkDetails).
+                        map((details: any) => ({version: String(details.jdkVersion).replace(/[^a-zA-Z0-9_.+-]/g,""), isLts: details.isLts}));
+                    LOGGER.log(`Fetched Oracle JDK versions: ${jdkVersions?.map((el) => '{"version"="' + el.version + '", lts:' + el.isLts + '}')})`);
                     return jdkVersions;
                 }
             }
@@ -249,17 +251,20 @@ export class JdkDownloaderView {
             LOGGER.warn(msg);
         }
         
-        return jdkDownloaderConstants.ORACLE_JDK_FALLBACK_VESIONS;
+        return jdkDownloaderConstants.ORACLE_JDK_FALLBACK_VERSIONS;
     }
 
-    private getJdkVersionsHtml = (jdkVersions: string[]) => {
+    private getJdkVersionsHtml = (jdkVersions: JdkVersionInfo[]) => {
         let htmlStr = "";
-        jdkVersions.forEach((el: String, index: number) => {
+        const ltsLabel = l10n.value("jdk.downloader.label.versionLtsSuffix");
+        jdkVersions.forEach((el: JdkVersionInfo, index: number) => {
+            const ltsSuffix: string = el.isLts ? ` (${ltsLabel})` : '';
+            const version:string = el.version;
+            const versionLabel:string = version + ltsSuffix;
             if (index === 0) {
-                htmlStr += `<option value=${el} default>JDK ${el}</option>\n`;
-            }
-            else {
-                htmlStr += `<option value=${el}>JDK ${el}</option>\n`;
+                htmlStr += `<option value="${version}" selected>JDK ${versionLabel}</option>\n`;
+            } else {
+                htmlStr += `<option value="${version}">JDK ${versionLabel}</option>\n`;
             }
         });
 
@@ -352,7 +357,7 @@ export class JdkDownloaderView {
                     const jdkType = downloadLatest || !jdkTypeSelected ? "${JdkDownloaderView.JDK_TYPE.oracleJdk}" : jdkTypeSelected;
                     const os = downloadLatest ? "${this.getDefaultOs()}" : document.getElementById('osTypeDropdown').value;
                     const arch = downloadLatest ? "${this.getDefaultMachineArch()}" : document.getElementById('machineArchDropdown').value;
-                    const version = downloadLatest ? "${this.oracleJdkVersions.at(0)}" : document.getElementById(jdkType + 'VersionDropdown').value;
+                    const version = downloadLatest ? "${this.oracleJdkVersions.at(0)?.version}" : document.getElementById(jdkType + 'VersionDropdown').value;
                     vscode.postMessage({
                         command: "${JdkDownloaderView.DOWNLOAD_CMD}",
                         id: jdkType,

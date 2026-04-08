@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2026, Oracle and/or its affiliates.
+  Copyright (c) 2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,27 +14,7 @@
   limitations under the License.
 */
 
-enum ViewColumn {
-    Active = -1,
-    Beside = -2,
-    One = 1,
-    Two = 2,
-    Three = 3,
-    Four = 4,
-    Five = 5,
-    Six = 6,
-    Seven = 7,
-    Eight = 8,
-    Nine = 9,
-}
-
-enum TreeItemCollapsibleState {
-    None = 0,
-    Collapsed = 1,
-    Expanded = 2,
-}
-
-export const mockedEnums = {
-    viewColumn: ViewColumn,
-    treeItemCollapsibleState: TreeItemCollapsibleState
-}
+export type JdkVersionInfo = {
+  version: string,
+  isLts: boolean
+};

@@ -15,9 +15,11 @@
 */
 
 import { ConfigurationChangeEvent, ExtensionContext, workspace } from "vscode";
-import { userConfigsListened } from "./configuration";
+import { configKeys, userConfigsListened } from "./configuration";
 import { Disposable } from "vscode-languageclient";
 import { globalState } from "../globalState";
+import { runConfigurationUpdateAll } from "../views/runConfiguration";
+import { appendPrefixToCommand } from "../utils";
 
 const configChangeHandler = (params: ConfigurationChangeEvent) => {
     userConfigsListened.forEach((config: string) => {
@@ -26,6 +28,11 @@ const configChangeHandler = (params: ConfigurationChangeEvent) => {
             globalState.getClientPromise().restartExtension(globalState.getNbProcessManager(), true);
         }
     });
+
+    const runConfigSection = appendPrefixToCommand(configKeys.runConfigArguments.split('.')[0]);
+    if (params.affectsConfiguration(runConfigSection)) {
+        runConfigurationUpdateAll();
+    }
 }
 
 const configChangeListener = workspace.onDidChangeConfiguration(configChangeHandler);

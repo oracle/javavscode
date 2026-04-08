@@ -1,19 +1,18 @@
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
-index d82646afb1..a4a1b53e26 100644
+index 562e2e96ee..a4a1b53e26 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspServerTelemetryManager.java
-@@ -21,6 +21,7 @@ package org.netbeans.modules.java.lsp.server.protocol;
+@@ -20,28 +20,41 @@ package org.netbeans.modules.java.lsp.server.protocol;
+ 
  import com.google.gson.JsonArray;
  import com.google.gson.JsonObject;
- import com.google.gson.JsonPrimitive;
 +import java.lang.ref.WeakReference;
  import java.math.BigInteger;
  import java.nio.charset.StandardCharsets;
  import java.security.MessageDigest;
-@@ -28,25 +29,36 @@ import java.security.NoSuchAlgorithmException;
+ import java.security.NoSuchAlgorithmException;
  import java.util.ArrayList;
  import java.util.Collection;
- import java.util.Collections;
 -import java.util.HashSet;
 +import java.util.Iterator;
  import java.util.List;
@@ -24,13 +23,10 @@ index d82646afb1..a4a1b53e26 100644
  import java.util.WeakHashMap;
 +import java.util.concurrent.CompletableFuture;
  import java.util.concurrent.Future;
--import java.util.concurrent.atomic.AtomicBoolean;
 +import java.util.function.Function;
 +import java.util.logging.Level;
 +import java.util.logging.Logger;
  import java.util.stream.Collectors;
- import org.eclipse.lsp4j.ConfigurationItem;
- import org.eclipse.lsp4j.ConfigurationParams;
  import org.eclipse.lsp4j.MessageType;
  import org.eclipse.lsp4j.services.LanguageClient;
 +import org.netbeans.api.annotations.common.NonNull;
@@ -50,7 +46,7 @@ index d82646afb1..a4a1b53e26 100644
  import org.openide.util.Lookup;
  
  /**
-@@ -55,130 +67,261 @@ import org.openide.util.Lookup;
+@@ -50,128 +63,258 @@ import org.openide.util.Lookup;
   */
  public class LspServerTelemetryManager {
  
@@ -226,7 +222,7 @@ index d82646afb1..a4a1b53e26 100644
                  
 -                // In future if different JDK is used for different project then this can be updated 
 -                obj.addProperty("javaVersion", System.getProperty("java.version"));
-+        return CompletableFuture.allOf(createProjectFutures.toArray(new CompletableFuture[0]))
++        return CompletableFuture.allOf(createProjectFutures.toArray(CompletableFuture[]::new))
 +                .thenApply((ignored) -> {
 +                    JsonArray prjProps = new JsonArray();
 +                    createProjectFutures.forEach((f) -> prjProps.add(f.join()));
@@ -321,20 +317,17 @@ index d82646afb1..a4a1b53e26 100644
 +                    return CompletableFuture.completedFuture(false);
 +                }
              }
--            AtomicBoolean isEnablePreviewSet = new AtomicBoolean(false);
-             ConfigurationItem conf = new ConfigurationItem();
--            conf.setSection(client.getNbCodeCapabilities().getAltConfigurationPrefix() + "runConfig.vmOptions");
--            client.configuration(new ConfigurationParams(Collections.singletonList(conf))).thenAccept(c -> {
--                String config = ((JsonPrimitive) ((List<Object>) c).get(0)).getAsString();
--                isEnablePreviewSet.set(config.contains(this.ENABLE_PREVIEW));
-+            conf.setSection(client.getNbCodeCapabilities().getConfigurationPrefix() + "runConfig.vmOptions");
-+            return client.configuration(new ConfigurationParams(Collections.singletonList(conf)))
+-            boolean[] isEnablePreviewSet = {false};
+-            client.getClientConfigurationManager().getConfigurationUsingAltPrefix("runConfig.vmOptions").thenAccept(c -> {
+-                isEnablePreviewSet[0] = c != null && !c.getAsJsonArray().isEmpty()
+-                                && c.getAsJsonArray().get(0).getAsString().contains(ENABLE_PREVIEW);
++            return client.getClientConfigurationManager().getConfigurationUsingAltPrefix("runConfig.vmOptions")
 +                    .thenApply(c -> {
-+                        return c != null && !c.isEmpty()
-+                                && ((JsonPrimitive) c.get(0)).getAsString().contains(ENABLE_PREVIEW);
++                        return c != null && c.isJsonPrimitive()
++                                && c.getAsJsonPrimitive().getAsString().contains(ENABLE_PREVIEW);
              });
-             
--            return isEnablePreviewSet.get();
+-            
+-            return isEnablePreviewSet[0];
          }
          
 +        boolean previewEnabled;
@@ -396,17 +389,7 @@ index d82646afb1..a4a1b53e26 100644
      }
  
      private String getPrjId(String prjPath) throws NoSuchAlgorithmException {
-@@ -187,15 +330,54 @@ public class LspServerTelemetryManager {
- 
-         BigInteger number = new BigInteger(1, hash);
- 
--        // Convert message digest into hex value
-         StringBuilder hexString = new StringBuilder(number.toString(16));
- 
--        // Pad with leading zeros
-         while (hexString.length() < 64) {
-             hexString.insert(0, '0');
-         }
+@@ -190,5 +333,46 @@ public class LspServerTelemetryManager {
  
          return hexString.toString();
      }
@@ -482,7 +465,7 @@ index 9134992f5f..f070fec320 100644
          if (caps == null) {
              caps = new ClientCapabilities();
 diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
-index 13cbcdd628..747d151600 100644
+index 685e683853..747d151600 100644
 --- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
 +++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/Server.java
 @@ -164,7 +164,6 @@ public final class Server {
@@ -501,7 +484,7 @@ index 13cbcdd628..747d151600 100644
          ERR_NOTIFIER.connect(server, runningServer);
          return new NbLspServer(server, runningServer);
      }
-@@ -793,7 +791,7 @@ public final class Server {
+@@ -794,7 +792,7 @@ public final class Server {
                      }
                      f.complete(candidateMapping);
                      List<FileObject> workspaceClientFolders = workspaceService.getClientWorkspaceFolders();
@@ -510,24 +493,24 @@ index 13cbcdd628..747d151600 100644
                      LOG.log(Level.INFO, "{0} projects opened in {1}ms", new Object[] { prjsRequested.length, (System.currentTimeMillis() - t) });
                  } else {
                      LOG.log(Level.FINER, "{0}: Collecting projects to prime from: {1}", new Object[]{id, Arrays.asList(additionalProjects)});
-@@ -953,6 +951,9 @@ public final class Server {
+@@ -956,6 +954,9 @@ public final class Server {
          public CompletableFuture<InitializeResult> initialize(InitializeParams init) {
              NbCodeClientCapabilities capa = NbCodeClientCapabilities.get(init);
              client.setClientCaps(capa);
 +            if (capa != null && capa.wantsTelemetryEnabled()) {
 +                LspServerTelemetryManager.getInstance().connect(client, lspSession.getLspServer().getRunningFuture());
 +            }
+             workspaceService.registerConfigChangeListeners();
              hackConfigureGroovySupport(capa);
              hackNoReuseOfOutputsForAntProjects();
-             List<FileObject> projectCandidates = new ArrayList<>();
-@@ -1452,13 +1453,13 @@ public final class Server {
+@@ -1470,13 +1471,13 @@ public final class Server {
  
          @Override
          public synchronized boolean scanStarted(Context context) {
 -            LSP_SERVER_TELEMETRY.sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LSP_SERVER_TELEMETRY.SCAN_START_EVT, "nbls.scanStarted")); 
 -	    return true;
 +            LspServerTelemetryManager.getInstance().sendTelemetry(new TelemetryEvent(MessageType.Info.toString(), LspServerTelemetryManager.SCAN_START_EVT, "nbls.scanStarted"));
-+	        return true;
++            return true;
          }
  
          @Override
