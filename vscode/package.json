@@ -763,12 +763,12 @@
 				{
 					"command": "jdk.workspace.new",
 					"when": "nbJdkReady && explorerResourceIsFolder",
-					"group": "navigation@3"
+					"group": "navigation@7"
 				},
 				{
 					"command": "jdk.notebook.new",
 					"when": "nbJdkReady && explorerResourceIsFolder",
-					"group": "navigation@3"
+					"group": "navigation@8"
 				},
 				{
 					"command": "jdk.open.test",
