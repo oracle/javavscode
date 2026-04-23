@@ -134,6 +134,7 @@
   "jdk.notebook.serializer.error_msg": "ノートブックのシリアライズに失敗しました: {errorMessage}",
   "jdk.notebook.cell.serializer.error_msg": "1つ以上のセルのシリアライズに失敗しました",
   "jdk.notebook.validation.failed.error_msg": "ノートブックJSON検証に失敗しました",
+  "jdk.notebook.validation.notebook_version.failed.error_msg": "Notebook version is not supported. Please upgrade to version {majorVersion}.{minorVersion} or later.",
   "jdk.notebook.mime_type.not.found.cell.output": "MIMEタイプ: {mimeType}、コンテンツの長さ: {contentLength}",
   "jdk.notebook.cell.language.not.found": "{languageId}の実行はサポートされていません"
 }

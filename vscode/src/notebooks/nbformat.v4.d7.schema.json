@@ -94,15 +94,14 @@
       }
     },
     "nbformat_minor": {
-      "description": "Notebook format (minor number). Incremented for backward compatible changes to the notebook format.",
+      "description": "Notebook format (minor number). Incremented for backward compatible changes to the notebook format. Note: the minimum version constraint has been relaxed from the original spec (5 → 0) to allow validation of newer major versions beyond those explicitly defined.",
       "type": "integer",
-      "minimum": 5
+      "minimum": 0
     },
     "nbformat": {
       "description": "Notebook format (major number). Incremented between backwards incompatible changes to the notebook format.",
       "type": "integer",
-      "minimum": 4,
-      "maximum": 4
+      "minimum": 4
     },
     "cells": {
       "description": "Array of cells of the current notebook.",
