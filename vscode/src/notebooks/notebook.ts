@@ -91,6 +91,19 @@ export class Notebook {
             LOGGER.error(`Notebook JSON validation failed:\n${errors}`);
             throw new Error(l10n.value("jdk.notebook.validation.failed.error_msg"));
         }
+
+        if (!Notebook.isSupportedNotebookVersion(notebook)) {
+            LOGGER.error(`Notebook version validation failed: unsupported notebook version ${notebook.nbformat}.${notebook.nbformat_minor}.`);
+            throw new Error(l10n.value("jdk.notebook.validation.notebook_version.failed.error_msg",
+                { majorVersion: NotebookVersionInfo.NBFORMAT, minorVersion: NotebookVersionInfo.NBFORMAT_MINOR }));
+        }
+
         LOGGER.debug("Notebook successfully validated.");
+    }
+
+    private static isSupportedNotebookVersion(notebook: INotebook): boolean {
+        return notebook.nbformat > NotebookVersionInfo.NBFORMAT ||
+            (notebook.nbformat === NotebookVersionInfo.NBFORMAT &&
+                notebook.nbformat_minor >= NotebookVersionInfo.NBFORMAT_MINOR);
     }
 }
