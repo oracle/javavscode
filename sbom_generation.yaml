@@ -13,13 +13,28 @@ steps:
   - type: Command
     name: "Install Java 17 "
     command: |
-     wget https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.17+10/OpenJDK17U-jdk_x64_linux_hotspot_17.0.17_10.tar.gz
-     tar  xzf OpenJDK17U-jdk_x64_linux_hotspot_17.0.17_10.tar.gz -C ${OCI_PRIMARY_SOURCE_DIR}
+      uname -a
+      JDK_VERSION=17.0.19+10
+      JDK_TARFILE=`echo "OpenJDK17U-jdk_x64_linux_hotspot_$JDK_VERSION.tar.gz" | cut -d '+' --output-delimiter=_ -f 1-`
+      # Download JDK
+      wget -O $JDK_TARFILE https://github.com/adoptium/temurin17-binaries/releases/download/jdk-$JDK_VERSION/$JDK_TARFILE
+      # Verify sha sum
+      wget -O - https://github.com/adoptium/temurin17-binaries/releases/download/jdk-$JDK_VERSION/$JDK_TARFILE.sha256.txt | sha256sum -c -
+      # Extract JDK
+      tar -xzf $JDK_TARFILE -C ${OCI_PRIMARY_SOURCE_DIR}
+      mv ${OCI_PRIMARY_SOURCE_DIR}/jdk-$JDK_VERSION ${OCI_PRIMARY_SOURCE_DIR}/jdk-17
   - type: Command
     name: "Install Ant "
     command: |
-      wget https://dlcdn.apache.org//ant/binaries/apache-ant-1.10.15-bin.tar.gz
-      tar xzf apache-ant-1.10.15-bin.tar.gz -C ${OCI_PRIMARY_SOURCE_DIR}
+      ANT_VERSION=1.10.17
+      ANT_TARFILE=apache-ant-$ANT_VERSION-bin.tar.bz2
+      # Download ant
+      wget -O $ANT_TARFILE https://dlcdn.apache.org/ant/binaries/$ANT_TARFILE
+      # Verify sha sum
+      printf '%s\t%s\n' "`wget -O - https://downloads.apache.org/ant/binaries/$ANT_TARFILE.sha512`" "$ANT_TARFILE" | sha512sum -c -
+      # Extract ant
+      tar -xjf $ANT_TARFILE -C ${OCI_PRIMARY_SOURCE_DIR}
+      mv ${OCI_PRIMARY_SOURCE_DIR}/apache-ant-$ANT_VERSION ${OCI_PRIMARY_SOURCE_DIR}/ant
   - type: Command
     name: "Update git"
     command: |
@@ -31,16 +46,16 @@ steps:
   - type: Command
     name: "Build netbeans"
     command: |
-      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17.0.17+10
-      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/apache-ant-1.10.15
+      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17
+      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/ant
       export PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$PATH
       ant apply-patches
       ant build-netbeans
   - type: Command
     name: "Build vscode extension "
     command: |
-      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17.0.17+10
-      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/apache-ant-1.10.15
+      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17
+      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/ant
       export PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$PATH
       ant build-lsp-server
   - type: Command
