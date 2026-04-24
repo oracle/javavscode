@@ -272,6 +272,12 @@ The extension will analyze the content of the opened workspace, and relevant oth
     2. If duplicated tags are found, remove the extra tags and attempt to compile again.
     3. Add the `--enable-preview` VM argument to the *exec-maven-plugin* or *maven-surefile-plugin* configurations if they are used for execution or test runs.
 2. The *Project: Test Project* command executes the project's tests but does not update the Testing or the Tests Results panels. The test output is present only in the Terminal or Debug Console panel.
+3. The `Jdk › Advanced › Disable: Nbjavac` setting (i.e. `jdk.advanced.disable.nbjavac`) cannot be enabled for JDK 26 and early-access versions of JDK 27 and higher.
+    - In order to use JDK 26 or experimental builds based on JDK 26, ensure that this setting is OFF. The extension already supports JDK 26 without this setting.
+    - In order to use early access builds of JDK 27 or higher, the `jdk.project.jdkhome` setting may be used. Most of the early access features of the JDK are expected to be supported.
+        1. Set `Settings | Jdk: Jdkhome` to point to JDK 26.
+        2. Set `Settings | Jdk › Project: Jdkhome` to point to the home-folder path of the early access JDK.
+        3. Ensure `Settings | Jdk › Advanced › Disable: Nbjavac` checkbox is not enabled.
 
 ## Telemetry
 
