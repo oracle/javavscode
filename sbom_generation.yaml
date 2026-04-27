@@ -59,9 +59,9 @@ steps:
       export PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$PATH
       ant build-lsp-server
   - type: Command
-    name: "Download the version 10.10.0 of cdxgen globally"
+    name: "Download the version 10.10.x of cdxgen globally"
     command: |
-      npm install -g @cyclonedx/cdxgen@10.10.0
+      npm install -g @cyclonedx/cdxgen@10.10.7
   - type: Command
     name: "Workaround to let cdxgen run on nodejs 16"
     command: |
@@ -69,7 +69,7 @@ steps:
       # (as installed on the build runner instance)
       # This is a workaround to ensure cdxgen functions correctly, even in an older Node.js environment.
       cd /node/node-v16.14.2-linux-x64/lib/node_modules/@cyclonedx/cdxgen && \
-      npm install cheerio@v1.0.0-rc.12
+      npm install cheerio@v1.0.0-rc.12 path-scurry@1.10.1 lru-cache@9.1.2
   - type: Command
     name: "Generate sbom for the nbcode part"
     command: |
