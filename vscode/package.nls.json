@@ -54,7 +54,7 @@
     "jdk.configuration.formatterSettings.description": "Path to the file containing exported formatter settings",
     "jdk.configuration.formatterSettings.deprecationMessage": "This setting is scheduled for deprecation. Please migrate to jdk.format.settings",
     "jdk.configuration.formatOptions.description" : "A container for formatting options. Refer to the following documentation for valid keys and values: https://github.com/oracle/javavscode/wiki/Java-formatting-preferences",
-    "jdk.configuration.formatOptions.markdownDescription" : "A container for formatting options. Refer to the following documentation for valid keys and values: [Java-formatting-preferences.md](https://github.com/oracle/javavscode/wiki/Java-formatting-preferences.md)",
+    "jdk.configuration.formatOptions.markdownDescription" : "A container for formatting options. Refer to the following documentation for valid keys and values: [Java-formatting-preferences](https://github.com/oracle/javavscode/wiki/Java-formatting-preferences)",
     "jdk.configuration.hints.preferences.description": "Path to the file containing exported hints preferences",
     "jdk.configuration.organiseImports.description": "Enable organize imports action on a document save",
     "jdk.configuration.organiseImports.sortingOrder.description": "Groups of import statements (specified by their package prefixes) and their sorting order. Import statements within a group are ordered alphabetically",

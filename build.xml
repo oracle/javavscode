@@ -40,6 +40,7 @@
             patches/l10n/25.0.0-notebooks-l10n.diff
             patches/l10n/25.0.1-release-l10n.diff
             patches/l10n/25.1.0-release-l10n.diff
+            patches/l10n/26.0.0-release-l10n-cleanup.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">

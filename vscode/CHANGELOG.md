@@ -42,6 +42,9 @@
 #### Other Changes
 * Updated JDK Downloader interface labels [#580](https://github.com/oracle/javavscode/pull/580)
 * Upgraded outdated Node modules [#572](https://github.com/oracle/javavscode/pull/572), [#577](https://github.com/oracle/javavscode/pull/577)
+* Updated openjdk download URL to 26.0.1 [#587](https://github.com/oracle/javavscode/pull/587)
+* Temporarily hide the `jdk.advanced.disable.nbjavac` setting in the VS Code settings UI [#594](https://github.com/oracle/javavscode/pull/594)
+* Translation of new messages to ja and zh-cn [#596](https://github.com/oracle/javavscode/pull/596)
 
 **Full Changelog**: https://github.com/oracle/javavscode/compare/v25.1.0...v26.0.0
 

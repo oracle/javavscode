@@ -24,8 +24,10 @@ Copyright (c) 2023-2026, Oracle and/or its affiliates.
 <!-- This file has been modified for Oracle Java Platform extension -->
 
 # Java Platform Extension for Visual Studio Code
+<!--
 [![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/Oracle.oracle-java?style=for-the-badge&label=VS%20Marketplace&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=Oracle.oracle-java)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/Oracle.oracle-java?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=Oracle.oracle-java)
+-->
 [![Build Status](https://img.shields.io/github/actions/workflow/status/oracle/javavscode/main.yml?branch=main&style=for-the-badge&logo=github)](https://github.com/oracle/javavscode/actions?query=workflow:Java%20Platform%20Support%20for%20Visual%20Studio%20Code)
 [![License](https://img.shields.io/github/license/oracle/javavscode?style=for-the-badge&logo=apache)](https://github.com/oracle/javavscode/blob/main/LICENSE.txt)
 
@@ -101,7 +103,7 @@ The following configuration settings are available:
 * `jdk.notebook.implicitimports`
 * `jdk.notebook.vmOptions`
 
-These settings *override* settings inferred from project context.
+These settings *override* their default values inferred from project context. These also support [VS Code variable substitution](#vs-code-variable-substitution-in-settings).
 
 Note: If you change these settings while a notebook is open, click __Restart__ kernel to apply the changes.
 
@@ -115,6 +117,7 @@ Language Server __Java+ ...__ launch configuration supports debugging and runnin
 1. The launch configuration (debugger) is invoked when `Run main | Debug main` codelens is selected in the code.
 2. Or __Java+...__ is selected in __Run and Debug__ activity panel.</br>
 ![Debug configurations](vscode/images/debuggers.png)
+
 ### Launch Configurations
 * __Launch Java App__ - Debug or Run current Java project
 * __Attach to Port__ & __Attach to Process__ - Attach debugger actions. Available when __Java+ ...__ at the bottom of drop down list is selected.
@@ -125,18 +128,11 @@ Language Server __Java+ ...__ launch configuration supports debugging and runnin
 Default launch configurations provided by Language Server can modified in `launch.json` file.
 
 ### Run Configurations panel
-Program arguments, VM options, environment variables, etc., can be set in the Run Configuration panel as part of Explorer. The panel is sufficient for all typical use-cases Java programmer faces. Only advanced, expert scenarios may require touching of `launch.json` (which still takes precedence).<br/>
+Program arguments, VM options, environment variables, etc., can be set in the Run Configuration panel in the Explorer view. The panel is sufficient for typical use-cases Java programmers face. Advanced, expert scenarios may require the use of the VS Code `launch.json`.<br/>
 ![Run Configuration](vscode/images/run_config.png) 
-
-## Maven User Settings
-For Maven projects, extension can use a custom Maven user `settings.xml` file.
-
-Set `jdk.maven.userSettings` to the path of the Maven user `settings.xml` file that should be used instead of the default `${user.home}/.m2/settings.xml`.
-Currently, this setting supports absolute paths only.
 
 ### VS Code variable substitution in settings
 The extension supports [VS Code variable substitution](https://code.visualstudio.com/docs/editor/variables-reference) (for example `${workspaceFolder}`, `${userHome}`, `${env:NAME}`) for the following settings:
-
 - `jdk.jdkhome`
 - `jdk.project.jdkhome`
 - `jdk.serverVmOptions`
@@ -146,10 +142,18 @@ The extension supports [VS Code variable substitution](https://code.visualstudio
 - `jdk.notebook.enablePreview`
 - `jdk.notebook.implicitImports`
 - `jdk.notebook.vmOptions`
-- `jdk.runConfig.vmOptions`
-- `jdk.runConfig.cwd`
 - `jdk.runConfig.arguments`
+- `jdk.runConfig.vmOptions`
 - `jdk.runConfig.env`
+- `jdk.runConfig.cwd`
+
+Note: Currently, VS Code does not support escaping variable-substitution syntax. If you need to set a literal string that looks like a VS Code variable reference but should not be substituted, define an environment variable with that literal value and reference that environment variable in the setting instead.
+
+## Maven User Settings
+For Maven projects, extension can use a custom Maven user `settings.xml` file.
+
+Set `jdk.maven.userSettings` to the path of the Maven user `settings.xml` file that should be used instead of the default `${user.home}/.m2/settings.xml`.
+Currently, this setting supports absolute paths only.
 
 ## JDK Downloader
 If the system does not detect any JDK, the extension will offer a downloader and setup prompts to help you set up a JDK. This allows you to get the latest Oracle JDK build for your system. Additionally, it provides options for different Oracle JDK and Oracle OpenJDK builds with system OS and architecture variants.
@@ -163,8 +167,8 @@ You can also access the JDK downloader through the "Download, install, and Use J
 When using preview features use the quick fix action option to easily enable them.
 
 ![Enable Preview](vscode/images/enable_preview.gif)
-## Supported Refactorings
 
+## Supported Refactorings
 Class level refactorings as well as variable refactorings are supported in VS Code via the Oracle Java Platform extension. See the following screenshots:
 
 ### Source Action ... context menu
@@ -253,7 +257,7 @@ The JDK to build, run and debug projects is being searched in the following loca
 - `JAVA_HOME` environment variable
 - current system path
 
-As soon as one of the settings is changed, the Language Server is restarted.
+As soon as one of the settings is changed, the Language Server is restarted. These settings also support [VS Code variable substitution](#vs-code-variable-substitution-in-settings).
 
 ## How to use JDK early access builds
 This setup makes it easier to experiment with early access JDK builds. Follow these steps to enable the use of an early access JDK:
@@ -272,6 +276,12 @@ The extension will analyze the content of the opened workspace, and relevant oth
     2. If duplicated tags are found, remove the extra tags and attempt to compile again.
     3. Add the `--enable-preview` VM argument to the *exec-maven-plugin* or *maven-surefile-plugin* configurations if they are used for execution or test runs.
 2. The *Project: Test Project* command executes the project's tests but does not update the Testing or the Tests Results panels. The test output is present only in the Terminal or Debug Console panel.
+3. The `Jdk › Advanced › Disable: Nbjavac` setting (i.e. `jdk.advanced.disable.nbjavac`) cannot be enabled for JDK 26 and early-access versions of JDK 27 and higher.
+    - In order to use JDK 26 or experimental builds based on JDK 26, ensure that this setting is OFF. The extension already supports JDK 26 without this setting.
+    - In order to use early access builds of JDK 27 or higher, the `jdk.project.jdkhome` setting may be used. Most of the early access features of the JDK are expected to be supported.
+        1. Set `Settings | Jdk: Jdkhome` to point to JDK 26.
+        2. Set `Settings | Jdk › Project: Jdkhome` to point to the home-folder path of the early access JDK.
+        3. Ensure `Settings | Jdk › Advanced › Disable: Nbjavac` checkbox is not enabled.
 
 ## Telemetry
 
