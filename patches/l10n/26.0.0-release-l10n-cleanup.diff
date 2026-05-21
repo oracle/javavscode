@@ -1,0 +1,172 @@
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties
+index a1579e95f..7eeb56a94 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/Bundle_ja.properties
+@@ -14,7 +14,6 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
+-#
+ OpenIDE-Module-Name=Java LSP\u30B5\u30FC\u30D0\u30FC
+ OpenIDE-Module-Display-Category=Java
+ DESC_StartJavaDebugAdapterServer=Java\u30C7\u30D0\u30C3\u30B0\u30FB\u30A2\u30C0\u30D7\u30BF\u30FB\u30B5\u30FC\u30D0\u30FC\u3092\u958B\u59CB\u3057\u307E\u3059
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties
+index 7fccce9e9..b767f91a8 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/debugging/Bundle_ja.properties
+@@ -14,6 +14,7 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++
+ # {0} - frame pop error message
+ MSG_FrameRestartFailed=\u30D5\u30EC\u30FC\u30E0: {0}\u3092\u518D\u8D77\u52D5\u3067\u304D\u307E\u305B\u3093
+ MSG_FrameRestartUnsupported=\u30D5\u30EC\u30FC\u30E0\u306E\u518D\u8D77\u52D5\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties
+index 6a1bf142b..21fa9a813 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_ja.properties
+@@ -14,6 +14,7 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++
+ # {0} - project name
+ # {1} - problem's display name
+ ProjectProblem_Title=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8{0}: {1}
+diff --git a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+index d7b8b4509..f734590ec 100755
+--- a/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_ja.properties
+@@ -17,13 +17,6 @@
+ OpenIDE-Module-Name=Java LSP Server
+ OpenIDE-Module-Display-Category=Java
+ OpenIDE-Module-Short-Description=Java LSP Server
+-
+-LBL_TestMethod={0} \u3092\u30C6\u30B9\u30C8
+-LBL_ProfileMethod={0} \u3092\u30D7\u30ED\u30D5\u30A1\u30A4\u30EA\u30F3\u30B0
+-LBL_Clean=\u6D88\u53BB
+-LBL_Build=\u4F5C\u6210
+-LBL_ContinuousMode=\u9023\u7D9A\u30E2\u30FC\u30C9
+-
+ CTL_TemplateUI_SelectGroup=\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u30FB\u30BF\u30A4\u30D7\u306E\u9078\u629E
+ CTL_TemplateUI_SelectName=\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306E\u540D\u524D\u3002
+ CTL_TemplateUI_SelectPackageName=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u30D1\u30C3\u30B1\u30FC\u30B8\u540D\u3002
+diff --git a/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_ja.properties
+index df93ac00a..06cbb7a0b 100644
+--- a/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_ja.properties
+@@ -13,11 +13,27 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #
+-
++OpenIDE-Module-Display-Category=Java
++OpenIDE-Module-Name=Java\u30CE\u30FC\u30C8\u30D6\u30C3\u30AF
++LBL_annotation=\u6CE8\u91C8\u30A4\u30F3\u30BF\u30D5\u30A7\u30FC\u30B9
++LBL_class=\u30AF\u30E9\u30B9
++LBL_enum=\u5217\u6319
++LBL_interface=\u30A4\u30F3\u30BF\u30D5\u30A7\u30FC\u30B9
++LBL_method=\u30E1\u30BD\u30C3\u30C9
++LBL_variable=\u5909\u6570
+ MSG_InterruptCodeCellExecSuccess=\u30B3\u30FC\u30C9\u306E\u5B9F\u884C\u306F\u6B63\u5E38\u306B\u505C\u6B62\u3057\u307E\u3057\u305F
+ MSG_InterruptCodeCellInfo=\u30B3\u30FC\u30C9\u306E\u5B9F\u884C\u304C\u4E2D\u65AD\u3055\u308C\u307E\u3057\u305F
++MSG_JshellResetError=\u30CE\u30FC\u30C8\u30D6\u30C3\u30AF\u30FB\u30BB\u30C3\u30B7\u30E7\u30F3\u306E\u30EA\u30BB\u30C3\u30C8\u4E2D\u306B\u3001\u8907\u6570\u306E\u5185\u90E8\u30A8\u30E9\u30FC\u304C\u767A\u751F\u3057\u307E\u3057\u305F
+ # {0} - error message
+ MSG_KernelInitializeFailed=\u30CE\u30FC\u30C8\u30D6\u30C3\u30AF\u306EJava\u30AB\u30FC\u30CD\u30EB\u306E\u521D\u671F\u5316\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002\u30A8\u30E9\u30FC{0}
+ MSG_KernelInitializeSuccess=Java\u30AB\u30FC\u30CD\u30EB\u306F\u6B63\u5E38\u306B\u521D\u671F\u5316\u3055\u308C\u307E\u3057\u305F\u3002
+ MSG_KernelInitializing=\u30CE\u30FC\u30C8\u30D6\u30C3\u30AF\u306EJava\u30AB\u30FC\u30CD\u30EB\u306E\u521D\u671F\u5316
+-PROMPT_GetUserInput=\u3053\u3053\u306B\u30B9\u30AD\u30E3\u30CA\u5165\u529B\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044
+\ No newline at end of file
++MSG_ListCombine=, 
++MSG_NotebookRestartSession=\u30CE\u30FC\u30C8\u30D6\u30C3\u30AF\u30FB\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u4F7F\u7528\u3067\u304D\u307E\u305B\u3093\u3002\u30CE\u30FC\u30C8\u30D6\u30C3\u30AF\u30FB\u30AB\u30FC\u30CD\u30EB\u3092\u518D\u8D77\u52D5\u3057\u3066\u304F\u3060\u3055\u3044\u3002
++# {0} - declaration type and snippet name combination
++# {1} - unresolved dependencies list
++MSG_UnresolvedDepsRecoverableDefined={0}\u304C\u4F5C\u6210\u3055\u308C\u307E\u3057\u305F\u3002\u305F\u3060\u3057\u3001{1}\u304C\u5BA3\u8A00\u3055\u308C\u308B\u307E\u3067\u3001\u8D77\u52D5\u3001\u4F7F\u7528\u307E\u305F\u306F\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9\u5316\u306F\u3067\u304D\u307E\u305B\u3093
++# {0} - declaration type and snippet name combination
++# {1} - unresolved dependencies list
++MSG_UnresolvedDepsRecoverableNotDefined={0}\u304C\u4F5C\u6210\u3055\u308C\u307E\u3057\u305F\u3002\u305F\u3060\u3057\u3001{1}\u304C\u5BA3\u8A00\u3055\u308C\u308B\u307E\u3067\u53C2\u7167\u3067\u304D\u307E\u305B\u3093
++PROMPT_GetUserInput=\u3053\u3053\u306B\u30B9\u30AD\u30E3\u30CA\u5165\u529B\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044
+diff --git a/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_ja.properties b/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_ja.properties
+index 850ee1039..d55faa74d 100644
+--- a/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_ja.properties
++++ b/netbeans-l10n-zip/src/ja/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_ja.properties
+@@ -19,4 +19,3 @@ LBL_CurrentProjectContext=\u73FE\u5728\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8
+ MSG_NoProjectContextFound=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u30FB\u30B3\u30F3\u30C6\u30AD\u30B9\u30C8\u304C\u3042\u308A\u307E\u305B\u3093
+ MSG_NoProjectFound=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093
+ PROMPT_SelectProjectTitle=\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u9078\u629E
+-
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties
+index ab68b9367..925fcf572 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/project/Bundle_zh_CN.properties
+@@ -14,6 +14,7 @@
+ # KIND, either express or implied.  See the License for the
+ # specific language governing permissions and limitations
+ # under the License.
++
+ # {0} - project name
+ # {1} - problem's display name
+ ProjectProblem_Title=\u9879\u76EE {0}\uFF1A{1}
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+index b0e9a7eac..596c27528 100755
+--- a/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/java-lsp-server/java-lsp-server/org/netbeans/modules/java/lsp/server/protocol/Bundle_zh_CN.properties
+@@ -17,13 +17,6 @@
+ OpenIDE-Module-Name=Java LSP Server
+ OpenIDE-Module-Display-Category=Java
+ OpenIDE-Module-Short-Description=Java LSP Server
+-
+-LBL_TestMethod=\u6D4B\u8BD5 {0}
+-LBL_ProfileMethod=\u6982\u8981\u5206\u6790 {0}
+-LBL_Clean=\u6E05\u9664
+-LBL_Build=\u6784\u5EFA
+-LBL_ContinuousMode=\u8FDE\u7EED\u6A21\u5F0F
+-
+ CTL_TemplateUI_SelectGroup=\u9009\u62E9\u6A21\u677F\u7C7B\u578B
+ CTL_TemplateUI_SelectName=\u5BF9\u8C61\u7684\u540D\u79F0\uFF1F
+ CTL_TemplateUI_SelectPackageName=\u9879\u76EE\u7684\u7A0B\u5E8F\u5305\u540D\u79F0\uFF1F
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_zh_CN.properties
+index 9345b32d5..fbf4843cb 100644
+--- a/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/notebook/Bundle_zh_CN.properties
+@@ -13,11 +13,27 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #
+-
++OpenIDE-Module-Display-Category=Java
++OpenIDE-Module-Name=Java \u8BB0\u4E8B\u672C
++LBL_annotation=\u6279\u6CE8\u63A5\u53E3
++LBL_class=\u7C7B
++LBL_enum=\u679A\u4E3E
++LBL_interface=\u63A5\u53E3
++LBL_method=\u65B9\u6CD5
++LBL_variable=\u53D8\u91CF
+ MSG_InterruptCodeCellExecSuccess=\u5DF2\u6210\u529F\u505C\u6B62\u4EE3\u7801\u6267\u884C
+ MSG_InterruptCodeCellInfo=\u4EE3\u7801\u6267\u884C\u5DF2\u4E2D\u65AD
++MSG_JshellResetError=\u5C1D\u8BD5\u91CD\u7F6E\u8BB0\u4E8B\u672C\u4F1A\u8BDD\u65F6\u51FA\u73B0\u67D0\u4E2A\u5185\u90E8\u9519\u8BEF
+ # {0} - error message
+ MSG_KernelInitializeFailed=\u9488\u5BF9\u8BB0\u4E8B\u672C\u521D\u59CB\u5316 Java \u5185\u6838\u5931\u8D25\u3002\u9519\u8BEF {0}
+ MSG_KernelInitializeSuccess=\u5DF2\u6210\u529F\u521D\u59CB\u5316 Java \u5185\u6838\u3002
+ MSG_KernelInitializing=\u6B63\u5728\u9488\u5BF9\u8BB0\u4E8B\u672C\u521D\u59CB\u5316 Java \u5185\u6838
+-PROMPT_GetUserInput=\u8BF7\u5728\u6B64\u63D0\u4F9B\u626B\u63CF\u7A0B\u5E8F\u8F93\u5165
+\ No newline at end of file
++MSG_ListCombine=, 
++MSG_NotebookRestartSession=\u7B14\u8BB0\u672C\u4F1A\u8BDD\u4E0D\u53EF\u7528\u3002\u8BF7\u91CD\u65B0\u542F\u52A8\u8BB0\u4E8B\u672C\u5185\u6838\u3002
++# {0} - declaration type and snippet name combination
++# {1} - unresolved dependencies list
++MSG_UnresolvedDepsRecoverableDefined=\u5DF2\u521B\u5EFA {0}\u3002\u4F46\u53EA\u6709\u5728\u58F0\u660E {1} \u4E4B\u540E\u624D\u80FD\u8C03\u7528\u3001\u4F7F\u7528\u6216\u5B9E\u4F8B\u5316\u5B83
++# {0} - declaration type and snippet name combination
++# {1} - unresolved dependencies list
++MSG_UnresolvedDepsRecoverableNotDefined=\u5DF2\u521B\u5EFA {0}\u3002\u4F46\u53EA\u6709\u5728\u58F0\u660E {1} \u4E4B\u540E\u624D\u80FD\u5F15\u7528\u5B83
++PROMPT_GetUserInput=\u8BF7\u5728\u6B64\u63D0\u4F9B\u626B\u63CF\u7A0B\u5E8F\u8F93\u5165
+diff --git a/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_zh_CN.properties b/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_zh_CN.properties
+index 5c1a01b3b..ebf05f501 100644
+--- a/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_zh_CN.properties
++++ b/netbeans-l10n-zip/src/zh_CN/java/nbcode-java-notebook/nbcode-java-notebook/org/netbeans/modules/nbcode/java/project/Bundle_zh_CN.properties
+@@ -19,4 +19,3 @@ LBL_CurrentProjectContext=\u5F53\u524D\u9879\u76EE\u4E0A\u4E0B\u6587\uFF1A{0}
+ MSG_NoProjectContextFound=\u65E0\u9879\u76EE\u4E0A\u4E0B\u6587
+ MSG_NoProjectFound=\u627E\u4E0D\u5230\u9879\u76EE
+ PROMPT_SelectProjectTitle=\u9009\u62E9\u9879\u76EE
+-

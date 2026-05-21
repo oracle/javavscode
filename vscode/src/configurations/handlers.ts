@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -22,14 +22,22 @@ import { LOGGER } from "../logger";
 import * as path from 'path';
 import * as fs from 'fs';
 import { globalState } from "../globalState";
+import { ConfigurationValueResolver } from "./configurationValueResolver/configurationValueResolver";
+import { appendPrefixToCommand } from "../utils";
 
-export const getConfiguration = (key: string = extConstants.COMMAND_PREFIX): WorkspaceConfiguration => {
+const getConfiguration = (key: string = extConstants.COMMAND_PREFIX): WorkspaceConfiguration => {
     return workspace.getConfiguration(key);
 }
 
+export const getConfigurationValueWithVariablesSubstituted = async <T>(key: string, defaultValue: T | undefined = undefined): Promise<T> => {
+    const rawValue = getConfigurationValue(key, defaultValue);
+    const configKey = appendPrefixToCommand(key);
+    return ConfigurationValueResolver.getInstance().resolveIfNeeded({ configKey, rawValue }) as T;
+}
+
 export const getConfigurationValue = <T>(key: string, defaultValue: T | undefined = undefined): T => {
-        const conf = getConfiguration();
-        return defaultValue != undefined ? conf.get(key, defaultValue) : conf.get(key) as T;
+    const conf = getConfiguration();
+    return defaultValue != undefined ? conf.get(key, defaultValue) : conf.get(key) as T;
 }
 
 export const updateConfigurationValue = <T>(key: string, newValue: T, configurationTarget: ConfigurationTarget | boolean | null = null): void => {
@@ -48,15 +56,15 @@ export const inspectConfiguration = (config: string) => {
     return workspace.getConfiguration().inspect(config);
 }
 
-export const jdkHomeValueHandler = (): string | null => {
-    return getConfigurationValue(configKeys.jdkHome) ||
+export const jdkHomeValueHandler = async (): Promise<string | null> => {
+    return getConfigurationValueWithVariablesSubstituted(configKeys.jdkHome) ||
         process.env.JDK_HOME ||
         process.env.JAVA_HOME ||
         null;
 }
 
-export const projectJdkHomeValueHandler = (): string | null => {
-    return getConfigurationValue(configKeys.projectJdkHome, null);
+export const projectJdkHomeValueHandler = async (): Promise<string | null> => {
+    return getConfigurationValueWithVariablesSubstituted(configKeys.projectJdkHome, null);
 }
 
 export const projectSearchRootsValueHandler = (): string => {
@@ -89,8 +97,8 @@ export const projectSearchRootsValueHandler = (): string => {
     return projectSearchRoots;
 }
 
-export const lspServerVmOptionsHandler = (): string[] => {
-    let serverVmOptions: string[] = getConfigurationValue(configKeys.lspVmOptions, []);
+export const lspServerVmOptionsHandler = async (): Promise<string[]> => {
+    let serverVmOptions: string[] = await getConfigurationValueWithVariablesSubstituted(configKeys.lspVmOptions, []);
 
     return serverVmOptions.map(el => `-J${el}`);
 }

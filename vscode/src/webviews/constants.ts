@@ -27,6 +27,6 @@ export namespace jdkDownloaderConstants {
   ];
 
   export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-    "26": "https://download.java.net/java/GA/jdk26/c3cc523845074aa0af4f5e1e1ed4151d/35/GPL/openjdk-26"
+    "26": "https://download.java.net/java/GA/jdk26.0.1/458fda22e4c54d5ba572ab8d2b22eb83/8/GPL/openjdk-26.0.1"
   };  
 }

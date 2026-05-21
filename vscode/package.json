@@ -386,6 +386,7 @@
 					"jdk.advanced.disable.nbjavac": {
 						"type": "boolean",
 						"default": false,
+						"deprecationMessage": "This setting is temporarily hidden since it is currently unsupported for JDK 26 and early-access versions of JDK 27 and higher.",
 						"description": "%jdk.configuration.disableNbJavac.description%"
 					},
 					"jdk.advanced.disable.projectSearchLimit": {
@@ -1057,6 +1058,7 @@
 			".": "^1.1.13",
 			"balanced-match": "^1.0.2"
 		},
+		"lodash@4.x": "^4.18.1",
 		"minimatch@10.x": "^10.2.4",
 		"minimatch@9.x": "^9.0.9",
 		"minimatch@5.x": "^5.1.9",

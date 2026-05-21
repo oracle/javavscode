@@ -73,3 +73,18 @@ export const userConfigsListenedByServer = [
     appendPrefixToCommand(configKeys.mavenUserSettings)
 ];
 
+export const configsThatNeedAdditionalResolver: string[] = [
+    appendPrefixToCommand(configKeys.projectJdkHome),
+    appendPrefixToCommand(configKeys.jdkHome),
+    appendPrefixToCommand(configKeys.notebookClasspath),
+    appendPrefixToCommand(configKeys.notebookModulepath),
+    appendPrefixToCommand(configKeys.notebookAddModules),
+    appendPrefixToCommand(configKeys.notebookEnablePreview),
+    appendPrefixToCommand(configKeys.notebookImplicitImports),
+    appendPrefixToCommand(configKeys.notebookVmOptions),
+    appendPrefixToCommand(configKeys.runConfigVmOptions),
+    appendPrefixToCommand(configKeys.runConfigCwd),
+    appendPrefixToCommand(configKeys.runConfigArguments),
+    appendPrefixToCommand(configKeys.runConfigEnv),
+    appendPrefixToCommand(configKeys.lspVmOptions)
+];

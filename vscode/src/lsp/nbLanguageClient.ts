@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@
   limitations under the License.
 */
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
-import { CloseAction, CloseHandlerResult, DocumentSelector, ErrorAction, ErrorHandlerResult, Message, RevealOutputChannelOn } from "vscode-languageclient";
+import { CloseAction, CloseHandlerResult, ConfigurationParams, ConfigurationRequest, DidChangeConfigurationSignature, DocumentSelector, ErrorAction, ErrorHandlerResult, LSPAny, Message, RevealOutputChannelOn } from "vscode-languageclient";
 import { createTreeViewService, TreeViewService } from "../views/projects";
-import { OutputChannel, workspace } from "vscode";
+import { CancellationToken, OutputChannel, workspace } from "vscode";
 import { extConstants } from "../constants";
+import { ConfigurationValueResolver } from '../configurations/configurationValueResolver/configurationValueResolver';
 import { userConfigsListenedByServer } from '../configurations/configuration';
 import { restartWithJDKLater } from './utils';
 import { ExtensionLogger } from '../logger';
 import { globalState } from '../globalState';
 import { Telemetry } from '../telemetry/telemetry';
-
+import { ResolveConfigType } from '../configurations/configurationValueResolver/types';
+import { extractSettingsInformation } from '../configurations/configurationValueResolver/utils';
 
 export class NbLanguageClient extends LanguageClient {
     private _treeViewService: TreeViewService;
@@ -33,6 +35,7 @@ export class NbLanguageClient extends LanguageClient {
     }
 
     static build = (serverOptions: ServerOptions, logger: ExtensionLogger): NbLanguageClient => {
+        let client: NbLanguageClient | undefined;
         let documentSelectors: DocumentSelector = [
             { language: extConstants.LANGUAGE_ID },
             { language: 'properties', pattern: '**/*.properties' },
@@ -69,6 +72,34 @@ export class NbLanguageClient extends LanguageClient {
                     'wantsNotebookSupport': true
                 }
             },
+            middleware: {
+                workspace: {
+                    configuration: async (params: ConfigurationParams, token: CancellationToken, next: ConfigurationRequest.HandlerSignature) => {
+                        const rawValues = await next(params, token) as LSPAny[];
+
+                        const configsToBeResolved: ResolveConfigType[] = [];
+                        params.items.forEach((item, index) => {
+                            if (item?.section?.trim()) {
+                                configsToBeResolved.push({
+                                    configKey: item?.section.trim(),
+                                    rawValue: rawValues[index],
+                                });
+                            }
+                        });
+
+                        return ConfigurationValueResolver.getInstance().resolveIfNeededBatch(configsToBeResolved);
+                    },
+                    didChangeConfiguration: async (sections: string[] | undefined, next: DidChangeConfigurationSignature) => {
+                        if (!sections || !client) {
+                            return next(sections);
+                        }
+
+                        return client.sendNotification('workspace/didChangeConfiguration', {
+                            settings: await extractSettingsInformation(sections)
+                        });
+                    }
+                }
+            },
             errorHandler: {
                 error: function (error: Error, _message: Message, count: number): ErrorHandlerResult {
                     return { action: ErrorAction.Continue, message: error.message };
@@ -83,13 +114,15 @@ export class NbLanguageClient extends LanguageClient {
             }
         }
 
-        return new NbLanguageClient(
+        client = new NbLanguageClient(
             extConstants.NB_LANGUAGE_CLIENT_ID,
             extConstants.NB_LANGUAGE_CLIENT_NAME,
             serverOptions,
             logger.getOutputChannel(),
             clientOptions
-        )
+        );
+
+        return client;
     }
 
     findTreeViewService(): TreeViewService {
