@@ -70,6 +70,8 @@ export const builtInCommands = {
     openSettings: 'workbench.action.openSettings',
     startDebug: 'workbench.action.debug.start',
     focusReplDebug: 'workbench.debug.action.focusRepl',
+    revealInExplorer:'revealInExplorer',
+    
 }
 
 export const nbCommands = {
