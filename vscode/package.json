@@ -1049,15 +1049,16 @@
 		"vscode-languageclient": "^9.0.1"
 	},
 	"overrides": {
-		"brace-expansion@5.x": "^5.0.5",
+		"brace-expansion@5.x": "^5.0.6",
 		"brace-expansion@2.x": {
-			".": "^2.0.3",
+			".": "^2.1.1",
 			"balanced-match": "^1.0.2"
 		},
 		"brace-expansion@1.x": {
-			".": "^1.1.13",
+			".": "^1.1.15",
 			"balanced-match": "^1.0.2"
 		},
+		"fast-uri@3.x": "^3.1.2",
 		"lodash@4.x": "^4.18.1",
 		"minimatch@10.x": "^10.2.4",
 		"minimatch@9.x": "^9.0.9",
@@ -1075,6 +1076,7 @@
 		"ts-node": {
 			"diff": "^4.0.4"
 		},
+		"uuid@8.x": "^11.1.1",
 		"@istanbuljs/load-nyc-config": {
 			"js-yaml": ">=3.14.2"
 		}

@@ -261,7 +261,7 @@
         </exec>
 
         <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
-            <arg value="install" />
+            <arg value="ci" />
         </exec>
 
         <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
@@ -366,7 +366,7 @@
 
     <target name="update-extension" depends="build-lsp-server" description="Compile the LSP Server and the VS Code extension">
         <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
-            <arg value="install"/>
+            <arg value="ci"/>
         </exec>
         <exec executable="npm${cmd.suffix}" failonerror="true" dir="vscode">
             <arg value="run"/>
