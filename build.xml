@@ -61,6 +61,8 @@
             patches/9263-draft.diff
             patches/9282-draft.diff
             patches/9290.diff
+            patches/9341.diff
+            patches/9252+9340+9343.diff
             patches/9369.diff
             patches/9377-draft.diff
             patches/disable-error-notification.diff
