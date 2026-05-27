@@ -38,7 +38,8 @@ export const configKeys = {
     notebookImplicitImports: "notebook.implicitImports",
     notebookProjectMapping: "notebook.projects.mapping",
     notebookVmOptions: "notebook.vmOptions",
-    telemetryEnabled: 'telemetry.enabled'
+    telemetryEnabled: 'telemetry.enabled',
+    mavenUserSettings: 'maven.userSettings'
 };
 
 export const builtInConfigKeys = {
@@ -51,13 +52,6 @@ export const userConfigsListened: string[] = [
     appendPrefixToCommand(configKeys.lspVmOptions),
     appendPrefixToCommand(configKeys.disableNbJavac),
     appendPrefixToCommand(configKeys.disableProjSearchLimit),
-    appendPrefixToCommand(configKeys.notebookClasspath),
-    appendPrefixToCommand(configKeys.notebookModulepath),
-    appendPrefixToCommand(configKeys.notebookAddModules),
-    appendPrefixToCommand(configKeys.notebookEnablePreview),
-    appendPrefixToCommand(configKeys.notebookImplicitImports),
-    appendPrefixToCommand(configKeys.notebookProjectMapping),
-    appendPrefixToCommand(configKeys.notebookVmOptions),
     builtInConfigKeys.vscodeTheme,
 ];
 
@@ -66,8 +60,31 @@ export const userConfigsListenedByServer = [
     appendPrefixToCommand(configKeys.hintPrefs),
     appendPrefixToCommand(configKeys.formatPrefs),
     appendPrefixToCommand(configKeys.importPrefs),
+    appendPrefixToCommand(configKeys.notebookClasspath),
+    appendPrefixToCommand(configKeys.notebookModulepath),
+    appendPrefixToCommand(configKeys.notebookAddModules),
+    appendPrefixToCommand(configKeys.notebookEnablePreview),
+    appendPrefixToCommand(configKeys.notebookImplicitImports),
+    appendPrefixToCommand(configKeys.notebookProjectMapping),
+    appendPrefixToCommand(configKeys.notebookVmOptions),
     appendPrefixToCommand(configKeys.projectJdkHome),
     appendPrefixToCommand(configKeys.runConfigVmOptions),
-    appendPrefixToCommand(configKeys.runConfigCwd)
+    appendPrefixToCommand(configKeys.runConfigCwd),
+    appendPrefixToCommand(configKeys.mavenUserSettings)
 ];
 
+export const configsThatNeedAdditionalResolver: string[] = [
+    appendPrefixToCommand(configKeys.projectJdkHome),
+    appendPrefixToCommand(configKeys.jdkHome),
+    appendPrefixToCommand(configKeys.notebookClasspath),
+    appendPrefixToCommand(configKeys.notebookModulepath),
+    appendPrefixToCommand(configKeys.notebookAddModules),
+    appendPrefixToCommand(configKeys.notebookEnablePreview),
+    appendPrefixToCommand(configKeys.notebookImplicitImports),
+    appendPrefixToCommand(configKeys.notebookVmOptions),
+    appendPrefixToCommand(configKeys.runConfigVmOptions),
+    appendPrefixToCommand(configKeys.runConfigCwd),
+    appendPrefixToCommand(configKeys.runConfigArguments),
+    appendPrefixToCommand(configKeys.runConfigEnv),
+    appendPrefixToCommand(configKeys.lspVmOptions)
+];

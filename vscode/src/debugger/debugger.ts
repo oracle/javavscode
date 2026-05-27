@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -23,9 +23,10 @@ import { extConstants } from '../constants';
 import { l10n } from '../localiser';
 import { StreamDebugAdapter } from './streamDebugAdapter';
 import { extCommands, nbCommands } from '../commands/commands';
-import { argumentsNode, environmentVariablesNode, vmOptionsNode, workingDirectoryNode } from '../views/runConfiguration';
-import { initializeRunConfiguration, parseArguments } from '../utils';
+import { initializeRunConfiguration } from '../utils';
 import { globalState } from '../globalState';
+import { applyRunConfigurationOverrides } from '../views/runConfigurationUtils';
+import { isInternalConfigurationResolverConfig } from '../configurations/configurationValueResolver/utils';
 
 export function registerDebugger(context: ExtensionContext): void {
     let debugTrackerFactory = new NetBeansDebugAdapterTrackerFactory();
@@ -61,7 +62,11 @@ class NetBeansDebugAdapterTrackerFactory implements vscode.DebugAdapterTrackerFa
 
 class NetBeansDebugAdapterDescriptionFactory implements vscode.DebugAdapterDescriptorFactory {
 
-    createDebugAdapterDescriptor(_session: vscode.DebugSession, _executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
+    createDebugAdapterDescriptor(session: vscode.DebugSession, _executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
+        if (isInternalConfigurationResolverConfig(session.configuration)) {
+            return undefined;
+        }
+
         return new Promise<vscode.DebugAdapterDescriptor>((resolve, reject) => {
             let cnt = 10;
             const fnc = () => {
@@ -194,6 +199,10 @@ class NetBeansConfigurationDynamicProvider implements vscode.DebugConfigurationP
 class NetBeansConfigurationResolver implements vscode.DebugConfigurationProvider {
 
     resolveDebugConfiguration(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
+        if (isInternalConfigurationResolverConfig(config)) {
+            return config;
+        }
+
         if (!config.type) {
             config.type = extConstants.COMMAND_PREFIX;
         }
@@ -217,59 +226,10 @@ class NetBeansConfigurationResolver implements vscode.DebugConfigurationProvider
 class RunConfigurationProvider implements vscode.DebugConfigurationProvider {
 
     resolveDebugConfiguration(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
-        return new Promise<vscode.DebugConfiguration>(resolve => {
-            resolve(config);
-        });
+        if (isInternalConfigurationResolverConfig(config)) {
+            return config;
+        }
+
+        return applyRunConfigurationOverrides(config);
     }
-
-    resolveDebugConfigurationWithSubstitutedVariables?(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
-        return new Promise<vscode.DebugConfiguration>(resolve => {
-            const args = argumentsNode.getValue();
-            if (args) {
-                if (!config.args) {
-                    config.args = args;
-                } else {
-                    config.args = `${config.args} ${args}`;
-                }
-            }
-
-            const vmArgs = vmOptionsNode.getValue();
-            if (vmArgs) {
-                if (!config.vmArgs) {
-                    config.vmArgs = vmArgs;
-                } else if (Array.isArray(config.vmArgs)) {
-                    let cfg: string[] = config.vmArgs;
-
-                    const result = parseArguments(vmArgs);
-                    cfg.push(...result);
-                } else {
-                    // assume the config is a string
-                    config.vmArgs = `${config.vmArgs} ${vmArgs}`;
-                }
-            }
-
-            const env = environmentVariablesNode.getValue();
-            if (env) {
-                const envs = env.split(',');
-                if (!config.env) {
-                    config.env = {};
-                }
-                for (let val of envs) {
-                    val = val.trim();
-                    const div = val.indexOf('=');
-                    if (div > 0) { // div === 0 means bad format (no ENV name)
-                        config.env[val.substring(0, div)] = val.substring(div + 1, val.length);
-                    }
-                }
-            }
-
-            const cwd = workingDirectoryNode.getValue();
-            if (cwd) {
-                config.cwd = cwd;
-            }
-
-            resolve(config);
-        });
-    }
-
 }

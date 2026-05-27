@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@ import { l10n } from "../localiser";
 import { isString } from "../utils";
 import { userDefinedLaunchOptionsType } from "./types"
 
-export const getUserConfigLaunchOptionsDefaults = (): userDefinedLaunchOptionsType => {
+export const getUserConfigLaunchOptionsDefaults = async (): Promise<userDefinedLaunchOptionsType> => {
     return {
         [configKeys.jdkHome]: {
-            value: jdkHomeValueHandler(),
+            value: await jdkHomeValueHandler(),
             optionToPass: ['--jdkhome']
         },
         [configKeys.projectJdkHome]: {
-            value: projectJdkHomeValueHandler(),
+            value: await projectJdkHomeValueHandler(),
             optionToPass: '-J-Dnetbeans.lsp.java.platform.override='
         }, 
         [configKeys.userdir]: {
@@ -46,7 +46,7 @@ export const getUserConfigLaunchOptionsDefaults = (): userDefinedLaunchOptionsTy
             optionToPass: ['--laf']
         },
         [configKeys.lspVmOptions]: {
-            value: lspServerVmOptionsHandler()
+            value: await lspServerVmOptionsHandler()
         }
     };
 };
@@ -61,11 +61,10 @@ const extraLaunchOptions = [
     "-J--add-exports=jdk.compiler/com.sun.tools.javac.resources=ALL-UNNAMED"
 ];
 
-const prepareUserConfigLaunchOptions = (): string[] => {
+const prepareUserConfigLaunchOptions = (userConfigLaunchOptionsDefaults: userDefinedLaunchOptionsType): string[] => {
     const launchOptions: string[] = [];
-    const userConfigLaunchOptionsDefaults = getUserConfigLaunchOptionsDefaults();
     Object.values(userConfigLaunchOptionsDefaults).forEach(userConfig => {
-        const { value, optionToPass, encloseInvertedComma } = userConfig;
+        const { value, optionToPass } = userConfig;
         if (value) {
             if (!optionToPass && Array.isArray(value)) {
                 launchOptions.push(...value);
@@ -82,10 +81,10 @@ const prepareUserConfigLaunchOptions = (): string[] => {
     return launchOptions;
 }
 
-export const prepareNbcodeLaunchOptions = (): string[] => {
+export const prepareNbcodeLaunchOptions = (intialConfigs: userDefinedLaunchOptionsType): string[] => {
     const nbcodeLaunchOptions = [];
 
-    const userConfigLaunchOptions = prepareUserConfigLaunchOptions();
+    const userConfigLaunchOptions = prepareUserConfigLaunchOptions(intialConfigs);
     nbcodeLaunchOptions.push(...userConfigLaunchOptions, ...extraLaunchOptions);
 
     return nbcodeLaunchOptions;

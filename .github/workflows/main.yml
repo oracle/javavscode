@@ -52,7 +52,7 @@ jobs:
           release: ${{ matrix.java }}
 
       - name: Checkout ${{ github.ref }} ( ${{ github.sha }} )
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           submodules: true

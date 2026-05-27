@@ -13,13 +13,28 @@ steps:
   - type: Command
     name: "Install Java 17 "
     command: |
-     wget https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.17+10/OpenJDK17U-jdk_x64_linux_hotspot_17.0.17_10.tar.gz
-     tar  xzf OpenJDK17U-jdk_x64_linux_hotspot_17.0.17_10.tar.gz -C ${OCI_PRIMARY_SOURCE_DIR}
+      uname -a
+      JDK_VERSION=17.0.19+10
+      JDK_TARFILE=`echo "OpenJDK17U-jdk_x64_linux_hotspot_$JDK_VERSION.tar.gz" | cut -d '+' --output-delimiter=_ -f 1-`
+      # Download JDK
+      wget -O $JDK_TARFILE https://github.com/adoptium/temurin17-binaries/releases/download/jdk-$JDK_VERSION/$JDK_TARFILE
+      # Verify sha sum
+      wget -O - https://github.com/adoptium/temurin17-binaries/releases/download/jdk-$JDK_VERSION/$JDK_TARFILE.sha256.txt | sha256sum -c -
+      # Extract JDK
+      tar -xzf $JDK_TARFILE -C ${OCI_PRIMARY_SOURCE_DIR}
+      mv ${OCI_PRIMARY_SOURCE_DIR}/jdk-$JDK_VERSION ${OCI_PRIMARY_SOURCE_DIR}/jdk-17
   - type: Command
     name: "Install Ant "
     command: |
-      wget https://dlcdn.apache.org//ant/binaries/apache-ant-1.10.15-bin.tar.gz
-      tar xzf apache-ant-1.10.15-bin.tar.gz -C ${OCI_PRIMARY_SOURCE_DIR}
+      ANT_VERSION=1.10.17
+      ANT_TARFILE=apache-ant-$ANT_VERSION-bin.tar.bz2
+      # Download ant
+      wget -O $ANT_TARFILE https://dlcdn.apache.org/ant/binaries/$ANT_TARFILE
+      # Verify sha sum
+      printf '%s\t%s\n' "`wget -O - https://downloads.apache.org/ant/binaries/$ANT_TARFILE.sha512`" "$ANT_TARFILE" | sha512sum -c -
+      # Extract ant
+      tar -xjf $ANT_TARFILE -C ${OCI_PRIMARY_SOURCE_DIR}
+      mv ${OCI_PRIMARY_SOURCE_DIR}/apache-ant-$ANT_VERSION ${OCI_PRIMARY_SOURCE_DIR}/ant
   - type: Command
     name: "Update git"
     command: |
@@ -29,32 +44,51 @@ steps:
     command: |
       git submodule update --init --recursive
   - type: Command
+    name: "Download cdxgen globally with workaround to run on older nodejs"
+    command: |
+      # cdxgen relies on a fourth-party dependency that cannot be executed in a Node.js environment running version 16
+      # This is a workaround to ensure cdxgen functions correctly, even in an older Node.js environment.
+      npm install -g @cyclonedx/cdxgen@9.8.8 && \
+      cd $(dirname $(which node) | sed -e 's:/bin$:/lib:')/node_modules/@cyclonedx/cdxgen && \
+      npm install cheerio@v1.0.0-rc.12 && \
+      cdxgen --version && \
+      cd - && \
+      cdxgen ${OCI_PRIMARY_SOURCE_DIR}/ant/lib --type jar -r --required-only -o test-bom.json --json-pretty --spec-version 1.4 && \
+      rm -f test-bom.json
+  - type: Command
+    name: "Install npm dependencies"
+    command: |
+      cd vscode
+      npm install
+  - type: Command
+    name: "Install and run cyclonedx-node-npm package"
+    command: |
+      cd vscode
+      # For more details, visit https://github.com/CycloneDX/cyclonedx-node-npm/blob/main/README.md
+      npm install --no-save @cyclonedx/cyclonedx-npm@1.20.0 && \
+      npx @cyclonedx/cyclonedx-npm --omit dev --output-format JSON --output-file ../bom-vscode.json --spec-version 1.4
+  - type: Command
+    name: "Download CycloneDx-cli executable and install dependencies for final merged artifacts"
+    command: |
+      wget https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.24.2/cyclonedx-linux-x64 && \
+      chmod +x cyclonedx-linux-x64 && \
+      yum install -y libicu jq && \
+      ./cyclonedx-linux-x64 --version
+  - type: Command
     name: "Build netbeans"
     command: |
-      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17.0.17+10
-      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/apache-ant-1.10.15
+      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17
+      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/ant
       export PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$PATH
       ant apply-patches
       ant build-netbeans
   - type: Command
     name: "Build vscode extension "
     command: |
-      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17.0.17+10
-      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/apache-ant-1.10.15
+      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17
+      export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/ant
       export PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$PATH
       ant build-lsp-server
-  - type: Command
-    name: "Download the version 10.10.0 of cdxgen globally"
-    command: |
-      npm install -g @cyclonedx/cdxgen@10.10.0
-  - type: Command
-    name: "Workaround to let cdxgen run on nodejs 16"
-    command: |
-      # cdxgen relies on a fourth-party dependency that cannot be executed in a Node.js environment running version 16
-      # (as installed on the build runner instance)
-      # This is a workaround to ensure cdxgen functions correctly, even in an older Node.js environment.
-      cd /node/node-v16.14.2-linux-x64/lib/node_modules/@cyclonedx/cdxgen && \
-      npm install cheerio@v1.0.0-rc.12
   - type: Command
     name: "Generate sbom for the nbcode part"
     command: |
@@ -64,32 +98,14 @@ steps:
       # For more details, visit https://github.com/CycloneDX/cdxgen/blob/master/README.md
       cdxgen nbcode/ --type jar -r --required-only -o ../bom-nbcode.json --json-pretty --spec-version 1.4
   - type: Command
-    name: "Install dependencies & cyclonedx-node-npm package"
-    command: |
-      cd vscode
-      npm install && npm install --save-dev @cyclonedx/cyclonedx-npm@1.19.3
-  - type: Command
-    name: "Run cyclonedx-node-npm package"
-    command: |
-      cd vscode
-      # For more details, visit https://github.com/CycloneDX/cyclonedx-node-npm/blob/main/README.md
-      npx @cyclonedx/cyclonedx-npm --omit dev --output-format JSON --output-file ../bom-vscode.json --spec-version 1.4
-  - type: Command
-    name: "Download CycloneDx-cli executable and install dependencies"
-    command: |
-      wget https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.24.2/cyclonedx-linux-x64
-      yum install -y libicu
-  - type: Command
     name: "Merge multiple SBOMs using CycloneDX-cli"
     command: |
       # For more details, visit https://github.com/CycloneDX/cyclonedx-cli/blob/main/README.md
-      chmod +x cyclonedx-linux-x64
       ./cyclonedx-linux-x64 merge --input-files bom-vscode.json bom-nbcode.json --output-file merged-bom.json
   # This step is optional for when you need to specify the name of your modules
   - type: Command
     name: "Detect the metadata components of the SBOMs"
     command: |
-      yum install -y jq
       for path in  bom-vscode.json bom-nbcode.json; do
          jq -r '.metadata.component.purl' $path >> ${OCI_PRIMARY_SOURCE_DIR}/metadataComponentPurls.txt;
       done

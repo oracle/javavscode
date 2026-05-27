@@ -193,7 +193,7 @@ summary.change__summary {
     margin: 0.5em 0.5em 0 0;
     padding-right: 0.25em;
 }
-.jdk-version-dropdown::after {
+.jdk-version-dropdown:has(select:not(:disabled))::after {
     content: "\u25BC";
     position: absolute;
     top: 25%;
@@ -203,7 +203,7 @@ summary.change__summary {
     pointer-events: none;
     color: var(--vscode-dropdown-foreground);
 }
-.jdk-version-dropdown:hover::after {
+.jdk-version-dropdown:has(select:not(:disabled)):hover::after {
     color: var(--vscode-input-placeholderForeground);
 }
 

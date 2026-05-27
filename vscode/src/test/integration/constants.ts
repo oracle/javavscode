@@ -218,7 +218,7 @@ repositories {
 }
 
 application {
-    mainClassName = 'org.yourCompany.yourProject.App'
+    mainClass = 'org.yourCompany.yourProject.App'
 }
 `;
 

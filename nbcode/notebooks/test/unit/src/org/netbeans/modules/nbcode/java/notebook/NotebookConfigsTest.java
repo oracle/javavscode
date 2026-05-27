@@ -21,27 +21,26 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.eclipse.lsp4j.ConfigurationItem;
+import java.util.stream.Collectors;
 import org.eclipse.lsp4j.ConfigurationParams;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.netbeans.modules.java.lsp.server.protocol.ClientConfigurationManager;
+import org.netbeans.modules.java.lsp.server.protocol.NbCodeClientCapabilities;
 
 /*  TODO 
     test multiple configuration scenarios
         1.Client sends nulls/empty 
         2.Missing keys 
-*/
-
+ */
 /**
- *  Mock LSP Client sending sample configurations
- *  Verifies that the NotebookConfigs class 
- *      parses and handles configurations appropriately 
+ * Mock LSP Client sending sample configurations Verifies that the
+ * NotebookConfigs class parses and handles configurations appropriately
  *
  * @author shimadan
  */
@@ -49,22 +48,23 @@ public class NotebookConfigsTest {
 
     private NotebookConfigs instance;
     private CompletableFuture<Void> initialized;
-    private JsonObject configsObj = new JsonObject();
-    private static final String CLASSPATH_KEY = "jdk.notebook.classpath";
-    private static final String IMPLICIT_IMPORTS_KEY = "jdk.notebook.implicitImports";
-    private static final String ADD_MODULES_KEY = "jdk.notebook.addmodules";
-    private static final String ENABLE_PREVIEW_KEY = "jdk.notebook.enablePreview";
-    private static final String MODULEPATH_KEY = "jdk.notebook.modulepath";
-    private static final String VM_OPTIONS_KEY = "jdk.notebook.vmOptions";
+    private MockNbClientConfigs client;
+    private static final String NOTEBOOK_SECTION = "jdk.notebook";
+    private static final String CLASSPATH_KEY = "classpath";
+    private static final String IMPLICIT_IMPORTS_KEY = "implicitImports";
+    private static final String ADD_MODULES_KEY = "addmodules";
+    private static final String ENABLE_PREVIEW_KEY = "enablePreview";
+    private static final String MODULEPATH_KEY = "modulepath";
+    private static final String VM_OPTIONS_KEY = "vmOptions";
 
     public NotebookConfigsTest() {
     }
 
     @Before
     public void setUp() {
+        client = new MockNbClientConfigs();
         setConfigObject();
-        LanguageClientInstance.getInstance().
-                setClient(new MockNbClientConfigs());
+        LanguageClientInstance.getInstance().setClient(client);
         instance = NotebookConfigs.getInstance();
         instance.initConfigs();
         initialized = instance.getInitialized();
@@ -96,7 +96,13 @@ public class NotebookConfigsTest {
         System.out.println("getClassPath");
         try {
             initialized.get(5, TimeUnit.SECONDS);
-            String expResult = String.join(File.pathSeparator, (configsObj.get(CLASSPATH_KEY).getAsJsonArray()).asList().stream().map((elem) -> elem.getAsString()).toList());
+            String expResult = String.join(File.pathSeparator, 
+                    (client.getConfigurationValue(NOTEBOOK_SECTION).getAsJsonObject()
+                            .get(CLASSPATH_KEY).getAsJsonArray())
+                            .asList()
+                            .stream()
+                            .map((elem) -> elem.getAsString())
+                            .toList());
             String result = instance.getClassPath();
             assertEquals(expResult, result);
         } catch (Exception ex) {
@@ -113,7 +119,13 @@ public class NotebookConfigsTest {
 
         try {
             initialized.get(5, TimeUnit.SECONDS);
-            String expResult = String.join(File.pathSeparator, (configsObj.get(MODULEPATH_KEY).getAsJsonArray()).asList().stream().map((elem) -> elem.getAsString()).toList());
+            String expResult = String.join(File.pathSeparator, 
+                    (client.getConfigurationValue(NOTEBOOK_SECTION).getAsJsonObject()
+                            .get(MODULEPATH_KEY).getAsJsonArray())
+                            .asList()
+                            .stream()
+                            .map((elem) -> elem.getAsString())
+                            .toList());
             String result = instance.getModulePath();
             assertEquals(expResult, result);
         } catch (Exception ex) {
@@ -129,7 +141,13 @@ public class NotebookConfigsTest {
         System.out.println("getAddModules");
         try {
             initialized.get(5, TimeUnit.SECONDS);
-            String expResult = String.join(",",(configsObj.get(ADD_MODULES_KEY).getAsJsonArray()).asList().stream().map((elem) -> elem.getAsString()).toList());
+            String expResult = String.join(",", 
+                    (client.getConfigurationValue(NOTEBOOK_SECTION).getAsJsonObject()
+                            .get(ADD_MODULES_KEY).getAsJsonArray())
+                            .asList()
+                            .stream()
+                            .map((elem) -> elem.getAsString())
+                            .toList());
             String result = instance.getAddModules();
             assertEquals(expResult, result);
         } catch (Exception ex) {
@@ -145,7 +163,8 @@ public class NotebookConfigsTest {
         System.out.println("getIsEnablePreview");
         try {
             initialized.get(5, TimeUnit.SECONDS);
-            boolean expResult = configsObj.get(ENABLE_PREVIEW_KEY).getAsBoolean();
+            boolean expResult = client.getConfigurationValue(NOTEBOOK_SECTION).getAsJsonObject()
+                    .get(ENABLE_PREVIEW_KEY).getAsBoolean();
             boolean result = instance.isEnablePreview();
             assertEquals(expResult, result);
         } catch (Exception ex) {
@@ -161,40 +180,42 @@ public class NotebookConfigsTest {
         System.out.println("getImplicitImports");
         try {
             initialized.get(5, TimeUnit.SECONDS);
-            List<String> expResult = configsObj.get(IMPLICIT_IMPORTS_KEY).
-                    getAsJsonArray().asList().stream().
-                    map((elem) -> elem.getAsString()).toList();
+            List<String> expResult = client.getConfigurationValue(NOTEBOOK_SECTION).getAsJsonObject()
+                    .get(IMPLICIT_IMPORTS_KEY).getAsJsonArray()
+                    .asList()
+                    .stream()
+                    .map((elem) -> elem.getAsString()).toList();
             List<String> result = instance.getImplicitImports();
             assertEquals(expResult, result);
         } catch (Exception ex) {
             fail("Configuration initialization failed");
         }
     }
-    
+
     /**
-    * Test of getNotebookVmOptions method, of class NotebookConfigs.
-    */
-   @Test
-   public void testGetNotebookVmOptions() {
-       System.out.println("getNotebookVmOptions");
-       try {
-           initialized.get(5, TimeUnit.SECONDS);
+     * Test of getNotebookVmOptions method, of class NotebookConfigs.
+     */
+    @Test
+    public void testGetNotebookVmOptions() {
+        System.out.println("getNotebookVmOptions");
+        try {
+            initialized.get(5, TimeUnit.SECONDS);
 
-           List<String> expResult = configsObj.get(VM_OPTIONS_KEY)
-                   .getAsJsonArray()
-                   .asList()
-                   .stream()
-                   .map(elem -> elem.getAsString())
-                   .toList();
+            List<String> expResult = client.getConfigurationValue(NOTEBOOK_SECTION).getAsJsonObject()
+                    .get(VM_OPTIONS_KEY).getAsJsonArray()
+                    .asList()
+                    .stream()
+                    .map(elem -> elem.getAsString())
+                    .toList();
 
-           List<String> result = instance.getNotebookVmOptions();
+            List<String> result = instance.getNotebookVmOptions();
 
-           assertEquals(expResult, result);
-       } catch (Exception ex) {
-           fail("Configuration initialization failed");
-       }
-   }
-   
+            assertEquals(expResult, result);
+        } catch (Exception ex) {
+            fail("Configuration initialization failed");
+        }
+    }
+
     /**
      * Test of getNotebookVmOptions method when the configuration key is
      * missing. Verifies that the system handles a null/missing key gracefully
@@ -212,10 +233,10 @@ public class NotebookConfigsTest {
             fail("Failed to handle missing VM_OPTIONS_KEY: " + ex.getMessage());
         }
     }
-    
+
     /**
-     * Test of getNotebookVmOptions with quoted spaces.
-     * Verifies that options containing spaces (like directory paths) are preserved.
+     * Test of getNotebookVmOptions with quoted spaces. Verifies that options
+     * containing spaces (like directory paths) are preserved.
      */
     @Test
     public void testGetNotebookVmOptionsWithQuotedSpaces() {
@@ -226,60 +247,135 @@ public class NotebookConfigsTest {
             vmOptions.add(new JsonPrimitive(quotedOption));
             updateConfigValue(VM_OPTIONS_KEY, vmOptions);
             List<String> result = instance.getNotebookVmOptions();
-            
+
             assertTrue("Result should contain the quoted option", result.contains(quotedOption));
             assertEquals("Should have exactly 1 option", 1, result.size());
-            
+
         } catch (Exception ex) {
             fail("Configuration with quoted spaces failed");
         }
     }
-    
+
     private void setConfigObject() {
+        JsonObject configsObj = new JsonObject();
         JsonArray imports = new JsonArray();
         imports.add(new JsonPrimitive("java.math.*"));
         imports.add(new JsonPrimitive("javafx.scene.control.*"));
         configsObj.add(IMPLICIT_IMPORTS_KEY, imports);
-        
+
         JsonArray classpath = new JsonArray();
         classpath.add(new JsonPrimitive(
                 "path/to/javafx-sdk-24.0.1/lib/javafx.base.jar"));
         configsObj.add(CLASSPATH_KEY, classpath);
-        
+
         JsonArray modulepath = new JsonArray();
         modulepath.add(new JsonPrimitive("/path/to/javafx-sdk/lib"));
         configsObj.add(MODULEPATH_KEY, modulepath);
         configsObj.add(ENABLE_PREVIEW_KEY, new JsonPrimitive(false));
-        
+
         JsonArray addModules = new JsonArray();
         addModules.add(new JsonPrimitive("javafx.controls"));
         addModules.add(new JsonPrimitive("javafx.graphics"));
         configsObj.add(ADD_MODULES_KEY, addModules);
-        
+
         JsonArray vmOptions = new JsonArray();
         vmOptions.add(new JsonPrimitive("--add-opens=java.base/java.lang=ALL-UNNAMED"));
         vmOptions.add(new JsonPrimitive("--add-opens=java.base/java.util=ALL-UNNAMED"));
         vmOptions.add(new JsonPrimitive("-Xmx2G"));
         configsObj.add(VM_OPTIONS_KEY, vmOptions);
 
+        client.addConfig(NOTEBOOK_SECTION, configsObj);
     }
-    
-    private void updateConfigValue(String key, JsonElement value){
-        configsObj.add(key, value);
-        instance.initConfigs(); 
-        instance.getInitialized();
+
+    private void updateConfigValue(String key, JsonElement value) {
+        client.confManager.handleConfigurationChange(
+                client.updateSectionAndGetDeepCopy(NOTEBOOK_SECTION + '.' + key, value)
+        );
     }
 
     private class MockNbClientConfigs extends MockNbClient {
 
-        @Override
-        public CompletableFuture<List<Object>> configuration(ConfigurationParams configurationParams) {
-            List<ConfigurationItem> items = configurationParams.getItems();
-            List<Object> configs = new ArrayList<>();
-            for (ConfigurationItem item : items) {
-                configs.add(configsObj.get(item.getSection()));
+        NbCodeClientCapabilities codeCapa = new NbCodeClientCapabilities();
+        JsonObject rootConfiguration = new JsonObject();
+        ClientConfigurationManager confManager;
+
+        public MockNbClientConfigs() {
+            codeCapa.setConfigurationPrefix("jdk.");
+            codeCapa.setAltConfigurationPrefix("java+.");
+            confManager = new ClientConfigurationManager(this);
+        }
+
+        public void addConfig(String section, JsonElement value) {
+            addConfigToObject(rootConfiguration, section, value);
+        }
+
+        public JsonObject updateSectionAndGetDeepCopy(String section, JsonElement newValue) {
+            JsonObject obj = rootConfiguration.deepCopy();
+            addConfigToObject(obj, section, newValue);
+            return obj;
+        }
+
+        public JsonElement getConfigurationValue(String section) {
+            String[] keys = section.split("\\.");
+            JsonObject current = rootConfiguration;
+
+            for (int i = 0; i < keys.length; i++) {
+                String key = keys[i];
+
+                if (!current.has(key)) {
+                    return null;
+                }
+
+                if (i == keys.length - 1) {
+                    return current.get(key);
+                }
+
+                JsonElement next = current.get(key);
+                if (!next.isJsonObject()) {
+                    return null;
+                }
+
+                current = next.getAsJsonObject();
             }
-            return CompletableFuture.completedFuture(configs);
+
+            return null;
+        }
+
+        private void addConfigToObject(JsonObject root, String section, JsonElement value) {
+            String[] keys = section.split("\\.");
+            JsonObject current = root;
+
+            for (int i = 0; i < keys.length; i++) {
+                String key = keys[i];
+
+                if (i == keys.length - 1) {
+                    current.add(key, value);
+                } else {
+                    if (!current.has(key) || !current.get(key).isJsonObject()) {
+                        current.add(key, new JsonObject());
+                    }
+                    current = current.getAsJsonObject(key);
+                }
+            }
+        }
+
+        @Override
+        public NbCodeClientCapabilities getNbCodeCapabilities() {
+            return codeCapa;
+        }
+
+        @Override
+        public ClientConfigurationManager getClientConfigurationManager() {
+            return confManager;
+        }
+
+        @Override
+        public CompletableFuture<List<Object>> configuration(ConfigurationParams params) {
+            List<Object> result = params.getItems().stream()
+                    .map(item -> getConfigurationValue(item.getSection()))
+                    .collect(Collectors.toList());
+
+            return CompletableFuture.completedFuture(result);
         }
     }
 }
