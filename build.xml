@@ -74,6 +74,7 @@
             patches/updated-show-input-params.diff
             patches/java-notebooks.diff
             patches/formatOptions.diff
+            patches/9285-draft.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
