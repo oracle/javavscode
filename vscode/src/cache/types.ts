@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2025, Oracle and/or its affiliates.
+  Copyright (c) 2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
   limitations under the License.
 */
 
-export type CacheValueObj<T> = {
-    type: string;
-    payload: T;
-    lastUsed: number;
-}
+export interface CacheService<T, U> {
+    get(key: string): U | undefined;
 
-export abstract class BaseCacheValue<T> {
-    public readonly lastUsed: number;
+    put(key: string, value: T): Promise<boolean>;
 
-    constructor(public readonly type: string, public readonly payload: T, lastUsed?: number) {
-        this.lastUsed = lastUsed ?? Date.now();
-    }
+    removeOnOverflow?(): void;
 }

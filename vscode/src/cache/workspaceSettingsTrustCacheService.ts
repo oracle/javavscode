@@ -13,11 +13,11 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { CacheService } from "../../types";
-import { LOGGER } from "../../../logger";
-import { globalState } from "../../../globalState";
+import { CacheService } from "./types";
+import { LOGGER } from "../logger";
+import { globalState } from "../globalState";
 import { WorkspaceSettingsTrustCacheValue } from "./workspaceSettingsTrustCacheValue";
-import { TrustType } from "../../../configurations/trustWorkspace/types";
+import { TrustType } from "../configurations/trustWorkspace/types";
 
 export class WorkspaceSettingsTrustCacheService implements CacheService<WorkspaceSettingsTrustCacheValue, TrustType> {
     public get = (key: string) => {

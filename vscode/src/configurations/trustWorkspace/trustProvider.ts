@@ -16,14 +16,14 @@
 
 import { Uri, workspace, WorkspaceFolder, WorkspaceFoldersChangeEvent } from "vscode";
 import { getAllConfigurationKeys } from "../handlers";
-import { CacheService } from "../../telemetry/types";
+import { CacheService } from "../../cache/types";
 import { LOGGER } from "../../logger";
 import { ExtensionContextInfo } from "../../extensionContextInfo";
 import { globalState } from "../../globalState";
 import { l10n } from "../../localiser";
 import { TrustUi } from "./trustUi";
-import { WorkspaceSettingsTrustCacheValue } from "../../telemetry/impl/cache/workspaceSettingsTrustCacheValue";
 import { SettingLocationTrustDecision, TRUST_TYPE, SettingLocation, TrustType } from "./types";
+import { WorkspaceSettingsTrustCacheValue } from "../../cache/workspaceSettingsTrustCacheValue";
 
 
 export class TrustProvider {

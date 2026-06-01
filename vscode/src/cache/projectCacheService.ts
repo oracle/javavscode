@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024-2025, Oracle and/or its affiliates.
+  Copyright (c) 2024-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { CacheService } from "../../types";
-import { LOGGER } from "../../../logger";
-import { globalState } from "../../../globalState";
-import { isError } from "../../../utils";
+import { CacheService } from "./types";
+import { LOGGER } from "../logger";
+import { globalState } from "../globalState";
+import { isError } from "../utils";
 import { removeEntriesOnOverflow } from "./utils";
 import { ProjectCacheValue } from "./projectCacheValue";
 

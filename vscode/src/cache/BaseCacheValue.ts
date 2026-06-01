@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2026, Oracle and/or its affiliates.
+  Copyright (c) 2025-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,7 +14,16 @@
   limitations under the License.
 */
 
-import { cacheServiceIndex } from "../../cache";
-import { TrustProvider } from "./trustProvider";
+export type CacheValueObj<T> = {
+    type: string;
+    payload: T;
+    lastUsed: number;
+}
 
-export const trustProvider = new TrustProvider(cacheServiceIndex.workspaceSettingsTrustCache);
+export abstract class BaseCacheValue<T> {
+    public readonly lastUsed: number;
+
+    constructor(public readonly type: string, public readonly payload: T, lastUsed?: number) {
+        this.lastUsed = lastUsed ?? Date.now();
+    }
+}

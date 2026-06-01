@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-import { TrustType } from "../../../configurations/trustWorkspace/types";
+import { TrustType } from "../configurations/trustWorkspace/types";
 import { BaseCacheValue, CacheValueObj } from "./BaseCacheValue";
 
 export class WorkspaceSettingsTrustCacheValue extends BaseCacheValue<TrustType> {
