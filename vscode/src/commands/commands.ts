@@ -57,6 +57,7 @@ export const extCommands = {
     openJshellInProject: appendPrefixToCommand("jshell.project"),
     notebookChangeProjectContext: appendPrefixToCommand("notebook.change.project"),
     resetNotebookSession: appendPrefixToCommand("notebook.restart.kernel"),
+    workspaceSettingsTrustDecisions: appendPrefixToCommand("workspace.settings.trust.decisions"),
 }
 
 export const builtInCommands = {

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2025-2026, Oracle and/or its affiliates.
+  Copyright (c) 2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,12 +14,7 @@
   limitations under the License.
 */
 
-import { ProjectCacheService } from "./projectCacheService";
-import { SimpleCacheService } from "./simpleCacheService";
-import { WorkspaceSettingsTrustCacheService } from "./workspaceSettingsTrustCacheService";
+import { cacheServiceIndex } from "../../telemetry/impl/cache";
+import { TrustProvider } from "./trustProvider";
 
-export namespace cacheServiceIndex {
-    export const simpleCache = new SimpleCacheService();
-    export const projectCache = new ProjectCacheService();
-    export const workspaceSettingsTrustCache = new WorkspaceSettingsTrustCacheService();
-}
+export const trustProvider = new TrustProvider(cacheServiceIndex.workspaceSettingsTrustCache);

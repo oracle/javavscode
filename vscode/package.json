@@ -45,6 +45,11 @@
 	],
 	"main": "./out/extension.js",
 	"l10n": "./l10n",
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": false
+		}
+	},
 	"contributes": {
 		"notebooks": [
 			{
@@ -692,6 +697,11 @@
 			{
 				"command": "jdk.open.userDir",
 				"title": "%jdk.open.userDir%"
+			},
+			{
+				"command": "jdk.workspace.settings.trust.decisions",
+				"title": "%jdk.workspace.settings.trust.decisions%",
+				"category": "Java"
 			},
 			{
 				"command": "jdk.notebook.new",

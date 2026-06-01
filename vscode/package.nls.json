@@ -30,6 +30,7 @@
     "jdk.open.test": "Go To Test/Tested class...",
     "jdk.delete.cache": "Delete Oracle Java extension cache for this workspace",
     "jdk.open.userDir": "Open Oracle Java extension cache directory for this workspace",
+    "jdk.workspace.settings.trust.decisions": "Manage trust decisions for Oracle Java workspace settings",
     "jdk.configuration.title.jdk":"JDK",
     "jdk.configuration.title.runConfiguration":"Run configuration",
     "jdk.configuration.title.notebooks":"Notebooks",

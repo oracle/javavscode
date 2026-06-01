@@ -23,7 +23,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { globalState } from "../globalState";
 import { ConfigurationValueResolver } from "./configurationValueResolver/configurationValueResolver";
-import { appendPrefixToCommand } from "../utils";
+import { appendPrefixToCommand, isObject } from "../utils";
 
 const getConfiguration = (key: string = extConstants.COMMAND_PREFIX): WorkspaceConfiguration => {
     return workspace.getConfiguration(key);
@@ -50,6 +50,29 @@ export const getBuiltinConfigurationValue = <T>(key: string, defaultValue: T | u
     const conf = workspace.getConfiguration(selector);
     const confKey = splitKey?.slice(1)?.join('.');
     return defaultValue != undefined ? conf?.get(confKey, defaultValue) : conf?.get(confKey) as T;
+}
+
+export const getAllConfigurationKeys = (key: string = extConstants.COMMAND_PREFIX): string[] => {
+    const baseConfig = workspace.getConfiguration().get<Record<string, unknown>>(key);
+    if (!baseConfig || !isObject(baseConfig)) {
+        return [];
+    }
+
+    const keys: string[] = [];
+    
+    const collectKeys = (config: Record<string, unknown>, parentKey: string): void => {
+        Object.entries(config).forEach(([configKey, value]) => {
+            const fullKey = `${parentKey}.${configKey}`;
+            if (isObject(value)) {
+                collectKeys(value as Record<string, unknown>, fullKey);
+                return;
+            }
+            keys.push(fullKey);
+        });
+    };
+
+    collectKeys(baseConfig, key);
+    return keys;
 }
 
 export const inspectConfiguration = (config: string) => {
