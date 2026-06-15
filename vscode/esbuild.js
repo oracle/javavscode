@@ -1,4 +1,4 @@
-const { build } = require("esbuild");
+const { build, context } = require("esbuild");
 const fs = require('fs');
 const path = require('path');
 
@@ -14,20 +14,23 @@ const scriptConfig = {
   format: "esm"
 };
 
-const watchConfig = {
-  watch: {
-    onRebuild(error, result) {
+const watchPlugins = [{
+  name: 'watch-plugin',
+  setup(build) {
+    build.onStart(() => {
       console.log("[watch] build started");
-      if (error) {
-        error.errors.forEach(error =>
+    });
+    build.onEnd(result => {
+      if (result.errors?.length > 0) {
+        result.errors.forEach(error =>
           console.error(`> ${error.location.file}:${error.location.line}:${error.location.column}: error: ${error.text}`)
         );
       } else {
         console.log("[watch] build finished");
       }
-    },
+    });
   },
-};
+}];
 
 const NON_NPM_ARTIFACTORY = new RegExp(
   String.raw`"resolved"\s*:\s*"http[s]*://(?!registry.npmjs.org)[^"]+"`,
@@ -101,12 +104,16 @@ const createTelemetryConfig = () => {
   try {
     if (args.includes("--watch")) {
       // Build and watch source code
-      console.log("[watch] build started");
-      await build({
+      const ctx = await context({
         ...scriptConfig,
-        ...watchConfig,
+        plugins: watchPlugins,
       });
-      console.log("[watch] build finished");
+      await ctx.watch();
+      process.stdin.resume();
+      process.stdin.on("end", async () => {
+        await ctx.dispose();
+        console.log("build complete");
+      });
     } else if (args.includes("--artifactory-check")) {
       checkAritfactoryUrl();
     } else {

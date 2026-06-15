@@ -1014,7 +1014,7 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./ && node ./esbuild.js",
-		"watch": "tsc -watch -p ./ | node ./esbuild.js --watch",
+		"watch": "tsc --watch -p ./ | node ./esbuild.js --watch",
 		"test:unit": "npm run compile && node ./out/test/unit/runTest.js",
 		"test:coverage": "nyc --require ts-node/register npm run test:unit",
 		"test": "npm run compile && node ./out/test/integration/runTest.js",
@@ -1032,7 +1032,7 @@
 		"@types/vscode": "^1.84.0",
 		"@vscode/test-electron": "^2.5.2",
 		"chai": "^4.5.0",
-		"esbuild": "^0.25.3",
+		"esbuild": "^0.28.1",
 		"glob": "^12.0.0",
 		"mocha": "^11.1.0",
 		"nyc": "^17.1.0",
