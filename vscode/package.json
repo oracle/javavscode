@@ -1013,15 +1013,15 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./ && node ./esbuild.js",
-		"watch": "tsc --watch -p ./ | node ./esbuild.js --watch",
+		"compile": "tsc -p ./ && node ./build-scripts.js",
+		"watch": "tsc --watch -p ./ | node ./build-scripts.js --watch",
 		"test:unit": "npm run compile && node ./out/test/unit/runTest.js",
 		"test:coverage": "nyc --require ts-node/register npm run test:unit",
 		"test": "npm run compile && node ./out/test/integration/runTest.js",
 		"nbcode": "node ./out/test/launchNbcode.js",
 		"nbjavac": "node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --install .*nbjavac.*",
 		"apisupport": "node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --install '(org.netbeans.libs.xerces|org.netbeans.modules.editor.structure|org.netbeans.modules.xml|org.netbeans.modules.xml.axi|org.netbeans.modules.xml.retriever|org.netbeans.modules.xml.schema.model|org.netbeans.modules.xml.tax|org.netbeans.modules.xml.text|.*apisupport.*|org.netbeans.modules.debugger.jpda.ant)' && node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --enable .*apisupport.ant",
-		"artifactory:check": "node ./esbuild.js --artifactory-check"
+		"artifactory:check": "node ./build-scripts.js --artifactory-check"
 	},
 	"devDependencies": {
 		"@istanbuljs/nyc-config-typescript": "^1.0.2",
@@ -1032,7 +1032,6 @@
 		"@types/vscode": "^1.84.0",
 		"@vscode/test-electron": "^2.5.2",
 		"chai": "^4.5.0",
-		"esbuild": "^0.28.1",
 		"glob": "^12.0.0",
 		"mocha": "^11.1.0",
 		"nyc": "^17.1.0",

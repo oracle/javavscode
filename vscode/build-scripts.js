@@ -1,36 +1,5 @@
-const { build, context } = require("esbuild");
 const fs = require('fs');
 const path = require('path');
-
-const baseConfig = {
-  bundle: true,
-  minify: process.env.NODE_ENV === "production",
-  sourcemap: process.env.NODE_ENV !== "production",
-};
-
-const scriptConfig = {
-  ...baseConfig,
-  target: "es2020",
-  format: "esm"
-};
-
-const watchPlugins = [{
-  name: 'watch-plugin',
-  setup(build) {
-    build.onStart(() => {
-      console.log("[watch] build started");
-    });
-    build.onEnd(result => {
-      if (result.errors?.length > 0) {
-        result.errors.forEach(error =>
-          console.error(`> ${error.location.file}:${error.location.line}:${error.location.column}: error: ${error.text}`)
-        );
-      } else {
-        console.log("[watch] build finished");
-      }
-    });
-  },
-}];
 
 const NON_NPM_ARTIFACTORY = new RegExp(
   String.raw`"resolved"\s*:\s*"http[s]*://(?!registry.npmjs.org)[^"]+"`,
@@ -102,25 +71,21 @@ const createTelemetryConfig = () => {
 (async () => {
   const args = process.argv.slice(2);
   try {
-    if (args.includes("--watch")) {
-      // Build and watch source code
-      const ctx = await context({
-        ...scriptConfig,
-        plugins: watchPlugins,
-      });
-      await ctx.watch();
-      process.stdin.resume();
-      process.stdin.on("end", async () => {
-        await ctx.dispose();
-        console.log("build complete");
-      });
-    } else if (args.includes("--artifactory-check")) {
+    if (args.includes("--artifactory-check")) {
       checkAritfactoryUrl();
     } else {
-      // Build source code
+      // Build additional code
       createTelemetryConfig();
-      await build(scriptConfig);
       console.log("build complete");
+    }
+    if (args.includes("--watch")) {
+      process.stdin.resume();
+      process.stdin.on("data", input => {
+        console.log(input.toString());
+      });
+      process.stdin.on("end", async () => {
+        console.log("watch complete");
+      });
     }
   } catch (err) {
     process.stderr.write(err.message);
