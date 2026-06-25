@@ -1044,7 +1044,7 @@
 		"chai": "^4.5.0",
 		"glob": "^12.0.0",
 		"mocha": "^11.1.0",
-		"nyc": "^17.1.0",
+		"nyc": "^18.0.0",
 		"sinon": "^20.0.0",
 		"ts-mockito": "^2.6.1",
 		"ts-node": "^10.9.2",
@@ -1076,18 +1076,20 @@
 		"mocha": {
 			"diff": "^8.0.3",
 			"glob": "^10.5.0",
-			"js-yaml": "^4.1.1",
+			"js-yaml": "^4.3.0",
 			"serialize-javascript": "^7.0.5"
+		},
+		"nyc": {
+			"@babel/core@7.x": "^7.29.7",
+			"@istanbuljs/load-nyc-config": {
+				"js-yaml": "^4.3.0"
+			}
 		},
 		"sinon": {
 			"diff": "^8.0.3"
 		},
 		"ts-node": {
 			"diff": "^4.0.4"
-		},
-		"uuid@8.x": "^11.1.1",
-		"@istanbuljs/load-nyc-config": {
-			"js-yaml": ">=3.14.2"
 		}
 	}
 }
