@@ -216,13 +216,13 @@ public class NotebookConfigs {
     private boolean isValidImplicitImport(@NonNull String implicitImport) {
         String importFragment = implicitImport;
         boolean packagePrefixOptional = true;
-        if (importFragment.startsWith("module")) {
-            // Remove "module\\s*" from the start
-            importFragment = importFragment.substring(6).stripLeading();
+        if (importFragment.startsWith("module ")) {
+            // Remove "module \\s*" from the start
+            importFragment = importFragment.substring(7).stripLeading();
         } else {
-            if (importFragment.startsWith("static")) {
-                // Remove "static\\s*" from the start
-                importFragment = importFragment.substring(6).stripLeading();
+            if (importFragment.startsWith("static ")) {
+                // Remove "static \\s*" from the start
+                importFragment = importFragment.substring(7).stripLeading();
                 packagePrefixOptional = false;
             }
             if (importFragment.endsWith(".*")) {
