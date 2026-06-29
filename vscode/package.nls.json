@@ -52,7 +52,7 @@
     "jdk.configuration.testEditor.description": "Enable Run/Debug test in editor",
     "jdk.configuration.javadoc.timeout.description": "Timeout (in milliseconds) for loading Javadoc in code completion (-1 for unlimited)",
     "jdk.configuration.formatterSettings.description": "Path to the file containing exported formatter settings",
-    "jdk.configuration.formatterSettings.deprecationMessage": "This setting is scheduled for deprecation. Please migrate to jdk.format.settings",
+    "jdk.configuration.formatterSettings.deprecationMessage": "This setting is scheduled for deprecation. Please migrate to jdk.format.options",
     "jdk.configuration.formatOptions.description" : "A container for formatting options. Refer to the following documentation for valid keys and values: https://github.com/oracle/javavscode/wiki/Java-formatting-preferences",
     "jdk.configuration.formatOptions.markdownDescription" : "A container for formatting options. Refer to the following documentation for valid keys and values: [Java-formatting-preferences](https://github.com/oracle/javavscode/wiki/Java-formatting-preferences)",
     "jdk.configuration.hints.preferences.description": "Path to the file containing exported hints preferences",

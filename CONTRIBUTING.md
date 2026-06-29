@@ -69,3 +69,11 @@ like more specific guidelines, see the [Contributor Covenant Code of Conduct][CO
 
 [OCA]: https://oca.opensource.oracle.com
 [COC]: https://www.contributor-covenant.org/version/1/4/code-of-conduct/
+
+## Policy for AI-Assisted Contributions
+
+The Java Platform Extension for Visual Studio Code adheres to the OpenJDK AI policy 
+for all AI-assisted contributions, including but not limited to source code, text, 
+and images. 
+Refer to the [OpenJDK Interim Policy on Generative AI](https://openjdk.org/legal/ai) 
+for details.

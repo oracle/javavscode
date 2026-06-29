@@ -24,6 +24,14 @@ import { getContextUriFromFile, isNbCommandRegistered } from "./utils";
 import { FileUtils, isString } from "../utils";
 import { globalState } from "../globalState";
 
+const openCreatedUri = async (newFile: ReturnType<typeof FileUtils.toUri>) => {
+    if (newFile && fs.statSync(newFile.fsPath).isDirectory()) {
+        await commands.executeCommand(builtInCommands.revealInExplorer, newFile);
+    } else {
+        await window.showTextDocument(newFile, { preview: false });
+    }
+}
+
 const newFromTemplate = async (ctx: any, template: any) => {
     const client: LanguageClient = await globalState.getClientPromise().client;
     if (await isNbCommandRegistered(nbCommands.newFromTemplate)) {
@@ -57,12 +65,12 @@ const newFromTemplate = async (ctx: any, template: any) => {
 
         if (isString(res)) {
             let newFile = FileUtils.toUri(res as string, true);
-            await window.showTextDocument(newFile, { preview: false });
+            await openCreatedUri(newFile);
         } else if (Array.isArray(res)) {
             for (let r of res) {
                 if (isString(r)) {
                     let newFile = FileUtils.toUri(r as string, true);
-                    await window.showTextDocument(newFile, { preview: false });
+                    await openCreatedUri(newFile);
                 }
             }
         }

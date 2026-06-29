@@ -1,0 +1,128 @@
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ConfigValueCache.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ConfigValueCache.java
+index 781553770957..8f31bf6c31e8 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ConfigValueCache.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/ConfigValueCache.java
+@@ -88,7 +88,7 @@ public void updateCache(NbCodeLanguageClient client, String section, Object cach
+                     consumer.accept(section, tree);
+                 }
+             } catch (RuntimeException e) {
+-                LOG.log(Level.SEVERE, "Exception occurred while calling config change consumer handler, config: {0} and excpetion: {1}", new Object[]{section, e.getMessage()});
++                LOG.log(Level.SEVERE, "Exception occurred while calling config change consumer handler for config: {0}, with error: {1}", new Object[]{section, e.getMessage()});
+             }
+             Map<String, JsonElement> scopedValuesMap = rootData.getAllScopedValues();
+             if (scopedValuesMap != null && !scopedValuesMap.isEmpty()) {
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+index fc273780e7b2..d01cd9e86bb4 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/WorkspaceServiceImpl.java
+@@ -1387,9 +1387,11 @@ private BiConsumer<String, JsonElement> getRunConfigChangeListener() {
+             String newWorkingDirectory = null;
+             JsonObject runConfig = newValue.isJsonObject() ? newValue.getAsJsonObject() : null;
+             if (runConfig != null) {
+-                newVMOptions = runConfig.getAsJsonPrimitive("vmOptions").getAsString();
+-                JsonPrimitive cwd = runConfig.getAsJsonPrimitive("cwd");
+-                newWorkingDirectory = cwd != null ? cwd.getAsString() : null;
++                JsonElement el;
++                el = runConfig.get("vmOptions");
++                if (el != null && el.isJsonPrimitive()) newVMOptions = el.getAsJsonPrimitive().getAsString();
++                el = runConfig.get("cwd");
++                if (el != null && el.isJsonPrimitive()) newWorkingDirectory = el.getAsJsonPrimitive().getAsString();
+             }
+             for (SingleFileOptionsQueryImpl query : Lookup.getDefault().lookupAll(SingleFileOptionsQueryImpl.class)) {
+                 modified |= query.setConfiguration(workspace, newVMOptions, newWorkingDirectory);
+@@ -1408,23 +1410,23 @@ void registerConfigChangeListeners() {
+         BiConsumer<String, JsonElement> formatPrefsListener = (config, newValue)
+                 -> server.openedProjects().thenAccept(projects -> {
+                     if (projects != null && projects.length > 0) {
+-                        updateJavaFormatPreferences(projects[0].getProjectDirectory(), newValue.getAsJsonObject());
++                        updateJavaFormatPreferences(projects[0].getProjectDirectory(), newValue != null && newValue.isJsonObject() ? newValue.getAsJsonObject() : null);
+                     }
+                 });
+ 
+         BiConsumer<String, JsonElement> importPrefsListener = (config, newValue)
+                 -> server.openedProjects().thenAccept(projects -> {
+                     if (projects != null && projects.length > 0) {
+-                        updateJavaImportPreferences(projects[0].getProjectDirectory(), newValue.getAsJsonObject());
++                        updateJavaImportPreferences(projects[0].getProjectDirectory(), newValue != null && newValue.isJsonObject() ? newValue.getAsJsonObject() : null);
+                     }
+                 });
+ 
+         // PENDING: The typecast to serviceImpl is ugly
+         BiConsumer<String, JsonElement> hintPrefsListener = (config, newValue)
+-                -> ((TextDocumentServiceImpl) server.getTextDocumentService()).updateJavaHintPreferences(newValue.getAsJsonObject());
++                -> ((TextDocumentServiceImpl) server.getTextDocumentService()).updateJavaHintPreferences(newValue != null && newValue.isJsonObject() ? newValue.getAsJsonObject() : null);
+ 
+         BiConsumer<String, JsonElement> projectJdkHomeListener = (config, newValue)
+-                -> ((TextDocumentServiceImpl) server.getTextDocumentService()).updateProjectJDKHome(newValue.getAsJsonPrimitive());
++                -> ((TextDocumentServiceImpl) server.getTextDocumentService()).updateProjectJDKHome(newValue != null && newValue.isJsonPrimitive() ? newValue.getAsJsonPrimitive() : null);
+         
+         
+         BiConsumer<String, JsonElement> mavenUserSettingsListener = (config, newValue)
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/ui/AbstractJavaPlatformProviderOverride.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/ui/AbstractJavaPlatformProviderOverride.java
+index 054f85d0e59e..e01793efc93c 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/ui/AbstractJavaPlatformProviderOverride.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/ui/AbstractJavaPlatformProviderOverride.java
+@@ -44,7 +44,7 @@ public abstract class AbstractJavaPlatformProviderOverride implements JavaPlatfo
+     }
+ 
+     protected AbstractJavaPlatformProviderOverride(String defaultPlatformOverride) {
+-        this.defaultPlatformOverride = defaultPlatformOverride == null ? null : FileUtil.toFileObject(new File(defaultPlatformOverride));
++        this.defaultPlatformOverride = defaultPlatformOverride == null || defaultPlatformOverride.isBlank() ? null : FileUtil.toFileObject(new File(defaultPlatformOverride));
+     }
+ 
+     @Override
+@@ -76,7 +76,7 @@ public JavaPlatform getDefaultPlatform() {
+             existingNames.add(platform.getDisplayName());
+         }
+ 
+-        if (found == null ){
++        if (found == null) {
+             String newName = defaultPlatformOverride.getPath();
+ 
+             while (existingNames.contains(newName)) {
+@@ -109,8 +109,7 @@ public void removePropertyChangeListener(PropertyChangeListener listener) {
+     }
+ 
+     private void dosetDefaultPlatformOverride(String defaultPlatformOverride) {
+-        FileObject override = defaultPlatformOverride != null ? FileUtil.toFileObject(new File(defaultPlatformOverride))
+-                                                              : null;
++        FileObject override = defaultPlatformOverride == null || defaultPlatformOverride.isBlank() ? null : FileUtil.toFileObject(new File(defaultPlatformOverride));
+ 
+         synchronized (this) {
+             this.defaultPlatformOverride = override;
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ClientConfigurationManagerTest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ClientConfigurationManagerTest.java
+index d862335c841d..ccfaee0aeb95 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ClientConfigurationManagerTest.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/ClientConfigurationManagerTest.java
+@@ -19,6 +19,7 @@
+ package org.netbeans.modules.java.lsp.server.protocol;
+ 
+ import com.google.gson.JsonElement;
++import com.google.gson.JsonNull;
+ import com.google.gson.JsonObject;
+ import com.google.gson.JsonPrimitive;
+ import java.net.URI;
+@@ -138,6 +139,23 @@ public void testRegisterConfigListener() {
+         mockClient.getClientConfigurationManager().handleConfigurationChange(newConfigTree);
+     }
+ 
++    @Test
++    public void testConfigListenerWithValueReset() {
++        String expectedSection = "project.jdkhome";
++        JsonElement expectedValue = JsonNull.INSTANCE;
++
++        BiConsumer<String, JsonElement> listener = (actualSection, actualValue) -> {
++            assertEquals("Section mismatch in listener", expectedSection, actualSection);
++            assertEquals("Value != JsonNull in listener", expectedValue, actualValue);
++        };
++
++        mockClient.getClientConfigurationManager().registerConfigChangeListener(expectedSection, listener);
++
++        mockClient.addConfig(expectedSection, new JsonPrimitive("Old Value"));
++        JsonObject newConfigTree = mockClient.updateSectionAndGetDeepCopy(expectedSection, null);
++        mockClient.getClientConfigurationManager().handleConfigurationChange(newConfigTree);
++    }
++
+     private class MockClient extends TestCodeLanguageClient {
+ 
+         NbCodeClientCapabilities codeCapa = new NbCodeClientCapabilities();

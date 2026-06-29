@@ -133,7 +133,8 @@
   "jdk.notebook.cell.missing.error_msg": "缺少字段：{fieldName}",
   "jdk.notebook.serializer.error_msg": "无法串行化记事本：{errorMessage}",
   "jdk.notebook.cell.serializer.error_msg": "无法串行化一个或多个单元格",
-  "jdk.notebook.validation.failed.error_msg": "记事本 JSON 验证失败",
+  "jdk.notebook.validation.failed.error_msg": "记事本 JSON 验证失败",  
+  "jdk.notebook.validation.notebook_version.failed.error_msg": "Notebook version is not supported. Please upgrade to version {majorVersion}.{minorVersion} or later.",
   "jdk.notebook.mime_type.not.found.cell.output": "Mime 类型：{mimeType}，内容长度：{contentLength}",
   "jdk.notebook.cell.language.not.found": "不支持 {languageId} 执行"
 }

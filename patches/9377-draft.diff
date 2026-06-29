@@ -1,0 +1,291 @@
+commit 0d677c33c04d5f8301533bf24a159548ed7bad3a
+Author: Akhilesh Singh <akhilesh.s.singh@oracle.com>
+Date:   Thu Apr 30 15:07:33 2026 +0530
+
+diff --git a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUI.java b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUI.java
+index e7359322b6..240f145f67 100644
+--- a/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUI.java
++++ b/java/java.lsp.server/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUI.java
+@@ -34,6 +34,7 @@ import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
++import java.util.StringTokenizer;
+ import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.CompletionStage;
+ import java.util.function.Function;
+@@ -97,13 +98,14 @@ import org.openide.util.Utilities;
+     "ERR_InvalidObjectName={0} isn't valid object name"
+ 
+ })
+ final class LspTemplateUI {
+     /**
+      * Creation thread. All requests are serialized; make sure that no creation process can block e.g. waiting
+      * for the client's response.
+      */
+     private static final RequestProcessor    CREATION_RP = new RequestProcessor(LspTemplateUI.class);
+-    private static final Logger LOG = Logger.getLogger(LspTemplateUI.class.getName()); 
++    private static final Logger LOG = Logger.getLogger(LspTemplateUI.class.getName());
++    private static final String JAVA_PKG_TEMPLATE = "Templates/Classes/Package";
+     
+     private LspTemplateUI() {
+     }
+@@ -123,27 +125,18 @@ final class LspTemplateUI {
+     private CompletableFuture<Object> templateUI(DataFolder templates, NbCodeLanguageClient client, ExecuteCommandParams params) {
+         CompletionStage<DataObject> findTemplate = findTemplate(templates, client, params);
+         CompletionStage<DataFolder> findTargetFolder = findTargetForTemplate(findTemplate, client, params);
+-        return findTargetFolder.thenCombine(findTemplate, (target, source) -> {
+-            final FileObject templateFileObject = source.getPrimaryFile();
+-            return new FileBuilder(templateFileObject, target.getPrimaryFile()).name(templateFileObject.getName());
+-        }).thenCompose(builder -> configure(builder, client)).thenApplyAsync(builder -> {
+-            try {
+-                if (builder != null) {
+-                    List<FileObject> created = builder.build();
+-                    if (created == null) {
+-                        return null;
+-                    } else if (created.isEmpty()) {
+-                        return Collections.emptyList();
+-                    }
+-                    // Make sure the newly created files are indexed before returned to client
+-                    IndexingManager.getDefault().refreshAllIndices(false, true, created.toArray(new FileObject[0]));
+-                    return (Object) created.stream().map(fo -> fo.toURI().toString()).collect(Collectors.toList());
+-                }
+-                return null;
+-            } catch (IOException ex) {
+-                throw raise(RuntimeException.class, ex);
++        return findTargetFolder.thenCombine(findTemplate, Pair::of).thenCompose(targetAndTemplate -> {
++            final DataFolder target = targetAndTemplate.first();
++            final DataObject source = targetAndTemplate.second();
++
++            if (isPkgTemplate(source)) {
++                return createPackage(target, client);
+             }
+-        }, CREATION_RP).exceptionally((error) -> {
++
++            final FileObject templateFileObject = source.getPrimaryFile();
++            return configure(new FileBuilder(templateFileObject, target.getPrimaryFile()).name(templateFileObject.getName()), client)
++                    .thenApplyAsync(LspTemplateUI::buildTemplate, CREATION_RP);
++        }).exceptionally((error) -> {
+             if (error instanceof UserCancelException || error.getCause() instanceof UserCancelException) {
+                 return null;
+             }
+@@ -152,6 +145,25 @@ final class LspTemplateUI {
+         }).toCompletableFuture();
+     }
+ 
++    private static Object buildTemplate(FileBuilder builder) {
++        try {
++            if (builder != null) {
++                List<FileObject> created = builder.build();
++                if (created == null) {
++                    return null;
++                } else if (created.isEmpty()) {
++                    return Collections.emptyList();
++                }
++                // Make sure the newly created files are indexed before returned to client
++                IndexingManager.getDefault().refreshAllIndices(false, true, created.toArray(new FileObject[0]));
++                return created.stream().map(fo -> fo.toURI().toString()).collect(Collectors.toList());
++            }
++            return null;
++        } catch (IOException ex) {
++            throw raise(RuntimeException.class, ex);
++        }
++    }
++
+     private CompletableFuture<Object> projectUI(DataFolder templates, NbCodeLanguageClient client, ExecuteCommandParams params) {
+         CompletionStage<DataObject> findTemplate = findTemplate(templates, client, params);
+         CompletionStage<Pair<DataFolder, String>> findTargetFolderAndName = findTargetAndNameForProject(findTemplate, client);
+@@ -268,6 +280,13 @@ final class LspTemplateUI {
+                     {
+                         client.showMessage(new MessageParams(MessageType.Error,Bundle.ERR_InvalidObjectName(name)));
+                         return client.showInputBox(new ShowInputBoxParams(Bundle.CTL_TemplateUI_SelectName(), desc.getProposedName())).thenCompose(this);
++                    }
++                    FileObject existingTargetFile = findExistingTargetFile(desc, name);
++                    if (existingTargetFile != null) {
++                        client.showMessage(new MessageParams(MessageType.Error,
++                                Bundle.ERR_ExistingPath(FileUtil.getFileDisplayName(existingTargetFile))));
++                        return client.showInputBox(
++                                new ShowInputBoxParams(Bundle.CTL_TemplateUI_SelectName(),desc.getProposedName())).thenCompose(this);
+                     } else if (name.contains("$")) {
+                         final MessageActionItem continueAction = new MessageActionItem(Bundle.PROMPT_AskObjectNameWarningConfirmation_Continue());
+                         final MessageActionItem tryAgain = new MessageActionItem(Bundle.PROMPT_AskObjectNameWarningConfirmation_TryAgain());
+@@ -292,6 +311,87 @@ final class LspTemplateUI {
+         return CompletableFuture.completedFuture(builder);
+     }
+ 
++    private static CompletionStage<Object> createPackage(DataFolder target, NbCodeLanguageClient client) {
++        class ValidatePackageName implements Function<String, CompletionStage<Object>> {
++            @Override
++            public CompletionStage<Object> apply(String packageName) {
++                if (packageName == null) {
++                    throw raise(RuntimeException.class, new UserCancelException(""));
++                }
++                if (!SourceVersion.isName(packageName)) {
++                    client.showMessage(new MessageParams(MessageType.Error, Bundle.ERR_InvalidPackageName(packageName)));
++                    return client.showInputBox(new ShowInputBoxParams(Bundle.CTL_TemplateUI_SelectName(), "")).thenCompose(this);
++                }
++                FileObject existingTarget = checkExistingPkgTarget(target.getPrimaryFile(), packageName);
++                if (existingTarget != null) {
++                    client.showMessage(new MessageParams(MessageType.Error, Bundle.ERR_ExistingPath(FileUtil.getFileDisplayName(existingTarget))));
++                    return client.showInputBox(new ShowInputBoxParams(Bundle.CTL_TemplateUI_SelectName(), "")).thenCompose(this);
++                }
++                try {
++                    FileObject created = createPkgFolderStructure(target.getPrimaryFile(), packageName);
++                    IndexingManager.getDefault().refreshAllIndices(false, true, created);
++                    return CompletableFuture.completedFuture(created.toURI().toString());
++                } catch (IOException ex) {
++                    throw raise(RuntimeException.class, ex);
++                }
++            }
++        }
++        return client.showInputBox(new ShowInputBoxParams(Bundle.CTL_TemplateUI_SelectName(), "")).thenCompose(new ValidatePackageName());
++    }
++    
++    static FileObject findExistingTargetFile(CreateDescriptor desc, String name) {
++        if (desc == null || name == null) {
++            return null;
++        }
++
++        FileObject target = desc.getTarget();
++        if (target == null) {
++            return null;
++        }
++
++        if (desc.hasFreeExtension()) {
++            return target.getFileObject(name);
++        }
++
++        String extension = desc.getTemplate().getExt();
++        String baseName = name;
++
++        if (!extension.isEmpty() && name.endsWith("." + extension)) {
++            baseName = name.substring(0, name.length() - extension.length() - 1);
++        }
++
++        return extension.isEmpty()
++                ? target.getFileObject(baseName)
++                : target.getFileObject(baseName, extension);
++    }
++
++    static FileObject checkExistingPkgTarget(FileObject target, String pkgName) {
++        if (target == null || pkgName == null) {
++            return null;
++        }
++        FileObject current = target;
++        StringTokenizer pkgTokens = new StringTokenizer(pkgName, ".");
++        while (pkgTokens.hasMoreTokens()) {
++            FileObject next = current.getFileObject(pkgTokens.nextToken());
++            if (next == null) {
++                return null;
++            }
++            if (next.isData() || !pkgTokens.hasMoreTokens()) {
++                return next;
++            }
++            current = next;
++        }
++        return null;
++    }
++
++    static FileObject createPkgFolderStructure(FileObject targetFile, String pkgName) throws IOException {
++        return FileUtil.createFolder(targetFile, pkgName.replace('.', '/'));
++    }
++
++    private static boolean isPkgTemplate(DataObject inputTemplate) {
++        return JAVA_PKG_TEMPLATE.equals(inputTemplate.getPrimaryFile().getPath());
++    }
++
+     private static String suggestWorkspaceRoot(List<WorkspaceFolder> folders) throws IllegalArgumentException {
+         String suggestion = System.getProperty("user.home");
+         if (folders != null && !folders.isEmpty()) try {
+diff --git a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUITest.java b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUITest.java
+index e1408434ab..403b86b718 100644
+--- a/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUITest.java
++++ b/java/java.lsp.server/test/unit/src/org/netbeans/modules/java/lsp/server/protocol/LspTemplateUITest.java
+@@ -18,8 +18,16 @@
+  */
+ package org.netbeans.modules.java.lsp.server.protocol;
+ 
++import java.util.Collections;
++import org.netbeans.api.templates.CreateDescriptor;
++import org.netbeans.api.templates.FileBuilder;
+ import org.junit.Test;
+-import static org.junit.Assert.*;
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertNotNull;
++import static org.junit.Assert.assertNull;
++import static org.junit.Assert.assertTrue;
++import org.openide.filesystems.FileObject;
++import org.openide.filesystems.FileUtil;
+ 
+ public class LspTemplateUITest {
+     @Test
+@@ -53,4 +61,69 @@ public class LspTemplateUITest {
+         String result = LspTemplateUI.stripHtml(s);
+         assertEquals(expResult, result);
+     }
++
++    @Test
++    public void testFindExistingTargetFileWithTemplateExtension() throws Exception {
++        //given
++        FileObject root = FileUtil.createMemoryFileSystem().getRoot();
++        FileObject template = FileUtil.createData(root, "Templates/Class.java");
++        FileObject target = FileUtil.createFolder(root, "src");
++        FileObject existing = FileUtil.createData(target, "TestDuplicateName.java");
++        //when
++        CreateDescriptor desc = new FileBuilder(template, target)
++                .withParameters(Collections.emptyMap())
++                .createDescriptor(false);
++        //than
++        assertEquals(existing, LspTemplateUI.findExistingTargetFile(desc, "TestDuplicateName"));
++        assertEquals(existing, LspTemplateUI.findExistingTargetFile(desc, "TestDuplicateName.java"));
++    }
++
++    @Test
++    public void testFindExistingTargetFileWithFreeExtension() throws Exception {
++        //given
++        FileObject root = FileUtil.createMemoryFileSystem().getRoot();
++        FileObject template = FileUtil.createData(root, "Templates/Any.txt");
++        FileObject target = FileUtil.createFolder(root, "src");
++        FileObject existing = FileUtil.createData(target, "TestDuplicateName.java");
++        //when
++        CreateDescriptor desc = new FileBuilder(template, target)
++                .withParameters(Collections.emptyMap())
++                .param(CreateDescriptor.FREE_FILE_EXTENSION, Boolean.TRUE)
++                .createDescriptor(false);
++
++        //than
++        assertEquals(existing, LspTemplateUI.findExistingTargetFile(desc, "TestDuplicateName.java"));
++        assertNull(LspTemplateUI.findExistingTargetFile(desc, "TestDuplicateName"));
++    }
++
++    @Test
++    public void testFindExistingPkgTargetForExistingFolder() throws Exception {
++        FileObject root = FileUtil.createMemoryFileSystem().getRoot();
++        FileObject target = FileUtil.createFolder(root, "src");
++        FileObject existing = FileUtil.createFolder(target, "org/example");
++
++        assertEquals(existing, LspTemplateUI.checkExistingPkgTarget(target, "org.example"));
++    }
++
++    @Test
++    public void testFindExistingPkgTargetForBlockingFile() throws Exception {
++        FileObject root = FileUtil.createMemoryFileSystem().getRoot();
++        FileObject target = FileUtil.createFolder(root, "src");
++        FileObject blocking = FileUtil.createData(target, "org");
++
++        assertEquals(blocking, LspTemplateUI.checkExistingPkgTarget(target, "org.example"));
++    }
++
++    @Test
++    public void testCreatePkgFolderCreatesHierarchy() throws Exception {
++        FileObject root = FileUtil.createMemoryFileSystem().getRoot();
++        FileObject target = FileUtil.createFolder(root, "src");
++
++        FileObject created = LspTemplateUI.createPkgFolderStructure(target, "org.example.demo");
++
++        FileObject createdFolder = target.getFileObject("org/example/demo");
++        assertNotNull(createdFolder);
++        assertTrue(createdFolder.isFolder());
++        assertEquals(createdFolder, created);
++    }
+ }

@@ -57,10 +57,11 @@ export const inspectConfiguration = (config: string) => {
 }
 
 export const jdkHomeValueHandler = async (): Promise<string | null> => {
-    return getConfigurationValueWithVariablesSubstituted(configKeys.jdkHome) ||
-        process.env.JDK_HOME ||
-        process.env.JAVA_HOME ||
-        null;
+    return getConfigurationValueWithVariablesSubstituted<string | null>(configKeys.jdkHome)
+        .then(resolvedValue => resolvedValue ||
+            process.env.JDK_HOME ||
+            process.env.JAVA_HOME ||
+            null);
 }
 
 export const projectJdkHomeValueHandler = async (): Promise<string | null> => {
