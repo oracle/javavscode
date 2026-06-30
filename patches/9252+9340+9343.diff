@@ -1,0 +1,997 @@
+diff --git a/apisupport/maven.apisupport/test/unit/src/org/netbeans/modules/maven/apisupport/NBMNativeMWITest.java b/apisupport/maven.apisupport/test/unit/src/org/netbeans/modules/maven/apisupport/NBMNativeMWITest.java
+index 3e79a3ae0b..e72393ce62 100644
+--- a/apisupport/maven.apisupport/test/unit/src/org/netbeans/modules/maven/apisupport/NBMNativeMWITest.java
++++ b/apisupport/maven.apisupport/test/unit/src/org/netbeans/modules/maven/apisupport/NBMNativeMWITest.java
+@@ -38,7 +38,7 @@ import org.openide.util.lookup.ServiceProvider;
+ 
+ public class NBMNativeMWITest extends NbTestCase {
+ 
+-    private static final String EXPECTED_JAVAC_PLUGIN_VERSION = "3.14.1";
++    private static final String EXPECTED_JAVAC_PLUGIN_VERSION = "3.15.0";
+ 
+     private FileObject wd;
+ 
+diff --git a/java/maven.embedder/external/apache-maven-3.9.12-epl-license.txt b/java/maven.embedder/external/apache-maven-3.9.12-epl-license.txt
+deleted file mode 100644
+index ce3e922e27..0000000000
+--- a/java/maven.embedder/external/apache-maven-3.9.12-epl-license.txt
++++ /dev/null
+@@ -1,217 +0,0 @@
+-Name: Apache Maven components under EPL v1.0
+-Description: These Apache Maven components are under EPL v1.0: org.eclipse.sisu.inject-0.9.0.M4.jar org.eclipse.sisu.plexus-0.9.0.M4.jar
+-Version: 3.9.12
+-License: Maven-EPL-v10
+-Origin: Apache Software Foundation
+-Files: apache-maven-3.9.12-bin.zip!/apache-maven-3.9.12/lib/org.eclipse.sisu.inject-0.9.0.M4.jar apache-maven-3.9.12-bin.zip!/apache-maven-3.9.12/lib/org.eclipse.sisu.plexus-0.9.0.M4.jar
+-
+-Eclipse Public License - v 1.0
+-
+-THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC
+-LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM
+-CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
+-
+-   1. DEFINITIONS
+-
+-   "Contribution" means:
+-
+-a) in the case of the initial Contributor, the initial code and documentation
+-distributed under this Agreement, and
+-
+-      b) in the case of each subsequent Contributor:
+-
+-         i) changes to the Program, and
+-
+-         ii) additions to the Program;
+-
+-where such changes and/or additions to the Program originate from and are
+-distributed by that particular Contributor. A Contribution 'originates' from
+-a Contributor if it was added to the Program by such Contributor itself or
+-anyone acting on such Contributor's behalf. Contributions do not include additions
+-to the Program which: (i) are separate modules of software distributed in
+-conjunction with the Program under their own license agreement, and (ii) are
+-not derivative works of the Program.
+-
+-   "Contributor" means any person or entity that distributes the Program.
+-
+-"Licensed Patents" mean patent claims licensable by a Contributor which are
+-necessarily infringed by the use or sale of its Contribution alone or when
+-combined with the Program.
+-
+-"Program" means the Contributions distributed in accordance with this Agreement.
+-
+-"Recipient" means anyone who receives the Program under this Agreement, including
+-all Contributors.
+-
+-   2. GRANT OF RIGHTS
+-
+-a) Subject to the terms of this Agreement, each Contributor hereby grants
+-Recipient a non-exclusive, worldwide, royalty-free copyright license to reproduce,
+-prepare derivative works of, publicly display, publicly perform, distribute
+-and sublicense the Contribution of such Contributor, if any, and such derivative
+-works, in source code and object code form.
+-
+-b) Subject to the terms of this Agreement, each Contributor hereby grants
+-Recipient a non-exclusive, worldwide, royalty-free patent license under Licensed
+-Patents to make, use, sell, offer to sell, import and otherwise transfer the
+-Contribution of such Contributor, if any, in source code and object code form.
+-This patent license shall apply to the combination of the Contribution and
+-the Program if, at the time the Contribution is added by the Contributor,
+-such addition of the Contribution causes such combination to be covered by
+-the Licensed Patents. The patent license shall not apply to any other combinations
+-which include the Contribution. No hardware per se is licensed hereunder.
+-
+-c) Recipient understands that although each Contributor grants the licenses
+-to its Contributions set forth herein, no assurances are provided by any Contributor
+-that the Program does not infringe the patent or other intellectual property
+-rights of any other entity. Each Contributor disclaims any liability to Recipient
+-for claims brought by any other entity based on infringement of intellectual
+-property rights or otherwise. As a condition to exercising the rights and
+-licenses granted hereunder, each Recipient hereby assumes sole responsibility
+-to secure any other intellectual property rights needed, if any. For example,
+-if a third party patent license is required to allow Recipient to distribute
+-the Program, it is Recipient's responsibility to acquire that license before
+-distributing the Program.
+-
+-d) Each Contributor represents that to its knowledge it has sufficient copyright
+-rights in its Contribution, if any, to grant the copyright license set forth
+-in this Agreement.
+-
+-   3. REQUIREMENTS
+-
+-A Contributor may choose to distribute the Program in object code form under
+-its own license agreement, provided that:
+-
+-      a) it complies with the terms and conditions of this Agreement; and
+-
+-      b) its license agreement:
+-
+-i) effectively disclaims on behalf of all Contributors all warranties and
+-conditions, express and implied, including warranties or conditions of title
+-and non-infringement, and implied warranties or conditions of merchantability
+-and fitness for a particular purpose;
+-
+-ii) effectively excludes on behalf of all Contributors all liability for damages,
+-including direct, indirect, special, incidental and consequential damages,
+-such as lost profits;
+-
+-iii) states that any provisions which differ from this Agreement are offered
+-by that Contributor alone and not by any other party; and
+-
+-iv) states that source code for the Program is available from such Contributor,
+-and informs licensees how to obtain it in a reasonable manner on or through
+-a medium customarily used for software exchange.
+-
+-   When the Program is made available in source code form:
+-
+-      a) it must be made available under this Agreement; and
+-
+-b) a copy of this Agreement must be included with each copy of the Program.
+-
+-Contributors may not remove or alter any copyright notices contained within
+-the Program.
+-
+-Each Contributor must identify itself as the originator of its Contribution,
+-if any, in a manner that reasonably allows subsequent Recipients to identify
+-the originator of the Contribution.
+-
+-   4. COMMERCIAL DISTRIBUTION
+-
+-Commercial distributors of software may accept certain responsibilities with
+-respect to end users, business partners and the like. While this license is
+-intended to facilitate the commercial use of the Program, the Contributor
+-who includes the Program in a commercial product offering should do so in
+-a manner which does not create potential liability for other Contributors.
+-Therefore, if a Contributor includes the Program in a commercial product offering,
+-such Contributor ("Commercial Contributor") hereby agrees to defend and indemnify
+-every other Contributor ("Indemnified Contributor") against any losses, damages
+-and costs (collectively "Losses") arising from claims, lawsuits and other
+-legal actions brought by a third party against the Indemnified Contributor
+-to the extent caused by the acts or omissions of such Commercial Contributor
+-in connection with its distribution of the Program in a commercial product
+-offering. The obligations in this section do not apply to any claims or Losses
+-relating to any actual or alleged intellectual property infringement. In order
+-to qualify, an Indemnified Contributor must: a) promptly notify the Commercial
+-Contributor in writing of such claim, and b) allow the Commercial Contributor
+-to control, and cooperate with the Commercial Contributor in, the defense
+-and any related settlement negotiations. The Indemnified Contributor may participate
+-in any such claim at its own expense.
+-
+-For example, a Contributor might include the Program in a commercial product
+-offering, Product X. That Contributor is then a Commercial Contributor. If
+-that Commercial Contributor then makes performance claims, or offers warranties
+-related to Product X, those performance claims and warranties are such Commercial
+-Contributor's responsibility alone. Under this section, the Commercial Contributor
+-would have to defend claims against the other Contributors related to those
+-performance claims and warranties, and if a court requires any other Contributor
+-to pay any damages as a result, the Commercial Contributor must pay those
+-damages.
+-
+-   5. NO WARRANTY
+-
+-EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, THE PROGRAM IS PROVIDED ON
+-AN "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS
+-OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF
+-TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+-Each Recipient is solely responsible for determining the appropriateness of
+-using and distributing the Program and assumes all risks associated with its
+-exercise of rights under this Agreement, including but not limited to the
+-risks and costs of program errors, compliance with applicable laws, damage
+-to or loss of data, programs or equipment, and unavailability or interruption
+-of operations.
+-
+-   6. DISCLAIMER OF LIABILITY
+-
+-EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, NEITHER RECIPIENT NOR ANY
+-CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION
+-LOST PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+-WAY OUT OF THE USE OR DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS
+-GRANTED HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+-
+-   7. GENERAL
+-
+-If any provision of this Agreement is invalid or unenforceable under applicable
+-law, it shall not affect the validity or enforceability of the remainder of
+-the terms of this Agreement, and without further action by the parties hereto,
+-such provision shall be reformed to the minimum extent necessary to make such
+-provision valid and enforceable.
+-
+-If Recipient institutes patent litigation against any entity (including a
+-cross-claim or counterclaim in a lawsuit) alleging that the Program itself
+-(excluding combinations of the Program with other software or hardware) infringes
+-such Recipient's patent(s), then such Recipient's rights granted under Section
+-2(b) shall terminate as of the date such litigation is filed.
+-
+-All Recipient's rights under this Agreement shall terminate if it fails to
+-comply with any of the material terms or conditions of this Agreement and
+-does not cure such failure in a reasonable period of time after becoming aware
+-of such noncompliance. If all Recipient's rights under this Agreement terminate,
+-Recipient agrees to cease use and distribution of the Program as soon as reasonably
+-practicable. However, Recipient's obligations under this Agreement and any
+-licenses granted by Recipient relating to the Program shall continue and survive.
+-
+-Everyone is permitted to copy and distribute copies of this Agreement, but
+-in order to avoid inconsistency the Agreement is copyrighted and may only
+-be modified in the following manner. The Agreement Steward reserves the right
+-to publish new versions (including revisions) of this Agreement from time
+-to time. No one other than the Agreement Steward has the right to modify this
+-Agreement. The Eclipse Foundation is the initial Agreement Steward. The Eclipse
+-Foundation may assign the responsibility to serve as the Agreement Steward
+-to a suitable separate entity. Each new version of the Agreement will be given
+-a distinguishing version number. The Program (including Contributions) may
+-always be distributed subject to the version of the Agreement under which
+-it was received. In addition, after a new version of the Agreement is published,
+-Contributor may elect to distribute the Program (including its Contributions)
+-under the new version. Except as expressly stated in Sections 2(a) and 2(b)
+-above, Recipient receives no rights or licenses to the intellectual property
+-of any Contributor under this Agreement, whether expressly, by implication,
+-estoppel or otherwise. All rights in the Program not expressly granted under
+-this Agreement are reserved.
+-
+-This Agreement is governed by the laws of the State of New York and the intellectual
+-property laws of the United States of America. No party to this Agreement
+-will bring a legal action under this Agreement more than one year after the
+-cause of action arose. Each party waives its rights to a jury trial in any
+-resulting litigation.
+diff --git a/java/maven.embedder/external/apache-maven-3.9.12-bin-license.txt b/java/maven.embedder/external/apache-maven-3.9.15-bin-license.txt
+similarity index 99%
+rename from java/maven.embedder/external/apache-maven-3.9.12-bin-license.txt
+rename to java/maven.embedder/external/apache-maven-3.9.15-bin-license.txt
+index c6cd21b1db..f76b985ff1 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.12-bin-license.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.15-bin-license.txt
+@@ -1,6 +1,6 @@
+ Name: Apache Maven Distribution
+ Description: Apache Maven Distribution
+-Version: 3.9.12
++Version: 3.9.15
+ License: Apache-2.0
+ Origin: Apache Software Foundation
+ URL: https://maven.apache.org/
+diff --git a/java/maven.embedder/external/apache-maven-3.9.12-bin-notice.txt b/java/maven.embedder/external/apache-maven-3.9.15-bin-notice.txt
+similarity index 97%
+rename from java/maven.embedder/external/apache-maven-3.9.12-bin-notice.txt
+rename to java/maven.embedder/external/apache-maven-3.9.15-bin-notice.txt
+index 0b079aa60d..7e1d822c11 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.12-bin-notice.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.15-bin-notice.txt
+@@ -12,7 +12,7 @@ Copyright 2006-2022 Google, Inc.
+ This product includes software developed at
+ The Apache Software Foundation (http://www.apache.org/).
+ 
+-META-INF/NOTICE in archive lib/plexus-utils-3.6.0.jar
++META-INF/NOTICE in archive lib/plexus-utils-3.6.1.jar
+ This product includes software developed by the Indiana University
+  Extreme! Lab (http://www.extreme.indiana.edu/).
+ This product includes software developed by
+@@ -24,7 +24,7 @@ javolution (http://javolution.org/).
+ This product includes software developed by
+ Rome (https://rome.dev.java.net/).
+ 
+-about.html in archive lib/org.eclipse.sisu.inject-0.9.0.M4.jar
++about.html in archive lib/org.eclipse.sisu.inject-1.0.0.jar
+ 
+ <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+diff --git a/java/maven.embedder/external/apache-maven-3.9.15-epl-license.txt b/java/maven.embedder/external/apache-maven-3.9.15-epl-license.txt
+new file mode 100644
+index 0000000000..05271133bd
+--- /dev/null
++++ b/java/maven.embedder/external/apache-maven-3.9.15-epl-license.txt
+@@ -0,0 +1,284 @@
++Name: Apache Maven components under EPL v2.0
++Description: These Apache Maven components are under EPL v2.0: org.eclipse.sisu.inject-1.0.0.jar org.eclipse.sisu.plexus-1.0.0.jar
++Version: 3.9.15
++License: EPL-v20
++Origin: Apache Software Foundation
++Files: apache-maven-3.9.15-bin.zip!/apache-maven-3.9.15/lib/org.eclipse.sisu.inject-1.0.0.jar apache-maven-3.9.15-bin.zip!/apache-maven-3.9.15/lib/org.eclipse.sisu.plexus-1.0.0.jar
++
++Eclipse Public License - v 2.0
++
++    THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE
++    PUBLIC LICENSE (“AGREEMENT”). ANY USE, REPRODUCTION OR DISTRIBUTION
++    OF THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
++
++1. Definitions
++
++“Contribution” means:
++
++  a) in the case of the initial Contributor, the initial content
++     Distributed under this Agreement, and
++
++  b) in the case of each subsequent Contributor:
++     i) changes to the Program, and
++     ii) additions to the Program;
++  where such changes and/or additions to the Program originate from
++  and are Distributed by that particular Contributor. A Contribution
++  “originates” from a Contributor if it was added to the Program by
++  such Contributor itself or anyone acting on such Contributor's behalf.
++  Contributions do not include changes or additions to the Program that
++  are not Modified Works.
++
++“Contributor” means any person or entity that Distributes the Program.
++
++“Licensed Patents” mean patent claims licensable by a Contributor which
++are necessarily infringed by the use or sale of its Contribution alone
++or when combined with the Program.
++
++“Program” means the Contributions Distributed in accordance with this
++Agreement.
++
++“Recipient” means anyone who receives the Program under this Agreement
++or any Secondary License (as applicable), including Contributors.
++
++“Derivative Works” shall mean any work, whether in Source Code or other
++form, that is based on (or derived from) the Program and for which the
++editorial revisions, annotations, elaborations, or other modifications
++represent, as a whole, an original work of authorship.
++
++“Modified Works” shall mean any work in Source Code or other form that
++results from an addition to, deletion from, or modification of the
++contents of the Program, including, for purposes of clarity any new file
++in Source Code form that contains any contents of the Program. Modified
++Works shall not include works that contain only declarations,
++interfaces, types, classes, structures, or files of the Program solely
++in each case in order to link to, bind by name, or subclass the Program
++or Modified Works thereof.
++
++“Distribute” means the acts of a) distributing or b) making available
++in any manner that enables the transfer of a copy.
++
++“Source Code” means the form of a Program preferred for making
++modifications, including but not limited to software source code,
++documentation source, and configuration files.
++
++“Secondary License” means either the GNU General Public License,
++Version 2.0, or any later versions of that license, including any
++exceptions or additional permissions as identified by the initial
++Contributor.
++
++2. Grant of Rights
++
++  a) Subject to the terms of this Agreement, each Contributor hereby
++  grants Recipient a non-exclusive, worldwide, royalty-free copyright
++  license to reproduce, prepare Derivative Works of, publicly display,
++  publicly perform, Distribute and sublicense the Contribution of such
++  Contributor, if any, and such Derivative Works.
++
++  b) Subject to the terms of this Agreement, each Contributor hereby
++  grants Recipient a non-exclusive, worldwide, royalty-free patent
++  license under Licensed Patents to make, use, sell, offer to sell,
++  import and otherwise transfer the Contribution of such Contributor,
++  if any, in Source Code or other form. This patent license shall
++  apply to the combination of the Contribution and the Program if, at
++  the time the Contribution is added by the Contributor, such addition
++  of the Contribution causes such combination to be covered by the
++  Licensed Patents. The patent license shall not apply to any other
++  combinations which include the Contribution. No hardware per se is
++  licensed hereunder.
++
++  c) Recipient understands that although each Contributor grants the
++  licenses to its Contributions set forth herein, no assurances are
++  provided by any Contributor that the Program does not infringe the
++  patent or other intellectual property rights of any other entity.
++  Each Contributor disclaims any liability to Recipient for claims
++  brought by any other entity based on infringement of intellectual
++  property rights or otherwise. As a condition to exercising the
++  rights and licenses granted hereunder, each Recipient hereby
++  assumes sole responsibility to secure any other intellectual
++  property rights needed, if any. For example, if a third party
++  patent license is required to allow Recipient to Distribute the
++  Program, it is Recipient's responsibility to acquire that license
++  before distributing the Program.
++
++  d) Each Contributor represents that to its knowledge it has
++  sufficient copyright rights in its Contribution, if any, to grant
++  the copyright license set forth in this Agreement.
++
++  e) Notwithstanding the terms of any Secondary License, no
++  Contributor makes additional grants to any Recipient (other than
++  those set forth in this Agreement) as a result of such Recipient's
++  receipt of the Program under the terms of a Secondary License
++  (if permitted under the terms of Section 3).
++
++3. Requirements
++
++3.1 If a Contributor Distributes the Program in any form, then:
++
++  a) the Program must also be made available as Source Code, in
++  accordance with section 3.2, and the Contributor must accompany
++  the Program with a statement that the Source Code for the Program
++  is available under this Agreement, and informs Recipients how to
++  obtain it in a reasonable manner on or through a medium customarily
++  used for software exchange; and
++
++  b) the Contributor may Distribute the Program under a license
++  different than this Agreement, provided that such license:
++     i) effectively disclaims on behalf of all other Contributors all
++     warranties and conditions, express and implied, including
++     warranties or conditions of title and non-infringement, and
++     implied warranties or conditions of merchantability and fitness
++     for a particular purpose;
++
++     ii) effectively excludes on behalf of all other Contributors all
++     liability for damages, including direct, indirect, special,
++     incidental and consequential damages, such as lost profits;
++
++     iii) does not attempt to limit or alter the recipients' rights
++     in the Source Code under section 3.2; and
++
++     iv) requires any subsequent distribution of the Program by any
++     party to be under a license that satisfies the requirements
++     of this section 3.
++
++3.2 When the Program is Distributed as Source Code:
++
++  a) it must be made available under this Agreement, or if the
++  Program (i) is combined with other material in a separate file or
++  files made available under a Secondary License, and (ii) the initial
++  Contributor attached to the Source Code the notice described in
++  Exhibit A of this Agreement, then the Program may be made available
++  under the terms of such Secondary Licenses, and
++
++  b) a copy of this Agreement must be included with each copy of
++  the Program.
++
++3.3 Contributors may not remove or alter any copyright, patent,
++trademark, attribution notices, disclaimers of warranty, or limitations
++of liability (“notices”) contained within the Program from any copy of
++the Program which they Distribute, provided that Contributors may add
++their own appropriate notices.
++
++4. Commercial Distribution
++
++Commercial distributors of software may accept certain responsibilities
++with respect to end users, business partners and the like. While this
++license is intended to facilitate the commercial use of the Program,
++the Contributor who includes the Program in a commercial product
++offering should do so in a manner which does not create potential
++liability for other Contributors. Therefore, if a Contributor includes
++the Program in a commercial product offering, such Contributor
++(“Commercial Contributor”) hereby agrees to defend and indemnify every
++other Contributor (“Indemnified Contributor”) against any losses,
++damages and costs (collectively “Losses”) arising from claims, lawsuits
++and other legal actions brought by a third party against the Indemnified
++Contributor to the extent caused by the acts or omissions of such
++Commercial Contributor in connection with its distribution of the Program
++in a commercial product offering. The obligations in this section do not
++apply to any claims or Losses relating to any actual or alleged
++intellectual property infringement. In order to qualify, an Indemnified
++Contributor must: a) promptly notify the Commercial Contributor in
++writing of such claim, and b) allow the Commercial Contributor to control,
++and cooperate with the Commercial Contributor in, the defense and any
++related settlement negotiations. The Indemnified Contributor may
++participate in any such claim at its own expense.
++
++For example, a Contributor might include the Program in a commercial
++product offering, Product X. That Contributor is then a Commercial
++Contributor. If that Commercial Contributor then makes performance
++claims, or offers warranties related to Product X, those performance
++claims and warranties are such Commercial Contributor's responsibility
++alone. Under this section, the Commercial Contributor would have to
++defend claims against the other Contributors related to those performance
++claims and warranties, and if a court requires any other Contributor to
++pay any damages as a result, the Commercial Contributor must pay
++those damages.
++
++5. No Warranty
++
++EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, AND TO THE EXTENT
++PERMITTED BY APPLICABLE LAW, THE PROGRAM IS PROVIDED ON AN “AS IS”
++BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
++IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF
++TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR
++PURPOSE. Each Recipient is solely responsible for determining the
++appropriateness of using and distributing the Program and assumes all
++risks associated with its exercise of rights under this Agreement,
++including but not limited to the risks and costs of program errors,
++compliance with applicable laws, damage to or loss of data, programs
++or equipment, and unavailability or interruption of operations.
++
++6. Disclaimer of Liability
++
++EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, AND TO THE EXTENT
++PERMITTED BY APPLICABLE LAW, NEITHER RECIPIENT NOR ANY CONTRIBUTORS
++SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
++EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION LOST
++PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ARISING IN ANY WAY OUT OF THE USE OR DISTRIBUTION OF THE PROGRAM OR THE
++EXERCISE OF ANY RIGHTS GRANTED HEREUNDER, EVEN IF ADVISED OF THE
++POSSIBILITY OF SUCH DAMAGES.
++
++7. General
++
++If any provision of this Agreement is invalid or unenforceable under
++applicable law, it shall not affect the validity or enforceability of
++the remainder of the terms of this Agreement, and without further
++action by the parties hereto, such provision shall be reformed to the
++minimum extent necessary to make such provision valid and enforceable.
++
++If Recipient institutes patent litigation against any entity
++(including a cross-claim or counterclaim in a lawsuit) alleging that the
++Program itself (excluding combinations of the Program with other software
++or hardware) infringes such Recipient's patent(s), then such Recipient's
++rights granted under Section 2(b) shall terminate as of the date such
++litigation is filed.
++
++All Recipient's rights under this Agreement shall terminate if it
++fails to comply with any of the material terms or conditions of this
++Agreement and does not cure such failure in a reasonable period of
++time after becoming aware of such noncompliance. If all Recipient's
++rights under this Agreement terminate, Recipient agrees to cease use
++and distribution of the Program as soon as reasonably practicable.
++However, Recipient's obligations under this Agreement and any licenses
++granted by Recipient relating to the Program shall continue and survive.
++
++Everyone is permitted to copy and distribute copies of this Agreement,
++but in order to avoid inconsistency the Agreement is copyrighted and
++may only be modified in the following manner. The Agreement Steward
++reserves the right to publish new versions (including revisions) of
++this Agreement from time to time. No one other than the Agreement
++Steward has the right to modify this Agreement. The Eclipse Foundation
++is the initial Agreement Steward. The Eclipse Foundation may assign the
++responsibility to serve as the Agreement Steward to a suitable separate
++entity. Each new version of the Agreement will be given a distinguishing
++version number. The Program (including Contributions) may always be
++Distributed subject to the version of the Agreement under which it was
++received. In addition, after a new version of the Agreement is published,
++Contributor may elect to Distribute the Program (including its
++Contributions) under the new version.
++
++Except as expressly stated in Sections 2(a) and 2(b) above, Recipient
++receives no rights or licenses to the intellectual property of any
++Contributor under this Agreement, whether expressly, by implication,
++estoppel or otherwise. All rights in the Program not expressly granted
++under this Agreement are reserved. Nothing in this Agreement is intended
++to be enforceable by any entity that is not a Contributor or Recipient.
++No third-party beneficiary rights are created under this Agreement.
++
++Exhibit A - Form of Secondary Licenses Notice
++
++“This Source Code may also be made available under the following
++Secondary Licenses when the conditions for such availability set forth
++in the Eclipse Public License, v. 2.0 are satisfied: {name license(s),
++version(s), and exceptions or additional permissions here}.”
++
++  Simply including a copy of this Agreement, including this Exhibit A
++  is not sufficient to license the Source Code under Secondary Licenses.
++
++  If it is not possible or desirable to put the notice in a particular
++  file, then You may include the notice in a location (such as a LICENSE
++  file in a relevant directory) where a recipient would be likely to
++  look for such a notice.
++
++  You may add additional accurate notices of copyright ownership.
+diff --git a/java/maven.embedder/external/apache-maven-3.9.12-failureaccess-1.0.3-license.txt b/java/maven.embedder/external/apache-maven-3.9.15-failureaccess-1.0.3-license.txt
+similarity index 99%
+rename from java/maven.embedder/external/apache-maven-3.9.12-failureaccess-1.0.3-license.txt
+rename to java/maven.embedder/external/apache-maven-3.9.15-failureaccess-1.0.3-license.txt
+index 3c8273ebff..bc484a35c9 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.12-failureaccess-1.0.3-license.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.15-failureaccess-1.0.3-license.txt
+@@ -3,7 +3,7 @@ Version: 1.0.3
+ License: Apache-2.0
+ Origin: https://github.com/google/guava
+ Description: A Guava subproject
+-Files: apache-maven-3.9.12-bin.zip!/apache-maven-3.9.12/lib/failureaccess-1.0.3.jar
++Files: apache-maven-3.9.15-bin.zip!/apache-maven-3.9.15/lib/failureaccess-1.0.3.jar
+ 
+                                  Apache License
+                            Version 2.0, January 2004
+diff --git a/java/maven.embedder/external/apache-maven-3.9.12-guava-33.5.0-jre-license.txt b/java/maven.embedder/external/apache-maven-3.9.15-guava-33.5.0-jre-license.txt
+similarity index 99%
+rename from java/maven.embedder/external/apache-maven-3.9.12-guava-33.5.0-jre-license.txt
+rename to java/maven.embedder/external/apache-maven-3.9.15-guava-33.5.0-jre-license.txt
+index 824854af98..aec9089fcb 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.12-guava-33.5.0-jre-license.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.15-guava-33.5.0-jre-license.txt
+@@ -3,7 +3,7 @@ Version: 33.5.0
+ License: Apache-2.0
+ Origin: https://github.com/google/guava
+ Description: Guava is a set of core libraries that includes new collection types (such as multimap and multiset), immutable collections, a graph library, and utilities for concurrency, I/O, hashing, primitives, strings, and more.
+-Files: apache-maven-3.9.12-bin.zip!/apache-maven-3.9.12/lib/guava-33.5.0-jre.jar
++Files: apache-maven-3.9.15-bin.zip!/apache-maven-3.9.15/lib/guava-33.5.0-jre.jar
+ 
+                                  Apache License
+                            Version 2.0, January 2004
+diff --git a/java/maven.embedder/external/apache-maven-3.9.12-javax.annotation-api-1.3.2-license.txt b/java/maven.embedder/external/apache-maven-3.9.15-javax.annotation-api-1.3.2-license.txt
+similarity index 99%
+rename from java/maven.embedder/external/apache-maven-3.9.12-javax.annotation-api-1.3.2-license.txt
+rename to java/maven.embedder/external/apache-maven-3.9.15-javax.annotation-api-1.3.2-license.txt
+index cba2641060..cb71f3fd71 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.12-javax.annotation-api-1.3.2-license.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.15-javax.annotation-api-1.3.2-license.txt
+@@ -3,7 +3,7 @@ Version: 1.3.2
+ Description: Part of Apache Maven Distribution
+ License: CDDL-1.1
+ Origin: Apache Maven
+-Files: apache-maven-3.9.12-bin.zip!/apache-maven-3.9.12/lib/javax.annotation-api-1.3.2.jar
++Files: apache-maven-3.9.15-bin.zip!/apache-maven-3.9.15/lib/javax.annotation-api-1.3.2.jar
+ 
+ COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.1
+ 
+diff --git a/java/maven.embedder/external/apache-maven-3.9.12-slf4j-1.7.36-license.txt b/java/maven.embedder/external/apache-maven-3.9.15-slf4j-1.7.36-license.txt
+similarity index 95%
+rename from java/maven.embedder/external/apache-maven-3.9.12-slf4j-1.7.36-license.txt
+rename to java/maven.embedder/external/apache-maven-3.9.15-slf4j-1.7.36-license.txt
+index 6f774902e1..c8503f2029 100644
+--- a/java/maven.embedder/external/apache-maven-3.9.12-slf4j-1.7.36-license.txt
++++ b/java/maven.embedder/external/apache-maven-3.9.15-slf4j-1.7.36-license.txt
+@@ -3,7 +3,7 @@ Description: Part of Apache Maven Distribution
+ Version: 1.7.36
+ License: MIT-slf4j-22
+ Origin: Apache Software Foundation
+-Files: apache-maven-3.9.12-bin.zip!/apache-maven-3.9.12/lib/slf4j-api-1.7.36.jar
++Files: apache-maven-3.9.15-bin.zip!/apache-maven-3.9.15/lib/slf4j-api-1.7.36.jar
+ 
+ Copyright (c) 2004-2022 QOS.ch Sarl (Switzerland)
+ All rights reserved.
+diff --git a/java/maven.embedder/external/binaries-list b/java/maven.embedder/external/binaries-list
+index f332f9d4ae..9effaab5cf 100644
+--- a/java/maven.embedder/external/binaries-list
++++ b/java/maven.embedder/external/binaries-list
+@@ -16,4 +16,4 @@
+ # under the License.
+ DC15DFF8F701B227EE523EEB7A17F77C10EAFE2F org.jdom:jdom2:2.0.6.1
+ 5D9CE6ADD7B714B8095F0E3E396C5E9F8C5DCFEF org.apache.maven.shared:maven-dependency-tree:2.2
+-F0EE4660E55FDD9BC7F181843E41301D9292312A org.apache.maven:apache-maven:3.9.12:bin@zip
++89A4C9966596FAF1E444CE1C6F99BE1EBF83F1A2 org.apache.maven:apache-maven:3.9.15:bin@zip
+diff --git a/java/maven.embedder/external/binariesembedded-list b/java/maven.embedder/external/binariesembedded-list
+index e59d2e2c1e..b9885306e5 100644
+--- a/java/maven.embedder/external/binariesembedded-list
++++ b/java/maven.embedder/external/binariesembedded-list
+@@ -15,53 +15,53 @@
+ # specific language governing permissions and limitations
+ # under the License.
+ 
+-C29635C8A7AFA03D74B33C1884DF8ABB2B3F3DCC;org.ow2.asm:asm:9.9
++2CEEA6AB43BCAE1979B2A6D85FC0CA429877E5AB;org.ow2.asm:asm:9.9.1
+ 0235BA8B489512805AC13A8F9EA77A1CA5EBE3E8;aopalliance:aopalliance:1.0
+ 1194890E6F56EC29177673F2F12D0B8E627DEC98;org.apache.httpcomponents:httpclient:4.5.14
+ 51CF043C87253C9F58B539C9F7E44C8894223850;org.apache.httpcomponents:httpcore:4.4.16
+ AEAFFD00D57023A2C947393ED251F0354F0985FC;com.google.guava:failureaccess:1.0.3
+ A461452D3E31BEBF2706323F8738EC44B19C96E1;commons-cli:commons-cli:1.11.0
+-6A671D1C456A875FF61ABEC63216F754078BB0ED;commons-codec:commons-codec:1.20.0
++D95F998DB5F89900FE895DAF6CD2CDDCB2F1D64B;commons-codec:commons-codec:1.21.0
+ 48B8230771E573B54CE6E867A9001E75977FE78E;com.google.code.gson:gson:2.13.2
+ 4381275EFDEF6DDFAE38F002C31E84CD001C97F0;com.google.errorprone:error_prone_annotations:2.41.0
+ 8699DE25F2F979108D6C1B804A7BA38CDA1116BC;com.google.guava:guava:33.5.0-jre
+ E7BA4C25BEC3761840F67C73F166C0D509D01D1D;com.google.inject:guice:5.1.0:classes
+-BA7387C31622C6650B83EDBA1BBB115F1FE462BA;org.fusesource.jansi:jansi:2.4.2
++C8DC6E80D4FF74B0ECE025CF7EFA583C49CECF70;org.fusesource.jansi:jansi:2.4.3
+ 7425A601C1C7EC76645A78D22B8C6A627EDEE507;org.jspecify:jspecify:1.0.0
+ 6975DA39A7040257BD51D21A231B76C915872D38;javax.inject:javax.inject:1
+ D877E195A05ACA4A2F1AD2FF14BFEC1393AF4B5E;org.slf4j:jcl-over-slf4j:1.7.36
+ 934C04D3CFEF185A8008E7BF34331B79730A9D43;javax.annotation:javax.annotation-api:1.3.2
+-39ACDD4AD6B74B1C001AE7C0858482A11D0EAD59;org.apache.maven:maven-artifact:3.9.12
+-FE2FE54522EB2F77BD9B30CEFC959D728D3F8105;org.apache.maven:maven-builder-support:3.9.12
+-816D73144A402059010EF0735B4BF9F961C5A0F4;org.apache.maven:maven-compat:3.9.12
+-A349A9DADEBCA9F2A2D1F99876F651A02961A366;org.apache.maven:maven-core:3.9.12
+-DEA388FD5B198516175443C098EA1E8D6C2D8BB5;org.apache.maven:maven-embedder:3.9.12
+-6F91CB0E47B7FC6DB492ED307B0C91B38BFCE924;org.apache.maven:maven-model:3.9.12
+-C1A74479D447E70D98ED5F03F6B32D54818CA046;org.apache.maven:maven-model-builder:3.9.12
+-2C2D5180B3DAE0E6F91575FC2507429727E01CC9;org.apache.maven:maven-plugin-api:3.9.12
+-3ECFC216F9A56F15C6BD6B3E22567B0B6CB2183E;org.apache.maven:maven-repository-metadata:3.9.12
+-8B670256B812A45B1CA9AE1BBF7F1C0D00A9D4E4;org.apache.maven.resolver:maven-resolver-api:1.9.25
+-6DCD7E2076BAECBCFA77E781112BD110EA379D07;org.apache.maven.resolver:maven-resolver-connector-basic:1.9.25
+-CC1BDE9B56A2E95A181207958DCF40715DC71AB3;org.apache.maven.resolver:maven-resolver-impl:1.9.25
+-FB1C8C95F17C816C3CEB8692AA84CBB068DF5D94;org.apache.maven.resolver:maven-resolver-named-locks:1.9.25
+-44963F45B78F89A8479705493C48E01FC54FF9D6;org.apache.maven:maven-resolver-provider:3.9.12
+-F81237D0140F9222CF4437C44756A53368A2D152;org.apache.maven.resolver:maven-resolver-spi:1.9.25
+-E51BC8226E19631B5191CB106B5F1CCE60F86DC7;org.apache.maven.resolver:maven-resolver-transport-http:1.9.25
+-9B5AF36B4BAFBEC8F71430B6BB3A4802A9EBBF65;org.apache.maven.resolver:maven-resolver-transport-wagon:1.9.25
+-D7E46F0D9422856532555AC98737C513BAF86EFD;org.apache.maven.resolver:maven-resolver-transport-file:1.9.25
+-F755F6816D8FD63B09B8F2C9E1EAAA1F60C179E8;org.apache.maven.resolver:maven-resolver-util:1.9.25
+-CA072F2B90A59D36D8218DD4E1460722DB6E2322;org.apache.maven:maven-settings:3.9.12
+-1DDD0B8DA05D120768142176476A06F489CEA11C;org.apache.maven:maven-settings-builder:3.9.12
++1BDD4EEE8F1853FDFDEFBDEFDAAC1BB708138C93;org.apache.maven:maven-artifact:3.9.15
++9BBD9729AC0667B6C11D5A62574CBF8581494EAC;org.apache.maven:maven-builder-support:3.9.15
++0DC9687C9E8C4F39F621B987B86BAA685308FDD6;org.apache.maven:maven-compat:3.9.15
++FEA27D454846597BE5845BEC1060DD433AE0EC5E;org.apache.maven:maven-core:3.9.15
++8588D2208B4D6496ACD76C191A0501F669637300;org.apache.maven:maven-embedder:3.9.15
++2193E5C1BE2117D14A461E215943012C1599494E;org.apache.maven:maven-model:3.9.15
++53F57AAC9BD7D78BB7F6D6757FD3B37128C4141F;org.apache.maven:maven-model-builder:3.9.15
++9471D03F15536A08100157FAB73512A3297423FA;org.apache.maven:maven-plugin-api:3.9.15
++D4C8AF2FC537FCA6CD1F260219CD7AB4BC20BA22;org.apache.maven:maven-repository-metadata:3.9.15
++2FE7E86E3C193121789470507CF4FADD5BD7AD59;org.apache.maven.resolver:maven-resolver-api:1.9.27
++219C1F8C3289B9382B1F86FC278430D3A22968C3;org.apache.maven.resolver:maven-resolver-connector-basic:1.9.27
++876FC89223D9572CADE60A1B8158846724548D07;org.apache.maven.resolver:maven-resolver-impl:1.9.27
++72C89AD87BE374309A7308EE144949360ED482E8;org.apache.maven.resolver:maven-resolver-named-locks:1.9.27
++56F5162B7DEE47F803C833BE26E386B1BF7BD808;org.apache.maven:maven-resolver-provider:3.9.15
++FB64E47ACDC73F938B4D5B6464EF7A6351F983D5;org.apache.maven.resolver:maven-resolver-spi:1.9.27
++6931510AEC55201631D9D904A7D4F8F81541A335;org.apache.maven.resolver:maven-resolver-transport-http:1.9.27
++23AF71B8583C0EF51004590196DE12C410DBCCF6;org.apache.maven.resolver:maven-resolver-transport-wagon:1.9.27
++89A2B09002672807C05B3B10AFCCBCB9CFCD8486;org.apache.maven.resolver:maven-resolver-transport-file:1.9.27
++7EE4446AF6AAB27475765EC9C9DC1FB2B082AF2B;org.apache.maven.resolver:maven-resolver-util:1.9.27
++2034380AB005695D22BB9D243210BE44B63BEE9C;org.apache.maven:maven-settings:3.9.15
++8E70FEBB4859716C61068D06E0BF59F398E63568;org.apache.maven:maven-settings-builder:3.9.15
+ BFA28296272A5915B08DE9F11F34A94B0A818FD0;org.apache.maven.shared:maven-shared-utils:3.4.2
+-ED78BE9181CEA023BF4210D4D01810DE9961BE41;org.apache.maven:maven-slf4j-provider:3.9.12
+-A062D8E12DC62E698C9F943A3FCE94E366B4E220;org.eclipse.sisu:org.eclipse.sisu.inject:0.9.0.M4
+-478F7935E88CD9DA7EF01F509E4853E80EDE9034;org.eclipse.sisu:org.eclipse.sisu.plexus:0.9.0.M4
++1B26210E61F2FC2C389C3531662BCF208F44CA88;org.apache.maven:maven-slf4j-provider:3.9.15
++D9C2D6FF4B461AB9492EDB1CD9D8239CFB41F4CA;org.eclipse.sisu:org.eclipse.sisu.inject:1.0.0
++873767E95597C9E31749123A408BD4949C29A46C;org.eclipse.sisu:org.eclipse.sisu.plexus:1.0.0
+ 425EA8E534716B4BFF1EA90F39BD76BE951D651B;org.codehaus.plexus:plexus-cipher:2.0
+ ACE0820F34DE49F69511F5263BCEBB09FAC9731A;org.codehaus.plexus:plexus-classworlds:2.9.0
+ A506F84636EA7AE370D04167DD155C103E616F68;org.codehaus.plexus:plexus-component-annotations:2.2.0
+ 5DD1B1FBACA263AD5BAA169FBD8E804C789C9DB5;org.codehaus.plexus:plexus-interpolation:1.29
+ F89C5080614FFD0764E49861895DBEDDE1B47237;org.codehaus.plexus:plexus-sec-dispatcher:2.0
+-E8BC129728F22671A36FFF3B604EDCD39073A7B1;org.codehaus.plexus:plexus-utils:3.6.0
++9DCE1B9C69B197F453223E45A2CB9FA0CD48B424;org.codehaus.plexus:plexus-utils:3.6.1
+ 6C62681A2F655B49963A5983B8B0950A6120AE14;org.slf4j:slf4j-api:1.7.36
+ A09F59BE3767DBFF0401828463D1752A9CB0C551;org.apache.maven.wagon:wagon-file:3.5.3
+ 673D54E78F83C4700C8250A48C61F4C70EEF9BC3;org.apache.maven.wagon:wagon-http:3.5.3
+diff --git a/java/maven.embedder/nbproject/project.properties b/java/maven.embedder/nbproject/project.properties
+index 3657d8a145..d80506102f 100644
+--- a/java/maven.embedder/nbproject/project.properties
++++ b/java/maven.embedder/nbproject/project.properties
+@@ -20,7 +20,7 @@ javac.release=17
+ javac.compilerargs=-Xlint -Xlint:-serial
+ release.external/jdom2-2.0.6.1.jar=modules/ext/maven/jdom2-2.0.6.1.jar
+ release.external/maven-dependency-tree-2.2.jar=modules/ext/maven/maven-dependency-tree-2.2.jar
+-bundled.maven=apache-maven-3.9.12
++bundled.maven=apache-maven-3.9.15
+ extra.module.files=maven/
+ nbm.executable.files=maven/bin/mvn,maven/bin/mvnDebug,maven/bin/mvnyjp
+ extra.license.files=${cluster}/maven/LICENSE.txt,${cluster}/maven/NOTICE.txt
+diff --git a/java/maven.embedder/nbproject/project.xml b/java/maven.embedder/nbproject/project.xml
+index fc2c24f1cf..c2985384ef 100644
+--- a/java/maven.embedder/nbproject/project.xml
++++ b/java/maven.embedder/nbproject/project.xml
+@@ -327,13 +327,13 @@
+                 <runtime-relative-path>../maven/lib/aopalliance-1.0.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/asm-9.9.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/asm-9.9.1.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path>../maven/lib/commons-cli-1.11.0.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/commons-codec-1.20.0.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/commons-codec-1.21.0.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path>../maven/lib/error_prone_annotations-2.41.0.jar</runtime-relative-path>
+@@ -361,7 +361,7 @@
+             maven-slf4j-provider injects MavenSimpleLogger which decorates the output for terminal use
+             this causes problems in log files, tests etc which don't expect or cant display them properly
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/jansi-2.4.2.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/jansi-2.4.3.jar</runtime-relative-path>
+             </class-path-extension>
+             -->
+             <class-path-extension>
+@@ -377,79 +377,79 @@
+                 <runtime-relative-path>../maven/lib/jspecify-1.0.0.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-artifact-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-artifact-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-builder-support-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-builder-support-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-compat-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-compat-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-core-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-core-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-embedder-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-embedder-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-model-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-model-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-model-builder-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-model-builder-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-plugin-api-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-plugin-api-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-repository-metadata-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-repository-metadata-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-api-1.9.25.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-api-1.9.27.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-connector-basic-1.9.25.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-connector-basic-1.9.27.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-impl-1.9.25.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-impl-1.9.27.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-named-locks-1.9.25.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-named-locks-1.9.27.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-provider-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-provider-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-spi-1.9.25.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-spi-1.9.27.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-transport-file-1.9.25.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-transport-file-1.9.27.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-transport-http-1.9.25.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-transport-http-1.9.27.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-transport-wagon-1.9.25.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-transport-wagon-1.9.27.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-resolver-util-1.9.25.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-resolver-util-1.9.27.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-settings-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-settings-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-settings-builder-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-settings-builder-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path>../maven/lib/maven-shared-utils-3.4.2.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/maven-slf4j-provider-3.9.12.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/maven-slf4j-provider-3.9.15.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/org.eclipse.sisu.inject-0.9.0.M4.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/org.eclipse.sisu.inject-1.0.0.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/org.eclipse.sisu.plexus-0.9.0.M4.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/org.eclipse.sisu.plexus-1.0.0.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path>../maven/lib/plexus-cipher-2.0.jar</runtime-relative-path>
+@@ -464,7 +464,7 @@
+                 <runtime-relative-path>../maven/lib/plexus-sec-dispatcher-2.0.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+-                <runtime-relative-path>../maven/lib/plexus-utils-3.6.0.jar</runtime-relative-path>
++                <runtime-relative-path>../maven/lib/plexus-utils-3.6.1.jar</runtime-relative-path>
+             </class-path-extension>
+             <class-path-extension>
+                 <runtime-relative-path>../maven/lib/slf4j-api-1.7.36.jar</runtime-relative-path>
+diff --git a/java/maven.embedder/test/unit/src/org/netbeans/modules/maven/embedder/impl/NbRepositoryCacheTest.java b/java/maven.embedder/test/unit/src/org/netbeans/modules/maven/embedder/impl/NbRepositoryCacheTest.java
+index a887ba62d0..05e9ceac05 100644
+--- a/java/maven.embedder/test/unit/src/org/netbeans/modules/maven/embedder/impl/NbRepositoryCacheTest.java
++++ b/java/maven.embedder/test/unit/src/org/netbeans/modules/maven/embedder/impl/NbRepositoryCacheTest.java
+@@ -36,7 +36,7 @@ public class NbRepositoryCacheTest {
+     @Test
+     @Ignore("Classpath is not setup correctly for test - needs investigation")
+     public void testConstants() throws Exception {
+-        Class cl = Class.forName("org.eclipse.aether.internal.impl.DataPool");
++        Class<?> cl = Class.forName("org.eclipse.aether.internal.impl.DataPool");
+         assertNotNull("The constant value has changed most likely", cl);
+     }
+ 
+diff --git a/java/maven/nbproject/project.properties b/java/maven/nbproject/project.properties
+index 7dbd2d3209..54bd0051b5 100644
+--- a/java/maven/nbproject/project.properties
++++ b/java/maven/nbproject/project.properties
+@@ -39,6 +39,8 @@ requires.nb.javac=true
+ 
+ test-unit-sys-prop.test.netbeans.dest.dir=${netbeans.dest.dir}
+ 
++# TODO update when embedded maven updates
++
+ # Classpath for agent injected into maven run (sourcecode in mavensrc)
+ mavensrc.cp=:\
+     ./external/aether-api-1.13.1.jar:\
+@@ -46,9 +48,9 @@ mavensrc.cp=:\
+     ${maven.embedder.dir}/maven/boot/plexus-classworlds-2.9.0.jar:\
+     ${maven.embedder.dir}/maven/lib/javax.annotation-api-1.3.2.jar:\
+     ${maven.embedder.dir}/maven/lib/javax.inject-1.jar:\
+-    ${maven.embedder.dir}/maven/lib/maven-core-3.9.12.jar:\
+-    ${maven.embedder.dir}/maven/lib/maven-model-3.9.12.jar:\
+-    ${maven.embedder.dir}/maven/lib/maven-plugin-api-3.9.12.jar:\
+-    ${maven.embedder.dir}/maven/lib/maven-resolver-api-1.9.25.jar:\
+-    ${maven.embedder.dir}/maven/lib/org.eclipse.sisu.plexus-0.9.0.M4.jar:\
+-    ${maven.embedder.dir}/maven/lib/plexus-utils-3.6.0.jar
+\ No newline at end of file
++    ${maven.embedder.dir}/maven/lib/maven-core-3.9.15.jar:\
++    ${maven.embedder.dir}/maven/lib/maven-model-3.9.15.jar:\
++    ${maven.embedder.dir}/maven/lib/maven-plugin-api-3.9.15.jar:\
++    ${maven.embedder.dir}/maven/lib/maven-resolver-api-1.9.27.jar:\
++    ${maven.embedder.dir}/maven/lib/org.eclipse.sisu.plexus-1.0.0.jar:\
++    ${maven.embedder.dir}/maven/lib/plexus-utils-3.6.1.jar
+\ No newline at end of file
+diff --git a/java/maven/src/org/netbeans/modules/maven/options/MavenVersionSettings.java b/java/maven/src/org/netbeans/modules/maven/options/MavenVersionSettings.java
+index 000c45853e..c190e15877 100644
+--- a/java/maven/src/org/netbeans/modules/maven/options/MavenVersionSettings.java
++++ b/java/maven/src/org/netbeans/modules/maven/options/MavenVersionSettings.java
+@@ -45,15 +45,15 @@ public final class MavenVersionSettings {
+     static {
+         // TODO update periodically - modifications might require unit test adjustments (e.g NBMNativeMWITest)
+         // (e.g NBMNativeMWITest checks the compiler plugin version)
+-        String nb_version = "RELEASE280";
++        String nb_version = "RELEASE290";
+         String nb_utilities_version = "14.4";
+         fallback = Map.ofEntries(
+             entry(key("org.netbeans.api", "org-netbeans-modules-editor"), nb_version), // represents all other nb artifacts
+-            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_COMPILER), "3.14.1"),
+-            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_JAR), "3.4.2"),
+-            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_RESOURCES), "3.3.1"),
+-            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_FAILSAFE), "3.5.4"),
+-            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_SUREFIRE), "3.5.4"),
++            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_COMPILER), "3.15.0"),
++            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_JAR), "3.5.0"),
++            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_RESOURCES), "3.5.0"),
++            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_FAILSAFE), "3.5.5"),
++            entry(key(Constants.GROUP_APACHE_PLUGINS, Constants.PLUGIN_SUREFIRE), "3.5.5"),
+             entry(key("org.apache.netbeans.utilities", "utilities-parent"), nb_utilities_version),
+             entry(key("org.apache.netbeans.utilities", "nbm-maven-harness"), nb_utilities_version),
+             entry(key("org.apache.netbeans.utilities", "nbm-shared"), nb_utilities_version),
+diff --git a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
+index 4680706f79..5af8c1da29 100644
+--- a/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
++++ b/nbbuild/antsrc/org/netbeans/nbbuild/extlibs/ignored-overlaps
+@@ -23,13 +23,13 @@
+ ide/db.sql.visualeditor/external/javacc-7.0.10.jar java/performance/external/javacc-7.0.10.jar
+ 
+ # bundled maven conflicts with other libraries
+-java/maven.embedder/external/apache-maven-3.9.12-bin.zip ide/slf4j.api/external/slf4j-api-1.7.36.jar
+-java/maven.embedder/external/apache-maven-3.9.12-bin.zip platform/libs.asm/external/asm-9.9.jar
+-java/maven.embedder/external/apache-maven-3.9.12-bin.zip platform/o.apache.commons.codec/external/commons-codec-1.18.0.jar
+-java/maven.embedder/external/apache-maven-3.9.12-bin.zip ide/c.google.guava.failureaccess/external/failureaccess-1.0.3.jar
+-java/maven.embedder/external/apache-maven-3.9.12-bin.zip ide/c.google.guava/external/guava-33.4.6-jre.jar
+-java/maven.embedder/external/apache-maven-3.9.12-bin.zip ide/c.google.gson/external/gson-2.13.2.jar
+-java/maven.embedder/external/apache-maven-3.9.12-bin.zip java/maven.indexer/external/javax.annotation-api-1.3.2.jar
++java/maven.embedder/external/apache-maven-3.9.15-bin.zip ide/slf4j.api/external/slf4j-api-1.7.36.jar
++java/maven.embedder/external/apache-maven-3.9.15-bin.zip platform/libs.asm/external/asm-9.9.jar
++java/maven.embedder/external/apache-maven-3.9.15-bin.zip platform/o.apache.commons.codec/external/commons-codec-1.21.0.jar
++java/maven.embedder/external/apache-maven-3.9.15-bin.zip ide/c.google.guava.failureaccess/external/failureaccess-1.0.3.jar
++java/maven.embedder/external/apache-maven-3.9.15-bin.zip ide/c.google.guava/external/guava-33.4.6-jre.jar
++java/maven.embedder/external/apache-maven-3.9.15-bin.zip ide/c.google.gson/external/gson-2.13.2.jar
++java/maven.embedder/external/apache-maven-3.9.15-bin.zip java/maven.indexer/external/javax.annotation-api-1.3.2.jar
+ 
+ # Used to parse data during build, but need to as a lib for ide cluster
+ nbbuild/external/json-simple-1.1.1.jar ide/libs.json_simple/external/json-simple-1.1.1.jar
+@@ -39,9 +39,9 @@ webcommon/javascript2.jade/external/jflex-1.4.3.jar webcommon/javascript2.lexer/
+ 
+ # javax.annotation-api is used by multiple modules.
+ enterprise/javaee8.api/external/javax.annotation-api-1.3.2.jar java/maven.indexer/external/javax.annotation-api-1.3.2.jar
+-enterprise/javaee8.api/external/javax.annotation-api-1.3.2.jar java/maven.embedder/external/apache-maven-3.9.12-bin.zip
++enterprise/javaee8.api/external/javax.annotation-api-1.3.2.jar java/maven.embedder/external/apache-maven-3.9.15-bin.zip
+ enterprise/javaee8.api/external/javax.annotation-api-1.3.2.jar enterprise/websvc.restlib/external/javax.annotation-api-1.3.2.jar
+-enterprise/websvc.restlib/external/javax.annotation-api-1.3.2.jar java/maven.embedder/external/apache-maven-3.9.12-bin.zip
++enterprise/websvc.restlib/external/javax.annotation-api-1.3.2.jar java/maven.embedder/external/apache-maven-3.9.15-bin.zip
+ 
+ # jaxb-api-osgi is used by multiple modules.
+ enterprise/javaee.api/external/jaxb-api-osgi-2.2.7.jar enterprise/javaee7.api/external/jaxb-api-osgi-2.2.7.jar
+@@ -56,7 +56,7 @@ enterprise/websvc.restlib/external/osgi.core-8.0.0.jar platform/libs.osgi/extern
+ extide/gradle/external/gradle-8.11.1-bin.zip extide/o.apache.tools.ant.module/external/apache-ant-1.10.14-bin.zip
+ extide/gradle/external/gradle-8.11.1-bin.zip ide/o.apache.commons.lang/external/commons-lang-2.6.jar
+ extide/gradle/external/gradle-8.11.1-bin.zip ide/slf4j.api/external/slf4j-api-1.7.36.jar
+-extide/gradle/external/gradle-8.11.1-bin.zip java/maven.embedder/external/apache-maven-3.9.12-bin.zip
++extide/gradle/external/gradle-8.11.1-bin.zip java/maven.embedder/external/apache-maven-3.9.15-bin.zip
+ extide/gradle/external/gradle-8.11.1-bin.zip nbbuild/external/jsoup-1.15.3.jar
+ extide/gradle/external/gradle-8.11.1-bin.zip platform/libs.junit4/external/hamcrest-core-1.3.jar
+ extide/gradle/external/gradle-8.11.1-bin.zip platform/libs.junit4/external/junit-4.13.2.jar
