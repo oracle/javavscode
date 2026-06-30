@@ -30,6 +30,7 @@
     "jdk.open.test": "テスト/テスト済のクラスへ移動...",
     "jdk.delete.cache": "このワークスペースのOracle Java拡張キャッシュの削除",
     "jdk.open.userDir": "このワークスペースのOracle Java拡張キャッシュ・ディレクトリを開く",
+    "jdk.workspace.settings.trust.decisions": "Manage trust decisions for Oracle Java workspace settings",
     "jdk.configuration.title.jdk":"JDK",
     "jdk.configuration.title.runConfiguration":"実行構成",
     "jdk.configuration.title.notebooks":"ノートブック",

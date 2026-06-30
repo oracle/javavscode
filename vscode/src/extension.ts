@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024-2026, Oracle and/or its affiliates.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,7 +25,7 @@ import { ExtensionContext } from 'vscode';
 import * as launchConfigurations from './launchConfigurations';
 import { extConstants } from './constants';
 import { clientInit } from './lsp/initializer';
-import { subscribeCommands } from './commands/register';
+import { subscribeCommands, subscribeTrustSafeCommands } from './commands/register';
 import { VSNetBeansAPI } from './lsp/types';
 import { registerDebugger } from './debugger/debugger';
 import { registerConfigChangeListeners } from './configurations/listener';
@@ -35,16 +35,27 @@ import { ClientPromise } from './lsp/clientPromise';
 import { globalState } from './globalState';
 import { registerNotebookProviders } from './notebooks/register';
 import { Telemetry } from './telemetry/telemetry';
+import { trustProvider } from './configurations/trustWorkspace';
+import { LOGGER } from './logger';
 
-export function activate(context: ExtensionContext): VSNetBeansAPI {
+export async function activate(context: ExtensionContext): Promise<VSNetBeansAPI> {
     const contextInfo = new ExtensionContextInfo(context);
     globalState.initialize(contextInfo, new ClientPromise());
+    subscribeTrustSafeCommands(context);
+    trustProvider.registerListeners(contextInfo);
+
+    try {
+        await trustProvider.checkTrust();
+    } catch (err) {
+        LOGGER.error(`Java extension activation stopped because workspace trust failed: ${(err as Error).message}`);
+        await trustProvider.showTrustFailureErrorMessage();
+        throw err;
+    }
     globalState.getClientPromise().initialize();
 
     Telemetry.initializeTelemetry(contextInfo);
     registerConfigChangeListeners(context);
     clientInit();
-
     registerDebugger(context);
     subscribeCommands(context);
     registerFileProviders(context);

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2025, Oracle and/or its affiliates.
+  Copyright (c) 2025-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import { describe, it, beforeEach, afterEach } from "mocha";
 import * as globalStateModule from "../../../globalState";
-import { SimpleCacheService } from "../../../telemetry/impl/cache/simpleCacheService";
+import { SimpleCacheService } from "../../../cache/simpleCacheService";
 
 describe("SimpleCacheService", () => {
     let vscGlobalStateMock: {

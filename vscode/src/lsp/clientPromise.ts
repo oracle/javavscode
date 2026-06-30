@@ -20,6 +20,7 @@ import { clientInit } from "./initializer";
 import { NbLanguageClient } from "./nbLanguageClient";
 import { globalState } from "../globalState";
 import { l10n } from "../localiser";
+import { trustProvider } from "../configurations/trustWorkspace";
 
 export class ClientPromise {
     setClient!: [(c: NbLanguageClient) => void, (err: any) => void];
@@ -66,6 +67,7 @@ export class ClientPromise {
                 globalState.setDeactivated(true);
                 await this.stopClient();
                 await nbProcessManager.killProcess(notifyKill);
+                await trustProvider.checkTrust();
                 this.initialize();
                 clientInit();
             } catch (error) {
