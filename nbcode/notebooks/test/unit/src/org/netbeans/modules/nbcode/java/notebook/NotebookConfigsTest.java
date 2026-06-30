@@ -256,6 +256,86 @@ public class NotebookConfigsTest {
         }
     }
 
+    /**
+     * Test of getImplicitImports method when the configuration key contains
+     * invalid values.
+     */
+    @Test
+    public void testGetImplicitImportsWhenInvalid() {
+        try {
+            List<String> imports = List.of(
+                    "module java.base",
+                    "module java.*", // Invalid
+                    "static java.util.List.*",
+                    "static java.util.*.IO", // Invalid
+                    "static java.*", // Invalid
+                    "static module java.se", // Invalid
+                    "record.*",
+                    "java.sql.*",
+                    "my.package.name", // Invalid
+                    "record.A",
+                    "என்.klass",
+                    "my_class", // Invalid
+                    "my._class",
+                    "my.A$class",
+                    "{0}\", System.getenv(\"USERNAME\")); //" //invalid
+            );
+            updateConfigValue(IMPLICIT_IMPORTS_KEY, imports.stream().map(JsonPrimitive::new).collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
+            List<String> result = instance.getImplicitImports();
+            assertNotNull("Result should not be null even if some values are invalid", result);
+            assertEquals(List.of(
+                    "module java.base",
+                    "static java.util.List.*",
+                    "record.*",
+                    "java.sql.*",
+                    "record.A",
+                    "என்.klass",
+                    "my._class",
+                    "my.A$class"
+            ), result);
+        } catch (Exception ex) {
+            fail("Failed to handle invalid IMPLICIT_IMPORTS_KEY: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Test of getAddModules method when the configuration key contains
+     * invalid values.
+     */
+    @Test
+    public void testGetAddModulesWhenInvalid() {
+        try {
+            List<String> modules = List.of(
+                    "A B C", // Invalid
+                    "mod.*", // Invalid
+                    "java.sql",
+                    "static java.se", // Invalid
+                    "record",
+                    "my.package.name", // Invalid
+                    "என்.module",
+                    "test_module",
+                    "ALL-DEFAULT",
+                    "ALL-SYSTEM",
+                    "ALL-MODULE-PATH",
+                    "A-B"   // Invalid
+            );
+            updateConfigValue(ADD_MODULES_KEY, modules.stream().map(JsonPrimitive::new).collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
+            String result = instance.getAddModules();
+            assertNotNull("Result should not be null even if some values are invalid", result);
+            assertEquals(List.of(
+                    "java.sql",
+                    "record",
+                    "என்.module",
+                    "test_module",
+                    "ALL-DEFAULT",
+                    "ALL-SYSTEM",
+                    "ALL-MODULE-PATH"
+            ).stream().collect(Collectors.joining(",")), result);
+        } catch (Exception ex) {
+            fail("Failed to handle invalid ADD_MODULES_KEY: " + ex.getMessage());
+        }
+    }
+
     private void setConfigObject() {
         JsonObject configsObj = new JsonObject();
         JsonArray imports = new JsonArray();
