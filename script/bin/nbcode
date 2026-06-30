@@ -1,5 +1,4 @@
 #!/bin/sh
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -34,70 +33,34 @@ while [ -h "$PRG" ]; do
 done
 
 progdir=`dirname "$PRG"`
+old=`pwd`
+cd "$progdir"/..
+basedir=`pwd`
+cd "$old"
+
 APPNAME=`basename "$PRG"`
-case "`uname`" in
+if [ -z "$APP_DOCK_NAME" ] ; then
+  APP_DOCK_NAME="$APPNAME"
+fi
+
+case "`uname -s -m`" in
     Darwin*)
         # set default userdir and cachedir on Mac OS X
         DEFAULT_USERDIR_ROOT="${HOME}/Library/Application Support/NetBeans/${APPNAME}"
-        DEFAULT_CACHEDIR_ROOT=${HOME}/Library/Caches/NetBeans/${APPNAME}
+        DEFAULT_CACHEDIR_ROOT="${HOME}/Library/Caches/NetBeans/${APPNAME}"
         ;;
-    *) 
-        # set default userdir and cachedir on unix systems
-        DEFAULT_USERDIR_ROOT=${HOME}/.netbeans/${APPNAME}
-        DEFAULT_CACHEDIR_ROOT=${HOME}/.cache/netbeans/${APPNAME}
+    CYGWIN*_64)
+        exec "$progdir/${APPNAME}64.exe" "$@"
         ;;
-esac
-
-if [ -f "$progdir/../etc/$APPNAME".conf ] ; then
-    . "$progdir/../etc/$APPNAME".conf
-fi
-
-# XXX does not correctly deal with spaces in non-userdir params
-args=""
-
-case "`uname`" in
-    Darwin*)
-        if [ ! -z "$default_mac_userdir" ]; then
-          userdir="${default_mac_userdir}"
-        else
-          userdir="${default_userdir}"
-        fi
+    CYGWIN*)
+        exec "$progdir/${APPNAME}.exe" "$@"
         ;;
     *)
-        userdir="${default_userdir}"
+        # set default userdir and cachedir on unix systems
+        DEFAULT_USERDIR_ROOT="${HOME}/.netbeans/${APPNAME}"
+        DEFAULT_CACHEDIR_ROOT="${HOME}/.cache/netbeans/${APPNAME}"
         ;;
 esac
-while [ $# -gt 0 ] ; do
-    case "$1" in
-        --userdir) shift; if [ $# -gt 0 ] ; then userdir="$1"; fi
-            ;;
-        *) args="$args \"$1\""
-            ;;
-    esac
-    shift
-done
-
-if [ -f "${userdir}/etc/$APPNAME".conf ] ; then
-    . "${userdir}/etc/$APPNAME".conf
-fi
-
-if [ -n "$jdkhome" -a \! -d "$jdkhome" -a -d "$progdir/../$jdkhome" ]; then
-    # #74333: permit jdkhome to be defined as relative to app dir
-    jdkhome="$progdir/../$jdkhome"
-fi
-
-readClusters() {
-  if [ -x /usr/ucb/echo ]; then
-    echo=/usr/ucb/echo
-  else
-    echo=echo
-  fi
-  while read X; do
-    if [ "$X" \!= "" ]; then
-      $echo "$progdir/../$X"
-    fi
-  done
-}
 
 absolutize_paths() {
     while read path; do
@@ -109,38 +72,113 @@ absolutize_paths() {
     done
 }
 
-clusters=`(cat "$progdir/../etc/$APPNAME".clusters; echo) | readClusters | absolutize_paths | tr '\012' ':'`
+BASEDIR="$basedir"
+
+if [ -f "$basedir/etc/$APPNAME".conf ] ; then
+    . "$basedir/etc/$APPNAME".conf
+fi
+
+export DEFAULT_USERDIR_ROOT
+
+# #68373: look for userdir, but do not modify "$@"
+userdir="${default_userdir}"
+
+cachedir="${default_cachedir}"
+
+founduserdir=""
+for opt in "$@"; do
+    if [ "${founduserdir}" = "yes" ]; then
+        userdir="$opt"
+        break
+    elif [ "$opt" = "--userdir" ]; then
+        founduserdir="yes"
+    fi
+done
+foundcachedir=""
+for opt in "$@"; do
+    if [ "${foundcachedir}" = "yes" ]; then
+        cachedir="$opt"
+        break
+    elif [ "$opt" = "--cachedir" ]; then
+        foundcachedir="yes"
+    fi
+done
+
+if [ -f "${userdir}/etc/$APPNAME".conf ] ; then
+    . "${userdir}/etc/$APPNAME".conf
+fi
+
+## Removed irrelevant jdkhome reassignment relative to app dir, i.e.,
+    # #74333: permit jdkhome to be defined as relative to app dir
+
+if [ ! -f "$basedir/etc/$APPNAME".clusters ]; then
+    echo Cannot read cluster file: "$basedir/etc/$APPNAME".clusters 1>&2
+    exit 1
+fi
+
+readClusters() {
+    if [ -x /usr/ucb/echo ]; then
+      echo=/usr/ucb/echo
+    else
+      echo=echo
+    fi
+    grep -v "^#" "$basedir/etc/$APPNAME".clusters | grep -v "^$" | grep -v platform | while read X; do
+        if expr "$X" : "/.*" >/dev/null; then
+            $echo "$X"
+        else
+            $echo "$basedir/$X"
+        fi
+    done
+}
+
+clusters="`readClusters | absolutize_paths | tr '\012' ':'`"
 
 if [ ! -z "$extra_clusters" ] ; then
     clusters="$clusters:$extra_clusters"
 fi
 
-nbexec=`echo "$progdir"/../platform*/lib/nbexec`
+launchNbexec() {
+    nbexec=`grep -v "^#" "$basedir/etc/$APPNAME".clusters | grep -v "^$" | grep platform | while read X; do
+        if expr "$X" : "/.*" >/dev/null; then
+           echo "$X/lib/nbexec"
+        elif [ -f "$basedir/$X/lib/nbexec" ]; then
+            echo "$basedir/$X/lib/nbexec"
+        fi
+    done | head -n 1`
+    sh=sh
+    # #73162: Ubuntu uses the ancient Bourne shell, which does not implement trap well.
+    if [ -x /bin/bash ]
+    then
+        sh=/bin/bash
+    fi
+    if [ "${founduserdir}" = "yes" ]; then
+        exec $sh "$nbexec" "$@"
+    else
+        if [ "${foundcachedir}" = "yes" ]; then
+            exec $sh "$nbexec" --userdir "${userdir}" "$@"
+        else
+            exec $sh "$nbexec" --userdir "${userdir}" --cachedir "${cachedir}" "$@"
+        fi
+    fi
+}
 
 case "`uname`" in
     Darwin*)
-        eval exec sh '"$nbexec"' \
+        eval launchNbexec \
             --jdkhome '"$jdkhome"' \
-            -J-Xdock:name='"$APPNAME"' \
-            '"-J-Xdock:icon=$progdir/../../$APPNAME.icns"' \
+            '-J-Xdock:name="$APP_DOCK_NAME"' \
+            '-J-Xdock:icon="$basedir/$APPNAME/$APPNAME.icns"' \
+            --branding '"$APPNAME"' \
             --clusters '"$clusters"' \
-            --userdir '"${userdir}"' \
             ${default_options} \
-            "$args"
+            '"$@"'
         ;;
-    *)  
-       sh=sh
-       # #73162: Ubuntu uses the ancient Bourne shell, which does not implement trap well.
-       if [ -x /bin/bash ]
-       then
-           sh=/bin/bash
-       fi
-       eval exec $sh '"$nbexec"' \
+    *)
+       eval launchNbexec \
             --jdkhome '"$jdkhome"' \
+            --branding '"$APPNAME"' \
             --clusters '"$clusters"' \
-            --userdir '"${userdir}"' \
             ${default_options} \
-            "$args"
-       exit 1
+            '"$@"'
         ;;
 esac
