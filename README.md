@@ -270,6 +270,10 @@ If your extension is not starting and throwing some error like no JDK found even
 ## Workspace
 The extension will analyze the content of the opened workspace, and relevant other files. If the workspace contains a lot of data, this may take a long time. It is therefore recommended to avoid adding unnecessarily big folders in a workspace. Specifically, it is not recommended to open user's home directory as a part of the workspace.
 
+VS Code enables the extension only in workspaces that are trusted by you.
+
+The extension requests an additional trust decision from you, when the workspace contains extension settings. The extension stops further activation unless you choose to trust such a workspace. Use the __Java: Manage trust decisions for Oracle Java workspace settings__ command to view and edit your choice at any time.
+
 ## Known Issues
 1. If an action has been applied to the Maven `pom.xml` file through the extension, such as enabling a preview feature or adding a test runner framework, subsequent compile or run operations may fail. To resolve this issue, please follow the steps below:
     1. Check the `pom.xml` file for any duplicated tags.
