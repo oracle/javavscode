@@ -47,7 +47,10 @@ export class TrustProvider {
     }
 
     public showWorkspaceSettingsTrust = async (): Promise<void> => {
-        const workspaceFoldersWithSettings = this.getWorkspaceFoldersSettingsFile(this.getWorkspaceFoldersTrustStatus(), getAllConfigurationKeys());
+        const allWorkspaceFoldersTrustStatus = this.getWorkspaceFoldersTrustStatus();
+        const workspaceFoldersWithoutUserInput = allWorkspaceFoldersTrustStatus.filter(settingsLocation => !settingsLocation.isUserInputAvailable);
+        const workspaceFoldersWithSettings = allWorkspaceFoldersTrustStatus.filter(settingsLocation => settingsLocation.isUserInputAvailable)
+            .concat(this.getWorkspaceFoldersSettingsFile(workspaceFoldersWithoutUserInput, getAllConfigurationKeys()));
         const selectedWorkspaceFolders = await this.trustUi.showWorkspaceSettingsTrust(workspaceFoldersWithSettings);
         if (!selectedWorkspaceFolders) {
             return;
@@ -88,7 +91,7 @@ export class TrustProvider {
 
         const workspaceFoldersForPopUp = this.getWorkspaceFoldersForPopUp(settingsLocationTrustStatus);
         if (!workspaceFoldersForPopUp.length) {
-            LOGGER.log("Settings file not found in the untrusted workspace folders, so skipping pop-up");
+            LOGGER.log("Settings not found in the untrusted workspace folders, so skipping pop-up");
             return;
         }
 
