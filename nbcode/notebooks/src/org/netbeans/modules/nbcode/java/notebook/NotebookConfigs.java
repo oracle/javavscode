@@ -144,28 +144,28 @@ public class NotebookConfigs {
             return;
         }
         
-        JsonElement classPathConfig = settings.get(CONFIG_CLASSPATH);
+        JsonElement classPathConfig = getConfig(settings, CONFIG_CLASSPATH);
         if (classPathConfig != null && classPathConfig.isJsonArray()) {
             classPath = String.join(File.pathSeparator, classPathConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList());
         } else {
             classPath = null;
         }
 
-        JsonElement modulePathConfig = settings.get(CONFIG_MODULEPATH);
+        JsonElement modulePathConfig = getConfig(settings, CONFIG_MODULEPATH);
         if (modulePathConfig != null && modulePathConfig.isJsonArray()) {
             modulePath = String.join(File.pathSeparator, modulePathConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList());
         } else {
             modulePath = null;
         }
 
-        JsonElement addModulesConfig = settings.get(CONFIG_ADDMODULES);
+        JsonElement addModulesConfig = getConfig(settings, CONFIG_ADDMODULES);
         if (addModulesConfig != null && addModulesConfig.isJsonArray()) {
             addModules = String.join(",", addModulesConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList());
         } else {
             addModules = null;
         }
 
-        JsonElement enablePreviewConfig = settings.get(CONFIG_ENABLE_PREVIEW);
+        JsonElement enablePreviewConfig = getConfig(settings, CONFIG_ENABLE_PREVIEW);
         if (enablePreviewConfig != null && enablePreviewConfig.isJsonPrimitive()) {
             JsonPrimitive primitive = enablePreviewConfig.getAsJsonPrimitive();
             enablePreview = primitive.isBoolean() && primitive.getAsBoolean();
@@ -173,25 +173,40 @@ public class NotebookConfigs {
             enablePreview = false;
         }
 
-        JsonElement implicitImportsConfig = settings.get(CONFIG_IMPLICIT_IMPORTS);
+        JsonElement implicitImportsConfig = getConfig(settings, CONFIG_IMPLICIT_IMPORTS);
         if (implicitImportsConfig != null && implicitImportsConfig.isJsonArray()) {
             implicitImports = implicitImportsConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList();
         } else {
             implicitImports = null;
         }
 
-        JsonElement notebookProjectMappingConfig = settings.get(CONFIG_PROJECTS_MAPPING);
+        JsonElement notebookProjectMappingConfig = getConfig(settings, CONFIG_PROJECTS_MAPPING);
         if (notebookProjectMappingConfig != null && notebookProjectMappingConfig.isJsonObject()) {
             notebookProjectMapping = notebookProjectMappingConfig.getAsJsonObject();
         } else {
             notebookProjectMapping = new JsonObject();
         }
 
-        JsonElement notebookVmOptionsConfig = settings.get(CONFIG_VM_OPTIONS);
+        JsonElement notebookVmOptionsConfig = getConfig(settings, CONFIG_VM_OPTIONS);
         if (notebookVmOptionsConfig != null && notebookVmOptionsConfig.isJsonArray()) {
             notebookVmOptions = notebookVmOptionsConfig.getAsJsonArray().asList().stream().map(el -> el.getAsString()).toList();
         } else {
             notebookVmOptions = Collections.emptyList();
         }
+    }
+    
+    private static JsonElement getConfig(JsonObject settings, String key) {
+        if (!key.contains(".")) {
+            return settings.get(key);
+        } 
+        
+        JsonElement current = settings;
+        for (String part : key.split("\\.")) {
+            if (current == null || !current.isJsonObject()) {
+                return null;
+            }
+            current = current.getAsJsonObject().get(part);
+        }
+        return current;
     }
 }
