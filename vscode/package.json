@@ -1080,16 +1080,16 @@
 			"serialize-javascript": "^7.0.5"
 		},
 		"nyc": {
-			"@babel/core@7.x": "^7.29.7",
-			"@istanbuljs/load-nyc-config": {
-				"js-yaml": "^4.3.0"
-			}
+			"@babel/core@7.x": "^7.29.7"
 		},
 		"sinon": {
 			"diff": "^8.0.3"
 		},
 		"ts-node": {
 			"diff": "^4.0.4"
+		},
+		"@istanbuljs/load-nyc-config": {
+			"js-yaml": "^4.3.0"
 		}
 	}
 }
