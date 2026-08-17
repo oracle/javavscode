@@ -51,23 +51,11 @@
     <loadresource property="patch-files">
         <string>
             patches/6330.diff
-            patches/7908.diff
-            patches/8038-draft.diff
             patches/7893-draft.diff
+            patches/8038-draft.diff
             patches/8460-draft.diff
-            patches/8974-draft.diff
             patches/9005-draft.diff
-            patches/9062.diff
-            patches/9254-draft.diff
-            patches/9263-draft.diff
-            patches/9273.diff
-            patches/9282-draft.diff
-            patches/9290.diff
-            patches/9341.diff
-            patches/9252+9340+9343.diff
-            patches/9369.diff
             patches/9377-draft.diff
-            patches/9425.diff
             patches/disable-error-notification.diff
             patches/mvn-sh.diff
             patches/project-marker-jdk.diff
@@ -81,7 +69,6 @@
             patches/updated-show-input-params.diff
             patches/java-notebooks.diff
             patches/formatOptions.diff
-            patches/9285.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">

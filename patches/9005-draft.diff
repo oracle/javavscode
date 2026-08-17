@@ -1,16 +1,16 @@
 diff --git a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
-index 83c9aa8bd5fe..b786b417e0a6 100644
+index bead073263..bedaae6240 100644
 --- a/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
 +++ b/java/java.editor/src/org/netbeans/modules/editor/java/JavaCompletionCollector.java
-@@ -549,6 +549,7 @@ public Completion createThisOrSuperConstructorItem(CompilationInfo info, Executa
+@@ -550,6 +550,7 @@ public class JavaCompletionCollector implements CompletionCollector {
          @Override
          public Completion createOverrideMethodItem(CompilationInfo info, ExecutableElement elem, ExecutableType type, int substitutionOffset, boolean implement) {
-             Completion item = createExecutableItem(info, elem, type, substitutionOffset, null, false, false, false, false, false, -1, false);
+             Completion item = createExecutableItem(info, elem, type, substitutionOffset, null, false, false, false, false, false, -1, false, true);
 +            ElementHandle<ExecutableElement> elemHandle = ElementHandle.create(elem);
              CompletionCollector.Builder builder = CompletionCollector.newBuilder(item.getLabel())
                      .kind(elementKind2CompletionItemKind(elem.getKind()))
                      .labelDetail(String.format("%s - %s", item.getLabelDetail(), implement ? "implement" : "override"))
-@@ -558,16 +559,21 @@ public Completion createOverrideMethodItem(CompilationInfo info, ExecutableEleme
+@@ -559,16 +560,21 @@ public class JavaCompletionCollector implements CompletionCollector {
                      .textEdit(new TextEdit(substitutionOffset, substitutionOffset, EMPTY))
                      .additionalTextEdits(() -> modify2TextEdits(JavaSource.forFileObject(info.getFileObject()), wc -> {
                              wc.toPhase(JavaSource.Phase.ELEMENTS_RESOLVED);
@@ -31,13 +31,13 @@ index 83c9aa8bd5fe..b786b417e0a6 100644
 -            ElementHandle<ExecutableElement> handle = SUPPORTED_ELEMENT_KINDS.contains(elem.getKind().name()) ? ElementHandle.create(elem) : null;
 -            if (handle != null) {
 -                builder.documentation(getDocumentation(doc, offset, handle));
-+            
++
 +            if (SUPPORTED_ELEMENT_KINDS.contains(elem.getKind().name())) {
 +                builder.documentation(getDocumentation(doc, offset, elemHandle));
              }
              return builder.build();
          }
-@@ -593,6 +599,7 @@ public Completion createGetterSetterMethodItem(CompilationInfo info, VariableEle
+@@ -594,6 +600,7 @@ public class JavaCompletionCollector implements CompletionCollector {
                  sortParams.append(typeName);
              }
              labelDetail.append(") - generate");
@@ -45,7 +45,7 @@ index 83c9aa8bd5fe..b786b417e0a6 100644
              Builder builder = CompletionCollector.newBuilder(name)
                      .kind(Completion.Kind.Method)
                      .labelDetail(labelDetail.toString())
-@@ -601,6 +608,10 @@ public Completion createGetterSetterMethodItem(CompilationInfo info, VariableEle
+@@ -602,6 +609,10 @@ public class JavaCompletionCollector implements CompletionCollector {
                      .textEdit(new TextEdit(substitutionOffset, substitutionOffset, EMPTY))
                      .additionalTextEdits(() -> modify2TextEdits(JavaSource.forFileObject(info.getFileObject()), wc -> {
                          wc.toPhase(JavaSource.Phase.ELEMENTS_RESOLVED);
@@ -56,7 +56,7 @@ index 83c9aa8bd5fe..b786b417e0a6 100644
                          TreePath tp = wc.getTreeUtilities().pathFor(substitutionOffset);
                          if (TreeUtilities.CLASS_TREE_KINDS.contains(tp.getLeaf().getKind())) {
                              if (Utilities.inAnonymousOrLocalClass(tp)) {
-@@ -609,7 +620,7 @@ public Completion createGetterSetterMethodItem(CompilationInfo info, VariableEle
+@@ -610,7 +621,7 @@ public class JavaCompletionCollector implements CompletionCollector {
                              TypeElement te = (TypeElement)wc.getTrees().getElement(tp);
                              if (te != null) {
                                  GeneratorUtilities gu = GeneratorUtilities.get(wc);
@@ -65,7 +65,7 @@ index 83c9aa8bd5fe..b786b417e0a6 100644
                                  ClassTree decl = GeneratorUtils.insertClassMember(wc, (ClassTree)tp.getLeaf(), method, substitutionOffset);
                                  wc.rewrite(tp.getLeaf(), decl);
                              }
-@@ -870,7 +881,13 @@ public Completion createInitializeAllConstructorItem(CompilationInfo info, boole
+@@ -871,7 +882,13 @@ public class JavaCompletionCollector implements CompletionCollector {
              }
              labelDetail.append(") - generate");
              sortParams.append(')');
@@ -80,7 +80,7 @@ index 83c9aa8bd5fe..b786b417e0a6 100644
              return CompletionCollector.newBuilder(simpleName)
                      .kind(Completion.Kind.Constructor)
                      .labelDetail(labelDetail.toString())
-@@ -879,23 +896,30 @@ public Completion createInitializeAllConstructorItem(CompilationInfo info, boole
+@@ -880,23 +897,30 @@ public class JavaCompletionCollector implements CompletionCollector {
                      .textEdit(new TextEdit(substitutionOffset, substitutionOffset, EMPTY))
                      .additionalTextEdits(() -> modify2TextEdits(JavaSource.forFileObject(info.getFileObject()), wc -> {
                          wc.toPhase(JavaSource.Phase.ELEMENTS_RESOLVED);

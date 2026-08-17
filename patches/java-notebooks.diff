@@ -788,11 +788,13 @@ index 747d151600..bbf1f263d1 100644
      private static final Logger LOG = Logger.getLogger(TextDocumentServiceImpl.class.getName());
      
      private static final String COMMAND_RUN_SINGLE = "nbls.run.single";         // NOI18N
-@@ -307,12 +316,15 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
+@@ -307,14 +316,17 @@ public class TextDocumentServiceImpl implements TextDocumentService, LanguageCli
      private static final String NETBEANS_COMPLETION_WARNING_TIME = "completion.warning.time";// NOI18N
      private static final String NETBEANS_JAVA_ON_SAVE_ORGANIZE_IMPORTS = "java.onSave.organizeImports";// NOI18N
      private static final String NETBEANS_CODE_COMPLETION_COMMIT_CHARS = "java.completion.commit.chars";// NOI18N
 +    private static final String NOTEBOOK_TEXT_DOC_URI_IDENTIFIER = "vscode-notebook-cell";// NOI18N
+     private static final String CLIENT_JAVA_COMPLETION_DISABLE_INSERT_METHOD_PARAMS = "java.completion.disable.insertMethodParameters";// NOI18N
+     private static final String NETBEANS_JAVA_COMPLETION_INSERT_TEXT_PARAMS = "completion-insert-text-parameters";// NOI18N
      private static final String URL = "url";// NOI18N
      private static final String INDEX = "index";// NOI18N
      
