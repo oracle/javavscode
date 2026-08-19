@@ -21,6 +21,13 @@
 -->
 # Change Log
 
+## Version 26.0.2
+### What's Changed
+#### Other Changes
+* Updated openjdk26 download URL to 26.0.2.1
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v26.0.1...v26.0.2
+
 ## Version 26.0.1
 ### What's Changed
 #### Bug Fixes
