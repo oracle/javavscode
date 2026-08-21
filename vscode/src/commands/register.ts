@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2023-2024, Oracle and/or its affiliates.
+  Copyright (c) 2023-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import { registerUtilCommands } from "./utilCommands";
 import { registerDebugCommands } from "./debug";
 import { registerRunConfigurationCommands } from "./runConfiguration";
 import { registerNotebookCommands } from "./notebook";
+import { registerTrustCommands } from "./trust";
 
 type ICommandModules = Record<string, ICommand[]>;
 
@@ -40,6 +41,21 @@ const commandModules: ICommandModules = {
     runConfiguration: registerRunConfigurationCommands,
     notebook: registerNotebookCommands
 }
+
+const trustSafeCommandModules: ICommandModules = {
+    trust: registerTrustCommands
+};
+
+export const subscribeTrustSafeCommands = (context: ExtensionContext) => {
+    for (const cmds of Object.values(trustSafeCommandModules)) {
+        for (const command of cmds) {
+            const cmdRegistered = registerCommand(command);
+            if (cmdRegistered) {
+                context.subscriptions.push(cmdRegistered);
+            }
+        }
+    }
+};
 
 export const subscribeCommands = (context: ExtensionContext) => {
     for (const cmds of Object.values(commandModules)) {

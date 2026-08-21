@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2025, Oracle and/or its affiliates.
+  Copyright (c) 2025-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as crypto from 'crypto';
 import { WorkspaceChangeData, WorkspaceChangeEvent } from '../../../telemetry/events/workspaceChange';
-import { cacheServiceIndex } from '../../../telemetry/impl/cache';
-import { ProjectCacheValue } from '../../../telemetry/impl/cache/projectCacheValue';
+import { cacheServiceIndex } from '../../../cache';
+import { ProjectCacheValue } from '../../../cache/projectCacheValue';
 
 describe('WorkspaceChangeEvent', () => {
     let cacheServiceGetStub: sinon.SinonStub;

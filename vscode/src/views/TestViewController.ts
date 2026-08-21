@@ -281,7 +281,9 @@ export class NbTestAdapter {
     stacktrace2Message(currentTestUri: string | undefined, stacktrace: string[]): MarkdownString {
         const regExp: RegExp = /(\s*at\s+(?:[\w$\\.]+\/)?((?:[\w$]+\.)+[\w\s$<>]+))\(((.*):(\d+))\)/;
         const message = new MarkdownString();
-        message.isTrusted = true;
+        message.isTrusted = {
+            enabledCommands: [nbCommands.openStackTrace]
+        };
         message.supportHtml = true;
         for (const line of stacktrace) {
             if (message.value.length) {

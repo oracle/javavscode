@@ -15,6 +15,7 @@
  */
 package org.netbeans.modules.nbcode.java.notebook;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -24,6 +25,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.lang.model.SourceVersion;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.java.lsp.server.protocol.ClientConfigurationManager;
 import org.netbeans.modules.java.lsp.server.protocol.NbCodeLanguageClient;
@@ -143,24 +147,28 @@ public class NotebookConfigs {
         if (settings == null) {
             return;
         }
-        
+
         JsonElement classPathConfig = getConfig(settings, CONFIG_CLASSPATH);
         if (classPathConfig != null && classPathConfig.isJsonArray()) {
-            classPath = String.join(File.pathSeparator, classPathConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList());
+            classPath = streamNonEmptyStrings(classPathConfig.getAsJsonArray())
+                    .collect(Collectors.joining(File.pathSeparator));
         } else {
             classPath = null;
         }
 
         JsonElement modulePathConfig = getConfig(settings, CONFIG_MODULEPATH);
         if (modulePathConfig != null && modulePathConfig.isJsonArray()) {
-            modulePath = String.join(File.pathSeparator, modulePathConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList());
+            modulePath = streamNonEmptyStrings(modulePathConfig.getAsJsonArray())
+                    .collect(Collectors.joining(File.pathSeparator));
         } else {
             modulePath = null;
         }
 
         JsonElement addModulesConfig = getConfig(settings, CONFIG_ADDMODULES);
         if (addModulesConfig != null && addModulesConfig.isJsonArray()) {
-            addModules = String.join(",", addModulesConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList());
+            addModules = streamNonEmptyStrings(addModulesConfig.getAsJsonArray())
+                    .filter(this::isValidModuleName)
+                    .collect(Collectors.joining(","));
         } else {
             addModules = null;
         }
@@ -175,7 +183,9 @@ public class NotebookConfigs {
 
         JsonElement implicitImportsConfig = getConfig(settings, CONFIG_IMPLICIT_IMPORTS);
         if (implicitImportsConfig != null && implicitImportsConfig.isJsonArray()) {
-            implicitImports = implicitImportsConfig.getAsJsonArray().asList().stream().map((elem) -> elem.getAsString()).toList();
+            implicitImports = streamNonEmptyStrings(implicitImportsConfig.getAsJsonArray())
+                    .filter(this::isValidImplicitImport)
+                    .toList();
         } else {
             implicitImports = null;
         }
@@ -189,7 +199,8 @@ public class NotebookConfigs {
 
         JsonElement notebookVmOptionsConfig = getConfig(settings, CONFIG_VM_OPTIONS);
         if (notebookVmOptionsConfig != null && notebookVmOptionsConfig.isJsonArray()) {
-            notebookVmOptions = notebookVmOptionsConfig.getAsJsonArray().asList().stream().map(el -> el.getAsString()).toList();
+            notebookVmOptions = streamNonEmptyStrings(notebookVmOptionsConfig.getAsJsonArray())
+                    .toList();
         } else {
             notebookVmOptions = Collections.emptyList();
         }
@@ -208,5 +219,54 @@ public class NotebookConfigs {
             current = current.getAsJsonObject().get(part);
         }
         return current;
+    }
+
+    private Stream<String> streamNonEmptyStrings(@NonNull JsonArray jsonArray) {
+        return jsonArray.asList()
+                .stream()
+                .filter(elem -> elem != null && elem.isJsonPrimitive())
+                .map(elem -> elem.getAsString().strip());
+    }
+
+    private boolean isValidImplicitImport(@NonNull String implicitImport) {
+        String importFragment = implicitImport;
+        boolean packagePrefixOptional = true;
+        if (importFragment.startsWith("module ")) {
+            // Remove "module \\s*" from the start
+            importFragment = importFragment.substring(7).stripLeading();
+        } else {
+            if (importFragment.startsWith("static ")) {
+                // Remove "static \\s*" from the start
+                importFragment = importFragment.substring(7).stripLeading();
+                packagePrefixOptional = false;
+            }
+            if (importFragment.endsWith(".*")) {
+                // Remove ".*" from the end
+                importFragment = importFragment.substring(0, importFragment.length() - 2);
+            } else {
+                packagePrefixOptional = false;
+            }
+        }
+        if (SourceVersion.isName(importFragment) && (packagePrefixOptional
+                || importFragment.indexOf('.', 1) != -1)) {
+            return true;
+        }
+        LOG.log(Level.WARNING, "Invalid value in config {0}: {1}", new Object[]{CONFIG_IMPLICIT_IMPORTS, importFragment});
+        return false;
+    }
+
+    private boolean isValidModuleName(@NonNull String moduleName) {
+        switch (moduleName) {
+            case "ALL-DEFAULT":
+            case "ALL-SYSTEM":
+            case "ALL-MODULE-PATH":
+                return true;
+            default:
+                if (SourceVersion.isName(moduleName)) {
+                    return true;
+                }
+        }
+        LOG.log(Level.WARNING, "Invalid value in config {0}: {1}", new Object[]{CONFIG_ADDMODULES, moduleName});
+        return false;
     }
 }
