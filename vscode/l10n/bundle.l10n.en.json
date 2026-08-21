@@ -148,5 +148,6 @@
   "jdk.notebook.validation.failed.error_msg": "Notebook JSON validation failed",
   "jdk.notebook.validation.notebook_version.failed.error_msg": "Notebook version is not supported. Please upgrade to version {majorVersion}.{minorVersion} or later.",
   "jdk.notebook.mime_type.not.found.cell.output": "Mime Type: {mimeType}, Content Length: {contentLength}",
-  "jdk.notebook.cell.language.not.found": "Doesn't support {languageId} execution"
+  "jdk.notebook.cell.language.not.found": "Doesn't support {languageId} execution",
+  "jdk.notebook.project.context.changed.restart.kernel.msg.consent": "Project context changed. Do you want to restart the notebook kernel?"
 }

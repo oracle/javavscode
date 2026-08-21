@@ -148,5 +148,6 @@
   "jdk.notebook.validation.failed.error_msg": "ノートブックJSON検証に失敗しました",
   "jdk.notebook.validation.notebook_version.failed.error_msg": "ノートブック・バージョンはサポートされません。バージョン{majorVersion}.{minorVersion}以降にアップグレードしてください。",
   "jdk.notebook.mime_type.not.found.cell.output": "MIMEタイプ: {mimeType}、コンテンツの長さ: {contentLength}",
-  "jdk.notebook.cell.language.not.found": "{languageId}の実行はサポートされていません"
+  "jdk.notebook.cell.language.not.found": "{languageId}の実行はサポートされていません",
+  "jdk.notebook.project.context.changed.restart.kernel.msg.consent": "プロジェクトのコンテキストが変更されました。ノートブックのカーネルを再起動しますか?"
 }

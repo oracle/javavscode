@@ -148,5 +148,6 @@
   "jdk.notebook.validation.failed.error_msg": "记事本 JSON 验证失败",
   "jdk.notebook.validation.notebook_version.failed.error_msg": "记事本版本不受支持。请升级到版本 {majorVersion}.{minorVersion} 或更高版本。",
   "jdk.notebook.mime_type.not.found.cell.output": "Mime 类型：{mimeType}，内容长度：{contentLength}",
-  "jdk.notebook.cell.language.not.found": "不支持 {languageId} 执行"
+  "jdk.notebook.cell.language.not.found": "不支持 {languageId} 执行",
+  "jdk.notebook.project.context.changed.restart.kernel.msg.consent": "项目上下文已更改。您想要重启 Notebook 内核吗"
 }

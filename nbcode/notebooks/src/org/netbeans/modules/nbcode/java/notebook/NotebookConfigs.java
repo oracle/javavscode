@@ -148,7 +148,7 @@ public class NotebookConfigs {
             return;
         }
 
-        JsonElement classPathConfig = settings.get(CONFIG_CLASSPATH);
+        JsonElement classPathConfig = getConfig(settings, CONFIG_CLASSPATH);
         if (classPathConfig != null && classPathConfig.isJsonArray()) {
             classPath = streamNonEmptyStrings(classPathConfig.getAsJsonArray())
                     .collect(Collectors.joining(File.pathSeparator));
@@ -156,7 +156,7 @@ public class NotebookConfigs {
             classPath = null;
         }
 
-        JsonElement modulePathConfig = settings.get(CONFIG_MODULEPATH);
+        JsonElement modulePathConfig = getConfig(settings, CONFIG_MODULEPATH);
         if (modulePathConfig != null && modulePathConfig.isJsonArray()) {
             modulePath = streamNonEmptyStrings(modulePathConfig.getAsJsonArray())
                     .collect(Collectors.joining(File.pathSeparator));
@@ -164,7 +164,7 @@ public class NotebookConfigs {
             modulePath = null;
         }
 
-        JsonElement addModulesConfig = settings.get(CONFIG_ADDMODULES);
+        JsonElement addModulesConfig = getConfig(settings, CONFIG_ADDMODULES);
         if (addModulesConfig != null && addModulesConfig.isJsonArray()) {
             addModules = streamNonEmptyStrings(addModulesConfig.getAsJsonArray())
                     .filter(this::isValidModuleName)
@@ -173,7 +173,7 @@ public class NotebookConfigs {
             addModules = null;
         }
 
-        JsonElement enablePreviewConfig = settings.get(CONFIG_ENABLE_PREVIEW);
+        JsonElement enablePreviewConfig = getConfig(settings, CONFIG_ENABLE_PREVIEW);
         if (enablePreviewConfig != null && enablePreviewConfig.isJsonPrimitive()) {
             JsonPrimitive primitive = enablePreviewConfig.getAsJsonPrimitive();
             enablePreview = primitive.isBoolean() && primitive.getAsBoolean();
@@ -181,7 +181,7 @@ public class NotebookConfigs {
             enablePreview = false;
         }
 
-        JsonElement implicitImportsConfig = settings.get(CONFIG_IMPLICIT_IMPORTS);
+        JsonElement implicitImportsConfig = getConfig(settings, CONFIG_IMPLICIT_IMPORTS);
         if (implicitImportsConfig != null && implicitImportsConfig.isJsonArray()) {
             implicitImports = streamNonEmptyStrings(implicitImportsConfig.getAsJsonArray())
                     .filter(this::isValidImplicitImport)
@@ -190,20 +190,35 @@ public class NotebookConfigs {
             implicitImports = null;
         }
 
-        JsonElement notebookProjectMappingConfig = settings.get(CONFIG_PROJECTS_MAPPING);
+        JsonElement notebookProjectMappingConfig = getConfig(settings, CONFIG_PROJECTS_MAPPING);
         if (notebookProjectMappingConfig != null && notebookProjectMappingConfig.isJsonObject()) {
             notebookProjectMapping = notebookProjectMappingConfig.getAsJsonObject();
         } else {
             notebookProjectMapping = new JsonObject();
         }
 
-        JsonElement notebookVmOptionsConfig = settings.get(CONFIG_VM_OPTIONS);
+        JsonElement notebookVmOptionsConfig = getConfig(settings, CONFIG_VM_OPTIONS);
         if (notebookVmOptionsConfig != null && notebookVmOptionsConfig.isJsonArray()) {
             notebookVmOptions = streamNonEmptyStrings(notebookVmOptionsConfig.getAsJsonArray())
                     .toList();
         } else {
             notebookVmOptions = Collections.emptyList();
         }
+    }
+    
+    private static JsonElement getConfig(JsonObject settings, String key) {
+        if (!key.contains(".")) {
+            return settings.get(key);
+        } 
+        
+        JsonElement current = settings;
+        for (String part : key.split("\\.")) {
+            if (current == null || !current.isJsonObject()) {
+                return null;
+            }
+            current = current.getAsJsonObject().get(part);
+        }
+        return current;
     }
 
     private Stream<String> streamNonEmptyStrings(@NonNull JsonArray jsonArray) {
