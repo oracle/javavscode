@@ -21,6 +21,30 @@
 -->
 # Change Log
 
+## Version 26.0.1
+### What's Changed
+#### Bug Fixes
+* Fixed ordering of the extension "New ..." commands in the context-menu of Explorer view [#585](https://github.com/oracle/javavscode/pull/585)
+* Fixed "New ... from template" functions with the following behaviours [#597](https://github.com/oracle/javavscode/pull/597)
+    * New package: To create a dir path, not a file
+    * New class: To detect an existing file with the same name
+* Backport fixes to NetBeans Language Server launchers from recent NetBeans versions
+* Fixed validation of notebook format schema version to support versions above v4.5 also [#586](https://github.com/oracle/javavscode/pull/586)
+* Fixed errors due to invalid values of notebook configurations like `implicitImports` and `addmodules`
+* Fixed fallback to environment variables (`JDK_HOME`, `JAVA_HOME`) in the `jdk.jdkhome` configuration value handler [#606](https://github.com/oracle/javavscode/pull/606)
+* Fixed JSON type validations in configuration change handlers of the NetBeans Language Server [#607](https://github.com/oracle/javavscode/pull/607)
+* Fixed validations for file operations in NetBeans Language Server webview handler
+* Fixed restrictions for stacktrace handler in the tests view
+
+#### Other Changes
+* Introduced user trust decisions for workspaces containing extension settings
+* Upgraded outdated NetBeans dependencies
+* Upgraded outdated Node dependencies
+* Fixed the deprecation message for the `jdk.format.settingsPath` setting with the alternate setting ID [#602](https://github.com/oracle/javavscode/pull/602)
+* Translation of new messages to ja and zh-cn
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v26.0.0...v26.0.1
+
 ## Version 26.0.0
 ### What's Changed
 #### Enhancements

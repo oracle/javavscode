@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2025, Oracle and/or its affiliates.
+  Copyright (c) 2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -13,26 +13,36 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+import { CacheService } from "./types";
+import { LOGGER } from "../logger";
+import { globalState } from "../globalState";
+import { WorkspaceSettingsTrustCacheValue } from "./workspaceSettingsTrustCacheValue";
+import { TrustType } from "../configurations/trustWorkspace/types";
 
-import { globalState } from "../../../globalState";
-import { LOGGER } from "../../../logger";
-import { CacheService } from "../../types";
-
-export class SimpleCacheService implements CacheService<string, string> {
-    get(key: string) {
+export class WorkspaceSettingsTrustCacheService implements CacheService<WorkspaceSettingsTrustCacheValue, TrustType> {
+    public get = (key: string) => {
         try {
+            const updatedKey = this.getUpdatedKey(key);
             const vscGlobalState = globalState.getExtensionContextInfo().getVscGlobalState();
-            return vscGlobalState.get<string>(key);
+
+            const value = vscGlobalState.get<WorkspaceSettingsTrustCacheValue>(updatedKey);
+            if (value) {
+                this.put(updatedKey, WorkspaceSettingsTrustCacheValue.fromObject({ ...value, lastUsed: Date.now() }));
+            }
+
+            return value?.payload;
         } catch (err) {
             LOGGER.error(`Error while retrieving ${key} from cache: ${(err as Error).message}`);
             return undefined;
         }
     }
-    
-    async put(key: string, value: string) {
+
+    public put = async (key: string, value: WorkspaceSettingsTrustCacheValue) => {
         try {
+            const updatedKey = this.getUpdatedKey(key);
             const vscGlobalState = globalState.getExtensionContextInfo().getVscGlobalState();
-            await vscGlobalState.update(key, value);
+
+            await vscGlobalState.update(updatedKey, value);
             LOGGER.debug(`Updating key: ${key} to ${value}`);
 
             return true;
@@ -41,4 +51,7 @@ export class SimpleCacheService implements CacheService<string, string> {
             return false;
         }
     }
+
+    // for unit tests needs to be public
+    public getUpdatedKey = (key: string) => `${WorkspaceSettingsTrustCacheValue.type}.${key}`;
 }

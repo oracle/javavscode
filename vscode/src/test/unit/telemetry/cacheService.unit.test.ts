@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2025, Oracle and/or its affiliates.
+  Copyright (c) 2025-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 import { describe, it, beforeEach, afterEach } from "mocha";
-import { BaseCacheValue } from "../../../telemetry/impl/cache/BaseCacheValue";
-import { removeEntriesOnOverflow } from "../../../telemetry/impl/cache/utils";
+import { BaseCacheValue } from "../../../cache/BaseCacheValue";
+import { removeEntriesOnOverflow } from "../../../cache/utils";
 
 class TestCacheValue extends BaseCacheValue<string> {}
 

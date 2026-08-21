@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2025, Oracle and/or its affiliates.
+  Copyright (c) 2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
   limitations under the License.
 */
 
-import { ProjectCacheService } from "./projectCacheService";
-import { SimpleCacheService } from "./simpleCacheService";
+export interface CacheService<T, U> {
+    get(key: string): U | undefined;
 
-export namespace cacheServiceIndex {
-    export const simpleCache = new SimpleCacheService();
-    export const projectCache = new ProjectCacheService();
+    put(key: string, value: T): Promise<boolean>;
+
+    removeOnOverflow?(): void;
 }

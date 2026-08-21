@@ -45,6 +45,11 @@
 	],
 	"main": "./out/extension.js",
 	"l10n": "./l10n",
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": false
+		}
+	},
 	"contributes": {
 		"notebooks": [
 			{
@@ -694,6 +699,11 @@
 				"title": "%jdk.open.userDir%"
 			},
 			{
+				"command": "jdk.workspace.settings.trust.decisions",
+				"title": "%jdk.workspace.settings.trust.decisions%",
+				"category": "Java"
+			},
+			{
 				"command": "jdk.notebook.new",
 				"title": "%jdk.notebook.new%",
 				"category": "Java",
@@ -1013,15 +1023,15 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./ && node ./esbuild.js",
-		"watch": "tsc -watch -p ./ | node ./esbuild.js --watch",
+		"compile": "tsc -p ./ && node ./build-scripts.js",
+		"watch": "tsc --watch -p ./ | node ./build-scripts.js --watch",
 		"test:unit": "npm run compile && node ./out/test/unit/runTest.js",
 		"test:coverage": "nyc --require ts-node/register npm run test:unit",
 		"test": "npm run compile && node ./out/test/integration/runTest.js",
 		"nbcode": "node ./out/test/launchNbcode.js",
 		"nbjavac": "node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --install .*nbjavac.*",
 		"apisupport": "node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --install '(org.netbeans.libs.xerces|org.netbeans.modules.editor.structure|org.netbeans.modules.xml|org.netbeans.modules.xml.axi|org.netbeans.modules.xml.retriever|org.netbeans.modules.xml.schema.model|org.netbeans.modules.xml.tax|org.netbeans.modules.xml.text|.*apisupport.*|org.netbeans.modules.debugger.jpda.ant)' && node ./out/test/launchNbcode.js -J-Dnetbeans.close=true --modules --enable .*apisupport.ant",
-		"artifactory:check": "node ./esbuild.js --artifactory-check"
+		"artifactory:check": "node ./build-scripts.js --artifactory-check"
 	},
 	"devDependencies": {
 		"@istanbuljs/nyc-config-typescript": "^1.0.2",
@@ -1030,12 +1040,11 @@
 		"@types/node": "^18.19.64",
 		"@types/sinon": "^17.0.4",
 		"@types/vscode": "^1.84.0",
-		"@vscode/test-electron": "^2.5.2",
+		"@vscode/test-electron": "^3.1.0",
 		"chai": "^4.5.0",
-		"esbuild": "^0.25.3",
 		"glob": "^12.0.0",
 		"mocha": "^11.1.0",
-		"nyc": "^17.1.0",
+		"nyc": "^18.0.0",
 		"sinon": "^20.0.0",
 		"ts-mockito": "^2.6.1",
 		"ts-node": "^10.9.2",
@@ -1049,15 +1058,16 @@
 		"vscode-languageclient": "^9.0.1"
 	},
 	"overrides": {
-		"brace-expansion@5.x": "^5.0.5",
+		"brace-expansion@5.x": "^5.0.9",
 		"brace-expansion@2.x": {
-			".": "^2.0.3",
+			".": "^2.1.4",
 			"balanced-match": "^1.0.2"
 		},
 		"brace-expansion@1.x": {
-			".": "^1.1.13",
+			".": "^1.1.18",
 			"balanced-match": "^1.0.2"
 		},
+		"fast-uri@3.x": "^3.1.5",
 		"lodash@4.x": "^4.18.1",
 		"minimatch@10.x": "^10.2.4",
 		"minimatch@9.x": "^9.0.9",
@@ -1066,8 +1076,11 @@
 		"mocha": {
 			"diff": "^8.0.3",
 			"glob": "^10.5.0",
-			"js-yaml": "^4.1.1",
+			"js-yaml": "^4.3.0",
 			"serialize-javascript": "^7.0.5"
+		},
+		"nyc": {
+			"@babel/core@7.x": "^7.29.7"
 		},
 		"sinon": {
 			"diff": "^8.0.3"
@@ -1076,7 +1089,7 @@
 			"diff": "^4.0.4"
 		},
 		"@istanbuljs/load-nyc-config": {
-			"js-yaml": ">=3.14.2"
+			"js-yaml": "^4.3.0"
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024-2025, Oracle and/or its affiliates.
+  Copyright (c) 2024-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import { TelemetryPreference } from "../types";
 import { TELEMETRY_CONSENT_RESPONSE_TIME_KEY, TELEMETRY_CONSENT_VERSION_SCHEMA_KEY, TELEMETRY_SETTING_VALUE_KEY } from "../constants";
 import { TelemetryConfiguration } from "../config";
 import { LOGGER } from "../../logger";
-import { cacheServiceIndex } from "./cache";
+import { cacheServiceIndex } from "../../cache";
 
 export class TelemetrySettings {
   private isTelemetryEnabled: boolean;

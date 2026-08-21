@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2025, Oracle and/or its affiliates.
+  Copyright (c) 2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
   limitations under the License.
 */
 
-export type CacheValueObj<T> = {
-    type: string;
-    payload: T;
-    lastUsed: number;
-}
+import { trustProvider } from "../configurations/trustWorkspace";
+import { extCommands } from "./commands";
+import { ICommand } from "./types";
 
-export abstract class BaseCacheValue<T> {
-    public readonly lastUsed: number;
-
-    constructor(public readonly type: string, public readonly payload: T, lastUsed?: number) {
-        this.lastUsed = lastUsed ?? Date.now();
+export const registerTrustCommands: ICommand[] = [
+    {
+        command: extCommands.workspaceSettingsTrustDecisions,
+        handler: () => trustProvider.showWorkspaceSettingsTrust()
     }
-}
+];

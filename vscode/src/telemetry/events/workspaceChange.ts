@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2024-2025, Oracle and/or its affiliates.
+  Copyright (c) 2024-2026, Oracle and/or its affiliates.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ import { randomUUID } from "crypto";
 import { LOGGER } from "../../logger";
 import { Telemetry } from "../telemetry";
 import { BaseEvent } from "./baseEvent";
-import { cacheServiceIndex } from "../impl/cache";
-import { ProjectCacheValue } from "../impl/cache/projectCacheValue";
+import { cacheServiceIndex } from "../../cache";
+import { ProjectCacheValue } from "../../cache/projectCacheValue";
 
 interface ProjectInfo {
     id: string;
