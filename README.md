@@ -39,7 +39,7 @@ Java Platform extension from Oracle brings full-featured development support (ed
 2. Setting up the JDK
     - If no JDK is present in your system then the extension can set things up for you. For more details refer to [JDK Downloader](#jdk-downloader) section.
     - Set the VS Code `Settings | Jdk: Jdkhome` setting to point to the JDK that the Language Server will run on and also by default use for running and compiling projects.
-        - The extension requires JDK 17 or newer to run.
+        - The extension requires JDK 21 or newer to run.
     - Optionally, set a different JDK to compile and run projects in the `Settings | Jdk › Project: Jdkhome` setting.
         - By default, the __jdk.jdkhome__ setting is used. 
         - Projects can run on JDK 8 and above.
