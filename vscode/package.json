@@ -391,7 +391,6 @@
 					"jdk.advanced.disable.nbjavac": {
 						"type": "boolean",
 						"default": false,
-						"deprecationMessage": "This setting is temporarily hidden since it is currently unsupported for JDK 26 and early-access versions of JDK 27 and higher.",
 						"description": "%jdk.configuration.disableNbJavac.description%"
 					},
 					"jdk.advanced.disable.projectSearchLimit": {
@@ -1076,7 +1075,7 @@
 		"mocha": {
 			"diff": "^8.0.3",
 			"glob": "^10.5.0",
-			"js-yaml": "^4.3.0",
+			"js-yaml": "^4.3.1",
 			"serialize-javascript": "^7.0.5"
 		},
 		"nyc": {
@@ -1089,7 +1088,7 @@
 			"diff": "^4.0.4"
 		},
 		"@istanbuljs/load-nyc-config": {
-			"js-yaml": "^4.3.0"
+			"js-yaml": "^4.3.1"
 		}
 	}
 }
