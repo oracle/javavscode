@@ -1066,7 +1066,7 @@
 			".": "^1.1.18",
 			"balanced-match": "^1.0.2"
 		},
-		"fast-uri@3.x": "^3.1.7",
+		"fast-uri@3.x": "^3.1.8",
 		"lodash@4.x": "^4.18.1",
 		"minimatch@10.x": "^10.2.4",
 		"minimatch@9.x": "^9.0.9",
@@ -1075,11 +1075,12 @@
 		"mocha": {
 			"diff": "^8.0.3",
 			"glob": "^10.5.0",
-			"js-yaml": "^4.3.1",
+			"js-yaml": "^4.3.2",
 			"serialize-javascript": "^7.0.5"
 		},
 		"nyc": {
-			"@babel/core@7.x": "^7.29.7"
+			"@babel/core@7.x": "^7.29.7",
+			"browserslist@4.x": "^4.28.9"
 		},
 		"sinon": {
 			"diff": "^8.0.3"
@@ -1088,7 +1089,7 @@
 			"diff": "^4.0.4"
 		},
 		"@istanbuljs/load-nyc-config": {
-			"js-yaml": "^4.3.1"
+			"js-yaml": "^4.3.2"
 		}
 	}
 }
