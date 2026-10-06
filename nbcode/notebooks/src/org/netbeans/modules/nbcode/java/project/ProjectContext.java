@@ -105,7 +105,7 @@ public class ProjectContext {
             items.add(item);
         }
         String placeholder = defaultPrjSelected != null ? Bundle.LBL_CurrentProjectContext(defaultPrjSelected.getName())
-                : items.isEmpty() ? Bundle.MSG_NoProjectFound() : Bundle.MSG_NoProjectFound();
+                : items.isEmpty() ? Bundle.MSG_NoProjectFound() : Bundle.MSG_NoProjectContextFound();
 
         ShowQuickPickParams params = new ShowQuickPickParams(title, placeholder, false, items);
         return client.showQuickPick(params).thenApply(selected -> {

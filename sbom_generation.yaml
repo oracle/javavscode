@@ -11,18 +11,18 @@ shell: bash
 
 steps:
   - type: Command
-    name: "Install Java 17 "
+    name: "Install Java 21 "
     command: |
       uname -a
-      JDK_VERSION=17.0.19+10
-      JDK_TARFILE=`echo "OpenJDK17U-jdk_x64_linux_hotspot_$JDK_VERSION.tar.gz" | cut -d '+' --output-delimiter=_ -f 1-`
+      JDK_VERSION=21.0.12.1+1
+      JDK_TARFILE=`echo "OpenJDK21U-jdk_x64_linux_hotspot_$JDK_VERSION.tar.gz" | cut -d '+' --output-delimiter=_ -f 1-`
       # Download JDK
-      wget -O $JDK_TARFILE https://github.com/adoptium/temurin17-binaries/releases/download/jdk-$JDK_VERSION/$JDK_TARFILE
+      wget -O $JDK_TARFILE https://github.com/adoptium/temurin21-binaries/releases/download/jdk-$JDK_VERSION/$JDK_TARFILE
       # Verify sha sum
-      wget -O - https://github.com/adoptium/temurin17-binaries/releases/download/jdk-$JDK_VERSION/$JDK_TARFILE.sha256.txt | sha256sum -c -
+      wget -O - https://github.com/adoptium/temurin21-binaries/releases/download/jdk-$JDK_VERSION/$JDK_TARFILE.sha256.txt | sha256sum -c -
       # Extract JDK
       tar -xzf $JDK_TARFILE -C ${OCI_PRIMARY_SOURCE_DIR}
-      mv ${OCI_PRIMARY_SOURCE_DIR}/jdk-$JDK_VERSION ${OCI_PRIMARY_SOURCE_DIR}/jdk-17
+      mv ${OCI_PRIMARY_SOURCE_DIR}/jdk-$JDK_VERSION ${OCI_PRIMARY_SOURCE_DIR}/jdk-21
   - type: Command
     name: "Install Ant "
     command: |
@@ -77,7 +77,7 @@ steps:
   - type: Command
     name: "Build netbeans"
     command: |
-      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17
+      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-21
       export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/ant
       export PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$PATH
       ant apply-patches
@@ -85,7 +85,7 @@ steps:
   - type: Command
     name: "Build vscode extension "
     command: |
-      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-17
+      export JAVA_HOME=${OCI_PRIMARY_SOURCE_DIR}/jdk-21
       export ANT_HOME=${OCI_PRIMARY_SOURCE_DIR}/ant
       export PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$PATH
       ant build-lsp-server

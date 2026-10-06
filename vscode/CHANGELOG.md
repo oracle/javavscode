@@ -21,6 +21,28 @@
 -->
 # Change Log
 
+## Version 27.0.0
+### What's Changed
+#### Enhancements
+* Upgraded NetBeans to version 31 [#633](https://github.com/oracle/javavscode/pull/633)
+    * Key updates:
+        * Improved support and tooling for JDK 27
+        * Enhanced formatting options for newer Java language features
+        * Better stability in Java support
+    * Requires **JDK 21 or newer** to run the extension.
+        * Note that the `jdk.project.jdkhome` setting continues to support projects using **JDK 8 and above**.
+* Ability to use breakpoints inside individual lambdas while debugging [#571](https://github.com/oracle/javavscode/pull/571)
+
+#### Bug Fixes
+* Fixed notebook configuration for associating project context [#617](https://github.com/oracle/javavscode/pull/617)
+
+#### Other Changes
+* Re-enabled the `jdk.advanced.disable.nbjavac` setting in the VS Code settings UI [#638](https://github.com/oracle/javavscode/pull/638)
+* Upgraded outdated Node modules [#646](https://github.com/oracle/javavscode/pull/646), [#647](https://github.com/oracle/javavscode/pull/647)
+* Updated Oracle OpenJDK download URL to JDK 27 GA [#648](https://github.com/oracle/javavscode/pull/648)
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v26.0.2...v27.0.0
+
 ## Version 26.0.2
 ### What's Changed
 #### Other Changes

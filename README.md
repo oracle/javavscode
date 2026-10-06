@@ -39,7 +39,7 @@ Java Platform extension from Oracle brings full-featured development support (ed
 2. Setting up the JDK
     - If no JDK is present in your system then the extension can set things up for you. For more details refer to [JDK Downloader](#jdk-downloader) section.
     - Set the VS Code `Settings | Jdk: Jdkhome` setting to point to the JDK that the Language Server will run on and also by default use for running and compiling projects.
-        - The extension requires JDK 17 or newer to run.
+        - The extension requires JDK 21 or newer to run.
     - Optionally, set a different JDK to compile and run projects in the `Settings | Jdk › Project: Jdkhome` setting.
         - By default, the __jdk.jdkhome__ setting is used. 
         - Projects can run on JDK 8 and above.
@@ -280,12 +280,6 @@ The extension requests an additional trust decision from you, when the workspace
     2. If duplicated tags are found, remove the extra tags and attempt to compile again.
     3. Add the `--enable-preview` VM argument to the *exec-maven-plugin* or *maven-surefile-plugin* configurations if they are used for execution or test runs.
 2. The *Project: Test Project* command executes the project's tests but does not update the Testing or the Tests Results panels. The test output is present only in the Terminal or Debug Console panel.
-3. The `Jdk › Advanced › Disable: Nbjavac` setting (i.e. `jdk.advanced.disable.nbjavac`) cannot be enabled for JDK 26 and early-access versions of JDK 27 and higher.
-    - In order to use JDK 26 or experimental builds based on JDK 26, ensure that this setting is OFF. The extension already supports JDK 26 without this setting.
-    - In order to use early access builds of JDK 27 or higher, the `jdk.project.jdkhome` setting may be used. Most of the early access features of the JDK are expected to be supported.
-        1. Set `Settings | Jdk: Jdkhome` to point to JDK 26.
-        2. Set `Settings | Jdk › Project: Jdkhome` to point to the home-folder path of the early access JDK.
-        3. Ensure `Settings | Jdk › Advanced › Disable: Nbjavac` checkbox is not enabled.
 
 ## Telemetry
 
