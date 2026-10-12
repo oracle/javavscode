@@ -155,10 +155,21 @@ const notebookChangeProjectContextHandler = async (ctx: INotebookToolbar) => {
             if (!res) {
                 return;
             }
-            const oldValue = getConfigurationValue(configKeys.notebookProjectMapping, {});
-            updateConfigurationValue(configKeys.notebookProjectMapping,
-                { ...oldValue, [uri.fsPath]: res },
-                ConfigurationTarget.Workspace);
+            const oldValue = getConfigurationValue<Record<string, string>>(configKeys.notebookProjectMapping, {});
+            const newValue = { ...oldValue, [uri.fsPath]: res };
+
+            if (oldValue[uri.fsPath] !== newValue[uri.fsPath]) {
+                updateConfigurationValue(configKeys.notebookProjectMapping, newValue, ConfigurationTarget.Workspace);
+
+                const yes = l10n.value("jdk.extension.cache.label.confirmation.yes")
+                const cancel = l10n.value("jdk.extension.cache.label.confirmation.cancel")
+                const confirmation = await window.showWarningMessage(l10n.value("jdk.notebook.project.context.changed.restart.kernel.msg.consent"),
+                    yes, cancel);
+
+                if (confirmation === yes) {
+                    await restartKernel(ctx, true);
+                }
+            }
         } else {
             throw l10n.value("jdk.extension.error_msg.doesntSupportNotebookCellExecution", { client: client?.name });
         }
@@ -168,13 +179,13 @@ const notebookChangeProjectContextHandler = async (ctx: INotebookToolbar) => {
     }
 }
 
-const restartKernel = async (ctx: INotebookToolbar) => {
+const restartKernel = async (ctx: INotebookToolbar, skipConfirmation = false) => {
     try {
         const uri: Uri = ctx.notebookEditor.notebookUri;
 
         const yes = l10n.value("jdk.extension.cache.label.confirmation.yes")
         const cancel = l10n.value("jdk.extension.cache.label.confirmation.cancel")
-        const confirmation = await window.showWarningMessage(l10n.value("jdk.notebook.restart.kernel.msg.consent"),
+        const confirmation = skipConfirmation ? yes : await window.showWarningMessage(l10n.value("jdk.notebook.restart.kernel.msg.consent"),
             yes, cancel);
 
         if (confirmation === yes) {
