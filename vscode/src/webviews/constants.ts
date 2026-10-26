@@ -21,12 +21,11 @@ export namespace jdkDownloaderConstants {
   export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
 
   export const ORACLE_JDK_FALLBACK_VERSIONS: JdkVersionInfo[] = [
-    {version: '26', isLts: false},
-    {version: '25', isLts: true},
-    {version: '21', isLts: true}
+    {version: '27', isLts: false},
+    {version: '25', isLts: true}
   ];
 
   export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
-    "27": "https://download.java.net/java/GA/jdk27.0.1.0.2/924dbdccfc234bb9b9355d7c6b66034b/1/GPL/openjdk-27.0.1.0.2"
+    "27": "https://download.java.net/java/GA/jdk27.0.1.0.3/b14170c9b2de463d9b89442c6db3e384/1/GPL/openjdk-27.0.1.0.3"
   };  
 }
