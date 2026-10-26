@@ -24,7 +24,7 @@
 ## Version 27.0.1
 ### What's Changed
 #### Other Changes
-* Updated openjdk27 download URL to 27.0.1.0.2
+* Updated openjdk27 download URL to 27.0.1.0.3
 * Updated outdated dependencies
 
 **Full Changelog**: https://github.com/oracle/javavscode/compare/v27.0.0...v27.0.1
