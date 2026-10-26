@@ -21,9 +21,8 @@ export namespace jdkDownloaderConstants {
   export const ORACLE_JDK_BASE_DOWNLOAD_URL = `https://download.oracle.com/java`;
 
   export const ORACLE_JDK_FALLBACK_VERSIONS: JdkVersionInfo[] = [
-    {version: '26', isLts: false},
-    {version: '25', isLts: true},
-    {version: '21', isLts: true}
+    {version: '27', isLts: false},
+    {version: '25', isLts: true}
   ];
 
   export const OPEN_JDK_VERSION_DOWNLOAD_LINKS: { [key: string]: string } = {
