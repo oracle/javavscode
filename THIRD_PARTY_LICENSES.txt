@@ -324,7 +324,7 @@ ide/modules/ext/jline-24.0.0.jar                                      BSD-jline3
 ide/modules/ext/jniutils-24.0.0.jar                                   UPL
 ide/modules/ext/joni-2.2.6.jar                                        MIT-jruby
 ide/modules/ext/json-simple-1.1.1.jar                                 Apache-2.0
-ide/modules/ext/jsoup-1.15.4.jar                                      MIT-jsoup
+ide/modules/ext/jsoup-1.23.2.jar                                      MIT-jsoup
 ide/modules/ext/junixsocket-common-2.5.1.jar                          Apache-2.0
 ide/modules/ext/junixsocket-native-common-2.5.1.jar                   Apache-2.0
 ide/modules/ext/launcher-common-24.0.0.jar                            UPL
@@ -389,7 +389,7 @@ java/maven/lib/failureaccess-1.0.3.jar                                Apache-2.0
 java/maven/lib/failureaccess.license                                  Apache-2.0
 java/maven/lib/gson-2.13.2.jar                                        Apache-2.0
 java/maven/lib/gson.license                                           Apache-2.0
-java/maven/lib/guava-33.6.0-jre.jar                                   Apache-2.0
+java/maven/lib/guava-33.7.2-jre.jar                                   Apache-2.0
 java/maven/lib/guava.license                                          Apache-2.0
 java/maven/lib/guice-5.1.0-classes.jar                                Apache-2.0
 java/maven/lib/guice.license                                          Apache-2.0
