@@ -64,12 +64,12 @@
             patches/remove-db.diff
             patches/nbjavac-not-required.diff
             patches/dev-dependency-licenses.diff
-            patches/dev-library-dependency.diff
             patches/nb-telemetry.diff
             patches/change-method-parameters-refactoring-qualified-names.diff
             patches/updated-show-input-params.diff
             patches/java-notebooks.diff
             patches/formatOptions.diff
+            patches/update-netbeans-dependencies-oct26.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">
