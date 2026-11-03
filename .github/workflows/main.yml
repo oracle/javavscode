@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        java: [ '21' ]
+        java: [ '25' ]
         os: [ ubuntu-latest ]
       fail-fast: false
     runs-on: ${{ matrix.os }}
@@ -56,6 +56,14 @@ jobs:
         with:
           persist-credentials: false
           submodules: true
+
+      # add g1 certificate pending further review; the certificate is needed to access https://netbeans.osuosl.org
+      # Note – careful attention should be paid to the status of this certificate going forward and use of this certificate is not recommended without consideration.
+      - name: Update certificates
+        run: |
+            wget https://repository.emsign.com/certs/emSignRootCAG1.crt
+            keytool -printcert -file emSignRootCAG1.crt | grep "SHA256: 40:F6:AF:03:46:A9:9A:A1:CD:1D:55:5A:4E:9C:CE:62:C7:F9:63:46:03:EE:40:66:15:83:3D:C8:C8:D0:03:67" || echo "wrong certificate"
+            keytool -importcert -cacerts -file emSignRootCAG1.crt -alias "emsignrootcag1 [jdk]" -noprompt
 
       - name: Apply NetBeans patches
         run: ant apply-patches
