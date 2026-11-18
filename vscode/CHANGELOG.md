@@ -21,6 +21,14 @@
 -->
 # Change Log
 
+## Version 27.0.1
+### What's Changed
+#### Other Changes
+* Updated openjdk27 download URL to 27.0.1.1
+* Updated outdated dependencies
+
+**Full Changelog**: https://github.com/oracle/javavscode/compare/v27.0.0...v27.0.1
+
 ## Version 27.0.0
 ### What's Changed
 #### Enhancements

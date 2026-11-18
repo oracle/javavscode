@@ -69,6 +69,7 @@
             patches/updated-show-input-params.diff
             patches/java-notebooks.diff
             patches/formatOptions.diff
+            patches/update-netbeans-dependencies-oct26.diff
         </string>
         <filterchain>
             <tokenfilter delimoutput=" ">

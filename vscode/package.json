@@ -1057,16 +1057,12 @@
 		"vscode-languageclient": "^9.0.1"
 	},
 	"overrides": {
-		"brace-expansion@5.x": "^5.0.9",
+		"brace-expansion@5.x": "^5.0.12",
 		"brace-expansion@2.x": {
-			".": "^2.1.4",
+			".": "^2.1.7",
 			"balanced-match": "^1.0.2"
 		},
-		"brace-expansion@1.x": {
-			".": "^1.1.18",
-			"balanced-match": "^1.0.2"
-		},
-		"fast-uri@3.x": "^3.1.8",
+		"fast-uri@3.x": "^3.1.9",
 		"lodash@4.x": "^4.18.1",
 		"minimatch@10.x": "^10.2.4",
 		"minimatch@9.x": "^9.0.9",
@@ -1076,7 +1072,7 @@
 			"diff": "^8.0.3",
 			"glob": "^10.5.0",
 			"js-yaml": "^4.3.2",
-			"serialize-javascript": "^7.0.5"
+			"serialize-javascript": "^7.1.4"
 		},
 		"nyc": {
 			"@babel/core@7.x": "^7.29.7",
