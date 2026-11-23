@@ -13,7 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-import { OutputChannel, window } from "vscode";
+import { LogOutputChannel, window } from "vscode";
 import { extConstants } from "./constants";
 import { isError } from "./utils";
 
@@ -25,11 +25,11 @@ enum LogLevel {
 }
 
 export class ExtensionLogger {
-    private outChannel: OutputChannel;
+    private outChannel: LogOutputChannel;
     private isDebugLogEnabled: boolean;
 
     constructor(channelName: string) {
-        this.outChannel = window.createOutputChannel(channelName);
+        this.outChannel = window.createOutputChannel(channelName, { log: true });
         this.isDebugLogEnabled = process.env['oracle_oracleJava_enable_debugLogs'] === "true";
     }
 
@@ -72,7 +72,7 @@ export class ExtensionLogger {
         this.outChannel.show(show);
     }
     
-    public getOutputChannel(): OutputChannel {
+    public getOutputChannel(): LogOutputChannel {
         return this.outChannel;
     }
 

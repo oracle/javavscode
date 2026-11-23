@@ -39,9 +39,10 @@ const mockCreateWebViewPanel = () => {
 } 
 
 const mockCreateOutputChannel = () => {
-    const mockedOutputChannel = mock<vscode.OutputChannel>();
+    const mockedOutputChannel = mock<vscode.LogOutputChannel>();
     when(mockedWindow.createOutputChannel(
-        anyString()
+        anyString(),
+        anything()
     )).thenReturn(instance(mockedOutputChannel));
 } 
 

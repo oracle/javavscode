@@ -32,7 +32,7 @@
 		"multiroot"
 	],
 	"engines": {
-		"vscode": "^1.84.0"
+		"vscode": "^1.91.0"
 	},
 	"activationEvents": [
 		"onLanguage:java",
@@ -1038,11 +1038,11 @@
 		"@types/mocha": "^10.0.10",
 		"@types/node": "^18.19.64",
 		"@types/sinon": "^17.0.4",
-		"@types/vscode": "^1.84.0",
+		"@types/vscode": "^1.91.0",
 		"@vscode/test-electron": "^3.1.0",
 		"chai": "^4.5.0",
-		"glob": "^12.0.0",
-		"mocha": "^11.1.0",
+		"glob": "^14.0.6",
+		"mocha": "^12.0.3",
 		"nyc": "^18.0.0",
 		"sinon": "^20.0.0",
 		"ts-mockito": "^2.6.1",
@@ -1054,29 +1054,29 @@
 		"@vscode/debugadapter": "^1.68.0",
 		"ajv": "^8.18.0",
 		"jsonc-parser": "3.3.1",
-		"vscode-languageclient": "^9.0.1"
+		"vscode-languageclient": "^11.0.1"
 	},
 	"overrides": {
-		"brace-expansion@5.x": "^5.0.12",
-		"brace-expansion@2.x": {
-			".": "^2.1.7",
-			"balanced-match": "^1.0.2"
+		"test-exclude": {
+			"glob": "^14.0.6",
+			"minimatch": "^11.0.9"
 		},
+		"brace-expansion@5.x": "^5.0.13",
 		"fast-uri@3.x": "^3.1.9",
 		"lodash@4.x": "^4.18.1",
-		"minimatch@10.x": "^10.2.4",
-		"minimatch@9.x": "^9.0.9",
-		"minimatch@5.x": "^5.1.9",
-		"minimatch@3.x": "^3.1.5",
+		"minimatch@11.x": "^11.0.9",
+		"minimatch@10.x": "^10.2.6",
 		"mocha": {
 			"diff": "^8.0.3",
-			"glob": "^10.5.0",
+			"glob": "^14.0.6",
+			"minimatch": "^11.0.9",
 			"js-yaml": "^4.3.2",
 			"serialize-javascript": "^7.1.4"
 		},
 		"nyc": {
-			"@babel/core@7.x": "^7.29.7",
-			"browserslist@4.x": "^4.28.9"
+			"glob": "^14.0.6",
+			"@babel/core@7.x": "^7.29.13",
+			"browserslist@4.x": "^4.29.6"
 		},
 		"sinon": {
 			"diff": "^8.0.3"
