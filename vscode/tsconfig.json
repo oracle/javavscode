@@ -1,6 +1,8 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
+		"module": "Node16",
+		"moduleResolution": "Node16",
+		"esModuleInterop": false,
 		"target": "es6",
 		"outDir": "out",
 		"lib": [
